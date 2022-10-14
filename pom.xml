@@ -154,14 +154,14 @@
 
     <distributionManagement>
         <repository>
-            <id>maven-sflex-releases</id>
-            <name>sflex-release</name>
-            <url>http://nexus.kyowon.co.kr/repository/maven-hosted-sflex-releases/</url>
+            <id>maven-sms-releases</id>
+            <name>sms-release</name>
+            <url>http://nexus.kyowon.co.kr/repository/maven-hosted-sms-releases/</url>
         </repository>
         <snapshotRepository>
-            <id>maven-sflex-snapshots</id>
-            <name>sflex-snapshot</name>
-            <url>http://nexus.kyowon.co.kr/repository/maven-hosted-sflex-snapshots/</url>
+            <id>maven-sms-snapshots</id>
+            <name>sms-snapshot</name>
+            <url>http://nexus.kyowon.co.kr/repository/maven-hosted-sms-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
