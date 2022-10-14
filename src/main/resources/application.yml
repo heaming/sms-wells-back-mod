@@ -1,0 +1,171 @@
+server:
+    port: 8080
+    servlet:
+        session:
+            tracking-modes: cookie
+        encoding:
+            force: true
+
+sflex:
+    file:
+        path:
+            physical: c:/nas/gatch/
+            temp: c:/nas/gatch/temp/
+            export: c:/nas/gatch/export/
+        thumbnail:
+            width: 120
+            height: 120
+        delete:
+            enabled: true
+        multipart:
+            maxUploadSize: 52428800
+            maxUploadSizePerFile: 52428800
+    security:
+        fileCoder:
+            qualifier: AESFileCoder
+            secretKey: SflexpKGseed8957Jw8xcO3dkXxcop49
+        passwordCoder:
+            qualifier: SHAPasswordCoder
+        messageCoder:
+            qualifier: AESMessageCoder
+            secretKey: SflexpKGseed8957Jw8xcO3dkXxcop49
+    authentication:
+        passwordCheck: false
+        # session | token
+        method: session
+        tokenProvider:
+            qualifier: JWTTokenProvider
+        token:
+            # header | cookie
+            bearer: cookie
+            secretKey: sflex39384
+            expireTime: 14400000
+            # bearer가 cookie인 경우만 사용가능
+            slidingSessionInTime: 1800000
+    authorization:
+        dataServiceIdCheck:
+            ignoreApi: all
+        #      ignoreApi: /api/v1/common/security/login,/api/v1/common/pages,/api/v1/common/meta,/api/v1/common/portal
+        pageRoleCheck: false
+        dataServiceRoleCheck: false
+        cors:
+            accessControlAllowOrigin: "*"
+    logging:
+        login: true
+        page: false
+        dataService: false
+        menu: false
+        exception: false
+    server:
+        timezone: Asia/Seoul
+    tableHistory:
+        realtime: false
+    query:
+        maxSize: 5000
+    sap:
+        rfcDirectApi: /api/v1/common/rfc-direct
+
+portal:
+    defaultId: DEF
+    login:
+        simple:
+            enabled: true
+            url: http://localhost:8080/certification/{portal-id}/simpleLogin.html
+        default:
+            url: http://localhost:8080/certification/{portal-id}/simpleLogin.html
+        welcome:
+            enabled: true
+            url: http://localhost:8080/certification/welcome.html
+    main:
+        url: http://localhost:8081/index.html
+
+tenant:
+    defaultId: TNT_BASE
+
+spring:
+    application:
+        name: SMS-WELLS-MOD
+    servlet:
+        multipart:
+            enabled: false
+    mybatis:
+        common:
+            config: classpath:mybatis/config/mybatis-config.xml
+            mapper: classpath*:mybatis/sql/**/*.xml
+            interval: 1000
+    devtools:
+        restart:
+            exclude: mybatis/sql/**/*.xml
+    output:
+        ansi:
+            enabled: always
+    redis:
+        database: 1
+        port: 6379
+        host: 10.1.177.48
+        password: ''
+        lettuce:
+            pool:
+                max-active: 10
+                max-idle: 10
+                min-idle: 2
+    mvc:
+        pathmatch:
+            matching-strategy: ant_path_matcher
+
+datasource:
+    ########### DEV #######################
+    pri:
+        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.29:1515/DITGKW
+        username: WSMDEV
+        password: WSM#DEV1249##
+        maximumpoolsize: 3
+        auto-commit: false
+        cacheprepstmts: true
+        prepstmtcachesize: 250
+        prepstmtcachesqlLimit: 2048
+    sec:
+        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.29:1515/DITGKW
+        username: WSMDEV
+        password: WSM#DEV1249##
+        maximumpoolsize: 3
+        auto-commit: false
+        cacheprepstmts: true
+        prepstmtcachesize: 250
+        prepstmtcachesqlLimit: 2048
+
+############## LOGGING Setting ############
+logging:
+    path: ${user.home}/log
+    level:
+        root: info
+        com.sds: debug
+        org.mybatis: error
+        jdbc.sqlonly: off
+        jdbc.sqltiming: info
+        jdbc.audit: error
+        jdbc.resultset: off
+        jdbc.resultsettable: debug
+        jdbc.connection: error
+        org.thymeleaf: error
+
+instance:
+    hostname: localhost
+
+
+sms:
+    cdrId:
+        sms: edusms
+        mms: edumms
+    smsSystCd: KSSE
+    rfslGrpCd: KSSE
+    callback: 15776688
+kakao:
+    cdrId:
+        small: edu
+        big: edubigsms
+    systIdInfoNm: KSSE
+    rfslGrpCode: 11 # SMS 수신 거부 그룹 코드 11:에듀, 13:하이퍼센트, 14:구몬, 15:WELLS, 16:라이프, 19:호텔
+    callback: 15776688
