@@ -144,7 +144,6 @@ datasource:
 
 ############## LOGGING Setting ############
 logging:
-    path: ${user.home}/log
     level:
         root: info
         com.sds: debug
