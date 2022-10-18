@@ -101,8 +101,14 @@ spring:
             enabled: always
     redis:
         database: 1
-        port: 6379
-        host: 10.1.199.5
+        host:
+            server1: 10.1.199.5
+            server2: 10.1.199.5
+            server3: 10.1.199.5
+        port:
+            server1: 5300
+            server2: 5301
+            server3: 5302
         password: 'OtLKsonzcHIHGAbpOico781K'
         lettuce:
             pool:
