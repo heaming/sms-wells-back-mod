@@ -76,6 +76,8 @@ portal:
         welcome:
             enabled: true
             url: http://localhost:8080/certification/welcome.html
+    ssoLogout:
+        url: http://localhost:8080/certification/sso/sso-service?pname=spLogout
     main:
         url: http://localhost:8081/index.html
 
