@@ -164,19 +164,3 @@ logging:
 
 instance:
     hostname: localhost
-
-
-sms:
-    cdrId:
-        sms: edusms
-        mms: edumms
-    smsSystCd: KSSE
-    rfslGrpCd: KSSE
-    callback: 15776688
-kakao:
-    cdrId:
-        small: edu
-        big: edubigsms
-    systIdInfoNm: KSSE
-    rfslGrpCode: 11 # SMS 수신 거부 그룹 코드 11:에듀, 13:하이퍼센트, 14:구몬, 15:WELLS, 16:라이프, 19:호텔
-    callback: 15776688
