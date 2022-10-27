@@ -15,6 +15,18 @@
     <name>sms-wells-back-mod</name>
 
     <properties>
+
+        <!-- 프로젝트 정보 -->
+        <sonar.projectKey>sms-wells-back-mod</sonar.projectKey>
+        <sonar.projectName>sms-wells-back-mod</sonar.projectName>
+        <sonar.projectVersion>1.0.0</sonar.projectVersion>
+
+        <!-- 소스 코드 정보 -->
+        <sonar.sources>src/main/java</sonar.sources>
+        <sonar.java.binaries>target/classes</sonar.java.binaries>
+        <sonar.java.source>17</sonar.java.source>
+        <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>17</java.version>
