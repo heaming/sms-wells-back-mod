@@ -20,6 +20,6 @@ public class EozwSampleController {
     @GetMapping
     public List<String> getSampleData() {
         System.out.println("===> TEST LOG");
-        return List.of("TEST1", "TEST2", "TEST3", "TEST4");
+        return List.of("TEST1", "TEST2", "TEST3");
     }
 }
