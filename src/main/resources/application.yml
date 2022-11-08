@@ -103,11 +103,11 @@ spring:
             enabled: always
     redis:
         database: 1
-        host:
+        sentinelHost:
             server1: 10.1.199.5
             server2: 10.1.199.5
             server3: 10.1.199.5
-        port:
+        sentinelPort:
             server1: 5300
             server2: 5301
             server3: 5302
