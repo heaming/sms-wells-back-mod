@@ -64,6 +64,8 @@ sflex:
         maxSize: 5000
     sap:
         rfcDirectApi: /api/v1/common/rfc-direct
+    sso:
+        use: false
 
 portal:
     defaultId: WEB_ADM
@@ -117,6 +119,7 @@ spring:
                 max-active: 10
                 max-idle: 10
                 min-idle: 2
+        ttl: 60
     mvc:
         pathmatch:
             matching-strategy: ant_path_matcher
