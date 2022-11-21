@@ -55,6 +55,8 @@ sflex:
         rfcDirectApi: /api/v1/common/rfc-direct
     sso:
         use: false
+    cubeone:
+        useYn: N
 
 portal:
     defaultId: WEB_ADM
