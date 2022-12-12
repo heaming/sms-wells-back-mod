@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncZipMngtMapper">
+    <select id="selectZipAssignments"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncZipMngtDto$SearchZipCodeRes">
+        SELECT TB.*
+          FROM (
+                SELECT TB_1.NEW_ADR_ZIP           AS NEW_ADR_ZIP            /* 신주소우편번호 */
+                     , TB_1.CTPV_NM               AS CTPV_NM                /* 시도명 */
+                     , TB_1.CTCTY_NM              AS CTCTY_NM               /* 시군구명 */
+                     , TB_1.EMD_NM                AS EMD_NM                 /* 읍면동명 */
+                     , TB_1.LTN_ADR               AS LTN_ADR                /* 지번주소 */
+                     , TB_1.LGLD_CD               AS LGLD_CD                /* 법정동코드 */
+                     , TB_1.LGLD_NM               AS LGLD_NM                /* 법정동명 */
+                     , TB_1.LOCARA_TNO            AS LOCARA_TNO             /* 지역전화번호 */
+                     , TB_1.ISLND_LOCARA_YN       AS ISLND_LOCARA_YN        /* 도서지역여부 */
+                     , TB_1.OLD_ADR_ZIP           AS OLD_ADR_ZIP            /* 구주소우편번호 */
+                     , TB_1.DTA_DL_YN             AS DTA_DL_YN              /* 데이터삭제여부 */
+                     , TB_2.CH_SN                 AS CH_SN                  /* 변경일련번호 */
+                     , TB_2.VST_PRD_VAL           AS VST_PRD_VAL            /* 방문주기값 */
+                     , TB_2.MNGER_RGLVL_DV_CD     AS MNGER_RGLVL_DV_CD      /* 매니저급지구분코드 */
+                     , TB_2.MNGR_DV_CD            AS MNGR_DV_CD             /* 관리자구분코드 */
+                     , TB_2.BRCH_OG_ID            AS BRCH_OG_ID             /* 지점조직ID */
+                     , TB_2.BFSVC_ICHR_PRTNR_NO   AS BFSVC_ICHR_PRTNR_NO    /* BS담당파트너번호 */
+                     , TB_2.USE_YN                AS USE_YN                 /* 사용여부 */
+                     , TB_2.FST_RGST_DTM          AS FST_RGST_DTM           /* 최초등록일시 */
+                     , TB_2.FST_RGST_USR_ID       AS FST_RGST_USR_ID        /* 최초등록사용자ID */
+                     , TB_2.FST_RGST_PRG_ID       AS FST_RGST_PRG_ID        /* 최초등록프로그램ID */
+                     , TB_2.FST_RGST_DEPT_ID      AS FST_RGST_DEPT_ID       /* 최초등록부서ID */
+                     , TB_2.FNL_MDFC_DTM          AS FNL_MDFC_DTM           /* 최종수정일시 */
+                     , TB_2.FNL_MDFC_USR_ID       AS FNL_MDFC_USR_ID        /* 최종수정사용자ID */
+                     , TB_2.FNL_MDFC_PRG_ID       AS FNL_MDFC_PRG_ID        /* 최종수정프로그램ID */
+                     , TB_2.FNL_MDFC_DEPT_ID      AS FNL_MDFC_DEPT_ID       /* 최종수정부서ID */
+                  FROM TB_GBCO_ZIP_BAS TB_1
+                     , TB_SVPD_LOCARA_BFSVC_OGMGR_IZ TB_2
+                 WHERE 1=1
+                   AND TB_1.NEW_ADR_ZIP = TB_2.NEW_ADR_ZIP (+)
+                   AND TB_2.USE_YN (+) = 'Y' /* USE_YN = 'Y'인 데이터는 NEW_ADR_ZIP건당 1건만 존재 */
+
+                <if test='@MybatisUtils@isNotEmpty(zipFrom) or @MybatisUtils@isNotEmpty(zipTo)'>
+                   AND TB_1.NEW_ADR_ZIP BETWEEN LPAD(SUBSTR(NVL(#{zipFrom}, '00000'), 1, 5), 5, '0') AND LPAD(SUBSTR(NVL(#{zipTo}, '99999'), 1, 5), 5, '0')
+                </if>
+
+                <choose>
+                    <when test="@MybatisUtils@isNotEmpty(ctpvCtctyEmdDvCd) and @MybatisUtils@isNotEmpty(ctpvCtctyEmdNm)">
+                        <choose>
+                            <when test='@MybatisUtils@equals(ctpvCtctyEmdDvCd, "A")'>
+                                AND TB_1.CTPV_NM LIKE '%' || #{ctpvCtctyEmdNm} || '%'
+                            </when>
+                            <when test='@MybatisUtils@equals(ctpvCtctyEmdDvCd, "B")'>
+                                AND TB_1.CTCTY_NM LIKE '%' || #{ctpvCtctyEmdNm} || '%'
+                            </when>
+                            <when test='@MybatisUtils@equals(ctpvCtctyEmdDvCd, "C")'>
+                                AND TB_1.EMD_NM LIKE '%' || #{ctpvCtctyEmdNm} || '%'
+                            </when>
+                        </choose>
+                    </when>
+                    <when test="@MybatisUtils@isEmpty(ctpvCtctyEmdDvCd) and @MybatisUtils@isNotEmpty(ctpvCtctyEmdNm)">
+                        AND (TB_1.CTPV_NM LIKE '%' || #{ctpvCtctyEmdNm} || '%' OR TB_1.CTCTY_NM LIKE '%' || #{ctpvCtctyEmdNm} || '%' OR TB_1.EMD_NM LIKE '%' || #{ctpvCtctyEmdNm} || '%')
+                    </when>
+                </choose>
+
+               ) TB
+         WHERE 1=1
+        <choose>
+            <when test="@MybatisUtils@isNotEmpty(mngrDvCd)">
+                <choose>
+                    <when test="@MybatisUtils@equals(mngrDvCd, 'NOTMATCH')">
+                        AND TB.MNGR_DV_CD IS NULL
+                    </when>
+                    <otherwise>
+                        AND TB.MNGR_DV_CD = #{mngrDvCd}
+                    </otherwise>
+                </choose>
+            </when>
+        </choose>
+
+        <choose>
+            <when test="@MybatisUtils@isNotEmpty(vstPrdVal)">
+                <choose>
+                    <when test="@MybatisUtils@equals(vstPrdVal, 'NOTMATCH')">
+                        AND TB.VST_PRD_VAL IS NULL
+                    </when>
+                    <otherwise>
+                        AND TB.VST_PRD_VAL = #{vstPrdVal}
+                    </otherwise>
+                </choose>
+            </when>
+        </choose>
+
+        <choose>
+            <when test="@MybatisUtils@isNotEmpty(mngerRglvlDvCd)">
+                <choose>
+                    <when test="@MybatisUtils@equals(mngerRglvlDvCd, 'NOTMATCH')">
+                        AND TB.MNGER_RGLVL_DV_CD IS NULL
+                    </when>
+                    <otherwise>
+                        AND TB.MNGER_RGLVL_DV_CD = #{mngerRglvlDvCd}
+                    </otherwise>
+                </choose>
+            </when>
+        </choose>
+      ORDER BY TB.NEW_ADR_ZIP
+    </select>
+
+    <update id="updateZipAssignments">
+        UPDATE TB_SVPD_LOCARA_BFSVC_OGMGR_IZ
+           SET USE_YN               = 'N'
+             , FNL_MDFC_PRG_ID      = 'PGE_SNB_00001'
+             , FNL_MDFC_DEPT_ID     = #{session.departmentId}
+         WHERE 1=1
+           AND NEW_ADR_ZIP = #{newAdrZip}
+           AND CH_SN = #{chSn}
+    </update>
+
+    <insert id="insertZipAssignments">
+        INSERT INTO TB_SVPD_LOCARA_BFSVC_OGMGR_IZ(
+              NEW_ADR_ZIP
+            , CH_SN
+            , VST_PRD_VAL
+            , MNGER_RGLVL_DV_CD
+            , MNGR_DV_CD
+            , BRCH_OG_ID
+            , BFSVC_ICHR_PRTNR_NO
+            , USE_YN
+            , FST_RGST_DTM
+            , FST_RGST_USR_ID
+            , FST_RGST_PRG_ID
+            , FST_RGST_DEPT_ID
+            , FNL_MDFC_DTM
+            , FNL_MDFC_USR_ID
+            , FNL_MDFC_PRG_ID
+            , FNL_MDFC_DEPT_ID
+        ) VALUES (
+              #{newAdrZip}
+            , (
+               SELECT NVL(MAX(TEMP.CH_SN) + 1, 1) AS CH_SN
+                 FROM TB_SVPD_LOCARA_BFSVC_OGMGR_IZ TEMP
+                WHERE 1=1
+                  AND TEMP.NEW_ADR_ZIP = #{newAdrZip}
+              )
+            , #{vstPrdVal}
+            , #{mngerRglvlDvCd}
+            , #{mngrDvCd}
+            , #{brchOgId}
+            , #{bfsvcIchrPrtnrNo}
+            , 'Y'
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{session.userId}
+            , 'PGE_SNB_00001'
+            , #{session.departmentId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{session.userId}
+            , 'PGE_SNB_00001'
+            , #{session.departmentId}
+        )
+    </insert>
+</mapper>
