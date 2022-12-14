@@ -23,7 +23,7 @@ import java.util.List;
 @Api(tags = "[WSNC] 우편번호 관리")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service")
+@RequestMapping(CommConst.REST_URL_V1 + "/sms/wells/service/zip-assignments")
 public class WsncZipMngtController {
 
     private final WsncZipMngtService wsncZipMngtService;
@@ -38,7 +38,7 @@ public class WsncZipMngtController {
         @ApiImplicitParam(name = "vstPrdVal", value = "방문주기", paramType = "query", required = false),
         @ApiImplicitParam(name = "mngerRglvlDvCd", value = "급지구분(1: 1급지, 2: 2급지, 3: 3급지)", paramType = "query", required = false)
     })
-    @GetMapping("/zip-assignments/paging")
+    @GetMapping("/paging")
     public PagingResult<WsncZipMngtDto.SearchZipCodeRes> getZipAssignments(
         WsncZipMngtDto.SearchZipCodeReq dto, @Valid
         PageInfo pageInfo
@@ -47,7 +47,7 @@ public class WsncZipMngtController {
     }
 
     @ApiOperation(value = "우편번호 관리 화면 - 우편번호 등록 및 수정", notes = "우편번호별 관리정보 저장")
-    @PostMapping("/zip-assignments")
+    @PostMapping
     public SaveResponse saveZipAssignments(
         @Valid
         @RequestBody
