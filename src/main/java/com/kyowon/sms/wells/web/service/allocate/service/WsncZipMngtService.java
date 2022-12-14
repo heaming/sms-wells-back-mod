@@ -28,18 +28,18 @@ public class WsncZipMngtService {
     }
 
     @Transactional
-    public int saveZipAssignments(List<WsncZipMngtDto.SearchZipCodeResReq> dtos) throws Exception {
+    public int saveZipAssignments(List<WsncZipMngtDto.SaveZipCodeReq> dtos) throws Exception {
         int processCnt = 0;
-        for (WsncZipMngtDto.SearchZipCodeResReq dto : dtos) {
+        for (WsncZipMngtDto.SaveZipCodeReq dto : dtos) {
             WsncZipMngtDvo dvo = wsncZipMngtConverter.mapZipCodeResReqToWsncZipMngtDvo(dto);
 
             //update (USE_YN = 'N' setting)
             if (StringUtils.isNotEmpty(dvo.getChSn())) {
-                wsncZipMngtMapper.updateZipAssignments(dvo);
+                wsncZipMngtMapper.updateZipAssignment(dvo);
             }
 
             //insert (CH_SN 채번 후 insert)
-            wsncZipMngtMapper.insertZipAssignments(dvo);
+            wsncZipMngtMapper.insertZipAssignment(dvo);
             processCnt++;
         }
         return processCnt;

@@ -12,7 +12,7 @@ public interface WsncZipMngtMapper {
         WsncZipMngtDto.SearchZipCodeReq dto, PageInfo pageInfo
     );
 
-    int updateZipAssignments(WsncZipMngtDvo dvo);
+    int updateZipAssignment(WsncZipMngtDvo dvo);
 
-    int insertZipAssignments(WsncZipMngtDvo dvo);
+    int insertZipAssignment(WsncZipMngtDvo dvo);
 }

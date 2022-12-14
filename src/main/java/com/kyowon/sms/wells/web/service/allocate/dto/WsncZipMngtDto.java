@@ -59,7 +59,7 @@ public class WsncZipMngtDto {
     ) {}
 
     @ApiModel(value = "WsncZipMngtDto-SearchZipCodeResReq")
-    public record SearchZipCodeResReq(
+    public record SaveZipCodeReq(
         @NotBlank
         String rowState,
         String newAdrZip, /* 신주소우편번호 */

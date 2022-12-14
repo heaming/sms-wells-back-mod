@@ -103,17 +103,16 @@
       ORDER BY TB.NEW_ADR_ZIP
     </select>
 
-    <update id="updateZipAssignments">
+    <update id="updateZipAssignment">
         UPDATE TB_SVPD_LOCARA_BFSVC_OGMGR_IZ
            SET USE_YN               = 'N'
-             , FNL_MDFC_PRG_ID      = 'PGE_SNB_00001'
-             , FNL_MDFC_DEPT_ID     = #{session.departmentId}
+               <include refid="COMMON.updateSystemField"/>
          WHERE 1=1
            AND NEW_ADR_ZIP = #{newAdrZip}
            AND CH_SN = #{chSn}
     </update>
 
-    <insert id="insertZipAssignments">
+    <insert id="insertZipAssignment">
         INSERT INTO TB_SVPD_LOCARA_BFSVC_OGMGR_IZ(
               NEW_ADR_ZIP
             , CH_SN
@@ -123,14 +122,7 @@
             , BRCH_OG_ID
             , BFSVC_ICHR_PRTNR_NO
             , USE_YN
-            , FST_RGST_DTM
-            , FST_RGST_USR_ID
-            , FST_RGST_PRG_ID
-            , FST_RGST_DEPT_ID
-            , FNL_MDFC_DTM
-            , FNL_MDFC_USR_ID
-            , FNL_MDFC_PRG_ID
-            , FNL_MDFC_DEPT_ID
+              <include refid="COMMON.insertSystemField"/>
         ) VALUES (
               #{newAdrZip}
             , (
@@ -145,14 +137,7 @@
             , #{brchOgId}
             , #{bfsvcIchrPrtnrNo}
             , 'Y'
-            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
-            , #{session.userId}
-            , 'PGE_SNB_00001'
-            , #{session.departmentId}
-            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
-            , #{session.userId}
-            , 'PGE_SNB_00001'
-            , #{session.departmentId}
+              <include refid="COMMON.insertSystemFieldValue"/>
         )
     </insert>
 </mapper>

@@ -52,7 +52,7 @@ public class WsncZipMngtController {
         @Valid
         @RequestBody
         @NotEmpty
-        List<WsncZipMngtDto.SearchZipCodeResReq> dtos
+        List<WsncZipMngtDto.SaveZipCodeReq> dtos
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(wsncZipMngtService.saveZipAssignments(dtos))
