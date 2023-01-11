@@ -1,10 +1,8 @@
 package com.kyowon.sms.wells.web.service.allocate.dto;
 
-import com.sds.sflex.common.utils.DbEncUtil;
-import io.swagger.annotations.ApiModel;
-import org.apache.commons.lang.StringUtils;
-
 import javax.validation.constraints.NotBlank;
+
+import io.swagger.annotations.ApiModel;
 
 public class WsncZipMngtDto {
     // *********************************************************
@@ -42,7 +40,6 @@ public class WsncZipMngtDto {
         String oldAdrZip, /* 구주소우편번호 */
         String dtaDlYn, /* 데이터삭제여부 */
         String chSn, /* 변경일련번호 */
-        String vstPrdVal, /* 방문주기값 */
         String mngerRglvlDvCd, /* 매니저급지구분코드 */
         String mngrDvCd, /* 관리자구분코드 */
         String brchOgId, /* 지점조직ID */

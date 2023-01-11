@@ -17,7 +17,6 @@
                      , TB_1.OLD_ADR_ZIP           AS OLD_ADR_ZIP            /* 구주소우편번호 */
                      , TB_1.DTA_DL_YN             AS DTA_DL_YN              /* 데이터삭제여부 */
                      , TB_2.CH_SN                 AS CH_SN                  /* 변경일련번호 */
-                     , TB_2.VST_PRD_VAL           AS VST_PRD_VAL            /* 방문주기값 */
                      , TB_2.MNGER_RGLVL_DV_CD     AS MNGER_RGLVL_DV_CD      /* 매니저급지구분코드 */
                      , TB_2.MNGR_DV_CD            AS MNGR_DV_CD             /* 관리자구분코드 */
                      , TB_2.BRCH_OG_ID            AS BRCH_OG_ID             /* 지점조직ID */
