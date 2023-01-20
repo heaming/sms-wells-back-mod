@@ -1,24 +1,24 @@
 package com.kyowon.sms.wells.web.service.allocate.rest;
 
+import java.util.List;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
-import com.sds.sflex.system.config.constant.CommConst;
-import com.sds.sflex.system.config.response.SaveResponse;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncZipMngtDto;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncZipMngtService;
+import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
 import com.sds.sflex.system.config.datasource.PagingResult;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-
-import java.util.List;
 
 @Api(tags = "[WSNC] 우편번호 관리")
 @RequiredArgsConstructor
@@ -35,7 +35,6 @@ public class WsncZipMngtController {
         @ApiImplicitParam(name = "ctpvCtctyEmdDvCd", value = "주소구분", paramType = "query", required = false),
         @ApiImplicitParam(name = "ctpvCtctyEmdNm", value = "주소", paramType = "query", required = false),
         @ApiImplicitParam(name = "mngrDvCd", value = "관리구분(1 : 매니저, 2 : 엔지니어)", paramType = "query", required = false),
-        @ApiImplicitParam(name = "vstPrdVal", value = "방문주기", paramType = "query", required = false),
         @ApiImplicitParam(name = "mngerRglvlDvCd", value = "급지구분(1: 1급지, 2: 2급지, 3: 3급지)", paramType = "query", required = false)
     })
     @GetMapping("/paging")
