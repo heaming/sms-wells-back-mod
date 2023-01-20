@@ -20,7 +20,6 @@
                      , TB_2.MNGER_RGLVL_DV_CD     AS MNGER_RGLVL_DV_CD      /* 매니저급지구분코드 */
                      , TB_2.MNGR_DV_CD            AS MNGR_DV_CD             /* 관리자구분코드 */
                      , TB_2.BRCH_OG_ID            AS BRCH_OG_ID             /* 지점조직ID */
-                     , TB_2.BFSVC_ICHR_PRTNR_NO   AS BFSVC_ICHR_PRTNR_NO    /* BS담당파트너번호 */
                      , TB_2.USE_YN                AS USE_YN                 /* 사용여부 */
                      , TB_2.FST_RGST_DTM          AS FST_RGST_DTM           /* 최초등록일시 */
                      , TB_2.FST_RGST_USR_ID       AS FST_RGST_USR_ID        /* 최초등록사용자ID */
@@ -31,10 +30,12 @@
                      , TB_2.FNL_MDFC_PRG_ID       AS FNL_MDFC_PRG_ID        /* 최종수정프로그램ID */
                      , TB_2.FNL_MDFC_DEPT_ID      AS FNL_MDFC_DEPT_ID       /* 최종수정부서ID */
                   FROM TB_GBCO_ZIP_BAS TB_1
-                     , TB_SVPD_LOCARA_BFSVC_OGMGR_IZ TB_2
+                  LEFT OUTER JOIN TB_SVPD_LOCARA_BFSVC_OGMGR_IZ TB_2
+                  ON (
+                          TB_1.NEW_ADR_ZIP = TB_2.NEW_ADR_ZIP
+                      AND TB_2.USE_YN (+) = 'Y' /* USE_YN = 'Y'인 데이터는 NEW_ADR_ZIP건당 1건만 존재 */
+                  )
                  WHERE 1=1
-                   AND TB_1.NEW_ADR_ZIP = TB_2.NEW_ADR_ZIP (+)
-                   AND TB_2.USE_YN (+) = 'Y' /* USE_YN = 'Y'인 데이터는 NEW_ADR_ZIP건당 1건만 존재 */
 
                 <if test='@MybatisUtils@isNotEmpty(zipFrom) or @MybatisUtils@isNotEmpty(zipTo)'>
                    AND TB_1.NEW_ADR_ZIP BETWEEN LPAD(SUBSTR(NVL(#{zipFrom}, '00000'), 1, 5), 5, '0') AND LPAD(SUBSTR(NVL(#{zipTo}, '99999'), 1, 5), 5, '0')
@@ -73,20 +74,6 @@
                 </choose>
             </when>
         </choose>
-
-        <choose>
-            <when test="@MybatisUtils@isNotEmpty(vstPrdVal)">
-                <choose>
-                    <when test="@MybatisUtils@equals(vstPrdVal, 'NOTMATCH')">
-                        AND TB.VST_PRD_VAL IS NULL
-                    </when>
-                    <otherwise>
-                        AND TB.VST_PRD_VAL = #{vstPrdVal}
-                    </otherwise>
-                </choose>
-            </when>
-        </choose>
-
         <choose>
             <when test="@MybatisUtils@isNotEmpty(mngerRglvlDvCd)">
                 <choose>
@@ -115,11 +102,9 @@
         INSERT INTO TB_SVPD_LOCARA_BFSVC_OGMGR_IZ(
               NEW_ADR_ZIP
             , CH_SN
-            , VST_PRD_VAL
             , MNGER_RGLVL_DV_CD
             , MNGR_DV_CD
             , BRCH_OG_ID
-            , BFSVC_ICHR_PRTNR_NO
             , USE_YN
               <include refid="COMMON.insertSystemField"/>
         ) VALUES (
@@ -130,11 +115,9 @@
                 WHERE 1=1
                   AND TEMP.NEW_ADR_ZIP = #{newAdrZip}
               )
-            , #{vstPrdVal}
             , #{mngerRglvlDvCd}
             , #{mngrDvCd}
             , #{brchOgId}
-            , #{bfsvcIchrPrtnrNo}
             , 'Y'
               <include refid="COMMON.insertSystemFieldValue"/>
         )

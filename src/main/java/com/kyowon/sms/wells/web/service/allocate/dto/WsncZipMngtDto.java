@@ -19,7 +19,6 @@ public class WsncZipMngtDto {
         String ctpvCtctyEmdDvCd,
         String ctpvCtctyEmdNm,
         String mngrDvCd,
-        String vstPrdVal,
         String mngerRglvlDvCd
     ) {}
 
@@ -43,7 +42,6 @@ public class WsncZipMngtDto {
         String mngerRglvlDvCd, /* 매니저급지구분코드 */
         String mngrDvCd, /* 관리자구분코드 */
         String brchOgId, /* 지점조직ID */
-        String bfsvcIchrPrtnrNo, /* BS담당파트너번호 */
         String useYn, /* 사용여부 */
         String fstRgstDtm, /* 최초등록일시 */
         String fstRgstUsrId, /* 최초등록사용자ID */
@@ -55,7 +53,7 @@ public class WsncZipMngtDto {
         String fnlMdfcDeptId /* 최종수정부서ID */
     ) {}
 
-    @ApiModel(value = "WsncZipMngtDto-SearchZipCodeResReq")
+    @ApiModel(value = "WsncZipMngtDto-SaveZipCodeReq")
     public record SaveZipCodeReq(
         @NotBlank
         String rowState,
@@ -71,11 +69,9 @@ public class WsncZipMngtDto {
         String oldAdrZip, /* 구주소우편번호 */
         String dtaDlYn, /* 데이터삭제여부 */
         String chSn, /* 변경일련번호 */
-        String vstPrdVal, /* 방문주기값 */
         String mngerRglvlDvCd, /* 매니저급지구분코드 */
         String mngrDvCd, /* 관리자구분코드 */
         String brchOgId, /* 지점조직ID */
-        String bfsvcIchrPrtnrNo, /* BS담당파트너번호 */
         String useYn, /* 사용여부 */
         String fstRgstDtm, /* 최초등록일시 */
         String fstRgstUsrId, /* 최초등록사용자ID */
