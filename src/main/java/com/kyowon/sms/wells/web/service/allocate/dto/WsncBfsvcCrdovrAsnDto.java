@@ -10,7 +10,7 @@ public class WsncBfsvcCrdovrAsnDto {
     // Request Dto
     // *********************************************************
 
-    @ApiModel(value = "WsncBfsvcCrdovrAsnDto-SearchReq")
+    @ApiModel(value = "WsncBfsvcCrdovrAsnDto-SaveReq")
     public record SaveReq(
         @NotBlank
         String crdovrYm,
