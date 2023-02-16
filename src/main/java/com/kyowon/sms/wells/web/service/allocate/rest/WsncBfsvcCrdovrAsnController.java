@@ -31,7 +31,7 @@ public class WsncBfsvcCrdovrAsnController {
     public SaveResponse saveBfsvcCrdovrAsn(
         @Valid
         @RequestBody
-        WsncBfsvcCrdovrAsnDto.SearchReq dto
+        WsncBfsvcCrdovrAsnDto.SaveReq dto
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(service.saveBfsvcCrdovrAsn(dto))

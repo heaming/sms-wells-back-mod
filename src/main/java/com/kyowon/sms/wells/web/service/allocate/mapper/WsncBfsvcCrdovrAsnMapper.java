@@ -10,9 +10,9 @@ import com.kyowon.sms.wells.web.service.allocate.dvo.WsncBfsvcCrdovrAsnDvo;
 @Mapper
 public interface WsncBfsvcCrdovrAsnMapper {
 
-    List<WsncBfsvcCrdovrAsnDvo> selectBeforeBfsvcCrdovrAsn(WsncBfsvcCrdovrAsnDto.SearchReq dto);
+    List<WsncBfsvcCrdovrAsnDvo> selectBeforeBfsvcCrdovrAsn(WsncBfsvcCrdovrAsnDto.SaveReq dto);
 
-    List<WsncBfsvcCrdovrAsnDvo> selectBfsvcCrdovrAsn(WsncBfsvcCrdovrAsnDto.SearchReq dto);
+    List<WsncBfsvcCrdovrAsnDvo> selectBfsvcCrdovrAsn(WsncBfsvcCrdovrAsnDto.SaveReq dto);
 
     WsncBfsvcCrdovrAsnDvo selectNewCstSvAsnNo();
 

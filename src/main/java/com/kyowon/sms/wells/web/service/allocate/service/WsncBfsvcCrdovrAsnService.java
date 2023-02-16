@@ -20,7 +20,7 @@ public class WsncBfsvcCrdovrAsnService {
     private final WsncBfsvcCrdovrAsnMapper mapper;
 
     @Transactional
-    public int saveBfsvcCrdovrAsn(WsncBfsvcCrdovrAsnDto.SearchReq dto) throws Exception {
+    public int saveBfsvcCrdovrAsn(WsncBfsvcCrdovrAsnDto.SaveReq dto) throws Exception {
 
         //해당년월의 전월 데이터가 없는 경우
         List<WsncBfsvcCrdovrAsnDvo> beforeBfSvcCrdovrAsns = mapper.selectBeforeBfsvcCrdovrAsn(dto);

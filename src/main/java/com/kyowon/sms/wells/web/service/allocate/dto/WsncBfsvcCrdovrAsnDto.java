@@ -11,18 +11,10 @@ public class WsncBfsvcCrdovrAsnDto {
     // *********************************************************
 
     @ApiModel(value = "WsncBfsvcCrdovrAsnDto-SearchReq")
-    public record SearchReq(
+    public record SaveReq(
         @NotBlank
         String crdovrYm,
         @NotBlank
-        String cstSvAsnNo
-    ) {}
-
-    // *********************************************************
-    // Result Dto
-    // *********************************************************
-    @ApiModel(value = "WsncBfsvcCrdovrAsnDto-SearchRes")
-    public record SearchRes(
         String cstSvAsnNo
     ) {}
 
