@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncBfsvcCrdovrAsnMapper">
+    <select id="selectBeforeBfsvcCrdovrAsn"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBfsvcCrdovrAsnDvo">
+        SELECT CST_SV_ASN_NO
+          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
+         WHERE 1=1
+           AND CST_SV_ASN_NO = #{cstSvAsnNo}
+           AND ASN_OJ_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{crdovrYm}, 'YYYYMM'), -1), 'YYYYMM')
+           AND DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectBfsvcCrdovrAsn"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBfsvcCrdovrAsnDvo">
+        SELECT CST_SV_ASN_NO
+          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
+         WHERE 1=1
+           AND CST_SV_ASN_NO = #{cstSvAsnNo}
+           AND ASN_OJ_YM = #{crdovrYm}
+           AND DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectNewCstSvAsnNo"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBfsvcCrdovrAsnDvo">
+        SELECT '2' || TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVPD_CST_SV_BFSVC_ASN_IZ$CST_SV_ASN_NO.NEXTVAL, 10, '0') AS NEW_CST_SV_ASN_NO
+          FROM DUAL
+    </select>
+
+    <insert id="insertCstSvBfsvcAsn">
+        INSERT INTO TB_SVPD_CST_SV_BFSVC_ASN_IZ (
+              CST_SV_ASN_NO
+            , ASN_OJ_YM
+            , CNTR_NO
+            , CNTR_SN
+            , SV_BIZ_MCLSF_CD
+            , SV_BIZ_DCLSF_CD
+            , WK_SN
+            , ASN_PSIC_MNGT_DV_CD
+            , ASN_PSIC_DV_CD
+            , ASN_PSIC_PRTNR_OG_TP_CD
+            , ASN_PSIC_PRTNR_NO
+            , CNFM_PSIC_MNGT_DV_CD
+            , CNFM_PSIC_ASN_DT
+            , CNFM_PSIC_ASN_HH
+            , CNFM_PSIC_DV_CD
+            , CNFM_PSIC_PRTNR_OG_TP_CD
+            , CNFM_PSIC_PRTNR_NO
+            , EGER_PSTN_CD
+            , EGER_RSB_CD
+            , VST_CNFMDT
+            , VST_CNFM_HH
+            , VST_OJ_LOCARA_CD
+            , MNGER_RGLVL_DV_CD
+            , LSTMM_CRDOVR_YN
+            , LSTMM_VST_CNFMDT
+            , LSTMM_VST_CNFM_HH
+            , VST_DUEDT
+            , VST_EXP_HH
+            , VST_TP_DV_CD
+            , ICHR_CONF_DT
+            , VST_PRGS_STAT_CD
+            , WK_EXCN_DT
+            , WK_CAN_RSON_CD
+            , ASN_TF_DV_CD
+            , SITE_AW_PD_GRP_CD
+            , SITE_AW_SV_TP_CD
+            , SITE_AW_ATC_CD
+            , CST_CNTC_DT
+            , CNTC_ICHR_PRTNR_OG_TP_CD
+            , CNTC_ICHR_PRTNR_NO
+            , CST_CNTC_CD
+            , CST_CNTC_MO_CN
+            , SPC_AS_TP_CD
+            , HPCALL_FW_YN
+            , ICHR_LOCARA_DV_CD
+            , ARV_DT
+            , ARV_HH
+            , WK_GRP_CD
+            , LOCARA_GD_CD
+            , LOCARA_CHAOS_GD_CD
+            , DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT #{newCstSvAsnNo} AS CST_SV_ASN_NO
+             , ASN_OJ_YM
+             , CNTR_NO
+             , CNTR_SN
+             , SV_BIZ_MCLSF_CD
+             , SV_BIZ_DCLSF_CD
+             , WK_SN
+             , ASN_PSIC_MNGT_DV_CD
+             , ASN_PSIC_DV_CD
+             , ASN_PSIC_PRTNR_OG_TP_CD
+             , ASN_PSIC_PRTNR_NO
+             , CNFM_PSIC_MNGT_DV_CD
+             , CNFM_PSIC_ASN_DT
+             , CNFM_PSIC_ASN_HH
+             , CNFM_PSIC_DV_CD
+             , (CASE WHEN (
+                SELECT TEMP.BZ_STAT_CD
+                  FROM TB_OGBS_MM_PRTNR_IZ TEMP
+                 WHERE 1=1
+                   AND TEMP.BASE_YM = #{crdovrYm}
+                   AND TEMP.OG_TP_CD = CNFM_PSIC_PRTNR_OG_TP_CD
+                   AND TEMP.PRTNR_NO = CNFM_PSIC_PRTNR_NO
+               ) = '1' THEN CNFM_PSIC_PRTNR_OG_TP_CD ELSE '' END) AS CNFM_PSIC_PRTNR_OG_TP_CD
+             , (CASE WHEN (
+                SELECT TEMP.BZ_STAT_CD
+                  FROM TB_OGBS_MM_PRTNR_IZ TEMP
+                 WHERE 1=1
+                   AND TEMP.BASE_YM = #{crdovrYm}
+                   AND TEMP.OG_TP_CD = CNFM_PSIC_PRTNR_OG_TP_CD
+                   AND TEMP.PRTNR_NO = CNFM_PSIC_PRTNR_NO
+               ) = '1' THEN CNFM_PSIC_PRTNR_NO ELSE '' END) AS CNFM_PSIC_PRTNR_NO
+             , EGER_PSTN_CD
+             , EGER_RSB_CD
+             , VST_CNFMDT
+             , VST_CNFM_HH
+             , VST_OJ_LOCARA_CD
+             , MNGER_RGLVL_DV_CD
+             , LSTMM_CRDOVR_YN
+             , LSTMM_VST_CNFMDT
+             , LSTMM_VST_CNFM_HH
+             , VST_DUEDT
+             , VST_EXP_HH
+             , VST_TP_DV_CD
+             , ICHR_CONF_DT
+             , VST_PRGS_STAT_CD
+             , WK_EXCN_DT
+             , WK_CAN_RSON_CD
+             , ASN_TF_DV_CD
+             , SITE_AW_PD_GRP_CD
+             , SITE_AW_SV_TP_CD
+             , SITE_AW_ATC_CD
+             , CST_CNTC_DT
+             , CNTC_ICHR_PRTNR_OG_TP_CD
+             , CNTC_ICHR_PRTNR_NO
+             , CST_CNTC_CD
+             , CST_CNTC_MO_CN
+             , SPC_AS_TP_CD
+             , HPCALL_FW_YN
+             , ICHR_LOCARA_DV_CD
+             , ARV_DT
+             , ARV_HH
+             , WK_GRP_CD
+             , LOCARA_GD_CD
+             , LOCARA_CHAOS_GD_CD
+             , DTA_DL_YN
+               <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
+         WHERE 1=1
+           AND CST_SV_ASN_NO = #{cstSvAsnNo}
+           AND DTA_DL_YN = 'N'
+    </insert>
+
+    <update id="updateRgbsPuItmIz">
+        MERGE INTO TB_SVPD_RGBS_PU_ITM_IZ TB_TARGET
+        USING (
+            SELECT ASN_OJ_YM
+                 , CNTR_NO
+                 , CNTR_SN
+                 , SV_BIZ_MCLSF_CD
+                 , SV_BIZ_DCLSF_CD
+                 , WK_SN
+                 , BASE_PD_CD
+                 , IST_NMN_N
+                 , PU_PART_PD_CD
+                 , PU_QTY
+                 , FILT_CHNG_LV_CD
+                 , ITM_KND_CD
+                 , QOM_ASN_WARE_NO
+                 , STR_WARE_DV_CD
+                 , STR_WARE_NO
+                 , QOM_ASN_DT
+                 , OG_TP_CD
+                 , QOM_ASN_PRTNR_NO
+                 , CST_SV_ASN_NO
+                 , DTA_DL_YN
+              FROM TB_SVPD_RGBS_PU_ITM_IZ
+             WHERE 1=1
+               AND ASN_OJ_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{crdovrYm}, 'YYYYMM'), -1), 'YYYYMM')
+               AND CST_SV_ASN_NO = #{cstSvAsnNo}
+               AND DTA_DL_YN = 'N'
+        ) TB_SOURCE
+        ON (
+                TB_TARGET.ASN_OJ_YM        = TB_SOURCE.ASN_OJ_YM
+            AND TB_TARGET.CNTR_NO          = TB_SOURCE.CNTR_NO
+            AND TB_TARGET.CNTR_SN          = TB_SOURCE.CNTR_SN
+            AND TB_TARGET.SV_BIZ_MCLSF_CD  = TB_SOURCE.SV_BIZ_MCLSF_CD
+            AND TB_TARGET.SV_BIZ_DCLSF_CD  = TB_SOURCE.SV_BIZ_DCLSF_CD
+            AND TB_TARGET.WK_SN            = TB_SOURCE.WK_SN
+            AND TB_TARGET.BASE_PD_CD       = TB_SOURCE.BASE_PD_CD
+            AND TB_TARGET.IST_NMN_N        = TB_SOURCE.IST_NMN_N
+            AND TB_TARGET.PU_PART_PD_CD    = TB_SOURCE.PU_PART_PD_CD
+        )
+        WHEN MATCHED THEN
+        UPDATE
+           SET TB_TARGET.STR_WARE_DV_CD = ''
+             , TB_TARGET.STR_WARE_NO = ''
+             , TB_TARGET.QOM_ASN_DT = ''
+             , TB_TARGET.QOM_ASN_PRTNR_NO = ''
+             , TB_TARGET.CST_SV_ASN_NO = #{newCstSvAsnNo}
+               <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+        INSERT (
+              TB_TARGET.ASN_OJ_YM
+            , TB_TARGET.CNTR_NO
+            , TB_TARGET.CNTR_SN
+            , TB_TARGET.SV_BIZ_MCLSF_CD
+            , TB_TARGET.SV_BIZ_DCLSF_CD
+            , TB_TARGET.WK_SN
+            , TB_TARGET.BASE_PD_CD
+            , TB_TARGET.IST_NMN_N
+            , TB_TARGET.PU_PART_PD_CD
+            , TB_TARGET.PU_QTY
+            , TB_TARGET.FILT_CHNG_LV_CD
+            , TB_TARGET.ITM_KND_CD
+            , TB_TARGET.QOM_ASN_WARE_NO
+            , TB_TARGET.STR_WARE_DV_CD
+            , TB_TARGET.STR_WARE_NO
+            , TB_TARGET.QOM_ASN_DT
+            , TB_TARGET.OG_TP_CD
+            , TB_TARGET.QOM_ASN_PRTNR_NO
+            , TB_TARGET.CST_SV_ASN_NO
+            , TB_TARGET.DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+              TB_SOURCE.ASN_OJ_YM
+            , TB_SOURCE.CNTR_NO
+            , TB_SOURCE.CNTR_SN
+            , TB_SOURCE.SV_BIZ_MCLSF_CD
+            , TB_SOURCE.SV_BIZ_DCLSF_CD
+            , TB_SOURCE.WK_SN
+            , TB_SOURCE.BASE_PD_CD
+            , TB_SOURCE.IST_NMN_N
+            , TB_SOURCE.PU_PART_PD_CD
+            , TB_SOURCE.PU_QTY
+            , TB_SOURCE.FILT_CHNG_LV_CD
+            , TB_SOURCE.ITM_KND_CD
+            , TB_SOURCE.QOM_ASN_WARE_NO
+            , TB_SOURCE.STR_WARE_DV_CD
+            , TB_SOURCE.STR_WARE_NO
+            , TB_SOURCE.QOM_ASN_DT
+            , TB_SOURCE.OG_TP_CD
+            , TB_SOURCE.QOM_ASN_PRTNR_NO
+            , TB_SOURCE.CST_SV_ASN_NO
+            , TB_SOURCE.DTA_DL_YN
+              <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </update>
+
+    <update id="updateCstSvBfsvcOjIz">
+        MERGE INTO TB_SVPD_CST_SV_BFSVC_OJ_IZ TB_TARGET
+        USING (
+            SELECT ASN_OJ_YM
+                 , CNTR_NO
+                 , CNTR_SN
+                 , SV_BIZ_MCLSF_CD
+                 , SV_BIZ_DCLSF_CD
+                 , WK_SN
+                 , MNGR_DV_CD
+                 , LSTMM_CRDOVR_YN
+                 , BF_VST_DUEDT
+                 , IST_NMN_N
+                 , VST_NMN_N
+                 , EGER_WK_YN
+                 , VST_DUEDT
+                 , AS_REFRI_DV_CD
+                 , BFSVC_REFRI_DV_CD
+                 , VST_DV_CD
+                 , MTR_STAT_CD
+                 , SPC_AS_TP_CD
+                 , CST_SV_ASN_NO
+                 , DTA_DL_YN
+              FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ
+             WHERE 1=1
+               AND ASN_OJ_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{crdovrYm}, 'YYYYMM'), -1), 'YYYYMM')
+               AND CST_SV_ASN_NO = #{cstSvAsnNo}
+               AND DTA_DL_YN = 'N'
+        ) TB_SOURCE
+        ON (
+                TB_TARGET.ASN_OJ_YM        = TB_SOURCE.ASN_OJ_YM
+            AND TB_TARGET.CNTR_NO          = TB_SOURCE.CNTR_NO
+            AND TB_TARGET.CNTR_SN          = TB_SOURCE.CNTR_SN
+            AND TB_TARGET.SV_BIZ_MCLSF_CD  = TB_SOURCE.SV_BIZ_MCLSF_CD
+            AND TB_TARGET.SV_BIZ_DCLSF_CD  = TB_SOURCE.SV_BIZ_DCLSF_CD
+            AND TB_TARGET.WK_SN            = TB_SOURCE.WK_SN
+        )
+        WHEN MATCHED THEN
+        UPDATE
+           SET TB_TARGET.LSTMM_CRDOVR_YN = 'Y'
+             , TB_TARGET.BF_VST_DUEDT = TB_SOURCE.VST_DUEDT
+             , TB_TARGET.CST_SV_ASN_NO = #{newCstSvAsnNo}
+               <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+        INSERT (
+              TB_TARGET.ASN_OJ_YM
+            , TB_TARGET.CNTR_NO
+            , TB_TARGET.CNTR_SN
+            , TB_TARGET.SV_BIZ_MCLSF_CD
+            , TB_TARGET.SV_BIZ_DCLSF_CD
+            , TB_TARGET.WK_SN
+            , TB_TARGET.MNGR_DV_CD
+            , TB_TARGET.LSTMM_CRDOVR_YN
+            , TB_TARGET.BF_VST_DUEDT
+            , TB_TARGET.IST_NMN_N
+            , TB_TARGET.VST_NMN_N
+            , TB_TARGET.EGER_WK_YN
+            , TB_TARGET.VST_DUEDT
+            , TB_TARGET.AS_REFRI_DV_CD
+            , TB_TARGET.BFSVC_REFRI_DV_CD
+            , TB_TARGET.VST_DV_CD
+            , TB_TARGET.MTR_STAT_CD
+            , TB_TARGET.SPC_AS_TP_CD
+            , TB_TARGET.CST_SV_ASN_NO
+            , TB_TARGET.DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+              TB_SOURCE.ASN_OJ_YM
+            , TB_SOURCE.CNTR_NO
+            , TB_SOURCE.CNTR_SN
+            , TB_SOURCE.SV_BIZ_MCLSF_CD
+            , TB_SOURCE.SV_BIZ_DCLSF_CD
+            , TB_SOURCE.WK_SN
+            , TB_SOURCE.MNGR_DV_CD
+            , TB_SOURCE.LSTMM_CRDOVR_YN
+            , TB_SOURCE.VST_DUEDT
+            , TB_SOURCE.IST_NMN_N
+            , TB_SOURCE.VST_NMN_N
+            , TB_SOURCE.EGER_WK_YN
+            , TB_SOURCE.VST_DUEDT
+            , TB_SOURCE.AS_REFRI_DV_CD
+            , TB_SOURCE.BFSVC_REFRI_DV_CD
+            , TB_SOURCE.VST_DV_CD
+            , TB_SOURCE.MTR_STAT_CD
+            , TB_SOURCE.SPC_AS_TP_CD
+            , TB_SOURCE.CST_SV_ASN_NO
+            , TB_SOURCE.DTA_DL_YN
+              <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </update>
+
+    <insert id="insertCstSvBfsvcAsnHist">
+        INSERT INTO TB_SVPD_CST_SV_BFSVC_ASN_HIST (
+              BFSVC_EXCN_ASN_IZ_ID
+            , CST_SV_ASN_NO
+            , ASN_OJ_YM
+            , CNTR_NO
+            , CNTR_SN
+            , SV_BIZ_MCLSF_CD
+            , SV_BIZ_DCLSF_CD
+            , WK_SN
+            , ASN_PSIC_MNGT_DV_CD
+            , ASN_PSIC_DV_CD
+            , ASN_PSIC_PRTNR_OG_TP_CD
+            , ASN_PSIC_PRTNR_NO
+            , CNFM_PSIC_MNGT_DV_CD
+            , CNFM_PSIC_ASN_DT
+            , CNFM_PSIC_ASN_HH
+            , CNFM_PSIC_DV_CD
+            , CNFM_PSIC_PRTNR_OG_TP_CD
+            , CNFM_PSIC_PRTNR_NO
+            , EGER_PSTN_CD
+            , EGER_RSB_CD
+            , VST_CNFMDT
+            , VST_CNFM_HH
+            , VST_OJ_LOCARA_CD
+            , MNGER_RGLVL_DV_CD
+            , LSTMM_CRDOVR_YN
+            , LSTMM_VST_CNFMDT
+            , LSTMM_VST_CNFM_HH
+            , VST_DUEDT
+            , VST_EXP_HH
+            , VST_TP_DV_CD
+            , ICHR_CONF_DT
+            , VST_PRGS_STAT_CD
+            , WK_EXCN_DT
+            , WK_CAN_RSON_CD
+            , ASN_TF_DV_CD
+            , SITE_AW_PD_GRP_CD
+            , SITE_AW_SV_TP_CD
+            , SITE_AW_ATC_CD
+            , CST_CNTC_DT
+            , CNTC_ICHR_PRTNR_OG_TP_CD
+            , CNTC_ICHR_PRTNR_NO
+            , CST_CNTC_CD
+            , CST_CNTC_MO_CN
+            , SPC_AS_TP_CD
+            , HPCALL_FW_YN
+            , ICHR_LOCARA_DV_CD
+            , ARV_DT
+            , ARV_HH
+            , WK_GRP_CD
+            , LOCARA_GD_CD
+            , LOCARA_CHAOS_GD_CD
+            , DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT '2' || TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVPD_CST_SV_BFSVC_ASN_HIST$BFSVC_EXCN_ASN_IZ_ID.NEXTVAL, 10, '0') AS BFSVC_EXCN_ASN_IZ_ID
+             , TB_SOURCE.CST_SV_ASN_NO
+             , TB_SOURCE.ASN_OJ_YM
+             , TB_SOURCE.CNTR_NO
+             , TB_SOURCE.CNTR_SN
+             , TB_SOURCE.SV_BIZ_MCLSF_CD
+             , TB_SOURCE.SV_BIZ_DCLSF_CD
+             , TB_SOURCE.WK_SN
+             , TB_SOURCE.ASN_PSIC_MNGT_DV_CD
+             , TB_SOURCE.ASN_PSIC_DV_CD
+             , TB_SOURCE.ASN_PSIC_PRTNR_OG_TP_CD
+             , TB_SOURCE.ASN_PSIC_PRTNR_NO
+             , TB_SOURCE.CNFM_PSIC_MNGT_DV_CD
+             , TB_SOURCE.CNFM_PSIC_ASN_DT
+             , TB_SOURCE.CNFM_PSIC_ASN_HH
+             , TB_SOURCE.CNFM_PSIC_DV_CD
+             , TB_SOURCE.CNFM_PSIC_PRTNR_OG_TP_CD
+             , TB_SOURCE.CNFM_PSIC_PRTNR_NO
+             , TB_SOURCE.EGER_PSTN_CD
+             , TB_SOURCE.EGER_RSB_CD
+             , TB_SOURCE.VST_CNFMDT
+             , TB_SOURCE.VST_CNFM_HH
+             , TB_SOURCE.VST_OJ_LOCARA_CD
+             , TB_SOURCE.MNGER_RGLVL_DV_CD
+             , TB_SOURCE.LSTMM_CRDOVR_YN
+             , TB_SOURCE.LSTMM_VST_CNFMDT
+             , TB_SOURCE.LSTMM_VST_CNFM_HH
+             , TB_SOURCE.VST_DUEDT
+             , TB_SOURCE.VST_EXP_HH
+             , TB_SOURCE.VST_TP_DV_CD
+             , TB_SOURCE.ICHR_CONF_DT
+             , TB_SOURCE.VST_PRGS_STAT_CD
+             , TB_SOURCE.WK_EXCN_DT
+             , TB_SOURCE.WK_CAN_RSON_CD
+             , TB_SOURCE.ASN_TF_DV_CD
+             , TB_SOURCE.SITE_AW_PD_GRP_CD
+             , TB_SOURCE.SITE_AW_SV_TP_CD
+             , TB_SOURCE.SITE_AW_ATC_CD
+             , TB_SOURCE.CST_CNTC_DT
+             , TB_SOURCE.CNTC_ICHR_PRTNR_OG_TP_CD
+             , TB_SOURCE.CNTC_ICHR_PRTNR_NO
+             , TB_SOURCE.CST_CNTC_CD
+             , TB_SOURCE.CST_CNTC_MO_CN
+             , TB_SOURCE.SPC_AS_TP_CD
+             , TB_SOURCE.HPCALL_FW_YN
+             , TB_SOURCE.ICHR_LOCARA_DV_CD
+             , TB_SOURCE.ARV_DT
+             , TB_SOURCE.ARV_HH
+             , TB_SOURCE.WK_GRP_CD
+             , TB_SOURCE.LOCARA_GD_CD
+             , TB_SOURCE.LOCARA_CHAOS_GD_CD
+             , TB_SOURCE.DTA_DL_YN
+               <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ TB_SOURCE
+         WHERE 1=1
+           AND TB_SOURCE.CST_SV_ASN_NO = #{newCstSvAsnNo}
+    </insert>
+
+    <insert id="insertWkDtmChIz">
+        INSERT INTO TB_SVPD_WK_DTM_CH_IZ (
+              CST_SV_ASN_NO
+            , CNTR_NO
+            , CNTR_SN
+            , CH_SN
+            , OG_TP_CD
+            , WK_PRTNR_NO
+            , PROM_DT
+            , PROM_HH
+            , PROM_CH_CAUS_CD
+            , PROM_CH_RSON_CD
+            , PROM_CH_RSON_CN
+            , DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT CST_SV_ASN_NO
+             , CNTR_NO
+             , CNTR_SN
+             , 1 AS CH_SN
+             , ASN_PSIC_PRTNR_NO AS OG_TP_CD
+             , ASN_PSIC_PRTNR_OG_TP_CD AS WK_PRTNR_NO
+             , VST_DUEDT AS PROM_DT
+             , VST_EXP_HH AS PROM_HH
+             , '00' AS PROM_CH_CAUS_CD
+             , '00' AS PROM_CH_RSON_CD
+             , '배정' AS PROM_CH_RSON_CN
+             , DTA_DL_YN
+               <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
+         WHERE 1=1
+           AND CST_SV_ASN_NO = #{newCstSvAsnNo}
+    </insert>
+
+</mapper>
