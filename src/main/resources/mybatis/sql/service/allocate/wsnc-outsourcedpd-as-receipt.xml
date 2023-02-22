@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WmsncOutsourcedpdAsReceiptMapper">
+    <select id="selectOutsourcedpdAsReceipts" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncOutsourcedpdAsReceiptDto$SearchRes">
+        SELECT A.CNR_NM  /* AS센터명 */
+             , A.PD_NM   /* 제품명 */
+             , A.CNR_TNO  /* AS센터연락처 */
+             , A.CNR_ADDR  /* AS센터주소 */
+             , A.PSIC_NM  /* AS센터담당자 */
+             , A.CST_KNM  /* 고객명 */
+         FROM
+            ( SELECT '(주)아롬비' AS CNR_NM, '아롬비 선반형 샤워기' AS PD_NM, '1522-3483' AS CNR_TNO, '' AS CNR_ADDR, '라현우 대표' AS PSIC_NM, '김민지' AS CST_KNM FROM DUAL UNION ALL
+              SELECT '(주)룰루랩', '스마트미러', '070-4256-2678', '서울 강남구 도산대로 318 (논현동) 13층 (주)룰루랩', '이민홍', '김영철' FROM DUAL UNION ALL
+              SELECT '(주)메딕콘', '듀얼초음파마사지기', '033-743-1291', '서울 서초구 사임당로 26 (서초동) 신영빌딩 4층 메딕콘', '조성훈 과장', '박나나' FROM DUAL UNION ALL
+              SELECT '(주)지원파트너스', '플라즈마케어', '1833-4870', ' 인천 연수구 송도미래로 30 (송도동) 스마트밸리 E동 508호 (주)지원파트너스', '명재호 대리', '이지혜' FROM DUAL UNION ALL
+              SELECT '(주)휴앤비', 'LED마스크', '070-4099-1643', '인천 부평구 부평대로329번길 62 (청천동) 3층 휴앤비', '김선미 사원', '주성미' FROM DUAL UNION ALL
+              SELECT '그린코스', 'EGF 화장품', '010-7191-6909', '서울 강서구 화골로68길 15 (등촌동) 아벨테크노 13층 그린코스', '김수동 대리', '차태현' FROM DUAL UNION ALL
+              SELECT '대경아이앤씨', '스위스 밀리터리 멀티포트', '010-8380-1330', '', '김경민차장', '최진철' FROM DUAL UNION ALL
+              SELECT '대아', '프랑스 바비리스 헤어드라이어', '010-6551-3522', '', '박동진차장', '김보경' FROM DUAL UNION ALL
+              SELECT '밀텍산업', '소다스트림 크리스탈 A/S', '1800-8810', '서울 서초구 서초대로 356 (서초동) 서초지웰타워 1504호', '', '송나경' FROM DUAL UNION ALL
+              SELECT '부강샘스', '침구청소기 레이캅', '1544-8751', '인천 남동구 청능대로 450 (고잔동) 남동공단 104B-1L A/S담당자', '', '김순옥' FROM DUAL UNION ALL
+              SELECT '세라테크', '어깨/등 마사지기', '041-583-1147', '충남 천안시 서북구 2공단2로 112 (업성동) 충남테크노파크 성공관 203호(한진-착불)', '정수연', '장갑부' FROM DUAL UNION ALL
+              SELECT '기흥전자', '신일 도깨비 방망이', '010-1145-7415', '', '한문철', '김순자' FROM DUAL UNION ALL
+              SELECT '신일전자', '신일 만능 믹서기 초기불량', '010-2991-5610', '', '프로스피 이상수과장', '곽미애' FROM DUAL UNION ALL
+              SELECT '신일전자', '신일 만능 믹서기 사용 중 고장', '1577-6667', '', '신일전자 고객센터', '이세화' FROM DUAL
+            ) A
+        WHERE 1=1
+          AND A.PD_NM LIKE '%'||#{searchParam}||'%'
+           OR A.CNR_NM LIKE '%'||#{searchParam}||'%'
+    </select>
+
+</mapper>
