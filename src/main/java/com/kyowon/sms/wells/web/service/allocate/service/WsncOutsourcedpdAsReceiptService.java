@@ -38,23 +38,6 @@ public class WsncOutsourcedpdAsReceiptService {
     }
 
     /**
-     * 외주상품 A/S 접수처 조회 알림톡 내용 조회
-     * @param  dto : 비즈톡 내용에 들어갈 파라미터
-     * @return 조회결과
-     */
-    public String getTemplateContent(BiztalkReq dto) throws Exception {
-
-        Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put("cstKnm", dto.cstKnm());
-        paramMap.put("cnrNm", dto.cnrNm());
-        paramMap.put("cnrTno", dto.cnrTno());
-
-        String templateContent = templateService.getTemplateContent("TMP_SNC_WELLS17952", paramMap);
-
-        return templateContent;
-    }
-
-    /**
      * 외주상품 A/S 접수처 조회 알림톡 발송
      * @param  dto : 비즈톡 내용에 들어갈 파라미터
      * @return 조회결과
