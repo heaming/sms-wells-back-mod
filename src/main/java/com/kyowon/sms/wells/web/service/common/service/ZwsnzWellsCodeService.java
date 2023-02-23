@@ -34,4 +34,16 @@ public class ZwsnzWellsCodeService {
     ) {
         return converter.mapAllDvoToRes(mapper.selectMonthStocks(req));
     }
+
+    public List<SearchServiceCenterOrgsRes> getServiceCenterOrgs(
+        SearchServiceCenterOrgsReq req
+    ) {
+        return converter.mapAllServiceCenterOrgsDvoToRes(mapper.selectServiceCenterOrgs(req));
+    }
+
+    public List<SearchAllEngineersRes> getAllEngineers(
+        SearchAllEngineersReq req
+    ) {
+        return converter.mapAllEngineersDvoToRes(mapper.selectAllEngineers(req));
+    }
 }

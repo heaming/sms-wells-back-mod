@@ -1,9 +1,7 @@
 package com.kyowon.sms.wells.web.service.common.mapper;
 
 import com.kyowon.sms.wells.web.service.common.dto.ZwsnzWellsCodeDto.*;
-import com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeMonthStockDvo;
-import com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeWareHouseDvo;
-import com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeWorkingEngineersDvo;
+import com.kyowon.sms.wells.web.service.common.dvo.*;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -17,4 +15,7 @@ public interface ZwsnzWellsCodeMapper {
 
     List<ZwsnzWellsCodeMonthStockDvo> selectMonthStocks(SearchMonthStockReq req);
 
+    List<ZwsnzComCodeServiceCenterOrgsDvo> selectServiceCenterOrgs(SearchServiceCenterOrgsReq req);
+
+    List<ZwsnzComCodeAllEngineersDvo> selectAllEngineers(SearchAllEngineersReq req);
 }

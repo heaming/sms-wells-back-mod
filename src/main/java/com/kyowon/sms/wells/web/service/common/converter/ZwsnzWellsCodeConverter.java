@@ -1,9 +1,7 @@
 package com.kyowon.sms.wells.web.service.common.converter;
 
 import com.kyowon.sms.wells.web.service.common.dto.ZwsnzWellsCodeDto.*;
-import com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeMonthStockDvo;
-import com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeWareHouseDvo;
-import com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeWorkingEngineersDvo;
+import com.kyowon.sms.wells.web.service.common.dvo.*;
 import org.mapstruct.Mapper;
 
 import java.util.List;
@@ -30,4 +28,10 @@ public interface ZwsnzWellsCodeConverter {
     List<SearchMonthStockRes> mapAllDvoToRes(
         List<ZwsnzWellsCodeMonthStockDvo> dvos
     );
+
+    List<SearchServiceCenterOrgsRes> mapAllServiceCenterOrgsDvoToRes(
+        List<ZwsnzComCodeServiceCenterOrgsDvo> dvos
+    );
+
+    List<SearchAllEngineersRes> mapAllEngineersDvoToRes(List<ZwsnzComCodeAllEngineersDvo> dvos);
 }

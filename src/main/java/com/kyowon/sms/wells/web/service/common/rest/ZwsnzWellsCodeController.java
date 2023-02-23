@@ -61,4 +61,23 @@ public class ZwsnzWellsCodeController {
     ) {
         return service.getMonthStocks(req);
     }
+
+    @ApiOperation(value = "서비스센터 조직 조회")
+    @GetMapping("/service-center-orgs")
+    public List<SearchServiceCenterOrgsRes> getServiceCenterOrgs(
+        SearchServiceCenterOrgsReq req
+    ) {
+        return service.getServiceCenterOrgs(req);
+    }
+
+    @ApiOperation(value = "서비스센터 엔지니어 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "hgrDeptCd", value = "상위부서코드", paramType = "query", example = "00810"),
+    })
+    @GetMapping("/all-engineers")
+    public List<SearchAllEngineersRes> getAllEngineers(
+        SearchAllEngineersReq req
+    ) {
+        return service.getAllEngineers(req);
+    }
 }
