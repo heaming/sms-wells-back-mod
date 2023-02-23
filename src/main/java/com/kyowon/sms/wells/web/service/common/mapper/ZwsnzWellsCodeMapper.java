@@ -18,4 +18,6 @@ public interface ZwsnzWellsCodeMapper {
     List<ZwsnzWellsCodeServiceCenterOrgsDvo> selectServiceCenterOrgs(SearchServiceCenterOrgsReq req);
 
     List<ZwsnzWellsCodeAllEngineersDvo> selectAllEngineers(SearchAllEngineersReq req);
+
+    List<ZwsnzComCodePartMasterDvo> selectPartMaster(SearchPartMasterReq req);
 }

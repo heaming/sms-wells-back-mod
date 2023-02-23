@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.common.service;
 
+import com.kyowon.sms.common.web.common.dto.ZwsnzComCodeDto;
 import com.kyowon.sms.wells.web.service.common.converter.ZwsnzWellsCodeConverter;
 import com.kyowon.sms.wells.web.service.common.dto.ZwsnzWellsCodeDto.*;
 import com.kyowon.sms.wells.web.service.common.mapper.ZwsnzWellsCodeMapper;
@@ -45,5 +46,11 @@ public class ZwsnzWellsCodeService {
         SearchAllEngineersReq req
     ) {
         return converter.mapAllEngineersDvoToRes(mapper.selectAllEngineers(req));
+    }
+
+    public List<SearchPartMasterRes> getPartMaster(
+        SearchPartMasterReq req
+    ) {
+        return converter.mapAllPartMasterDvoToRes(mapper.selectPartMaster(req));
     }
 }
