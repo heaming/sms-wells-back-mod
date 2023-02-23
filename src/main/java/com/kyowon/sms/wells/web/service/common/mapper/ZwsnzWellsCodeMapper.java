@@ -15,7 +15,7 @@ public interface ZwsnzWellsCodeMapper {
 
     List<ZwsnzWellsCodeMonthStockDvo> selectMonthStocks(SearchMonthStockReq req);
 
-    List<ZwsnzComCodeServiceCenterOrgsDvo> selectServiceCenterOrgs(SearchServiceCenterOrgsReq req);
+    List<ZwsnzWellsCodeServiceCenterOrgsDvo> selectServiceCenterOrgs(SearchServiceCenterOrgsReq req);
 
-    List<ZwsnzComCodeAllEngineersDvo> selectAllEngineers(SearchAllEngineersReq req);
+    List<ZwsnzWellsCodeAllEngineersDvo> selectAllEngineers(SearchAllEngineersReq req);
 }

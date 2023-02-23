@@ -133,7 +133,7 @@
     </select>
 
 
-    <select id='selectServiceCenterOrgs' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzComCodeServiceCenterOrgsDvo">
+    <select id='selectServiceCenterOrgs' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeServiceCenterOrgsDvo">
     SELECT OG_ID
          , HGR_OG_ID
          --      , OG_CLSF_CD
@@ -168,7 +168,7 @@
 
 
 
-    <select id='selectAllEngineers' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzComCodeAllEngineersDvo">
+    <select id='selectAllEngineers' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeAllEngineersDvo">
     /*SELECT TRIM(AC021_EMP_ID) AS CODE_ID *//* 사번 *//*
          , TRIM(AC021_EMP_NM)||'('||TRIM(AC021_EMP_ID)||')' AS CODE_NM *//* 성명 한글 *//*
          , TRIM(AC021_EMP_NM) AS CODE_NM1 *//* 성명 한자 *//*

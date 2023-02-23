@@ -30,8 +30,8 @@ public interface ZwsnzWellsCodeConverter {
     );
 
     List<SearchServiceCenterOrgsRes> mapAllServiceCenterOrgsDvoToRes(
-        List<ZwsnzComCodeServiceCenterOrgsDvo> dvos
+        List<ZwsnzWellsCodeServiceCenterOrgsDvo> dvos
     );
 
-    List<SearchAllEngineersRes> mapAllEngineersDvoToRes(List<ZwsnzComCodeAllEngineersDvo> dvos);
+    List<SearchAllEngineersRes> mapAllEngineersDvoToRes(List<ZwsnzWellsCodeAllEngineersDvo> dvos);
 }
