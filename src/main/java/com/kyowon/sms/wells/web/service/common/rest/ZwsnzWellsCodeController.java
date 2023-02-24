@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.common.rest;
 
+import com.kyowon.sms.common.web.common.dto.ZwsnzComCodeDto;
 import com.kyowon.sms.common.web.zcommon.constants.CommonConst;
 import com.kyowon.sms.wells.web.service.common.dto.ZwsnzWellsCodeDto.*;
 import com.kyowon.sms.wells.web.service.common.service.ZwsnzWellsCodeService;
@@ -79,5 +80,17 @@ public class ZwsnzWellsCodeController {
         SearchAllEngineersReq req
     ) {
         return service.getAllEngineers(req);
+    }
+
+    @ApiOperation(value = "상품 기본 조회")
+    @GetMapping("/part-master")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "pdTpCd", value = "상품유형코드", paramType = "query", example = "P"),
+        @ApiImplicitParam(name = "sellIndate", value = "상품판매기간 조회 기준", paramType = "query"),
+    })
+    public List<SearchPartMasterRes> getPartMaster(
+        SearchPartMasterReq req
+    ) {
+        return service.getPartMaster(req);
     }
 }

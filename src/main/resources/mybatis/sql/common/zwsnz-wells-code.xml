@@ -274,4 +274,74 @@
          ORDER BY EMP_ROL_DV_VAL DESC, CODE_NM, RSGN_DT, OG_CD, EMP_DV_VAL, EMP_ROL_DV_VAL_NM
     </select>
 
+
+    <select id="selectPartMaster" resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzComCodePartMasterDvo">
+    SELECT ITEM_CD || PART_CD AS CD
+         , NM_KOR AS CD_NM
+         , ITEM_CD || PART_CD AS CODE_ID
+         , NM_KOR AS CODE_NAME
+         , PD_CD
+         , PD_TP_CD /*C:복합상품, M:교재제품, P:기준상품, S:서비스, Y:융합상품 */
+         , ITEM_CD
+         , PART_CD
+         , NM_KOR
+         , NM_ABBR1
+         , NM_CUST
+         , ITEM_KND
+         , ITEM_KND_NM
+         , ITEM_GR
+         , ITEM_GR_NM
+         , PD_CLSF_ID /*상품분류ID*/
+         , PD_HCLSF_ID /*상품대분류ID*/
+         , PD_MCLSF_ID /*상품중분류ID*/
+         , PD_LCLSF_ID /*상품소분류ID*/
+         , PD_DCLSF_ID /*상품세분류ID*/
+         , SELL_TP_CD /*판매유형코드*/
+         , USE_YN
+         , APLD_FR
+         , APLD_TO
+         , SAP_CD
+         , SAP_GRP
+         , SAP_LEVEL
+         , SAP_CLASS
+         , PDCT_CLSS_RSC
+         , STD_PR
+         , IMG_URL
+         , DESC1
+         , VAL_COMM_GB
+         , COMM_GB_NM
+         , VAL_LP_GB
+         , VAL_MGT_TYP
+         , MGT_TYP_NM
+         , VAL_SFTY_QTY
+         , VAL_SIZE
+         , VAL_MGT_UNT
+         , MGT_UNT_NM
+         , VAL_LT
+         , VAL_DEL_UNT
+         , DEL_UNT_NM
+         , VAL_BOX_QTY
+         , VAL_PLT_QTY
+         , VAL_BAR_CD
+         , VAL_BASE_GB
+         , VAL_BASE_COLOR_GB
+         , VAL_REFUR_YN
+         , VAL_QTYLMT_YN
+         , VAL_DISPOSAL_COST
+         , VAL_TOT_WEI
+         , VAL_PLT_WEI
+         , VAL_MOQ
+         , VAL_TURNOVER_TGT
+         , SELL_STRTDT
+         , SELL_ENDDT
+      FROM (<include refid="com.kyowon.sms.common.web.common.BASE.selectPartMaster"/>) TB_PDBS_PD_BAS
+     WHERE 1 = 1
+       <if test='@MybatisUtils@isNotEmpty(pdTpCd)'>
+       AND PD_TP_CD = #{pdTpCd}
+       </if>
+       <if test='@MybatisUtils@isNotEmpty(sellIndate)'>
+       AND #{sellIndate} BETWEEN SELL_STRTDT AND SELL_ENDDT
+       </if>
+     ORDER BY PD_CLSF_ID ASC
+    </select>
 </mapper>

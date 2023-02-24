@@ -34,4 +34,8 @@ public interface ZwsnzWellsCodeConverter {
     );
 
     List<SearchAllEngineersRes> mapAllEngineersDvoToRes(List<ZwsnzWellsCodeAllEngineersDvo> dvos);
+
+    List<SearchPartMasterRes> mapAllPartMasterDvoToRes(
+        List<ZwsnzComCodePartMasterDvo> dvos
+    );
 }
