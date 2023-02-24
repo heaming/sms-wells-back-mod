@@ -1,6 +1,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.ZwsnzWellsCodeMapper">
 
+    <!--@TODO TEMP_CODE-->
     <select id='selectWorkingEngineers' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeWorkingEngineersDvo">
     /*SELECT TRIM(AC021_EMP_ID) AS CODE_ID *//* 사번 *//*
          , TRIM(AC021_EMP_NM)||'('||TRIM(AC021_EMP_ID)||')' AS CODE_NM *//* 성명 한글 *//*
