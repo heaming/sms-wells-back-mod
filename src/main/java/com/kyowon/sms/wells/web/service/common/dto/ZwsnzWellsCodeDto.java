@@ -119,7 +119,16 @@ public class ZwsnzWellsCodeDto {
     @ApiModel(value = "ZwsnzComCodeDto-SearchPartMasterReq")
     public record SearchPartMasterReq(
         String pdTpCd,
-        String sellIndate
+        String sellIndate,
+        String itemKnd,
+        String itemGr,
+        String sellTpCd,
+        String pdClsfId,
+        String pdHclsfId,
+        String pdMclsfId,
+        String pdLclsfId,
+        String pdDclsfId,
+        String partCd
     ) {}
 
     @ApiModel(value = "ZwsnzComCodeDto-SearchPartMasterRes")

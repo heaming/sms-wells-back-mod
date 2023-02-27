@@ -1,9 +1,9 @@
 package com.kyowon.sms.wells.web.service.common.rest;
 
-import com.kyowon.sms.common.web.common.dto.ZwsnzComCodeDto;
 import com.kyowon.sms.common.web.zcommon.constants.CommonConst;
 import com.kyowon.sms.wells.web.service.common.dto.ZwsnzWellsCodeDto.*;
 import com.kyowon.sms.wells.web.service.common.service.ZwsnzWellsCodeService;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import io.swagger.annotations.Api;
 
 import io.swagger.annotations.ApiImplicitParam;
@@ -20,7 +20,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(CommonConst.REST_URL_WELLS_COMMON + "/sms-wells-codes")
-@Api(tags = "[WSNZ] 코드조회 RESET API")
+@Api(tags = "[WSNZ] 코드조회(wells) RESET API")
 @RequiredArgsConstructor
 @Validated
 @Slf4j
@@ -87,6 +87,15 @@ public class ZwsnzWellsCodeController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "pdTpCd", value = "상품유형코드", paramType = "query", example = "P"),
         @ApiImplicitParam(name = "sellIndate", value = "상품판매기간 조회 기준", paramType = "query"),
+        @ApiImplicitParam(name = "partCd", value = "자재번호", paramType = "query"),
+        @ApiImplicitParam(name = "itemKnd", value = "품목종류", paramType = "query", example = "4"),
+        @ApiImplicitParam(name = "itemGr", value = "상품그룹", paramType = "query"),
+        @ApiImplicitParam(name = "sellTpCd", value = "판매유형코드", paramType = "query"),
+        @ApiImplicitParam(name = "pdClsfId", value = "상품분류ID", paramType = "query"),
+        @ApiImplicitParam(name = "pdHclsfId", value = "상품대분류ID", paramType = "query"),
+        @ApiImplicitParam(name = "pdMclsfId", value = "상품중분류ID", paramType = "query"),
+        @ApiImplicitParam(name = "pdLclsfId", value = "상품소분류ID", paramType = "query"),
+        @ApiImplicitParam(name = "pdDclsfId", value = "상품세분류ID", paramType = "query"),
     })
     public List<SearchPartMasterRes> getPartMaster(
         SearchPartMasterReq req
