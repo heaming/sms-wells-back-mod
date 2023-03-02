@@ -2,57 +2,57 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.common.BASE">
     <sql id="selectPartMaster">
-    SELECT T1.PD_CD                    AS PD_CD
-         , T2.PD_PRP_VAL01             AS ST101_ITEM_CD
-         , T2.PD_PRP_VAL31             AS ST101_PART_CD
-         , T1.PD_NM                    AS ST101_NM_KOR
-         , T1.PD_ABBR_NM               AS ST101_NM_ABBR1
-         , T1.CST_BASE_PD_ABBR_NM      AS ST101_NM_CUST
-         , T2.PD_PRP_VAL19             AS ST101_ITEM_KND
-         , T4.CD_CNTN                  AS ST101_ITEM_KND_NM
-         , T2.PD_PRP_VAL20             AS ST101_ITEM_GR
-         , T5.CD_CNTN                  AS ST101_ITEM_GR_NM
-         , T1.PD_CLSF_ID               AS PD_CLSF_ID          /*상품분류ID*/
-         , T1.PD_HCLSF_ID              AS PD_HCLSF_ID         /*상품대분류ID*/
-         , T1.PD_MCLSF_ID              AS PD_MCLSF_ID         /*상품중분류ID*/
-         , T1.PD_LCLSF_ID              AS PD_LCLSF_ID         /*상품소분류ID*/
-         , T1.PD_DCLSF_ID              AS PD_DCLSF_ID         /*상품세분류ID*/
-         , T1.SELL_TP_CD               AS SELL_TP_CD          /*판매유형코드*/
-         , T1.SV_STRTDT || T1.SV_ENDDT AS ST101_USE_YN
-         , T1.SV_STRTDT                AS ST101_APLD_FR
-         , T1.SV_ENDDT                 AS ST101_APLD_TO
-         , T1.SAP_MAT_CD               AS ST101_SAP_CD
-         , T1.SAP_MAT_GRP_VAL          AS ST101_SAP_GRP
-         , T1.SAP_PDCT_SCLSRT_STRC_VAL AS ST101_SAP_LEVEL
-         , T1.SAP_MAT_EVL_CLSS_VAL     AS ST101_SAP_CLASS
-         , T1.SAP_PDCT_SCLSRT_STRC_VAL AS ST101_PDCT_CLSS_RSC
-         , T1.PDCT_UPRC                AS ST101_STD_PR
-         , T1.IMG_APN_FILE_ID          AS ST101_IMG_URL
-         , T1.PD_EPL_CN                AS ST101_DESC1
-         , T2.PD_PRP_VAL21             AS ST101_COMM_GB
-         , T6.CD_CNTN                  AS ST101_COMM_GB_NM
-         , T2.PD_PRP_VAL04             AS ST101_LP_GB
-         , T2.PD_PRP_VAL02             AS ST101_MGT_TYP
-         , T7.CD_CNTN                  AS ST101_MGT_TYP_NM
-         , T2.PD_PRP_VAL10             AS ST101_SFTY_QTY
-         , T2.PD_PRP_VAL03             AS ST101_SIZE
-         , T2.PD_PRP_VAL05             AS ST101_MGT_UNT
-         , T8.CD_CNTN                  AS ST101_MGT_UNT_NM
-         , T2.PD_PRP_VAL06             AS ST101_LT
-         , T2.PD_PRP_VAL11             AS ST101_DEL_UNT
-         , T9.CD_CNTN                  AS ST101_DEL_UNT_NM
-         , T2.PD_PRP_VAL12             AS ST101_BOX_QTY
-         , T2.PD_PRP_VAL13             AS ST101_PLT_QTY
-         , T2.PD_PRP_VAL14             AS ST101_BAR_CD
-         , T2.PD_PRP_VAL15             AS ST101_BASE_GB
-         , T2.PD_PRP_VAL16             AS ST101_BASE_COLOR_GB
-         , T2.PD_PRP_VAL24             AS ST101_REFUR_YN
-         , T2.PD_PRP_VAL25             AS ST101_QTYLMT_YN
-         , T2.PD_PRP_VAL26             AS ST101_DISPOSAL_COST
-         , T2.PD_PRP_VAL08             AS ST101_TOT_WEI
-         , T2.PD_PRP_VAL09             AS ST101_PLT_WEI
-         , T2.PD_PRP_VAL07             AS ST101_MOQ
-         , T2.PD_PRP_VAL30             AS ST101_TURNOVER_TGT
+    SELECT T1.PD_CD                    AS SVPD_CD
+         , T2.PD_PRP_VAL01             AS SVPD_ITEM_CD
+         , T2.PD_PRP_VAL31             AS SVPD_PART_CD
+         , T1.PD_NM                    AS SVPD_NM_KOR
+         , T1.PD_ABBR_NM               AS SVPD_NM_ABBR1
+         , T1.CST_BASE_PD_ABBR_NM      AS SVPD_NM_CUST
+         , T2.PD_PRP_VAL19             AS SVPD_ITEM_KND
+         , T4.CD_CNTN                  AS SVPD_ITEM_KND_NM
+         , T2.PD_PRP_VAL20             AS SVPD_ITEM_GR
+         , T5.CD_CNTN                  AS SVPD_ITEM_GR_NM
+         , T1.PD_CLSF_ID               AS SVPD_CLSF_ID          /*상품분류ID*/
+         , T1.PD_HCLSF_ID              AS SVPD_HCLSF_ID         /*상품대분류ID*/
+         , T1.PD_MCLSF_ID              AS SVPD_MCLSF_ID         /*상품중분류ID*/
+         , T1.PD_LCLSF_ID              AS SVPD_LCLSF_ID         /*상품소분류ID*/
+         , T1.PD_DCLSF_ID              AS SVPD_DCLSF_ID         /*상품세분류ID*/
+         , T1.SELL_TP_CD               AS SVPD_SELL_TP_CD       /*판매유형코드*/
+         , T1.SV_STRTDT || T1.SV_ENDDT AS SVPD_USE_YN
+         , T1.SV_STRTDT                AS SVPD_APLD_FR
+         , T1.SV_ENDDT                 AS SVPD_APLD_TO
+         , T1.SAP_MAT_CD               AS SVPD_SAP_CD
+         , T1.SAP_MAT_GRP_VAL          AS SVPD_SAP_GRP
+         , T1.SAP_PDCT_SCLSRT_STRC_VAL AS SVPD_SAP_LEVEL
+         , T1.SAP_MAT_EVL_CLSS_VAL     AS SVPD_SAP_CLASS
+         , T1.SAP_PDCT_SCLSRT_STRC_VAL AS SVPD_PDCT_CLSS_RSC
+         , T1.PDCT_UPRC                AS SVPD_STD_PR
+         , T1.IMG_APN_FILE_ID          AS SVPD_IMG_URL
+         , T1.PD_EPL_CN                AS SVPD_DESC1
+         , T2.PD_PRP_VAL21             AS SVPD_COMM_GB
+         , T6.CD_CNTN                  AS SVPD_COMM_GB_NM
+         , T2.PD_PRP_VAL04             AS SVPD_LP_GB
+         , T2.PD_PRP_VAL02             AS SVPD_MGT_TYP
+         , T7.CD_CNTN                  AS SVPD_MGT_TYP_NM
+         , T2.PD_PRP_VAL10             AS SVPD_SFTY_QTY
+         , T2.PD_PRP_VAL03             AS SVPD_SIZE
+         , T2.PD_PRP_VAL05             AS SVPD_MGT_UNT
+         , T8.CD_CNTN                  AS SVPD_MGT_UNT_NM
+         , T2.PD_PRP_VAL06             AS SVPD_LT
+         , T2.PD_PRP_VAL11             AS SVPD_DEL_UNT
+         , T9.CD_CNTN                  AS SVPD_DEL_UNT_NM
+         , T2.PD_PRP_VAL12             AS SVPD_BOX_QTY
+         , T2.PD_PRP_VAL13             AS SVPD_PLT_QTY
+         , T2.PD_PRP_VAL14             AS SVPD_BAR_CD
+         , T2.PD_PRP_VAL15             AS SVPD_BASE_GB
+         , T2.PD_PRP_VAL16             AS SVPD_BASE_COLOR_GB
+         , T2.PD_PRP_VAL24             AS SVPD_REFUR_YN
+         , T2.PD_PRP_VAL25             AS SVPD_QTYLMT_YN
+         , T2.PD_PRP_VAL26             AS SVPD_DISPOSAL_COST
+         , T2.PD_PRP_VAL08             AS SVPD_TOT_WEI
+         , T2.PD_PRP_VAL09             AS SVPD_PLT_WEI
+         , T2.PD_PRP_VAL07             AS SVPD_MOQ
+         , T2.PD_PRP_VAL30             AS SVPD_TURNOVER_TGT
       FROM TB_PDBS_PD_BAS T1
      INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
         ON T1.PD_CD = T2.PD_CD
