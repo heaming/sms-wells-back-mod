@@ -116,7 +116,7 @@ public class ZwsnzWellsCodeDto {
         String ogTpCd
     ) {}
 
-    @ApiModel(value = "ZwsnzComCodeDto-SearchPartMasterReq")
+    @ApiModel(value = "ZwsnzWellsCodeDto-SearchPartMasterReq")
     public record SearchPartMasterReq(
         String pdTpCd,
         String sellIndate,
@@ -131,7 +131,7 @@ public class ZwsnzWellsCodeDto {
         String partCd
     ) {}
 
-    @ApiModel(value = "ZwsnzComCodeDto-SearchPartMasterRes")
+    @ApiModel(value = "ZwsnzWellsCodeDto-SearchPartMasterRes")
     public record SearchPartMasterRes(
         String itemCd,
         String partCd,
@@ -190,5 +190,99 @@ public class ZwsnzWellsCodeDto {
         String pdTpCd,
         String sellStrtdt,
         String sellEnddt
+    ) {}
+
+    @ApiModel(value = "ZwsnzWellsCodeDto-SearchServiceCenterReq")
+    public record SearchServiceCenterReq(
+        String ogId,
+        String ogCd,
+        String hgrOgId,
+        String ogNm
+    ) {}
+
+    @ApiModel(value = "ZwsnzWellsCodeDto-SearchDistrictsReq")
+    public record SearchDistrictsReq(
+        String fr2pLgldCd,
+        String ctctyNm,
+        String lawcEmdNm,
+        String searchType
+    ) {}
+
+    @ApiModel(value = "ZwsnzWellsCodeDto-SearchProductBaseReq")
+    public record SearchProductBaseReq(
+        String newAdrZip,
+        String emdSn,
+        String ctpvNm,
+        String ctctyNm,
+        String lawcEmdNm,
+        String amtdNm,
+        String pdlvNo
+    ) {}
+
+    @ApiModel(value = "ZwsnzWellsCodeDto-SearchMcbyCstSvOjIzReq")
+    public record SearchMcbyCstSvOjIzReq(
+        String mngtYm,
+        String pdGdCd
+    ) {}
+
+    @ApiModel(value = "ZwsnzWellsCodeDto-SearchServiceCentersRes")
+    public record SearchServiceCentersRes(
+        String ogCd,
+        String ogNm,
+        String mngtWidaDvCd,
+        String cnrLocaraDvCd
+    ) {}
+
+    @ApiModel(value = "ZwsnzWellsCodeDto-SearchDistrictsRes")
+    public record SearchDistrictsRes(
+        String newAdrZip,
+        int emdSn,
+        String fr2pLgldCd,
+        String ctpvNm,
+        String ctctyNm,
+        String lawcEmdNm,
+        String amtdNm,
+        String kynorLocaraYn,
+        String ildYn,
+        String pdlvNo,
+        String ctctyCd
+    ) {}
+
+    @ApiModel(value = "ZwsnzWellsCodeDto-SearchProductBaseRes")
+    public record SearchProductBaseRes(
+        String newAdrZip,
+        String emdSn,
+        String ctpvNm,
+        String ctctyNm,
+        String lawcEmdNm,
+        String amtdNm,
+        String pdlvNo
+    ) {}
+
+    @ApiModel(value = "ZwsnzWellsCodeDto-SearchMcbyCstSvOjIzRes")
+    public record SearchMcbyCstSvOjIzRes(
+        String pdCd, /*상품코드*/
+        String pdNm /*상품명*/
+    ) {}
+
+    @ApiModel(value = "ZwsnzWellsCodeDto-SearchLgldCtpvLocarasReq")
+    public record SearchLgldCtpvLocarasReq() {}
+    @ApiModel(value = "ZwsnzWellsCodeDto-SearchLgldCtpvLocarasRes")
+    public record SearchLgldCtpvLocarasRes(
+        String amtdNm,
+        String apyEnddt,
+        String apyStrtdt,
+        String ctctyNm,
+        String ctpvNm,
+        String fr2pLgldCd,
+        String lawcEmdNm,
+        long locaraSn,
+        String rpbLocaraCd
+    ) {}
+
+    @ApiModel(value = "ZwsnzWellsCodeDto-SearchWarehouseCLReq")
+    public record SearchWarehouseCLReq(
+        String apyYm,
+        String wareNo
     ) {}
 }

@@ -17,25 +17,26 @@ import java.util.List;
  */
 @Mapper(componentModel = "spring")
 public interface ZwsnzWellsCodeConverter {
-    List<SearchWorkingEngineersRes> mapAllWorkingEngineersDvoToRes(
-        List<ZwsnzWellsCodeWorkingEngineersDvo> dvos
-    );
+    List<SearchWorkingEngineersRes> mapAllWorkingEngineersDvoToRes(List<ZwsnzWellsCodeWorkingEngineersDvo> dvos);
 
-    List<SearchWareHouseRes> mapAllWareHouseDvoToRes(
-        List<ZwsnzWellsCodeWareHouseDvo> dvos
-    );
+    List<SearchWareHouseRes> mapAllWareHouseDvoToRes(List<ZwsnzWellsCodeWareHouseDvo> dvos);
 
-    List<SearchMonthStockRes> mapAllDvoToRes(
-        List<ZwsnzWellsCodeMonthStockDvo> dvos
-    );
+    List<SearchMonthStockRes> mapAllDvoToRes(List<ZwsnzWellsCodeMonthStockDvo> dvos);
 
-    List<SearchServiceCenterOrgsRes> mapAllServiceCenterOrgsDvoToRes(
-        List<ZwsnzWellsCodeServiceCenterOrgsDvo> dvos
-    );
+    List<SearchServiceCenterOrgsRes> mapAllServiceCenterOrgsDvoToRes(List<ZwsnzWellsCodeServiceCenterOrgsDvo> dvos);
 
     List<SearchAllEngineersRes> mapAllEngineersDvoToRes(List<ZwsnzWellsCodeAllEngineersDvo> dvos);
 
-    List<SearchPartMasterRes> mapAllPartMasterDvoToRes(
-        List<ZwsnzComCodePartMasterDvo> dvos
-    );
+    List<SearchPartMasterRes> mapAllPartMasterDvoToRes(List<ZwsnzWellsCodePartMasterDvo> dvos);
+
+    List<SearchServiceCentersRes> mapAllServiceCentersDvoToRes(List<ZwsnzWellsCodeServiceCenterDvo> dvos);
+
+    List<SearchDistrictsRes> mapAllDistrictsDvoToRes(List<ZwsnzWellsCodeDistrictsDvo> dvos);
+
+    List<SearchProductBaseRes> mapAllProductBaseDvoToRes(List<ZwsnzWellsCodeProductBaseDvo> dvos);
+
+    List<SearchMcbyCstSvOjIzRes> mapAllMonthCstServsDvoToRes(List<ZwsnzWellsCodeMonthCstServsDvo> dvos);
+
+    List<SearchLgldCtpvLocarasRes> mapAllLgldCtpvLocarasDvoToRes(List<ZwsnzWellsCodeLgldCtpvLocarasDvo> dvos);
+
 }

@@ -3,7 +3,6 @@ package com.kyowon.sms.wells.web.service.common.rest;
 import com.kyowon.sms.common.web.zcommon.constants.CommonConst;
 import com.kyowon.sms.wells.web.service.common.dto.ZwsnzWellsCodeDto.*;
 import com.kyowon.sms.wells.web.service.common.service.ZwsnzWellsCodeService;
-import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import io.swagger.annotations.Api;
 
 import io.swagger.annotations.ApiImplicitParam;
@@ -101,5 +100,78 @@ public class ZwsnzWellsCodeController {
         SearchPartMasterReq req
     ) {
         return service.getPartMaster(req);
+    }
+
+    @ApiOperation(value = "서비스센터 조회")
+    @GetMapping("/service-centers")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogId", paramType = "query", example = "OG00002"),
+        @ApiImplicitParam(name = "hgrOgId", paramType = "query", example = "HOG00002"),
+        @ApiImplicitParam(name = "ogCd", paramType = "query", example = "OGC00002"),
+        @ApiImplicitParam(name = "ogNm", paramType = "query", example = "도봉센터"),
+    })
+    public List<SearchServiceCentersRes> getServiceCenters(
+        SearchServiceCenterReq req
+    ) {
+        return service.getServiceCenters(req);
+    }
+
+    @ApiOperation(value = "광역시도, 시군구 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "searchType", value = "조회구분", paramType = "query", example = "sido"),
+        @ApiImplicitParam(name = "fr2pLgldCd", value = "앞2자리법정동코드", paramType = "query", example = "11"),
+    })
+    @GetMapping("/districts")
+    public List<SearchDistrictsRes> getDistricts(
+        SearchDistrictsReq req
+    ) {
+        return service.getDistricts(req);
+    }
+
+    @ApiOperation(value = "상품기본조회")
+    @GetMapping("/products")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "newAdrZip", paramType = "query", example = "37714"),
+        @ApiImplicitParam(name = "emdSn", paramType = "query", example = "1"),
+        @ApiImplicitParam(name = "ctpvNm", paramType = "query", example = "경상북도"),
+        @ApiImplicitParam(name = "ctctyNm", paramType = "query", example = "포항시 북구"),
+        @ApiImplicitParam(name = "lawcEmdNm", paramType = "query", example = "항구동"),
+        @ApiImplicitParam(name = "amtdNm", paramType = "query", example = "중앙동"),
+        @ApiImplicitParam(name = "pdlvNo", paramType = "query")
+    })
+    public List<SearchProductBaseRes> getProductBase(
+        SearchProductBaseReq req
+    ) {
+        return service.getProductBase(req);
+    }
+
+    @ApiOperation(value = "월별고객서비스대상내역")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "mngtYm", value = "관리년월", paramType = "query", example = "2022"),
+        @ApiImplicitParam(name = "pdGdCd", value = "상품등급코드", paramType = "query", example = "A"),
+    })
+    @GetMapping("/month-customer-services")
+    public List<SearchMcbyCstSvOjIzRes> getMonthCstServs(
+        SearchMcbyCstSvOjIzReq req
+    ) {
+        return service.getMonthCstServs(req);
+    }
+
+    @ApiOperation(value = "법정시도명에 해당 하는 지역코드 조회")
+    @GetMapping("/lgld-ctpv-locaras")
+    public List<SearchLgldCtpvLocarasRes> getLgldCtpvLocaras(
+        SearchLgldCtpvLocarasReq req
+    ) {
+        return service.getLgldCtpvLocaras(req);
+    }
+
+    @ApiOperation(value = "창고조직마감내역체크조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "apyYm", value = "적용년월", paramType = "query"),
+        @ApiImplicitParam(name = "wareNo", value = "창고번호", paramType = "query"),
+    })
+    @GetMapping("/warehouse-close-check")
+    public int getWarehouseCloseCheckCounter(SearchWarehouseCLReq dto) {
+        return this.service.getWarehouseCloseCheckCounter(dto);
     }
 }

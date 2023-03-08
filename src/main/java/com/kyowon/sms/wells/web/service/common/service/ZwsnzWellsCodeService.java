@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.service.common.service;
 
-import com.kyowon.sms.common.web.common.dto.ZwsnzComCodeDto;
 import com.kyowon.sms.wells.web.service.common.converter.ZwsnzWellsCodeConverter;
 import com.kyowon.sms.wells.web.service.common.dto.ZwsnzWellsCodeDto.*;
+import com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeDistrictsDvo;
 import com.kyowon.sms.wells.web.service.common.mapper.ZwsnzWellsCodeMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,5 +52,45 @@ public class ZwsnzWellsCodeService {
         SearchPartMasterReq req
     ) {
         return converter.mapAllPartMasterDvoToRes(mapper.selectPartMaster(req));
+    }
+
+    public List<SearchServiceCentersRes> getServiceCenters(
+        SearchServiceCenterReq dto
+    ) {
+        return converter.mapAllServiceCentersDvoToRes(mapper.selectServiceCenters(dto));
+    }
+
+    public List<SearchDistrictsRes> getDistricts(
+        SearchDistrictsReq dto
+    ) {
+        List<ZwsnzWellsCodeDistrictsDvo> result = switch (dto.searchType()) {
+            case "sido" -> mapper.selectDistrictsSido(dto);
+            case "gu" -> mapper.selectDistrictsGu(dto);
+            case "guAll" -> mapper.selectDistrictsGuAll(dto);
+            default -> mapper.selectDistricts(dto);
+        };
+        return converter.mapAllDistrictsDvoToRes(result);
+    }
+
+    public List<SearchProductBaseRes> getProductBase(
+        SearchProductBaseReq dto
+    ) {
+        return converter.mapAllProductBaseDvoToRes(mapper.selectProductBase(dto));
+    }
+
+    public List<SearchMcbyCstSvOjIzRes> getMonthCstServs(
+        SearchMcbyCstSvOjIzReq dto
+    ) {
+        return converter.mapAllMonthCstServsDvoToRes(mapper.selectMonthCstServs(dto));
+    }
+
+    public List<SearchLgldCtpvLocarasRes> getLgldCtpvLocaras(
+        SearchLgldCtpvLocarasReq req
+    ) {
+        return converter.mapAllLgldCtpvLocarasDvoToRes(mapper.selectLgldCtpvLocaras(req));
+    }
+
+    public int getWarehouseCloseCheckCounter(SearchWarehouseCLReq dto) {
+        return this.mapper.selectWarehouseCloseCheckCounter(dto);
     }
 }

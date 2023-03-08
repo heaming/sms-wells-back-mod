@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class ZwsnzComCodePartMasterDvo {
+public class ZwsnzWellsCodePartMasterDvo {
     String itemCd;
     String partCd;
     String nmKor;
