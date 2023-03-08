@@ -27,27 +27,47 @@ public class ZwsnzWellsCodeController {
 
     private final ZwsnzWellsCodeService service;
 
-    @ApiOperation(value = "서비스센터 근무 엔지니어(Wells서비스관리팀 또는 Wells고객서비스부문) 조회")
-    @GetMapping("/working-engineers")
-    public List<SearchWorkingEngineersRes> getWorkingEngineers(
-        SearchWorkingEngineersReq req
+    @ApiOperation(value = "서비스센터 엔지니어 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "hgrDeptCd", value = "상위부서코드", paramType = "query", example = "00810"),
+    })
+    @GetMapping("/all-engineers")
+    public List<SearchAllEngineersRes> getAllEngineers(
+        SearchAllEngineersReq req
     ) {
-        return service.getWorkingEngineers(req);
+        return service.getAllEngineers(req);
     }
 
-    @ApiOperation(value = "창고조회")
+    @ApiOperation(value = "광역시도, 시군구 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "startYm", value = "적용년월시작", paramType = "query"),
-        @ApiImplicitParam(name = "endYm", value = "적용년월종료", paramType = "query"),
-        @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query"),
-        @ApiImplicitParam(name = "wareIchrNo", value = "창고담당번호", paramType = "query"),
-        @ApiImplicitParam(name = "hgrWareNo", value = "상위창고번호", paramType = "query"),
+        @ApiImplicitParam(name = "searchType", value = "조회구분", paramType = "query", example = "sido"),
+        @ApiImplicitParam(name = "fr2pLgldCd", value = "앞2자리법정동코드", paramType = "query", example = "11"),
     })
-    @GetMapping("/ware-houses")
-    public List<SearchWareHouseRes> getWareHouses(
-        SearchWareHouseReq req
+    @GetMapping("/districts")
+    public List<SearchDistrictsRes> getDistricts(
+        SearchDistrictsReq req
     ) {
-        return service.getWareHouses(req);
+        return service.getDistricts(req);
+    }
+
+    @ApiOperation(value = "법정시도명에 해당 하는 지역코드 조회")
+    @GetMapping("/lgld-ctpv-locaras")
+    public List<SearchLgldCtpvLocarasRes> getLgldCtpvLocaras(
+        SearchLgldCtpvLocarasReq req
+    ) {
+        return service.getLgldCtpvLocaras(req);
+    }
+
+    @ApiOperation(value = "월별고객서비스대상내역")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "mngtYm", value = "관리년월", paramType = "query", example = "2022"),
+        @ApiImplicitParam(name = "pdGdCd", value = "상품등급코드", paramType = "query", example = "A"),
+    })
+    @GetMapping("/month-customer-services")
+    public List<SearchMcbyCstSvOjIzRes> getMonthCstServs(
+        SearchMcbyCstSvOjIzReq req
+    ) {
+        return service.getMonthCstServs(req);
     }
 
     @ApiOperation(value = "월별 창고내역 조회")
@@ -60,25 +80,6 @@ public class ZwsnzWellsCodeController {
         SearchMonthStockReq req
     ) {
         return service.getMonthStocks(req);
-    }
-
-    @ApiOperation(value = "서비스센터 조직 조회")
-    @GetMapping("/service-center-orgs")
-    public List<SearchServiceCenterOrgsRes> getServiceCenterOrgs(
-        SearchServiceCenterOrgsReq req
-    ) {
-        return service.getServiceCenterOrgs(req);
-    }
-
-    @ApiOperation(value = "서비스센터 엔지니어 조회")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "hgrDeptCd", value = "상위부서코드", paramType = "query", example = "00810"),
-    })
-    @GetMapping("/all-engineers")
-    public List<SearchAllEngineersRes> getAllEngineers(
-        SearchAllEngineersReq req
-    ) {
-        return service.getAllEngineers(req);
     }
 
     @ApiOperation(value = "상품 기본 조회")
@@ -102,32 +103,6 @@ public class ZwsnzWellsCodeController {
         return service.getPartMaster(req);
     }
 
-    @ApiOperation(value = "서비스센터 조회")
-    @GetMapping("/service-centers")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "ogId", paramType = "query", example = "OG00002"),
-        @ApiImplicitParam(name = "hgrOgId", paramType = "query", example = "HOG00002"),
-        @ApiImplicitParam(name = "ogCd", paramType = "query", example = "OGC00002"),
-        @ApiImplicitParam(name = "ogNm", paramType = "query", example = "도봉센터"),
-    })
-    public List<SearchServiceCentersRes> getServiceCenters(
-        SearchServiceCenterReq req
-    ) {
-        return service.getServiceCenters(req);
-    }
-
-    @ApiOperation(value = "광역시도, 시군구 조회")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "searchType", value = "조회구분", paramType = "query", example = "sido"),
-        @ApiImplicitParam(name = "fr2pLgldCd", value = "앞2자리법정동코드", paramType = "query", example = "11"),
-    })
-    @GetMapping("/districts")
-    public List<SearchDistrictsRes> getDistricts(
-        SearchDistrictsReq req
-    ) {
-        return service.getDistricts(req);
-    }
-
     @ApiOperation(value = "상품기본조회")
     @GetMapping("/products")
     @ApiImplicitParams(value = {
@@ -145,24 +120,41 @@ public class ZwsnzWellsCodeController {
         return service.getProductBase(req);
     }
 
-    @ApiOperation(value = "월별고객서비스대상내역")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "mngtYm", value = "관리년월", paramType = "query", example = "2022"),
-        @ApiImplicitParam(name = "pdGdCd", value = "상품등급코드", paramType = "query", example = "A"),
-    })
-    @GetMapping("/month-customer-services")
-    public List<SearchMcbyCstSvOjIzRes> getMonthCstServs(
-        SearchMcbyCstSvOjIzReq req
+    @ApiOperation(value = "서비스센터 조직 조회")
+    @GetMapping("/service-center-orgs")
+    public List<SearchServiceCenterOrgsRes> getServiceCenterOrgs(
+        SearchServiceCenterOrgsReq req
     ) {
-        return service.getMonthCstServs(req);
+        return service.getServiceCenterOrgs(req);
     }
 
-    @ApiOperation(value = "법정시도명에 해당 하는 지역코드 조회")
-    @GetMapping("/lgld-ctpv-locaras")
-    public List<SearchLgldCtpvLocarasRes> getLgldCtpvLocaras(
-        SearchLgldCtpvLocarasReq req
+    @ApiOperation(value = "서비스센터 조회")
+    @GetMapping("/service-centers")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "ogId", paramType = "query", example = "OG00002"),
+        @ApiImplicitParam(name = "hgrOgId", paramType = "query", example = "HOG00002"),
+        @ApiImplicitParam(name = "ogCd", paramType = "query", example = "OGC00002"),
+        @ApiImplicitParam(name = "ogNm", paramType = "query", example = "도봉센터"),
+    })
+    public List<SearchServiceCentersRes> getServiceCenters(
+        SearchServiceCenterReq req
     ) {
-        return service.getLgldCtpvLocaras(req);
+        return service.getServiceCenters(req);
+    }
+
+    @ApiOperation(value = "창고조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "startYm", value = "적용년월시작", paramType = "query"),
+        @ApiImplicitParam(name = "endYm", value = "적용년월종료", paramType = "query"),
+        @ApiImplicitParam(name = "wareDvCd", value = "창고구분코드", paramType = "query"),
+        @ApiImplicitParam(name = "wareIchrNo", value = "창고담당번호", paramType = "query"),
+        @ApiImplicitParam(name = "hgrWareNo", value = "상위창고번호", paramType = "query"),
+    })
+    @GetMapping("/ware-houses")
+    public List<SearchWareHouseRes> getWareHouses(
+        SearchWareHouseReq req
+    ) {
+        return service.getWareHouses(req);
     }
 
     @ApiOperation(value = "창고조직마감내역체크조회")
@@ -173,5 +165,13 @@ public class ZwsnzWellsCodeController {
     @GetMapping("/warehouse-close-check")
     public int getWarehouseCloseCheckCounter(SearchWarehouseCLReq dto) {
         return this.service.getWarehouseCloseCheckCounter(dto);
+    }
+
+    @ApiOperation(value = "서비스센터 근무 엔지니어(Wells서비스관리팀 또는 Wells고객서비스부문) 조회")
+    @GetMapping("/working-engineers")
+    public List<SearchWorkingEngineersRes> getWorkingEngineers(
+        SearchWorkingEngineersReq req
+    ) {
+        return service.getWorkingEngineers(req);
     }
 }
