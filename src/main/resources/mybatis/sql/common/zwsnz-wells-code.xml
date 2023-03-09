@@ -96,7 +96,6 @@
     SELECT '38844' AS CODE_ID, '김혁재(38844)' AS CODE_NM, '김혁재' AS CODE_NM1, '김혁재' AS CODE_NM2, '010-2788-8801' AS CPHON_IDV_TNO, '71357' AS OG_CD, '부산지점' AS OG_NM, '6' AS EMP_DV_VAL, '' AS EMP_RSB_DV_VAL, '' AS EMP_TP_VAL, '20220314' AS ENTCO_DT, '' AS RSGN_DT, '37' AS EMP_ROL_DV_VAL, '' AS EMP_DV_VAL_NM, '엔지니어' AS EMP_ROL_DV_VAL_NM FROM DUAL
     </select>
 
-
     <select id="selectWareHouses" resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeWareHouseDvo">
     SELECT DISTINCT WARE_NO, WARE_NM
       FROM TB_SVST_MCBY_WARE_IZ
@@ -133,7 +132,6 @@
        AND A.APY_YM = #{apyYm}
     </select>
 
-
     <select id='selectServiceCenterOrgs' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeServiceCenterOrgsDvo">
     SELECT OG_ID
          , HGR_OG_ID
@@ -166,8 +164,6 @@
        AND OG_CD != '79999'
      ORDER BY OG_CD
     </select>
-
-
 
     <select id='selectAllEngineers' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeAllEngineersDvo">
     /*SELECT TRIM(AC021_EMP_ID) AS CODE_ID *//* 사번 *//*
@@ -274,8 +270,7 @@
          ORDER BY EMP_ROL_DV_VAL DESC, CODE_NM, RSGN_DT, OG_CD, EMP_DV_VAL, EMP_ROL_DV_VAL_NM
     </select>
 
-
-    <select id="selectPartMaster" resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzComCodePartMasterDvo">
+    <select id="selectPartMaster" resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodePartMasterDvo">
     SELECT SVPD_ITEM_CD || SVPD_PART_CD AS CD,
            SVPD_NM_KOR                  AS CD_NM,
            SVPD_ITEM_CD || SVPD_PART_CD AS CODE_ID,
@@ -370,5 +365,157 @@
        AND SVPD_DCLSF_ID = #{pdDclsfId}
        </if>
      ORDER BY SVPD_CLSF_ID ASC
+    </select>
+
+    <select id='selectServiceCenters' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeServiceCenterDvo">
+    SELECT OG_CD, OG_NM, MNGT_WIDA_DV_CD /*관리광역구분코드*/, CNR_LOCARA_DV_CD /*센터지역구분코드*/
+    FROM TB_OGBS_OG_BAS
+    WHERE USE_YN = 'Y'
+      AND CLO_YN = 'N'
+      AND CLO_DT IS NULL
+      AND DTA_DL_YN = 'N'
+      AND OG_CD != '79999'
+      AND OG_ID = #{ogId}
+      AND HGR_OG_ID= #{hgrOgId}
+      AND OG_CD = #{ogCd}
+      AND OG_NM LIKE '%'||#{ogNm}||'%'
+    </select>
+
+    <select id='selectDistrictsSido' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeDistrictsDvo">
+    SELECT FR2P_LGLD_CD, CTPV_NM
+    FROM TB_SVPD_EGER_ASN_ADR_IZ
+    WHERE DTA_DL_YN  = 'N'
+    GROUP BY FR2P_LGLD_CD, CTPV_NM
+    ORDER BY FR2P_LGLD_CD
+    </select>
+
+    <select id='selectDistrictsGu' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeDistrictsDvo">
+    SELECT FR2P_LGLD_CD, CTPV_NM, TO_CHAR(RAWTOHEX(CTCTY_NM)) AS CTCTY_CD, CTCTY_NM
+    FROM TB_SVPD_EGER_ASN_ADR_IZ
+    WHERE DTA_DL_YN  = 'N'
+      AND FR2P_LGLD_CD = #{fr2pLgldCd}
+    GROUP BY FR2P_LGLD_CD, CTPV_NM, CTCTY_NM
+    ORDER BY CTCTY_NM
+    </select>
+
+    <select id='selectDistrictsGuAll' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeDistrictsDvo">
+    SELECT CTPV_NM, CTCTY_NM
+    FROM TB_SVPD_EGER_ASN_ADR_IZ
+    WHERE DTA_DL_YN  = 'N'
+    GROUP BY CTPV_NM, CTCTY_NM
+    ORDER BY MIN(FR2P_LGLD_CD), CTCTY_NM
+    </select>
+
+    <select id='selectDistricts' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeDistrictsDvo">
+    /*시도 구군*/
+    SELECT NEW_ADR_ZIP,EMD_SN, FR2P_LGLD_CD, CTPV_NM, CTCTY_NM, LAWC_EMD_NM, AMTD_NM, KYNOR_LOCARA_YN, ILD_YN, PDLV_NO
+    FROM TB_SVPD_EGER_ASN_ADR_IZ
+    WHERE DTA_DL_YN  = 'N'
+      <if test='@MybatisUtils@isNotEmpty(fr2pLgldCd)'>
+      AND FR2P_LGLD_CD = #{fr2pLgldCd}
+      </if>
+      <if test='@MybatisUtils@isNotEmpty(ctctyNm)'>
+      AND CTCTY_NM = #{ctctyNm}
+      </if>
+      <if test='@MybatisUtils@isNotEmpty(lawcEmdNm)'>
+      AND LAWC_EMD_NM = #{lawcEmdNm}
+      </if>
+    </select>
+
+    <select id='selectProductBase' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeProductBaseDvo">
+    SELECT NEW_ADR_ZIP
+         , EMD_SN
+         , FR2P_LGLD_CD
+         , CTPV_NM
+         , CTCTY_NM
+         , LAWC_EMD_NM
+         , AMTD_NM
+         , KYNOR_LOCARA_YN
+         , ILD_YN
+         , PDLV_NO
+         , DTA_DL_YN
+    FROM TB_SVPD_EGER_ASN_ADR_IZ
+    WHERE DTA_DL_YN = 'N'
+      <if test='@MybatisUtils@isNotEmpty(newAdrZip)'>
+      AND NEW_ADR_ZIP = #{newAdrZip}
+      </if>
+      <if test='@MybatisUtils@isNotEmpty(emdSn)'>
+      AND EMD_SN = #{emdSn}
+      </if>
+      <if test='@MybatisUtils@isNotEmpty(ctpvNm)'>
+      AND CTPV_NM = #{ctpvNm}
+      </if>
+      <if test='@MybatisUtils@isNotEmpty(ctctyNm)'>
+      AND CTCTY_NM = #{ctctyNm}
+      </if>
+      <if test='@MybatisUtils@isNotEmpty(lawcEmdNm)'>
+      AND LAWC_EMD_NM = #{lawcEmdNm}
+      </if>
+      <if test='@MybatisUtils@isNotEmpty(amtdNm)'>
+      AND AMTD_NM = #{amtdNm}
+      </if>
+      <if test='@MybatisUtils@isNotEmpty(pdlvNo)'>
+      AND PDLV_NO = #{pdlvNo}
+      </if>
+    </select>
+
+    <select id="selectMonthCstServs" resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeMonthCstServsDvo">
+    /* 상품 - 월별고객서비스대상내역
+       TB_SVPD_MCBY_CST_SV_OJ_IZ:월별고객서비스대상내역
+       TB_PDBS_PD_BAS:상품기본
+     */
+    SELECT DISTINCT A.PD_CD, B.PD_NM
+    FROM TB_SVPD_MCBY_CST_SV_OJ_IZ A
+    LEFT OUTER JOIN TB_PDBS_PD_BAS B ON SUBSTR(A.PD_CD, 0, 4) = B.PD_CD
+    WHERE A.DTA_DL_YN = 'N'
+      <if test='@MybatisUtils@isNotEmpty(mngtYm)'>
+      AND A.MNGT_YM LIKE  #{mngtYm}|| '%'
+      </if>
+      <if test='@MybatisUtils@isNotEmpty(pdGdCd)'>
+      AND A.PD_GD_CD = #{pdGdCd}
+      </if>
+    </select>
+
+    <select id='selectLgldCtpvLocaras' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeLgldCtpvLocarasDvo">
+    SELECT DISTINCT CTPV_NM
+         , RPB_LOCARA_CD
+      FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T2
+     WHERE DTA_DL_YN = 'N'
+       AND LOCARA_SN =
+           (
+           SELECT MAX(LOCARA_SN)
+             FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ TT1
+            WHERE TT1.FR2P_LGLD_CD = T2.FR2P_LGLD_CD
+              AND TT1.CTPV_NM = T2.CTPV_NM
+              AND TT1.CTCTY_NM = T2.CTCTY_NM
+              AND TT1.LAWC_EMD_NM = T2.LAWC_EMD_NM
+              AND TT1.AMTD_NM = T2.AMTD_NM
+              AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN TT1.APY_STRTDT AND TT1.APY_ENDDT
+           )
+    UNION ALL
+    SELECT CTPV_NM
+         , LPAD(MAX(RPB_LOCARA_CD), 3, '0') AS RPB_LOCARA_CD
+      FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T2
+     WHERE DTA_DL_YN = 'N'
+       AND LOCARA_SN =
+           (
+           SELECT MAX(LOCARA_SN)
+             FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ TT1
+            WHERE TT1.FR2P_LGLD_CD = T2.FR2P_LGLD_CD
+              AND TT1.CTPV_NM = T2.CTPV_NM
+              AND TT1.CTCTY_NM = T2.CTCTY_NM
+              AND TT1.LAWC_EMD_NM = T2.LAWC_EMD_NM
+              AND TT1.AMTD_NM = T2.AMTD_NM
+              AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN TT1.APY_STRTDT AND TT1.APY_ENDDT
+           )
+     GROUP BY CTPV_NM
+    </select>
+
+    <select id="selectWarehouseCloseCheckCounter" resultType="integer">
+        SELECT COUNT(*) AS CNT
+          FROM TB_SVST_MCBY_WARE_CL_IZ
+         WHERE APY_YM = #{apyYm}
+           AND WARE_NO = #{wareNo}
+           AND WARE_CL_YN = 'Y'
     </select>
 </mapper>

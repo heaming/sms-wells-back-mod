@@ -19,5 +19,23 @@ public interface ZwsnzWellsCodeMapper {
 
     List<ZwsnzWellsCodeAllEngineersDvo> selectAllEngineers(SearchAllEngineersReq req);
 
-    List<ZwsnzComCodePartMasterDvo> selectPartMaster(SearchPartMasterReq req);
+    List<ZwsnzWellsCodePartMasterDvo> selectPartMaster(SearchPartMasterReq req);
+
+    List<ZwsnzWellsCodeServiceCenterDvo> selectServiceCenters(SearchServiceCenterReq req);
+
+    List<ZwsnzWellsCodeDistrictsDvo> selectDistrictsSido(SearchDistrictsReq req);
+
+    List<ZwsnzWellsCodeDistrictsDvo> selectDistrictsGu(SearchDistrictsReq req);
+
+    List<ZwsnzWellsCodeDistrictsDvo> selectDistrictsGuAll(SearchDistrictsReq req);
+
+    List<ZwsnzWellsCodeDistrictsDvo> selectDistricts(SearchDistrictsReq req);
+
+    List<ZwsnzWellsCodeProductBaseDvo> selectProductBase(SearchProductBaseReq req);
+
+    List<ZwsnzWellsCodeMonthCstServsDvo> selectMonthCstServs(SearchMcbyCstSvOjIzReq req);
+
+    List<ZwsnzWellsCodeLgldCtpvLocarasDvo> selectLgldCtpvLocaras(SearchLgldCtpvLocarasReq req);
+
+    int selectWarehouseCloseCheckCounter(SearchWarehouseCLReq dto);
 }
