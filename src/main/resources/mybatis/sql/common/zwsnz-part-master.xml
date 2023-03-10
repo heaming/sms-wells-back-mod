@@ -3,7 +3,7 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.common.BASE">
     <sql id="selectPartMaster">
     <![CDATA[
-    SELECT T1.PD_CD                    AS SVPD_CD
+    SELECT T1.PD_CD                    AS SVPD_PD_CD
          , T2.PD_PRP_VAL01             AS SVPD_ITEM_CD
          , T2.PD_PRP_VAL31             AS SVPD_PART_CD
          , T1.PD_NM                    AS SVPD_NM_KOR
