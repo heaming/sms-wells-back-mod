@@ -129,7 +129,7 @@ datasource:
         jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.29:1515/DITGKW
         username: WSMDEV
         password: WSM#DEV1249##
-        maximumpoolsize: 3
+        maximumpoolsize: 10
         auto-commit: false
         cacheprepstmts: true
         prepstmtcachesize: 250
@@ -139,7 +139,7 @@ datasource:
         jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.29:1515/DITGKW
         username: WSMDEV
         password: WSM#DEV1249##
-        maximumpoolsize: 3
+        maximumpoolsize: 10
         auto-commit: false
         cacheprepstmts: true
         prepstmtcachesize: 250
