@@ -275,7 +275,7 @@
            SVPD_NM_KOR                  AS CD_NM,
            SVPD_ITEM_CD || SVPD_PART_CD AS CODE_ID,
            SVPD_NM_KOR                  AS CODE_NAME,
-           SVPD_CD                      AS PD_CD,
+           SVPD_PD_CD                      AS PD_CD,
            PD_TP_CD /*C:복합상품, M:교재제품, P:기준상품, S:서비스, Y:융합상품 */ ,
            SVPD_ITEM_CD                 AS ITEM_CD,
            SVPD_PART_CD                 AS PART_CD,
