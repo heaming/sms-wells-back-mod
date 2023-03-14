@@ -248,26 +248,27 @@
     SELECT '00810' AS HGR_DEPT_CD, '1694507' AS CODE_ID, '류재우(1694507)' AS CODE_NM, '류재우' AS CODE_NM1, '류재우' AS CODE_NM2, '010-2788-3489' AS CPHON_IDV_TNO, 'V910150' AS OG_CD, 'V910150 지점' AS OG_NM, null AS EMP_DV_VAL, null AS EMP_RSB_DV_VAL, null AS EMP_TP_VAL, '20200325' AS ENTCO_DT, '20200901' AS RSGN_DT, null AS EMP_ROL_DV_VAL, null AS EMP_DV_VAL_NM, '엔지니어' AS EMP_ROL_DV_VAL_NM FROM DUAL UNION ALL
     SELECT '00810' AS HGR_DEPT_CD, '1693899' AS CODE_ID, '문대영(1693899)' AS CODE_NM, '문대영' AS CODE_NM1, '문대영' AS CODE_NM2, '010-2788-7046' AS CPHON_IDV_TNO, 'V910110' AS OG_CD, 'V910110 지점' AS OG_NM, null AS EMP_DV_VAL, null AS EMP_RSB_DV_VAL, null AS EMP_TP_VAL, '20200305' AS ENTCO_DT, null AS RSGN_DT, null AS EMP_ROL_DV_VAL, null AS EMP_DV_VAL_NM, '엔지니어' AS EMP_ROL_DV_VAL_NM FROM DUAL*/
 
-        SELECT T1.PRTNR_NO AS CODE_ID
-             , T1.PRTNR_KNM || '(' || T1.PRTNR_NO || ')' AS CODE_NM
-             , T1.PRTNR_KNM AS CODE_NM1
-             , T1.PRTNR_ENM AS CODE_NM2
-             , '' AS CPHON_IDV_TNO
-             , (CASE WHEN T1.PRTNR_NO = '32000' THEN '70569' ELSE T1.OG_CD END) AS OG_CD
-             , (CASE WHEN T1.PRTNR_NO = '32000' THEN '인천공장서비스센터' ELSE T1.OG_NM END) AS OG_NM
-             , '' AS EMP_DV_VAL
-             , '' AS EMP_RSB_DV_VAL
-             , '' AS EMP_TP_VAL
-             , T1.CNTR_DT AS ENTCO_DT
-             , T1.CLTN_DT AS RSGN_DT
-             , T1.ROL_DV_CD AS EMP_ROL_DV_VAL
-             , '' AS EMP_DV_VAL_NM
-             , '' AS EMP_ROL_DV_VAL_NM
-             , T1.OG_TP_CD AS OG_TP_CD
-          FROM TB_OGBS_MM_PRTNR_IZ T1
-         WHERE T1.BASE_YM = '202212'
-           AND (T1.OG_CD IN (SELECT A.OG_CD FROM TB_OGBS_MM_OG_IZ A WHERE A.CLO_DT IS NULL) OR T1.PRTNR_NO = '32000')
-         ORDER BY EMP_ROL_DV_VAL DESC, CODE_NM, RSGN_DT, OG_CD, EMP_DV_VAL, EMP_ROL_DV_VAL_NM
+    SELECT T1.PRTNR_NO AS CODE_ID
+         , T1.PRTNR_KNM || '(' || T1.PRTNR_NO || ')' AS CODE_NM
+         , T1.PRTNR_KNM AS CODE_NM1
+         , T1.PRTNR_ENM AS CODE_NM2
+         , '' AS CPHON_IDV_TNO
+         , T1.OG_CD AS OG_CD
+         , T1.OG_NM AS OG_NM
+         , '' AS EMP_DV_VAL
+         , '' AS EMP_RSB_DV_VAL
+         , '' AS EMP_TP_VAL
+         , T1.CNTR_DT AS ENTCO_DT
+         , T1.CLTN_DT AS RSGN_DT
+         , T1.ROL_DV_CD AS EMP_ROL_DV_VAL
+         , '' AS EMP_DV_VAL_NM
+         , '' AS EMP_ROL_DV_VAL_NM
+         , T1.OG_TP_CD AS OG_TP_CD
+      FROM TB_OGBS_MM_PRTNR_IZ T1
+     WHERE T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+       AND T1.OG_TP_CD = 'W06'
+       AND T1.CLTN_DT IS NULL
+     ORDER BY EMP_ROL_DV_VAL DESC, CODE_NM, RSGN_DT, OG_CD, EMP_DV_VAL, EMP_ROL_DV_VAL_NM
     </select>
 
     <select id="selectPartMaster" resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodePartMasterDvo">
