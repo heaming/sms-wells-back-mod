@@ -27,6 +27,10 @@ public class WsncZipMngtService {
         return wsncZipMngtMapper.selectZipAssignments(dto, pageInfo);
     }
 
+    public List<WsncZipMngtDto.SearchZipCodeRes> getZipAssignmentsExcelDownload(WsncZipMngtDto.SearchZipCodeReq dto) {
+        return wsncZipMngtMapper.selectZipAssignments(dto);
+    }
+
     @Transactional
     public int saveZipAssignments(List<WsncZipMngtDto.SaveZipCodeReq> dtos) throws Exception {
         int processCnt = 0;

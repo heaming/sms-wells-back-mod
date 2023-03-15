@@ -45,6 +45,11 @@ public class WsncZipMngtController {
         return wsncZipMngtService.getZipAssignments(dto, pageInfo);
     }
 
+    @GetMapping("/excel-download")
+    public List<WsncZipMngtDto.SearchZipCodeRes> getZipAssignments(WsncZipMngtDto.SearchZipCodeReq dto) {
+        return wsncZipMngtService.getZipAssignmentsExcelDownload(dto);
+    }
+
     @ApiOperation(value = "우편번호 관리 화면 - 우편번호 등록 및 수정", notes = "우편번호별 관리정보 저장")
     @PostMapping
     public SaveResponse saveZipAssignments(

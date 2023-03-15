@@ -35,7 +35,7 @@ public class WsncZipMngtDto {
         String lgldCd, /* 법정동코드 */
         String lgldNm, /* 법정동명 */
         String locaraTno, /* 지역전화번호 */
-        String islndLocaraYn, /* 도서지역여부 */
+        String islndYn, /* 도서지역여부 */
         String oldAdrZip, /* 구주소우편번호 */
         String dtaDlYn, /* 데이터삭제여부 */
         String chSn, /* 변경일련번호 */
