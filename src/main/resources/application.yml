@@ -1,5 +1,6 @@
 server:
     port: 8080
+    profile: local
     servlet:
         session:
             tracking-modes: cookie
@@ -9,9 +10,10 @@ server:
 sflex:
     file:
         path:
-            physical: c:/nas/gatch/
-            temp: ${sflex.file.path.physical}/temp/
-            export: ${sflex.file.path.physical}/export/
+            root: c:\nas\gatch
+            attachFile: \appdata\attachfile
+            temp: ${sflex.file.path.attachFile}\temp
+            export: ${sflex.file.path.attachFile}\export
     drm:
         path:
             temp: c:/nas/drm/temp/
