@@ -133,7 +133,7 @@
     </select>
 
     <select id='selectServiceCenterOrgs' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeServiceCenterOrgsDvo">
-    SELECT OG_ID
+    /*SELECT OG_ID
          , HGR_OG_ID
          --      , OG_CLSF_CD
          , OG_TP_CD
@@ -162,7 +162,20 @@
        AND USE_YN = 'Y'
        AND CLO_DT IS NULL
        AND OG_CD != '79999'
-     ORDER BY OG_CD
+     ORDER BY OG_CD*/
+    SELECT OG_ID
+          ,HGR_OG_ID
+          ,OG_TP_CD
+          ,OG_LEVL_DV_CD
+          ,OG_CD
+          ,OG_NM
+          ,OG_ABBR_NM
+          ,CLO_YN
+          ,CLO_DT
+     FROM TB_OGBS_MM_OG_IZ
+    WHERE BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+      AND OG_TP_CD IN ('W02','W06')
+      AND DTA_DL_YN = 'N'
     </select>
 
     <select id='selectAllEngineers' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeAllEngineersDvo">
