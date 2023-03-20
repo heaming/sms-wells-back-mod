@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import io.swagger.annotations.ApiModel;
 
+import javax.validation.constraints.NotBlank;
+
 public class WsncAsTransferDto {
 
     @ApiModel(value = "WsncAsTransferDto-SearchReq")
@@ -54,7 +56,9 @@ public class WsncAsTransferDto {
 
     @ApiModel(value = "WsncAsTransferDto-SaveReq")
     public record SaveReq(
+        @NotBlank
         String svCnrOgId, /* 서비스센터조직ID */
+        @NotBlank
         String ichrPrtnrNo, /* 담당파트너번호 */
         String assignDateFrom, /* 배정일자From */
         String assignDateTo, /* 배정일자To */
