@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncAsTransferMapper">
+    <!-- @TODO TEMP CODE -->
+    <select id="selectAsTransferPages" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncAsTransferDto$SearchRes">
+<!--        SELECT I1.CNTR_NO-->
+<!--             , A1.RCGVP_KNM-->
+<!--             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', D1.SELL_TP_CD , #{session.langId}) AS SELL_TP_NM-->
+<!--             , P1.SAP_MAT_CD-->
+<!--             , D1.BASE_PD_CD-->
+<!--             , P1.PD_ABBR_NM-->
+<!--             , F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_HCLSF_CD', I1.SV_BIZ_HCLSF_CD , #{session.langId}) AS WK_DV_NM-->
+<!--             , E1.CTPV_NM-->
+<!--             , E1.CTCTY_NM-->
+<!--             , E1.AMTD_NM-->
+<!--             , OI1.CNSL_MO_CN-->
+<!--             , AB1.NEW_ADR_ZIP-->
+<!--             , AB1.RNADR || AB1.RDADR AS ADR-->
+<!--             , CASE WHEN EI1.ALNC_BZS_CD = '21' THEN 'EDU 2차제휴'-->
+<!--                    WHEN EI1.ALNC_BZS_CD = '30' THEN '구몬 2차제휴'-->
+<!--                    ELSE ''-->
+<!--               END AS ALNC_DV_NM-->
+<!--             , F_CMZ_CD_NM(#{session.tenantId}, 'WK_DTM_CH_RSON_CD', I1.DTM_CH_CAUS_CD , #{session.langId}) AS DTM_CH_CAUS_NM-->
+<!--             , F_CMZ_CD_NM(#{session.tenantId}, 'WK_DTM_CH_RSON_DTL_CD', I1.DTM_CH_RSON_CD , #{session.langId}) AS DTM_CH_RSON_NM-->
+<!--             , I1.DTM_CH_RSON_DTL_CN-->
+<!--             , A1.LOCARA_TNO || A1.EXNO_ENCR  || A1.IDV_TNO AS TNO-->
+<!--             , A1.CRAL_LOCARA_TNO || A1.MEXNO_ENCR || A1.CRAL_IDV_TNO AS MPNO-->
+<!--             , F_CMZ_CD_NM(#{session.tenantId}, 'MTR_STAT_CD', I1.MTR_STAT_CD , #{session.langId}) AS MTR_STAT_NM-->
+<!--             , F_CMZ_CD_NM(#{session.tenantId}, 'WK_PRGS_STAT_CD', I1.WK_PRGS_STAT_CD , #{session.langId}) AS WK_PRGS_DV_NM-->
+<!--             , I1.VST_CNFMDT || I1.VST_CNFM_HH AS VST_CNFM_DTM-->
+<!--             , I1.FST_RGST_DTM AS ASN_DTM-->
+<!--             , I1.RCP_ICHR_PRTNR_NO AS RCST-->
+<!--             , O1.OG_NM AS BFCH_BLG_NM-->
+<!--             , I1.ICHR_PRTNR_NO AS BFCH_EMPNO-->
+<!--             , O1.PRTNR_KNM  AS BFCH_FNM-->
+<!--             , O2.OG_NM AS AFCH_BLG_NM-->
+<!--             , T1.AFCH_ICHR_PRTNR_NO AS AFCH_EMPNO-->
+<!--             , O2.PRTNR_KNM AS AFCH_FNM-->
+<!--             , T1.TF_CNFMDT AS TF_DT-->
+<!--             , F_CMZ_CD_NM(#{session.tenantId}, 'TF_AK_RSON_CD', T1.TF_AK_RSON_CD , #{session.langId}) AS TF_RSON_NM-->
+<!--             , O3.OG_NM AS TF_BLG_NM-->
+<!--             , O3.PRTNR_KNM AS TF_FNM-->
+<!--          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ I1-->
+<!--         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS A1-->
+<!--            ON I1.CNTR_NO = A1.CNTR_NO-->
+<!--         INNER JOIN TB_GBCO_ADR_BAS AB1-->
+<!--            ON A1.ADR_ID = AB1.ADR_ID-->
+<!--         INNER JOIN TB_SSCT_CNTR_DTL D1-->
+<!--            ON I1.CNTR_NO = D1.CNTR_NO-->
+<!--           AND I1.CNTR_SN = D1.CNTR_SN-->
+<!--         INNER JOIN TB_PDBS_PD_BAS P1-->
+<!--            ON P1.PD_CD = D1.BASE_PD_CD-->
+<!--         INNER JOIN TB_SVPD_EGER_ASN_ADR_IZ E1-->
+<!--            ON E1.EMD_SN      = (SELECT MAX(EMD_SN)-->
+<!--                                   FROM TB_SVPD_EGER_ASN_ADR_IZ-->
+<!--                                  WHERE NEW_ADR_ZIP = AB1.NEW_ADR_ZIP)-->
+<!--         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ OI1-->
+<!--            ON OI1.CNTR_NO = I1.CNTR_NO-->
+<!--           AND OI1.CNTR_SN = I1.CNTR_SN-->
+<!--         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ EI1-->
+<!--            ON EI1.CNTR_SN = (SELECT MAX(CNTR_SN)-->
+<!--                                FROM TB_SVPD_CST_SV_EXCN_IZ-->
+<!--                               WHERE CNTR_NO = I1.CNTR_NO-->
+<!--                             )-->
+<!--         INNER JOIN TB_OGBS_MM_PRTNR_IZ O1-->
+<!--            ON O1.PRTNR_NO = I1.RCP_ICHR_PRTNR_NO-->
+<!--           AND O1.BASE_YM  = SUBSTR(I1.EGER_ASN_DT,1,6)-->
+<!--           AND O1.OG_TP_CD = I1.ICHR_OG_TP_CD-->
+<!--          LEFT OUTER JOIN TB_SVPD_ASN_RS_TF_IZ T1-->
+<!--            ON T1.TF_SN = (SELECT MAX(TF_SN)-->
+<!--                             FROM TB_SVPD_ASN_RS_TF_IZ-->
+<!--                            WHERE CST_SV_ASN_NO = I1.CST_SV_ASN_NO-->
+<!--                          )-->
+<!--         INNER JOIN TB_OGBS_MM_PRTNR_IZ O2-->
+<!--            ON O2.PRTNR_NO = T1.AFCH_ICHR_PRTNR_NO-->
+<!--           AND O2.BASE_YM  = SUBSTR(T1.TF_CNFMDT,1,6)-->
+<!--           AND O2.OG_TP_CD = T1.AFCH_ICHR_PRTNR_OG_TP_CD-->
+<!--         INNER JOIN TB_OGBS_MM_PRTNR_IZ O3-->
+<!--            ON O3.PRTNR_NO = T1.TF_AK_PRTNR_NO-->
+<!--           AND O3.BASE_YM  = SUBSTR(T1.TF_CNFMDT,1,6)-->
+<!--           AND O3.OG_TP_CD = T1.TF_AK_PRTNR_OG_TP_CD-->
+<!--        WHERE 1=1-->
+<!--        <if test='@MybatisUtils@isNotEmpty(svCnrOgId)'>-->
+<!--           AND I1.SV_CNR_OG_ID = #{svCnrOgId}-->
+<!--        </if>-->
+<!--        <if test='@MybatisUtils@isNotEmpty(ichrPrtnrNo)'>-->
+<!--           AND I1.ICHR_PRTNR_NO = #{ichrPrtnrNo}-->
+<!--        </if>-->
+<!--        <if test='@MybatisUtils@isNotEmpty(assignDateFrom) or @MybatisUtils@isNotEmpty(assignDateTo)'>-->
+<!--           AND I1.FST_RGST_DTM BETWEEN #{assignDateFrom} AND #{assignDateTo}-->
+<!--        </if>-->
+<!--        <if test='@MybatisUtils@isNotEmpty(vstCnfmdt)'>-->
+<!--           AND I1.VST_CNFMDT = #{vstCnfmdt}-->
+<!--        </if>-->
+<!--        <if test='@MybatisUtils@isNotEmpty(svBizHclsfCd)'>-->
+<!--           AND I1.SV_BIZ_HCLSF_CD = #{svBizHclsfCd}-->
+<!--        </if>-->
+        SELECT A.CNTR_NO
+             , A.RCGVP_KNM
+             , A.SELL_TP_NM
+             , A.SAP_MAT_CD
+             , A.BASE_PD_CD
+             , A.PD_ABBR_NM
+             , A.WK_DV_NM
+             , A.CTPV_NM
+             , A.CTCTY_NM
+             , A.AMTD_NM
+             , A.CNSL_MO_CN
+             , A.NEW_ADR_ZIP
+             , A.ADR
+             , A.ALNC_DV_NM
+             , A.DTM_CH_CAUS_NM
+             , A.DTM_CH_RSON_NM
+             , A.DTM_CH_RSON_DTL_CN
+             , A.TNO
+             , A.MPNO
+             , A.MTR_STAT_NM
+             , A.WK_PRGS_DV_NM
+             , A.VST_CNFM_DTM
+             , A.ASN_DTM
+             , A.RCST
+             , A.BFCH_BLG_NM
+             , A.BFCH_EMPNO
+             , A.BFCH_FNM
+             , A.AFCH_BLG_NM
+             , A.AFCH_EMPNO
+             , A.AFCH_FNM
+             , A.TF_DT
+             , A.TF_RSON_NM
+             , A.TF_BLG_NM
+             , A.TF_FNM
+        FROM (
+              SELECT '2023-0000001' AS CNTR_NO, '한국야쿠르트' AS RCGVP_KNM, '렌탈' AS SELL_TP_NM, '300006924' AS SAP_MAT_CD, '49607-000000' AS BASE_PD_CD, '비데(BM550RWQA)' AS PD_ABBR_NM, '1' AS SV_BIZ_HCLSF_CD ,'설치' AS WK_DV_NM, '경기도' AS CTPV_NM, '용인시 기흥구' AS CTCTY_NM, '보정동' AS AMTD_NM, '설치 방문전 연락 부탁드려요' AS CNSL_MO_CN, '16931' AS NEW_ADR_ZIP, '경기 용인시 기흥구 이현로 29번길 72-11' AS ADR, '' AS ALNC_DV_NM, '외부고객' AS DTM_CH_CAUS_NM, '고객요청' AS DTM_CH_RSON_NM, '곽선일_오전요청' AS DTM_CH_RSON_DTL_CN, '010-5254-1115' AS TNO, '010-5254-1115' AS MPNO, '정상' AS MTR_STAT_NM, '대기' AS WK_PRGS_DV_NM, '202303181000' AS VST_CNFM_DTM, '20230202102338' AS ASN_DTM, '명순덕' AS RCST, '71356' AS SV_CNR_OG_ID, '수원지점' AS BFCH_BLG_NM, '38229' AS BFCH_EMPNO, '양희덕' AS BFCH_FNM, '수원지점' AS AFCH_BLG_NM, '38763' AS AFCH_EMPNO, '조성민' AS AFCH_FNM, '2022-12-29' AS TF_DT, '업무조정' AS TF_RSON_NM, '차세대Biz혁신팀' AS TF_BLG_NM, '김호영' AS TF_FNM FROM DUAL UNION ALL
+              SELECT '2023-0000002', '세진이비인후과', '렌탈', '300006925', '24510-000000', '청정기(AN734CWB)34평', '1', '설치', '서울특별시', '용산구', '이태원동', '설치 방문전 연락 부탁드려요', '21541', '서울 용산구 이태원로 21 세진이비인후과', '', '외부고객', '고객요청', '김다영_오전요청', '02-115-4478', '02-115-4478', '정상', '대기', '202303181000', '20230228131541', '박순자', '71356', '수원지점', '38763', '조성민', '수원지점', '39129', '김낙훈', '2023-03-05', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
+              SELECT '2023-0000003', '세진이비인후과', '렌탈', '300001426', '51120-000000', '정수기(KW-PK2W1)', '1', '설치', '서울특별시', '용산구', '이태원동', '설치 방문전 연락 부탁드려요', '21541', '서울 용산구 이태원로 21 세진이비인후과', '', '외부고객', '고객요청', '김다영_오전요청', '02-115-4478', '02-115-4478', '정상', '대기', '202303181000', '20230228131541', '박순자', '71356', '수원지점', '38763', '조성민', '수원지점', '39129', '김낙훈', '2023-03-05', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
+              SELECT '2023-0000004', '제이그림', '렌탈', '300006924', '49607-000000', '비데(BM550RWQA)', '3', 'A/S', '전라북도', '전주시', '송천동2가', '설치 방문전 연락 부탁드려요', '50148', '전북 전주시 덕진구 와룡로 58-3', '', '외부고객', '고객요청', '최성미_오전요청', '010-6772-2333', '010-6772-2333', '정상', '대기', '202303181130', '20230303152041', '박혜은', '71350', '의정부지점', '36711', '신종규', '의정부지점', '38200', '이창섭', '2023-03-06', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
+              SELECT '2023-0000005', '제이그림', '렌탈', '300006925', '24510-000000', '청정기(AN734CWB)34평', '3', 'A/S', '전라북도', '전주시', '송천동2가', '설치 방문전 연락 부탁드려요', '50148', '전북 전주시 덕진구 와룡로 58-3', '', '외부고객', '고객요청', '최성미_오전요청', '010-6772-2333', '010-6772-2333', '정상', '대기', '202303181130', '20230303152041', '박혜은', '71350', '의정부지점', '36711', '신종규', '의정부지점', '38200', '이창섭', '2023-03-06', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
+              SELECT '2023-0000006', '제이그림', '렌탈', '300001426', '51120-000000', '정수기(KW-PK2W1)', '3', 'A/S', '전라북도', '전주시', '송천동2가', '설치 방문전 연락 부탁드려요', '50148', '전북 전주시 덕진구 와룡로 58-3', '', '외부고객', '고객요청', '최성미_오전요청', '010-6772-2333', '010-6772-2333', '정상', '대기', '202303181130', '20230303152041', '박혜은', '71350', '의정부지점', '36711', '신종규', '의정부지점', '38200', '이창섭', '2023-03-06', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
+              SELECT '2023-0000007', '권명국', '렌탈', '300006924', '49607-000000', '비데(BM550RWQA)', '1', '설치', '서울특별시', '용산구', '이태원동', '설치 방문전 연락 부탁드려요', '22651', '서울 용산구 이태원로 221 주영아파트 지하 2층 직원식당', '', '외부고객', '고객요청', '김다영_오전요청', '010-2222-3333', '010-2222-3333', '정상', '대기', '202303190900', '20230307091226', '박순자', '71356', '수원지점', '39129', '김낙훈', '수원지점', '38229', '양희덕', '2023-03-07', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
+              SELECT '2023-0000008', '권명국', '렌탈', '300006925', '24510-000000', '청정기(AN734CWB)34평', '1', '설치', '서울특별시', '용산구', '이태원동', '설치 방문전 연락 부탁드려요', '22651', '서울 용산구 이태원로 221 주영아파트 지하 2층 직원식당', '', '외부고객', '고객요청', '김다영_오전요청', '010-2222-3333', '010-2222-3333', '정상', '대기', '202303190900', '20230307091226', '박순자', '71356', '수원지점', '39129', '김낙훈', '수원지점', '38229', '양희덕', '2023-03-07', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
+              SELECT '2023-0000009', '권명국', '렌탈', '300001426', '51120-000000', '정수기(KW-PK2W1)', '1', '설치', '서울특별시', '용산구', '이태원동', '설치 방문전 연락 부탁드려요', '22651', '서울 용산구 이태원로 221 주영아파트 지하 2층 직원식당', '', '외부고객', '고객요청', '김다영_오전요청', '010-2222-3333', '010-2222-3333', '정상', '대기', '202303190900', '20230307091226', '박순자', '71356', '수원지점', '39129', '김낙훈', '수원지점', '38229', '양희덕', '2023-03-07', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
+              SELECT '2023-0000010', '빨간펜수학의달인 후암점', '렌탈', '300001426', '5112-000000', '정수기(KW-PK2W1)', '1', '설치', '서울특별시', '용산구', '후암동', '설치 방문전 연락 부탁드려요', '21845', '서울 용산구 후암로28가길 3 동인주택', 'EDU 2차제휴', '내부고객', '고객요청', '김다영_오전요청', '02-355-74165', '02-355-74165', '정상', '대기', '202303201030', '20230226120902', '박순자', '71356', '수원지점', '39129', '김낙훈', '수원지점', '38229', '양희덕', '2023-03-06', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
+              SELECT '2023-0000011', '빨간펜수학의달인 후암점', '렌탈', '300006925', '24510-000000', '청정기(AN734CWB)34평', '1', '설치', '서울특별시', '용산구', '후암동', '설치 방문전 연락 부탁드려요', '21845', '서울 용산구 후암로28가길 3 동인주택', 'EDU 2차제휴', '내부고객', '고객요청', '김다영_오전요청', '02-355-74165', '02-355-74165', '정상', '대기', '202303201030', '20230226120902', '박순자', '71356', '수원지점', '39129', '김낙훈', '수원지점', '38229', '양희덕', '2023-03-06', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
+              SELECT '2023-0000012', '빨간펜수학의달인 신당점', '렌탈', '300006925', '24510-000000', '청정기(AN734CWB)34평', '1', '설치', '서울특별시', '중구', '신당동', '설치 방문전 연락 부탁드려요', '11452', '서울 중구 청구로3나길 12 2층', 'EDU 2차제휴', '내부고객', '고객요청', '김금숙_오후요청', '02-344-7741', '02-344-7741', '정상', '대기', '202303201400', '20230302104515', '박순자', '71356', '수원지점', '39129', '김낙훈', '수원지점', '38229', '양희덕', '2023-03-07', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL
+             ) A
+       WHERE 1=1
+        <if test='@MybatisUtils@isNotEmpty(svCnrOgId)'>
+           AND A.SV_CNR_OG_ID = #{svCnrOgId}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(ichrPrtnrNo)'>
+           AND A.BFCH_EMPNO = #{ichrPrtnrNo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(assignDateFrom) or @MybatisUtils@isNotEmpty(assignDateTo)'>
+           AND SUBSTR(A.ASN_DTM,1,8) BETWEEN #{assignDateFrom} AND #{assignDateTo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(vstCnfmdt)'>
+           AND SUBSTR(A.VST_CNFM_DTM,1,8) = #{vstCnfmdt}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(svBizHclsfCd)'>
+           AND A.SV_BIZ_HCLSF_CD = #{svBizHclsfCd}
+        </if>
+    </select>
+
+    <insert id="insertAssignResultTransferIz">
+        SELECT 1 FROM DUAL
+    </insert>
+
+    <select id="selectCntrNoByPdCd" resultType="String">
+        SELECT 1 FROM DUAL
+    </select>
+
+    <select id="selectAssignByCntrNo" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncAsTransferDto$SearchRes">
+        SELECT 1 FROM DUAL
+    </select>
+
+    <update id="updateInstallationAssignIz">
+        SELECT 1 FROM DUAL
+    </update>
+
+    <update id="updateSeedingShippingPlanIz">
+        SELECT 1 FROM DUAL
+    </update>
+</mapper>
