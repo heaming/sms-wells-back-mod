@@ -13,8 +13,8 @@ import com.kyowon.sms.wells.web.service.allocate.dto.WsncOutsourcedpdAsReceiptDt
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncOutsourcedpdAsReceiptDto.SearchRes;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncOutsourcedpdAsReceiptDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WmsncOutsourcedpdAsReceiptMapper;
-import com.sds.sflex.common.common.service.ConfigurationService;
 import com.sds.sflex.common.common.service.TemplateService;
+import com.sds.sflex.system.config.core.service.ConfigurationService;
 
 import lombok.RequiredArgsConstructor;
 
