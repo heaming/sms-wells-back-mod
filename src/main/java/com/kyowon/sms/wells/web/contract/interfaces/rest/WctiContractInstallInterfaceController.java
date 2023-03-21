@@ -13,8 +13,8 @@ import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractInstallDto;
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractInstallDto.SaveReq;
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractInstallDto.SaveRes;
 import com.kyowon.sms.wells.web.contract.interfaces.service.WctiContractInstallService;
-import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
+import com.sds.sflex.system.config.constant.CommConst;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 
 import io.swagger.annotations.Api;
@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 
 @InterfaceController
 @Api(tags = "[WCTI] 고객센터I/F")
-@RequestMapping(value = CtContractConst.INTERFACE_URL_V1 + "/customer-centers")
+@RequestMapping(value = CommConst.REST_URL_V1 + "/interface/sms/wells/contract/customer-centers")
 @RequiredArgsConstructor
 @Validated
 public class WctiContractInstallInterfaceController {
