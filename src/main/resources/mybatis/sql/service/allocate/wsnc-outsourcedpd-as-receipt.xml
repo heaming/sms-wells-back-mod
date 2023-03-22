@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WmsncOutsourcedpdAsReceiptMapper">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncOutsourcedpdAsReceiptMapper">
     <select id="selectOutsourcedpdAsReceipts" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncOutsourcedpdAsReceiptDto$SearchRes">
         SELECT A.CNR_NM  /* AS센터명 */
              , A.PD_NM   /* 제품명 */

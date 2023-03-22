@@ -12,7 +12,7 @@ import com.kyowon.sms.wells.web.service.allocate.converter.WsncOutsourcedpdAsRec
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncOutsourcedpdAsReceiptDto.BiztalkReq;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncOutsourcedpdAsReceiptDto.SearchRes;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncOutsourcedpdAsReceiptDvo;
-import com.kyowon.sms.wells.web.service.allocate.mapper.WmsncOutsourcedpdAsReceiptMapper;
+import com.kyowon.sms.wells.web.service.allocate.mapper.WsncOutsourcedpdAsReceiptMapper;
 import com.sds.sflex.common.common.service.TemplateService;
 import com.sds.sflex.system.config.core.service.ConfigurationService;
 
@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class WsncOutsourcedpdAsReceiptService {
-    private final WmsncOutsourcedpdAsReceiptMapper mapper;
+    private final WsncOutsourcedpdAsReceiptMapper mapper;
     private final TemplateService templateService;
     private final WsncOutsourcedpdAsReceiptConverter converter;
     private final ConfigurationService configurationService;
