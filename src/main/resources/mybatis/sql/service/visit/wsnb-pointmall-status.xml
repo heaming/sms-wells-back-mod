@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbPointmallStatusInfMapper">
-    <select id="selectPointmallStatusInfs" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbPointmallStatusInfDto$SearchRes">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbPointmallStatusMapper">
+    <select id="selectPointmallStatuses" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbPointmallStatusDto$SearchRes">
         SELECT CASE WHEN T1.VST_CNFMDT = TO_CHAR(SYSDATE,'YYYYMMDD') THEN 'Y' ELSE NVL(T1.WK_ACPTE_STAT_CD,'N') END AS WK_ACPTE_STAT_CD
              , T1.WK_ACPTE_DT
              , T1.WK_ACPTE_HH
