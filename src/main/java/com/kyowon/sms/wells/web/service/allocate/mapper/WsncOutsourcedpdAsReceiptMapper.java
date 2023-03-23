@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncOutsourcedpdAsReceiptDto.SearchRes;
 
 @Mapper
-public interface WmsncOutsourcedpdAsReceiptMapper {
+public interface WsncOutsourcedpdAsReceiptMapper {
 
     List<SearchRes> selectOutsourcedpdAsReceipts(String searchParam);
 

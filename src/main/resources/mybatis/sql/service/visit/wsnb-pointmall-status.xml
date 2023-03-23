@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbPointmallStatusMapper">
+    <select id="selectPointmallStatuses" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbPointmallStatusDto$SearchRes">
+        SELECT CASE WHEN T1.VST_CNFMDT = TO_CHAR(SYSDATE,'YYYYMMDD') THEN 'Y' ELSE NVL(T1.WK_ACPTE_STAT_CD,'N') END AS WK_ACPTE_STAT_CD
+             , T1.WK_ACPTE_DT
+             , T1.WK_ACPTE_HH
+             , T1.VST_CNFMDT
+             , CASE WHEN T2.IN_CHNL_DV_CD != '5' AND T1.VST_CNFM_HH IN ('010000','020000','030000') THEN '000000'
+                    ELSE T1.VST_CNFM_HH
+               END AS VST_CMFM_HH
+             , T1.WK_EXCN_DT
+             , T1.WK_EXCN_HH
+             , T1.WK_PRGS_STAT_CD
+             , CASE WHEN T3.INST_ING_CNT = 0 AND T3.INST_END_CNT = T3.REMV_END_CNT AND T3.REMV_END_CNT > 0 THEN 'Y'
+                    ELSE 'N'
+               END AS RTNGD_YN
+          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1
+         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T2
+            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+          LEFT OUTER JOIN (SELECT I1.CNTR_NO
+                                , I1.CNTR_SN
+                                , SUM(CASE WHEN I1.SV_BIZ_DCLSF_CD = '1110' AND I2.WK_PRGS_STAT_CD = '00' THEN 1 ELSE 0 END) AS INST_ING_CNT
+                                , SUM(CASE WHEN I1.SV_BIZ_DCLSF_CD = '1110' AND I2.WK_PRGS_STAT_CD = '20' THEN 1 ELSE 0 END) AS INST_END_CNT
+                                , SUM(CASE WHEN I1.SV_BIZ_DCLSF_CD = '3460' AND I2.WK_PRGS_STAT_CD = '20' THEN 1 ELSE 0 END) AS REMV_END_CNT
+                             FROM TB_SVPD_CST_SVAS_IST_OJ_IZ I1
+                            INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ I2
+                               ON I1.CST_SV_ASN_NO = I2.CST_SV_ASN_NO
+                            INNER JOIN TB_SVPD_CST_SV_EXCN_IZ I3
+                               ON I3.CNTR_NO = I1.CNTR_NO
+                              AND I3.CNTR_SN = I1.CNTR_SN
+                            WHERE I3.IST_DT IS NULL
+                              AND I1.SV_BIZ_DCLSF_CD IN ('1110','4110','3460')
+                              AND I2.CNTR_NO = #{CNTR_NO}
+                            GROUP BY I1.CNTR_NO
+                                   , I1.CNTR_SN
+                          ) T3
+            ON T1.CNTR_NO = T3.CNTR_NO
+           AND T1.CNTR_SN = '00'
+         WHERE T1.CNTR_NO      = #{CNTR_NO}
+           AND T2.AS_IST_OJ_NO = #{AS_IST_OJ_NO}
+           AND T1.CNTR_SN      = '00'
+           AND T1.SV_BIZ_HCLSF_CD IN ('9','1','4')
+    </select>
+
+</mapper>
