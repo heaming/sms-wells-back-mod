@@ -1,18 +1,17 @@
-package com.kyowon.sms.wells.web.service.visit.rest;
+package com.kyowon.sms.wells.web.service.interfaces.rest;
 
 import java.util.List;
 
 import javax.validation.Valid;
 
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbPointmallStatusDto;
+import com.kyowon.sms.wells.web.service.interfaces.service.WsnbPointmallStatusService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbPointmallStatusDto.SearchReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbPointmallStatusDto.SearchRes;
-import com.kyowon.sms.wells.web.service.visit.service.WsnbPointmallStatusService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 
@@ -34,9 +33,9 @@ public class WsnbPointmallStatusInterfaceController {
     public EaiWrapper getPointmallStatuses(
         @Valid
         @RequestBody
-        EaiWrapper<SearchReq> reqEaiWrapper
+        EaiWrapper<WsnbPointmallStatusDto.SearchReq> reqEaiWrapper
     ) {
-        EaiWrapper<List<SearchRes>> resEaiWrapper = reqEaiWrapper.newResInstance();
+        EaiWrapper<List<WsnbPointmallStatusDto.SearchRes>> resEaiWrapper = reqEaiWrapper.newResInstance();
         resEaiWrapper.setBody(service.getPointmallStatuses(reqEaiWrapper.getBody()));
         return resEaiWrapper;
     }

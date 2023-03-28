@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.service.visit.dvo;
+package com.kyowon.sms.wells.web.service.interfaces.dvo;
 
 import lombok.Getter;
 import lombok.Setter;

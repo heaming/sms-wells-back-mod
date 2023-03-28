@@ -1,4 +1,4 @@
-package com.kyowon.sms.wells.web.service.visit.dto;
+package com.kyowon.sms.wells.web.service.interfaces.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
