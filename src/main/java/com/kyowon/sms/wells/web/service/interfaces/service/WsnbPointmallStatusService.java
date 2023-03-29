@@ -1,14 +1,14 @@
-package com.kyowon.sms.wells.web.service.visit.service;
+package com.kyowon.sms.wells.web.service.interfaces.service;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.service.interfaces.converter.WsnbPointmallStatusConverter;
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.service.visit.converter.WsnbPointmallStatusConverter;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbPointmallStatusDto.SearchReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbPointmallStatusDto.SearchRes;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbPointmallStatusDvo;
-import com.kyowon.sms.wells.web.service.visit.mapper.WsnbPointmallStatusMapper;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbPointmallStatusDto.SearchReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbPointmallStatusDto.SearchRes;
+import com.kyowon.sms.wells.web.service.interfaces.dvo.WsnbPointmallStatusDvo;
+import com.kyowon.sms.wells.web.service.interfaces.mapper.WsnbPointmallStatusMapper;
 
 import lombok.RequiredArgsConstructor;
 
