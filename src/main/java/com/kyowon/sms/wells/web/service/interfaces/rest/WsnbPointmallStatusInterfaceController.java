@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1 + ": 포인트몰 상태정보 조회 트랜잭션")
-@RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "pointmall-statuses")
+@RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/pointmall-statuses")
 //@Api(tags = "[WSNB] 포인트몰 상태정보 조회 트랜잭션")
 @RequiredArgsConstructor
 @Validated
