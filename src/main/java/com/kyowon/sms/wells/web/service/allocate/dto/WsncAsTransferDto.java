@@ -1,8 +1,10 @@
 package com.kyowon.sms.wells.web.service.allocate.dto;
 
-import io.swagger.annotations.ApiModel;
+import java.util.List;
 
 import javax.validation.constraints.NotBlank;
+
+import io.swagger.annotations.ApiModel;
 
 public class WsncAsTransferDto {
 
@@ -13,11 +15,15 @@ public class WsncAsTransferDto {
         String assignDateFrom, /* 배정일자From */
         String assignDateTo, /* 배정일자To */
         String vstCnfmdt, /* 방문확정일 */
-        String svBizHclsfCd /* 작업구분코드 */
+        String svBizHclsfCd, /* 작업구분코드 */
+        String vstDtFrom, /* 방문일자 From*/
+        String vstDtTo, /* 방문일자 To */
+        List<String> prtnrNos /* 파트너번호List */
     ) {}
 
     @ApiModel(value = "WsncAsTransferDto-SearchRes")
     public record SearchRes(
+        String cstSvAsnNo, /* 고객서비스배정번호 */
         String cntrNo, /* 계약번호 */
         String rcgvpKnm, /* 고객명 */
         String sellTpNm, /* 판매유형 */
@@ -45,7 +51,10 @@ public class WsncAsTransferDto {
         String bfchBlgNm, /* 소속(이관전담당자) */
         String bfchEmpno, /* 사번(이관전담당자) */
         String bfchFnm, /* 성명(이관전담당자) */
-        String afchBlgNm, /* 소속(이관후담당자) */
+        String afchBlgCdOrigin, /* 소속ID(이관후담당자)origin */
+        String afchEmpnoOrigin, /* 소속명(이관후담당자)origin */
+        String afchBlgCd, /* 소속ID(이관후담당자) */
+        String afchBlgNm, /* 소속명(이관후담당자) */
         String afchEmpno, /* 사번(이관후담당자) */
         String afchFnm, /* 성명(이관후담당자) */
         String tfDt, /* 이관일자(이관요청정보) */
@@ -56,13 +65,36 @@ public class WsncAsTransferDto {
 
     @ApiModel(value = "WsncAsTransferDto-SaveReq")
     public record SaveReq(
+
         @NotBlank
-        String svCnrOgId, /* 서비스센터조직ID */
+        String cstSvAsnNo, /* 고객서비스배정번호 */
+        String cntrNo, /* 고객번호 */
+        String basePdCd, /* 상품코드 */
+        String afchBlgCdOrigin, /* 소속ID(변경전) */
+        String afchEmpnoOrigin, /* 파트너번호(변경전) */
         @NotBlank
-        String ichrPrtnrNo, /* 담당파트너번호 */
-        String assignDateFrom, /* 배정일자From */
-        String assignDateTo, /* 배정일자To */
-        String vstCnfmdt, /* 방문확정일 */
-        String svBizHclsfCd /* 작업구분코드 */
+        String afchBlgCd, /* 소속ID(변경후) */
+        @NotBlank
+        String afchEmpno /* 파트너번호(변경후) */
+    ) {}
+
+    @ApiModel(value = "WsncAsTransferDto-FindEngineerReq")
+    public record FindEngineerReq(
+        String loginPrtnrNo, /* 담당파트너번호 */
+        String ogId /* 소속센터 ID */
+    ) {}
+
+    @ApiModel(value = "WsncAsTransferDto-Engineer")
+    public record Engineer(
+        String codeId, /* 담당파트너번호 */
+        String codeName, /* 파트너명 */
+        String ogId, /* 소속센터 ID */
+        String ogNm /* 소속센터 명 */
+    ) {}
+
+    @ApiModel(value = "WsncAsTransferDto-Center")
+    public record Center(
+        String codeId, /* 조직ID */
+        String codeName /* 조직명 */
     ) {}
 }

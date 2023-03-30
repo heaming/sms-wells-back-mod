@@ -6,9 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncAsTransferConverter;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsTransferDto.SaveReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsTransferDto.SearchReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsTransferDto.SearchRes;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsTransferDto.*;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsTransferDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncAsTransferMapper;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -64,5 +62,13 @@ public class WsncAsTransferService {
             mapper.updateSeedingShippingPlanIz(dvo);
         }
         return processCount;
+    }
+
+    public List<Engineer> getEngineers(FindEngineerReq dto) {
+        return mapper.selectEngineers(dto);
+    }
+
+    public List<Center> getCenters() {
+        return mapper.selectCenters();
     }
 }
