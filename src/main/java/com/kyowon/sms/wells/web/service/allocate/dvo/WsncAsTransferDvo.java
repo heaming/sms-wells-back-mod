@@ -7,11 +7,14 @@ import lombok.Setter;
 @Setter
 public class WsncAsTransferDvo {
 
-    String svCnrOgId; /* 서비스센터조직ID */
-    String ichrPrtnrNo; /* 담당파트너번호 */
-    String assignDateFrom; /* 배정일자From */
-    String assignDateTo; /* 배정일자To */
-    String vstCnfmdt; /* 방문확정일 */
-    String svBizHclsfCd; /* 작업구분코드 */
-
+    String cstSvAsnNo; /* 고객서비스배정번호 */
+    String cntrNo; /* 계약번호 */
+    String cntrSn; /* 계약일련번호 */
+    String basePdCd; /* 상품코드 */
+    String afchBlgCdOrigin; /* 소속ID(변경전) */
+    String afchEmpnoOrigin; /* 파트너번호(변경전) */
+    String afchBlgCd; /* 소속ID(변경후) */
+    String afchEmpno; /* 파트너번호(변경후) */
+    String sppOrdNo; /* 배송주문번호 */
+    String sppPlanSn; /* 배송계획일련번호 */
 }

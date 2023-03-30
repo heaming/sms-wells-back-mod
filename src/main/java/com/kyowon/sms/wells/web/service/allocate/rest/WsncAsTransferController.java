@@ -7,9 +7,7 @@ import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsTransferDto.SearchReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsTransferDto.SearchRes;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsTransferDto.SaveReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncAsTransferDto.*;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncAsTransferService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.datasource.PageInfo;
@@ -56,6 +54,20 @@ public class WsncAsTransferController {
         return SaveResponse.builder()
             .processCount(service.saveAsTransfers(dtos))
             .build();
+    }
+
+    @ApiOperation(value = "엔지니어 목록 조회", notes = "로그인 한 담당자의 소속 센터의 엔지니어 목록을 조회한다.")
+    @GetMapping("/engineers")
+    public List<Engineer> getEngineers(
+        FindEngineerReq dto
+    ) {
+        return service.getEngineers(dto);
+    }
+
+    @ApiOperation(value = "서비스센터 목록 조회", notes = "전체 센터 목록을 조회한다.")
+    @GetMapping("/centers")
+    public List<Center> getCenters() {
+        return service.getCenters();
     }
 
 }
