@@ -1,8 +1,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.ZwsnzWellsCodeMapper">
+<mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WwsnzWellsCodeMapper">
 
     <!--@TODO TEMP_CODE-->
-    <select id='selectWorkingEngineers' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeWorkingEngineersDvo">
+    <select id='selectWorkingEngineers' resultType="com.kyowon.sms.wells.web.service.common.dvo.WwsnzWellsCodeWorkingEngineersDvo">
     /*SELECT TRIM(AC021_EMP_ID) AS CODE_ID *//* 사번 *//*
          , TRIM(AC021_EMP_NM)||'('||TRIM(AC021_EMP_ID)||')' AS CODE_NM *//* 성명 한글 *//*
          , TRIM(AC021_EMP_NM) AS CODE_NM1 *//* 성명 한자 *//*
@@ -96,7 +96,7 @@
     SELECT '38844' AS CODE_ID, '김혁재(38844)' AS CODE_NM, '김혁재' AS CODE_NM1, '김혁재' AS CODE_NM2, '010-2788-8801' AS CPHON_IDV_TNO, '71357' AS OG_CD, '부산지점' AS OG_NM, '6' AS EMP_DV_VAL, '' AS EMP_RSB_DV_VAL, '' AS EMP_TP_VAL, '20220314' AS ENTCO_DT, '' AS RSGN_DT, '37' AS EMP_ROL_DV_VAL, '' AS EMP_DV_VAL_NM, '엔지니어' AS EMP_ROL_DV_VAL_NM FROM DUAL
     </select>
 
-    <select id="selectWareHouses" resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeWareHouseDvo">
+    <select id="selectWareHouses" resultType="com.kyowon.sms.wells.web.service.common.dvo.WwsnzWellsCodeWareHouseDvo">
     SELECT DISTINCT WARE_NO, WARE_NM
       FROM TB_SVST_MCBY_WARE_IZ
      WHERE APY_YM BETWEEN SUBSTR(#{startYm}, 1, 6) AND SUBSTR(#{endYm}, 1, 6)
@@ -110,7 +110,7 @@
      ORDER BY WARE_NO ASC
     </select>
 
-    <select id="selectMonthStocks" resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeMonthStockDvo">
+    <select id="selectMonthStocks" resultType="com.kyowon.sms.wells.web.service.common.dvo.WwsnzWellsCodeMonthStockDvo">
     SELECT A.WARE_NO            AS CODE_ID                   /*창고번호*/
          , A.WARE_NM            AS CODE_NAME                 /*창고명*/
          , A.WARE_MNGT_PRTNR_NO AS WARE_MNGT_PRTNR_NO        /*창고관리자*/
@@ -132,7 +132,7 @@
        AND A.APY_YM = #{apyYm}
     </select>
 
-    <select id='selectServiceCenterOrgs' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeServiceCenterOrgsDvo">
+    <select id='selectServiceCenterOrgs' resultType="com.kyowon.sms.wells.web.service.common.dvo.WwsnzWellsCodeServiceCenterOrgsDvo">
     /*SELECT OG_ID
          , HGR_OG_ID
          --      , OG_CLSF_CD
@@ -178,7 +178,7 @@
       AND DTA_DL_YN = 'N'
     </select>
 
-    <select id='selectAllEngineers' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeAllEngineersDvo">
+    <select id='selectAllEngineers' resultType="com.kyowon.sms.wells.web.service.common.dvo.WwsnzWellsCodeAllEngineersDvo">
     /*SELECT TRIM(AC021_EMP_ID) AS CODE_ID *//* 사번 *//*
          , TRIM(AC021_EMP_NM)||'('||TRIM(AC021_EMP_ID)||')' AS CODE_NM *//* 성명 한글 *//*
          , TRIM(AC021_EMP_NM) AS CODE_NM1 *//* 성명 한자 *//*
@@ -284,7 +284,7 @@
      ORDER BY EMP_ROL_DV_VAL DESC, CODE_NM, RSGN_DT, OG_CD, EMP_DV_VAL, EMP_ROL_DV_VAL_NM
     </select>
 
-    <select id="selectPartMaster" resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodePartMasterDvo">
+    <select id="selectPartMaster" resultType="com.kyowon.sms.wells.web.service.common.dvo.WwsnzWellsCodePartMasterDvo">
     SELECT SVPD_ITEM_CD || SVPD_PART_CD AS CD,
            SVPD_NM_KOR                  AS CD_NM,
            SVPD_ITEM_CD || SVPD_PART_CD AS CODE_ID,
@@ -381,7 +381,7 @@
      ORDER BY SVPD_CLSF_ID ASC
     </select>
 
-    <select id='selectServiceCenters' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeServiceCenterDvo">
+    <select id='selectServiceCenters' resultType="com.kyowon.sms.wells.web.service.common.dvo.WwsnzWellsCodeServiceCenterDvo">
     SELECT OG_CD, OG_NM, MNGT_WIDA_DV_CD /*관리광역구분코드*/, CNR_LOCARA_DV_CD /*센터지역구분코드*/
     FROM TB_OGBS_OG_BAS
     WHERE USE_YN = 'Y'
@@ -395,7 +395,7 @@
       AND OG_NM LIKE '%'||#{ogNm}||'%'
     </select>
 
-    <select id='selectDistrictsSido' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeDistrictsDvo">
+    <select id='selectDistrictsSido' resultType="com.kyowon.sms.wells.web.service.common.dvo.WwsnzWellsCodeDistrictsDvo">
     SELECT FR2P_LGLD_CD, CTPV_NM
     FROM TB_SVPD_EGER_ASN_ADR_IZ
     WHERE DTA_DL_YN  = 'N'
@@ -403,7 +403,7 @@
     ORDER BY FR2P_LGLD_CD
     </select>
 
-    <select id='selectDistrictsGu' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeDistrictsDvo">
+    <select id='selectDistrictsGu' resultType="com.kyowon.sms.wells.web.service.common.dvo.WwsnzWellsCodeDistrictsDvo">
     SELECT FR2P_LGLD_CD, CTPV_NM, TO_CHAR(RAWTOHEX(CTCTY_NM)) AS CTCTY_CD, CTCTY_NM
     FROM TB_SVPD_EGER_ASN_ADR_IZ
     WHERE DTA_DL_YN  = 'N'
@@ -412,7 +412,7 @@
     ORDER BY CTCTY_NM
     </select>
 
-    <select id='selectDistrictsGuAll' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeDistrictsDvo">
+    <select id='selectDistrictsGuAll' resultType="com.kyowon.sms.wells.web.service.common.dvo.WwsnzWellsCodeDistrictsDvo">
     SELECT CTPV_NM, CTCTY_NM
     FROM TB_SVPD_EGER_ASN_ADR_IZ
     WHERE DTA_DL_YN  = 'N'
@@ -420,7 +420,7 @@
     ORDER BY MIN(FR2P_LGLD_CD), CTCTY_NM
     </select>
 
-    <select id='selectDistricts' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeDistrictsDvo">
+    <select id='selectDistricts' resultType="com.kyowon.sms.wells.web.service.common.dvo.WwsnzWellsCodeDistrictsDvo">
     /*시도 구군*/
     SELECT NEW_ADR_ZIP,EMD_SN, FR2P_LGLD_CD, CTPV_NM, CTCTY_NM, LAWC_EMD_NM, AMTD_NM, KYNOR_LOCARA_YN, ILD_YN, PDLV_NO
     FROM TB_SVPD_EGER_ASN_ADR_IZ
@@ -436,7 +436,7 @@
       </if>
     </select>
 
-    <select id='selectProductBase' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeProductBaseDvo">
+    <select id='selectProductBase' resultType="com.kyowon.sms.wells.web.service.common.dvo.WwsnzWellsCodeProductBaseDvo">
     SELECT NEW_ADR_ZIP
          , EMD_SN
          , FR2P_LGLD_CD
@@ -473,7 +473,7 @@
       </if>
     </select>
 
-    <select id="selectMonthCstServs" resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeMonthCstServsDvo">
+    <select id="selectMonthCstServs" resultType="com.kyowon.sms.wells.web.service.common.dvo.WwsnzWellsCodeMonthCstServsDvo">
     /* 상품 - 월별고객서비스대상내역
        TB_SVPD_MCBY_CST_SV_OJ_IZ:월별고객서비스대상내역
        TB_PDBS_PD_BAS:상품기본
@@ -490,7 +490,7 @@
       </if>
     </select>
 
-    <select id='selectLgldCtpvLocaras' resultType="com.kyowon.sms.wells.web.service.common.dvo.ZwsnzWellsCodeLgldCtpvLocarasDvo">
+    <select id='selectLgldCtpvLocaras' resultType="com.kyowon.sms.wells.web.service.common.dvo.WwsnzWellsCodeLgldCtpvLocarasDvo">
     SELECT DISTINCT CTPV_NM
          , RPB_LOCARA_CD
       FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T2
