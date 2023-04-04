@@ -1,0 +1,422 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncSnopInterfaceDataMapper">
+
+    <delete id="deleteSapMatPdCdReceiveTxt">
+        DELETE FROM TB_IFIN_SAP_MCPD_CRCV_ETXT /* SAP자재코드상품코드수신전문 */
+         WHERE 1 = 1
+    </delete>
+
+    <delete id="deleteSapMatExpectedSendTxt">
+        DELETE FROM TB_IFIN_SNOP_MECT_SEND_ETXT
+         WHERE 1 = 1
+           AND YYMMDD <![CDATA[ >= ]]> TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '01'
+    </delete>
+
+    <delete id="deleteSapMatStrQtySendTxt">
+        DELETE FROM TB_IFIN_SNOP_MSQTY_SEND_ETXT /* 일별창고별자재입고수량송신전문 */
+         WHERE 1 = 1
+           AND YYMMDD <![CDATA[ >= ]]> TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '01'
+    </delete>
+
+    <delete id="deleteSapFilterNeedQtySendTxt">
+        DELETE FROM TB_IFIN_SNOP_FNDQT_SEND_ETXT /* ZA_SNOP필터소요예상수량송신전문 */
+         WHERE 1 = 1
+           AND YYMM >= TO_CHAR(SYSDATE, 'YYYYMM')
+    </delete>
+
+    <select id="selectSapMatStrQtySendTxt" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncSnopInterfaceDataDvo">
+    <![CDATA[
+        WITH TEMP0 AS ( /* 창고별 품목별 일자별 키값 생성 */
+                        SELECT DISTINCT T1.WARE_NO
+                             , T1.ITM_PD_CD
+                             , T3.BASE_Y || T3.BASE_MM || T3.BASE_D AS YYYYMMDD
+                             , T2.WARE_ICHR_NO
+                             , (SELECT OG_CD FROM TB_OGBS_OG_BAS WHERE OG_ID = T2.OG_ID) AS OG_CD
+                             , P1.SAP_MAT_CD
+                          FROM TB_SVST_CST_SV_ITM_STOC_IZ T1 /* 고객서비스품목재고내역 */
+                         INNER JOIN TB_PDBS_PD_BAS P1 /* 상품기본 */
+                            ON P1.PD_CD = T1.ITM_PD_CD
+                           AND P1.DTA_DL_YN = 'N'
+                         INNER JOIN TB_SVST_MCBY_WARE_IZ T2 /* 월별창고내역 */
+                            ON T2.WARE_NO = T1.WARE_NO
+                           AND T2.APY_YM = #{apyYm}
+                           AND T2.DTA_DL_YN = 'N'
+                         INNER JOIN TB_SVPD_SV_CLND_BAS T3 /* 서비스기본달력 */
+                            ON T3.BASE_Y || T3.BASE_MM = T2.APY_YM
+                         WHERE 1 = 1
+                           AND T1.DTA_DL_YN = 'N'
+                           AND T2.APY_YM = #{apyYm}
+                           AND (T1.WARE_NO LIKE '1%' OR T1.WARE_NO LIKE '2%' OR T1.WARE_NO LIKE '3%')
+                           AND P1.SAP_MAT_CD IS NOT NULL
+                           AND T2.WARE_USE_YN = 'Y'
+                           AND T1.WARE_NO NOT IN ('200813' /* 라피네타 */, '200868' /* 택배발송 */, '200986' /* 홈케어서비스센터 */
+                                                 , '201040' /* 충주출장소 */, '201064' /* 인천공장 */, '100004' /* 인청공장 */)
+        ), TEMP1 AS ( /* 창고별 월 기초 재고 수량 */
+                     SELECT DISTINCT WARE_NO
+                          , PD_CD
+                          , BTD_STOC_A_GD_QTY
+                       FROM TB_SVST_MCITM_STOC_IZ /* 월별품목재고내역 */
+                      WHERE DTA_DL_YN = 'N'
+                        AND BASE_YM = #{apyYm}
+                      ORDER BY WARE_NO, PD_CD, BTD_STOC_A_GD_QTY
+        ), TEMP2 AS ( /* 창고별 일자별 입고 수량 */
+                     SELECT DISTINCT STR_WARE_NO
+                          , ITM_PD_CD
+                          , STR_RGST_DT
+                          , SUM(STR_QTY) OVER (PARTITION BY STR_WARE_NO, ITM_PD_CD, STR_RGST_DT) AS SUM_IN_QTY
+                       FROM TB_SVST_ITM_STR_IZ /* 품목입고내역 */
+                      WHERE DTA_DL_YN = 'N'
+                        AND STR_RGST_DT LIKE #{apyYm} || '%'
+                        AND ITM_GD_CD = 'A'
+                      ORDER BY STR_WARE_NO, ITM_PD_CD, STR_RGST_DT
+        ), TEMP2_1 AS ( /* 창고별 일자별 구매 입고 수량 */
+                       SELECT DISTINCT STR_WARE_NO
+                            , ITM_PD_CD
+                            , STR_RGST_DT
+                            , SUM(STR_QTY) OVER (PARTITION BY STR_WARE_NO, ITM_PD_CD, STR_RGST_DT) AS SUM_IN_QTY
+                         FROM TB_SVST_ITM_STR_IZ /* 품목입고내역 */
+                        WHERE DTA_DL_YN = 'N'
+                          AND STR_RGST_DT LIKE #{apyYm} || '%'
+                          AND ITM_GD_CD = 'A'
+                          AND STR_TP_CD = '110'
+                        ORDER BY STR_WARE_NO, ITM_PD_CD, STR_RGST_DT
+        ), TEMP3 AS ( /* 창고별 일자별 출고 수량 */
+                     SELECT DISTINCT OSTR_WARE_NO
+                          , ITM_PD_CD
+                          , OSTR_DT
+                          , SUM(OSTR_QTY) OVER (PARTITION BY OSTR_WARE_NO, ITM_PD_CD, OSTR_DT) AS SUM_OUT_QTY
+                       FROM TB_SVST_ITM_OSTR_IZ /* 품목출고내역 */
+                      WHERE DTA_DL_YN = 'N'
+                        AND OSTR_DT LIKE #{apyYm} || '%'
+                        AND ITM_GD_CD = 'A'
+                      ORDER BY OSTR_WARE_NO, ITM_PD_CD, OSTR_DT
+        ), TEMP4 AS ( /* 창고별 일자별 작업입고(외부반품입고) 수량 */
+                     SELECT DISTINCT WK_WARE_NO
+                          , ITM_PD_CD
+                          , FNL_VST_FSH_DT
+                          , SUM(USE_QTY) OVER (PARTITION BY WK_WARE_NO, ITM_PD_CD, FNL_VST_FSH_DT) AS SUM_WRK_IN_QTY
+                       FROM TB_SVST_SV_WK_OSTR_IZ /* 서비스작업출고내역 */
+                      WHERE DTA_DL_YN = 'N'
+                        AND FNL_VST_FSH_DT LIKE #{apyYm} || '%'
+                        AND FNL_ITM_GD_CD = 'A'
+                        AND (SUBSTR(FNL_MDFC_USR_ID, 1, 4) != 'CONV' OR FNL_MDFC_USR_ID IS NULL)
+                        AND SV_BIZ_HCLSF_CD = '6' /* 반품처리 */
+                      ORDER BY WK_WARE_NO, ITM_PD_CD, FNL_VST_FSH_DT
+        ), TEMP5 AS ( /* 창고별 일자별 작업출고 수량 */
+                     SELECT DISTINCT WK_WARE_NO
+                          , ITM_PD_CD
+                          , FNL_VST_FSH_DT
+                          , SUM(USE_QTY) OVER (PARTITION BY WK_WARE_NO, ITM_PD_CD, FNL_VST_FSH_DT) AS SUM_WRK_OUT_QTY
+                       FROM TB_SVST_SV_WK_OSTR_IZ /* 서비스작업출고내역 */
+                      WHERE DTA_DL_YN = 'N'
+                        AND FNL_VST_FSH_DT LIKE #{apyYm} || '%'
+                        AND FNL_ITM_GD_CD = 'A'
+                        AND (SUBSTR(FNL_MDFC_USR_ID, 1, 4) != 'CONV' OR FNL_MDFC_USR_ID IS NULL)
+                        AND SV_BIZ_HCLSF_CD IN ('1', '2', '3') /* 설치, BS, AS */
+                     ORDER BY WK_WARE_NO, ITM_PD_CD, FNL_VST_FSH_DT
+        ), TEMP6 AS ( /* 창고별 일자별 등급조정 입고 수량 */
+                     SELECT DISTINCT WARE_NO
+                          , PD_CD
+                          , STAT_CTR_APY_DT
+                          , SUM(CTR_QTY) OVER (PARTITION BY WARE_NO, PD_CD, STAT_CTR_APY_DT) AS SUM_DEG_IN_QTY
+                       FROM TB_SVST_ITM_GD_CTR_IZ /* 품목등급조정내역 */
+                      WHERE DTA_DL_YN = 'N'
+                        AND STAT_CTR_APY_DT LIKE #{apyYm} || '%'
+                        AND AFCT_ITM_GD_CD = 'A'
+                      ORDER BY WARE_NO, PD_CD, STAT_CTR_APY_DT
+        ), TEMP7 AS ( /* 창고별 일자별 등급조정 출고 수량 */
+                     SELECT DISTINCT WARE_NO
+                          , PD_CD
+                          , STAT_CTR_APY_DT
+                          , SUM(CTR_QTY) OVER (PARTITION BY WARE_NO, PD_CD, STAT_CTR_APY_DT) AS SUM_DEG_OUT_QTY
+                       FROM TB_SVST_ITM_GD_CTR_IZ /* 품목등급조정내역 */
+                      WHERE DTA_DL_YN = 'N'
+                        AND STAT_CTR_APY_DT LIKE #{apyYm} || '%'
+                        AND BFCT_ITM_GD_CD = 'A'
+                      ORDER BY WARE_NO, PD_CD, STAT_CTR_APY_DT
+        ), TEMP8 AS ( /* 창고별 재고실사 입출고 수량 */
+                     SELECT DISTINCT WARE_NO
+                          , PD_CD
+                          , TO_CHAR(LAST_DAY(BASE_YM || '01'), 'YYYYMMDD') AS APLD_DT
+                          , SUM(CNFM_PITM_STR_GAP_QTY) OVER (PARTITION BY WARE_NO, PD_CD, BASE_YM) AS SUM_INS_IN_QTY
+                          , SUM(CNFM_PITM_OSTR_GAP_QTY) OVER (PARTITION BY WARE_NO, PD_CD, BASE_YM) AS SUM_INS_OUT_QTY
+                       FROM TB_SVST_MCBY_STOC_ACINSP_IZ /* 월별재고실사내역 */
+                      WHERE DTA_DL_YN = 'N'
+                        AND BASE_YM = #{apyYm}
+                      ORDER BY WARE_NO, PD_CD, APLD_DT
+        )
+        SELECT PLANT_CD
+             , STRG_CD
+             , ITEM_CD
+             , YYYYMMDD AS YYMMDD
+             , SUM(INV_QTY) AS INV_QTY
+             , SUM(GR_QTY) AS GR_QTY
+             , 'EA' AS QTY_UNIT_CD
+          FROM (SELECT 'P01' AS PLANT_CD
+                     , (CASE WHEN V1.WARE_NO LIKE '100002%' THEN 'STA01' /* 파주물류창고 */
+                             WHEN V1.WARE_NO IN ('100003', '100004', '100005', '100006', '100007', '100008') THEN 'STA02'       /* 파주이외물류창고 */
+                             WHEN V1.WARE_NO LIKE '2%' AND V1.WARE_ICHR_NO = '000' AND V1.OG_CD = '75041' THEN 'STB01' /* 북부서비스센터 */
+                             WHEN V1.WARE_NO LIKE '2%' AND V1.WARE_ICHR_NO = '000' AND V1.OG_CD = '75042' THEN 'STB02' /* 서부서비스센터 */
+                             WHEN V1.WARE_NO LIKE '2%' AND V1.WARE_ICHR_NO = '000' AND V1.OG_CD = '75043' THEN 'STB03' /* 남부서비스센터 */
+                             WHEN V1.WARE_NO LIKE '2%' AND V1.WARE_ICHR_NO = '000' AND V1.OG_CD = '75044' THEN 'STB04' /* 동부서비스센터 */
+                             WHEN V1.WARE_NO LIKE '2%' AND V1.WARE_ICHR_NO = '000' AND V1.OG_CD = '75045' THEN 'STB05' /* 충청서비스센터 */
+                             WHEN V1.WARE_NO LIKE '2%' AND V1.WARE_ICHR_NO = '000' AND V1.OG_CD = '75046' THEN 'STB06' /* 호남서비스센터 */
+                             WHEN V1.WARE_NO LIKE '2%' AND V1.WARE_ICHR_NO = '000' AND V1.OG_CD = '75047' THEN 'STB07' /* 경북서비스센터 */
+                             WHEN V1.WARE_NO LIKE '2%' AND V1.WARE_ICHR_NO = '000' AND V1.OG_CD = '75048' THEN 'STB08' /* 경남서비스센터 */
+                             WHEN V1.WARE_NO LIKE '2%' AND V1.WARE_ICHR_NO = '000' AND V1.OG_CD = '71782' THEN 'STB09' /* 원주서비스센터 */
+                             WHEN V1.WARE_NO LIKE '2%' AND V1.WARE_ICHR_NO = '000' AND V1.OG_CD = '71783' THEN 'STB10' /* 광양서비스센터  */
+                             WHEN V1.WARE_NO LIKE '2%' AND V1.WARE_ICHR_NO = '000' AND V1.WARE_NO IN ('200961', '200975', '201017') THEN 'STB98' /* 기타창고(BMB, 성우메디텍, 베스트) */
+                             WHEN V1.WARE_NO LIKE '200749%' THEN 'STB99' /* 서비스관리팀 */
+                             WHEN V1.WARE_NO LIKE '3%' THEN 'STC01' /* 영업센터 */
+                             WHEN V1.WARE_NO LIKE '2%' AND V1.WARE_ICHR_NO != '000' THEN 'STD01' /* 엔지니어 */
+                             ELSE V1.WARE_NO
+                       END) AS STRG_CD /* 창고위치 */
+                     , V1.SAP_MAT_CD AS ITEM_CD /* SAP자재코드 */
+                     , V1.YYYYMMDD /* 년월일 */
+                     , (V1.BTD_STOC_A_GD_QTY + (V1.T_SUM_IN_QTY + V1.T_SUM_WRK_IN_QTY + V1.T_SUM_DEG_IN_QTY + V1.T_SUM_INS_IN_QTY)
+                     - (V1.T_SUM_OUT_QTY + V1.T_SUM_WRK_OUT_QTY + V1.T_SUM_DEG_OUT_QTY + V1.T_SUM_INS_OUT_QTY)) AS INV_QTY /* 재고수량(해당일 재고) */
+                     , V1.SUM_BUY_IN_QTY AS GR_QTY /* 발주입고수량(파주물류창고만 발생) */
+                  FROM (SELECT T0.*
+                             , NVL(T1.BTD_STOC_A_GD_QTY,0) AS BTD_STOC_A_GD_QTY
+                             , NVL(T2_1.SUM_IN_QTY,0) AS SUM_BUY_IN_QTY
+                             , SUM(NVL(T2.SUM_IN_QTY,0)) OVER (PARTITION BY T0.WARE_NO, T0.ITM_PD_CD ORDER BY T0.YYYYMMDD RANGE UNBOUNDED PRECEDING) AS T_SUM_IN_QTY
+                             , SUM(NVL(T3.SUM_OUT_QTY,0)) OVER (PARTITION BY T0.WARE_NO, T0.ITM_PD_CD ORDER BY T0.YYYYMMDD RANGE UNBOUNDED PRECEDING) AS T_SUM_OUT_QTY
+                             , SUM(NVL(T4.SUM_WRK_IN_QTY,0)) OVER (PARTITION BY T0.WARE_NO, T0.ITM_PD_CD ORDER BY T0.YYYYMMDD RANGE UNBOUNDED PRECEDING) AS T_SUM_WRK_IN_QTY
+                             , SUM(NVL(T5.SUM_WRK_OUT_QTY,0)) OVER (PARTITION BY T0.WARE_NO, T0.ITM_PD_CD ORDER BY T0.YYYYMMDD RANGE UNBOUNDED PRECEDING) AS T_SUM_WRK_OUT_QTY
+                             , SUM(NVL(T6.SUM_DEG_IN_QTY,0)) OVER (PARTITION BY T0.WARE_NO, T0.ITM_PD_CD ORDER BY T0.YYYYMMDD RANGE UNBOUNDED PRECEDING) AS T_SUM_DEG_IN_QTY
+                             , SUM(NVL(T7.SUM_DEG_OUT_QTY,0)) OVER (PARTITION BY T0.WARE_NO, T0.ITM_PD_CD ORDER BY T0.YYYYMMDD RANGE UNBOUNDED PRECEDING) AS T_SUM_DEG_OUT_QTY
+                             , SUM(NVL(T8.SUM_INS_IN_QTY,0)) OVER (PARTITION BY T0.WARE_NO, T0.ITM_PD_CD ORDER BY T0.YYYYMMDD RANGE UNBOUNDED PRECEDING) AS T_SUM_INS_IN_QTY
+                             , SUM(NVL(T8.SUM_INS_OUT_QTY,0)) OVER (PARTITION BY T0.WARE_NO, T0.ITM_PD_CD ORDER BY T0.YYYYMMDD RANGE UNBOUNDED PRECEDING) AS T_SUM_INS_OUT_QTY
+                          FROM TEMP0 T0 /* 창고별 품목별 일자별 키값 생성 */
+                          LEFT OUTER JOIN TEMP1 T1 /* 창고별 월별 기초 재고 수량 */
+                            ON T1.WARE_NO = T0.WARE_NO
+                           AND T1.PD_CD = T0.ITM_PD_CD
+                          LEFT OUTER JOIN TEMP2 T2 /* 창고별 일자별 입고 수량 */
+                            ON T2.STR_WARE_NO = T0.WARE_NO
+                           AND T2.ITM_PD_CD = T0.ITM_PD_CD
+                           AND T2.STR_RGST_DT = T0.YYYYMMDD
+                          LEFT OUTER JOIN TEMP2_1 T2_1 /* 창고별 일자별 구매 입고 수량 */
+                            ON T2_1.STR_WARE_NO = T0.WARE_NO
+                           AND T2_1.ITM_PD_CD = T0.ITM_PD_CD
+                           AND T2_1.STR_RGST_DT = T0.YYYYMMDD
+                          LEFT OUTER JOIN TEMP3 T3 /* 창고별 일자별 출고 수량 */
+                            ON T3.OSTR_WARE_NO = T0.WARE_NO
+                           AND T3.ITM_PD_CD = T0.ITM_PD_CD
+                           AND T3.OSTR_DT = T0.YYYYMMDD
+                          LEFT OUTER JOIN TEMP4 T4 /* 창고별 일자별 작업 입고 수량 */
+                            ON T4.WK_WARE_NO = T0.WARE_NO
+                           AND T4.ITM_PD_CD = T0.ITM_PD_CD
+                           AND T4.FNL_VST_FSH_DT = T0.YYYYMMDD
+                          LEFT OUTER JOIN TEMP5 T5 /* 창고별 일자별 작업 출고 수량 */
+                            ON T5.WK_WARE_NO = T0.WARE_NO
+                           AND T5.ITM_PD_CD = T0.ITM_PD_CD
+                           AND T5.FNL_VST_FSH_DT = T0.YYYYMMDD
+                          LEFT OUTER JOIN TEMP6 T6 /* 창고별 일자별 등급조정 입고 수량 */
+                            ON T6.WARE_NO = T0.WARE_NO
+                           AND T6.PD_CD = T0.ITM_PD_CD
+                           AND T6.STAT_CTR_APY_DT = T0.YYYYMMDD
+                          LEFT OUTER JOIN TEMP7 T7 /* 창고별 일자별 등급조정 출고 수량 */
+                            ON T7.WARE_NO = T0.WARE_NO
+                           AND T7.PD_CD = T0.ITM_PD_CD
+                           AND T7.STAT_CTR_APY_DT = T0.YYYYMMDD
+                          LEFT OUTER JOIN TEMP8 T8 /* 창고별 재고실사 입출고 수량 */
+                            ON T8.WARE_NO = T0.WARE_NO
+                           AND T8.PD_CD = T0.ITM_PD_CD
+                           AND T8.APLD_DT = T0.YYYYMMDD
+                         ORDER BY T0.WARE_NO, T0.ITM_PD_CD, T0.YYYYMMDD, T0.WARE_ICHR_NO
+                     ) V1
+                 WHERE 1 = 1
+             )
+         WHERE 1 = 1
+         GROUP BY PLANT_CD, STRG_CD, ITEM_CD, YYYYMMDD
+         ORDER BY PLANT_CD, STRG_CD, ITEM_CD, YYYYMMDD
+    ]]>
+    </select>
+
+    <insert id="insertSapMatPdCdReceiveTxt">
+        INSERT INTO TB_IFIN_SAP_MCPD_CRCV_ETXT ( /* SAP자재코드상품코드수신전문 */
+             , ITEM_CD
+             , KIWI_ITEM_CD
+             <include refid="COMMON.insertSystemField" />)
+        SELECT T1.SAP_MAT_CD AS ITEM_CD
+             , T1.PD_CD AS KIWI_ITEM_CD
+             <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_PDBS_PD_BAS T1 /* 상품기본 */
+         WHERE 1 = 1
+           AND T1.DTA_DL_YN = 'N'
+           AND TRIM(T1.SAP_MAT_CD) IS NOT NULL
+           AND TO_NUMBER(T1.SAP_MAT_CD) != 0
+           AND T1.PD_CLSF_ID != 'PDC000000000111' /* TODO: 확인필요 'Smart Farm' [AS-IS] ST101_ITEM_CD != '60100' */
+         ORDER BY T1.SAP_MAT_CD, T1.PD_CD
+    </insert>
+
+    <insert id="insertSapMatExpectedSendTxt">
+    <![CDATA[
+        INSERT INTO TB_IFIN_SNOP_FNDQT_SEND_ETXT ( /* ZA_SNOP필터소요예상수량송신전문 */
+               ORG_CD
+             , ITEM_CD
+             , YYMMDD
+             , INS_EXP_QTY
+             , INS_END_QTY
+             , QTY_UNIT_CD
+             <include refid="COMMON.insertSystemField" />)
+        SELECT V1.OG_CD
+             , (SELECT SAP_MAT_CD FROM TB_PDBS_PD_BAS WHERE PD_CD = V1.PD_CD) AS ITEM_CD
+             , V1.ORD_YMD
+             , SUM(CNFM_CNT) AS INS_EXP_QTY /* 설치예정수량 */
+             , SUM(WRK_CNT) AS INS_END_QTY /* 설치수량 */
+             , 'EA' AS QTY_UNIT_CD
+             <include refid="COMMON.insertSystemFieldValue"/>
+          FROM (SELECT ORD_YMD
+                     , OG_CD
+                     , PD_CD
+                     , COUNT(1) AS CNFM_CNT
+                     , 0 AS WRK_CNT
+                  FROM (SELECT T1.VST_CNFMDT AS ORD_YMD
+                             , (CASE WHEN O1.OG_CD IS NOT NULL AND LENGTH(TRIM(O1.OG_CD)) <= 5 THEN O1.OG_CD
+                                     WHEN O1.OG_CD IS NOT NULL AND LENGTH(TRIM(O1.OG_CD)) > 5 THEN SUBSTR(O1.OG_CD, 1, 3) || '0000'
+                                     ELSE ''
+                                END) AS OG_CD
+                             , T2.PD_CD
+                          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1 /* 고객서비스AS설치배정내역 */
+                         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T2 /* 고객서비스AS설치대상내역 */
+                            ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                           AND T2.DTA_DL_YN = 'N'
+                         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T3 /* 고객서비스수행내역 */
+                            ON T3.CNTR_NO = T2.CNTR_NO
+                           AND T3.CNTR_SN = T2.CNTR_SN
+                           AND T3.DTA_DL_YN = 'N'
+                         INNER JOIN TB_SSCT_CNTR_BAS C0 /* 계약기본 */
+                            ON C0.CNTR_NO = T1.CNTR_NO
+                           AND C0.DTA_DL_YN = 'N'
+                         INNER JOIN TB_SSCT_CNTR_DTL C1 /* 계약상세 */
+                            ON C1.CNTR_NO = T1.CNTR_NO
+                           AND C1.CNTR_SN = T1.CNTR_SN
+                           AND C1.DTA_DL_YN = 'N'
+                          LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /* 상품기본 */
+                            ON P1.PD_CD = T2.PD_CD
+                          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS O1 /* 파트너기본 */
+                            ON O1.OG_TP_CD = C0.SELL_OG_TP_CD
+                           AND O1.PRTNR_NO = C0.SELL_PRTNR_NO
+                           AND O1.DTA_DL_YN = 'N'
+                         WHERE 1 = 1
+                           AND T1.DTA_DL_YN = 'N'
+                           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN C1.CNTR_PD_STRTDT AND C1.CNTR_PD_ENDDT
+                           AND T1.VST_CNFMDT >= TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '01'
+                           AND T2.MTR_STAT_CD IN ('1', '2')
+                           AND T2.SV_BIZ_DCLSF_CD LIKE '11%'
+                           AND T1.WK_PRGS_STAT_CD IN ('00', '10')
+                           AND T1.SITE_AW_PD_GRP_CD NOT IN ('10', '11') /* TODO: '홈케어, 웰스팜 모종 제외' 확인필요 */
+                     )
+                 GROUP BY ORD_YMD, OG_CD, PD_CD
+                 UNION ALL
+                SELECT ORD_YMD
+                     , OG_CD
+                     , PD_CD
+                     , 0 AS CNFM_CNT
+                     , COUNT(1) AS WRK_CNT
+                  FROM (SELECT T1.WK_EXCN_DT AS ORD_YMD
+                             , (CASE WHEN O1.OG_CD IS NOT NULL AND LENGTH(TRIM(O1.OG_CD)) <= 5 THEN O1.OG_CD
+                                     WHEN O1.OG_CD IS NOT NULL AND LENGTH(TRIM(O1.OG_CD)) > 5 THEN SUBSTR(O1.OG_CD, 1, 3) || '0000'
+                                     ELSE ''
+                                END) AS OG_CD
+                             , T2.PD_CD
+                          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1 /* 고객서비스AS설치배정내역 */
+                         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T2 /* 고객서비스AS설치대상내역 */
+                            ON T2.CST_SV_ASN_NO = T1.CST_SV_ASN_NO
+                           AND T2.DTA_DL_YN = 'N'
+                         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T3 /* 고객서비스수행내역 */
+                            ON T3.CNTR_NO = T2.CNTR_NO
+                           AND T3.CNTR_SN = T2.CNTR_SN
+                           AND T3.DTA_DL_YN = 'N'
+                         INNER JOIN TB_SSCT_CNTR_BAS C0 /* 계약기본 */
+                            ON C0.CNTR_NO = T1.CNTR_NO
+                           AND C0.DTA_DL_YN = 'N'
+                         INNER JOIN TB_SSCT_CNTR_DTL C1 /* 계약상세 */
+                            ON C1.CNTR_NO = T1.CNTR_NO
+                           AND C1.CNTR_SN = T1.CNTR_SN
+                           AND C1.DTA_DL_YN = 'N'
+                          LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /* 상품기본 */
+                            ON P1.PD_CD = T2.PD_CD
+                          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS O1 /* 파트너기본 */
+                            ON O1.OG_TP_CD = C0.SELL_OG_TP_CD
+                           AND O1.PRTNR_NO = C0.SELL_PRTNR_NO
+                           AND O1.DTA_DL_YN = 'N'
+                         WHERE 1 = 1
+                           AND T1.DTA_DL_YN = 'N'
+                           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN C1.CNTR_PD_STRTDT AND C1.CNTR_PD_ENDDT
+                           AND T1.WK_EXCN_DT >= TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') || '01'
+                           AND T2.MTR_STAT_CD IN ('1', '2')
+                           AND T2.SV_BIZ_DCLSF_CD LIKE '11%'
+                           AND T1.WK_PRGS_STAT_CD = '20'
+                           AND T1.SITE_AW_PD_GRP_CD NOT IN ('10', '11') /* TODO: '홈케어, 웰스팜 모종 제외' 확인필요 */
+                     )
+                 GROUP BY ORD_YMD, OG_CD, PD_CD
+             ) V1
+         WHERE OG_CD IS NOT NULL
+         GROUP BY ORD_YMD, OG_CD, PD_CD
+         ORDER BY OG_CD, ITEM_CD, ORD_YMD
+    ]]>
+    </insert>
+
+    <insert id="insertSapMatStrQtySendTxt">
+        INSERT INTO TB_IFIN_SNOP_MSQTY_SEND_ETXT ( /* SNOP자재입고수량송신전문 */
+               PLANT_CD /* 공장코드값 */
+             , STRG_CD /* 창고번호 */
+             , ITEM_CD /* SAP자재코드 */
+             , YYMMDD /* 기준일자 */
+             , INV_QTY /* 재고수량 */
+             , GR_QTY /* 입고수량 */
+             , QTY_UNIT_CD /* 관리단위코드값 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (#{plantCd}
+             , #{strgCd}
+             , #{itemCd}
+             , #{yymmdd}
+             , #{invQty}
+             , #{grQty}
+             , #{qtyUnitCd}
+             <include refid="COMMON.insertSystemFieldValue" />)
+    </insert>
+
+    <insert id="insertSapFilterNeedQtySendTxt">
+        INSERT INTO TB_IFIN_SNOP_FNDQT_SEND_ETXT ( /* ZA_SNOP필터소요예상수량송신전문 */
+               YYMM /* 기준년월 */
+             , ITEM_CD /* SAP자재코드 */
+             , REQ_QTY /* 소요수량 */
+             , QTY_UNIT_CD /* 관리단위코드값 */
+             <include refid="COMMON.insertSystemField" />)
+        SELECT SUBSTR(T1.VST_DUEDT, 1, 6) AS YYMM
+             , P1.SAP_MAT_CD AS ITEM_CD
+             , SUM(T1.PART_USE_QTY) AS REQ_QTY
+             , 'EA' AS QTY_UNIT_CD
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_SVPD_CST_SV_RGBSPR_IZ T1 /* 고객서비스정기BS주기내역 */
+         INNER JOIN TB_PDBS_PD_BAS P1 /* 상품기본 */
+            ON P1.PD_CD = T1.PART_PD_CD
+           AND P1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL P2 /* 상품각사속성상세 */
+            ON P2.PD_CD = P1.PD_CD
+           AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND P2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T3 /* 고객서비스수행내역 */
+            ON T3.CNTR_NO = T1.CNTR_NO
+           AND T3.CNTR_SN = T1.CNTR_NO
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_DTL C1 /* 계약상세 */
+            ON C1.CNTR_NO = T1.CNTR_NO
+           AND C1.CNTR_SN = T1.CNTR_SN
+           AND C1.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND T1.DTA_DL_YN = 'N'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN C1.CNTR_PD_STRTDT AND C1.CNTR_PD_ENDDT
+           AND T3.IST_DT IS NOT NULL
+           AND T3.REQD_DT IS NULL
+           AND T3.CPS_DT IS NULL
+           AND T1.VST_DUEDT BETWEEN TO_CHAR(SYSDATE, 'YYYYMM') || '01' AND TO_CHAR(ADD_MONTHS(SYSDATE, 6), 'YYYYMM') || '31'
+           AND P2.PD_PRP_VAL19 = '5'
+         GROUP BY SUBSTR(T1.VST_DUEDT, 1, 6), P1.SAP_MAT_CD, T1.PART_PD_CD
+         ORDER BY YYMM, REQ_QTY, ITEM_CD
+    </insert>
+
+</mapper>
