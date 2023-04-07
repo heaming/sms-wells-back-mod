@@ -285,8 +285,6 @@
              , LSTMM_VST_CNFM_HH
              , VST_DUEDT
              , VST_EXP_HH
-             , VST_TP_DV_CD
-             , ICHR_CONF_DT
              , VST_PRGS_STAT_CD
              , WK_EXCN_DT
              , WK_CAN_RSON_CD
@@ -346,8 +344,6 @@
              , LSTMM_VST_CNFM_HH
              , VST_DUEDT
              , VST_EXP_HH
-             , VST_TP_DV_CD
-             , ICHR_CONF_DT
              , VST_PRGS_STAT_CD
              , WK_EXCN_DT
              , WK_CAN_RSON_CD
