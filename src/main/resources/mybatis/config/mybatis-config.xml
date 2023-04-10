@@ -9,6 +9,7 @@
     </settings>
     <typeAliases>
         <typeAlias alias="sql" type="java.util.HashMap"/>
+        <typeAlias alias="camelMap" type="com.sds.sflex.system.mybatis.result.CamelMap"/>
     </typeAliases>
     <typeHandlers>
         <typeHandler javaType="java.lang.String" jdbcType="CLOB"
