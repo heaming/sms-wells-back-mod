@@ -3,10 +3,10 @@ package com.kyowon.sms.wells.web.service.common.dto;
 import io.swagger.annotations.ApiModel;
 
 public class WsnzWellsCodeDto {
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchWorkingEngineersReq")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchWorkingEngineersReq")
     public record SearchWorkingEngineersReq() {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchWorkingEngineersRes")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchWorkingEngineersRes")
     public record SearchWorkingEngineersRes(
         String codeId,
         String codeNm,
@@ -26,7 +26,7 @@ public class WsnzWellsCodeDto {
         String hgrDeptCd
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchWareHouseReq")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchWareHouseReq")
     public record SearchWareHouseReq(
         String startYm,
         String endYm,
@@ -35,19 +35,19 @@ public class WsnzWellsCodeDto {
         String hgrWareNo
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchWareHouseRes")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchWareHouseRes")
     public record SearchWareHouseRes(
         String wareNo,
         String wareNm
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchMonthStockReq")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchMonthStockReq")
     public record SearchMonthStockReq(
         String wareMngtPrtnrNo,
         String apyYm
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchMonthStockRes")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchMonthStockRes")
     public record SearchMonthStockRes(
         String codeId,
         String codeName,
@@ -62,9 +62,9 @@ public class WsnzWellsCodeDto {
         String parentWareDvCd
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchServiceCenterOrgsReq")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchServiceCenterOrgsReq")
     public record SearchServiceCenterOrgsReq() {}
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchServiceCenterOrgsRes")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchServiceCenterOrgsRes")
     public record SearchServiceCenterOrgsRes(
         String bldCd,
         String cloDt,
@@ -90,12 +90,12 @@ public class WsnzWellsCodeDto {
         String vdtcrPdDvCd
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchAllEngineersReq")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchAllEngineersReq")
     public record SearchAllEngineersReq(
         String hgrDeptCd
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchAllEngineersRes")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchAllEngineersRes")
     public record SearchAllEngineersRes(
         String codeId,
         String codeNm,
@@ -116,7 +116,7 @@ public class WsnzWellsCodeDto {
         String ogTpCd
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchPartMasterReq")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchPartMasterReq")
     public record SearchPartMasterReq(
         String pdTpCd,
         String sellIndate,
@@ -131,7 +131,7 @@ public class WsnzWellsCodeDto {
         String partCd
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchPartMasterRes")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchPartMasterRes")
     public record SearchPartMasterRes(
         String itemCd,
         String partCd,
@@ -192,7 +192,7 @@ public class WsnzWellsCodeDto {
         String sellEnddt
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchServiceCenterReq")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchServiceCenterReq")
     public record SearchServiceCenterReq(
         String ogId,
         String ogCd,
@@ -200,7 +200,7 @@ public class WsnzWellsCodeDto {
         String ogNm
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchDistrictsReq")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchDistrictsReq")
     public record SearchDistrictsReq(
         String fr2pLgldCd,
         String ctctyNm,
@@ -208,7 +208,7 @@ public class WsnzWellsCodeDto {
         String searchType
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchProductBaseReq")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchProductBaseReq")
     public record SearchProductBaseReq(
         String newAdrZip,
         String emdSn,
@@ -219,13 +219,13 @@ public class WsnzWellsCodeDto {
         String pdlvNo
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchMcbyCstSvOjIzReq")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchMcbyCstSvOjIzReq")
     public record SearchMcbyCstSvOjIzReq(
         String mngtYm,
         String pdGdCd
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchServiceCentersRes")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchServiceCentersRes")
     public record SearchServiceCentersRes(
         String ogCd,
         String ogNm,
@@ -233,7 +233,7 @@ public class WsnzWellsCodeDto {
         String cnrLocaraDvCd
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchDistrictsRes")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchDistrictsRes")
     public record SearchDistrictsRes(
         String newAdrZip,
         int emdSn,
@@ -248,7 +248,7 @@ public class WsnzWellsCodeDto {
         String ctctyCd
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchProductBaseRes")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchProductBaseRes")
     public record SearchProductBaseRes(
         String newAdrZip,
         String emdSn,
@@ -259,15 +259,15 @@ public class WsnzWellsCodeDto {
         String pdlvNo
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchMcbyCstSvOjIzRes")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchMcbyCstSvOjIzRes")
     public record SearchMcbyCstSvOjIzRes(
         String pdCd, /*상품코드*/
         String pdNm /*상품명*/
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchLgldCtpvLocarasReq")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchLgldCtpvLocarasReq")
     public record SearchLgldCtpvLocarasReq() {}
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchLgldCtpvLocarasRes")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchLgldCtpvLocarasRes")
     public record SearchLgldCtpvLocarasRes(
         String amtdNm,
         String apyEnddt,
@@ -280,7 +280,7 @@ public class WsnzWellsCodeDto {
         String rpbLocaraCd
     ) {}
 
-    @ApiModel(value = "ZwsnzWellsCodeDto-SearchWarehouseCLReq")
+    @ApiModel(value = "WsnzWellsCodeDto-SearchWarehouseCLReq")
     public record SearchWarehouseCLReq(
         String apyYm,
         String wareNo
