@@ -5,16 +5,16 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class WwsnzWellsCodeDistrictsDvo {
+public class WsnzWellsCodeProductBaseDvo {
+    String newAdrZip;
+    String emdSn;
     String fr2pLgldCd;
     String ctpvNm;
-    String ctctyCd;
     String ctctyNm;
-    String newAdrZip;
-    int emdSn;
     String lawcEmdNm;
     String amtdNm;
     String kynorLocaraYn;
     String ildYn;
     String pdlvNo;
+    String dtaDlYn;
 }

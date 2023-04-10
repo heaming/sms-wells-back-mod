@@ -14,7 +14,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class WwsnzWellsCodeMonthCstServsDvo {
+public class WsnzWellsCodeMonthCstServsDvo {
     String pdCd;
     String pdNm;
 }
