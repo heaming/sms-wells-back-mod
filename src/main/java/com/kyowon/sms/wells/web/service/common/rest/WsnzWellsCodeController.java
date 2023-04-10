@@ -1,8 +1,8 @@
 package com.kyowon.sms.wells.web.service.common.rest;
 
 import com.kyowon.sms.common.web.zcommon.constants.CommonConst;
-import com.kyowon.sms.wells.web.service.common.dto.WwsnzWellsCodeDto.*;
-import com.kyowon.sms.wells.web.service.common.service.WwsnzWellsCodeService;
+import com.kyowon.sms.wells.web.service.common.dto.WsnzWellsCodeDto.*;
+import com.kyowon.sms.wells.web.service.common.service.WsnzWellsCodeService;
 import io.swagger.annotations.Api;
 
 import io.swagger.annotations.ApiImplicitParam;
@@ -23,9 +23,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @Validated
 @Slf4j
-public class WwsnzWellsCodeController {
+public class WsnzWellsCodeController {
 
-    private final WwsnzWellsCodeService service;
+    private final WsnzWellsCodeService service;
 
     @ApiOperation(value = "서비스센터 엔지니어 조회")
     @ApiImplicitParams(value = {

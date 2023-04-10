@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class WwsnzWellsCodeAllEngineersDvo {
+public class WsnzWellsCodeAllEngineersDvo {
     String codeId;
     String codeNm;
     String codeNm1;

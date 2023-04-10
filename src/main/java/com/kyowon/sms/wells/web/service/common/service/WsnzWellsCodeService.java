@@ -1,22 +1,24 @@
 package com.kyowon.sms.wells.web.service.common.service;
 
-import com.kyowon.sms.wells.web.service.common.converter.WwsnzWellsCodeConverter;
-import com.kyowon.sms.wells.web.service.common.dto.WwsnzWellsCodeDto.*;
-import com.kyowon.sms.wells.web.service.common.dvo.WwsnzWellsCodeDistrictsDvo;
-import com.kyowon.sms.wells.web.service.common.mapper.WwsnzWellsCodeMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.kyowon.sms.wells.web.service.common.converter.WsnzWellsCodeConverter;
+import com.kyowon.sms.wells.web.service.common.dto.WsnzWellsCodeDto.*;
+import com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeDistrictsDvo;
+import com.kyowon.sms.wells.web.service.common.mapper.WsnzWellsCodeMapper;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WwsnzWellsCodeService {
+public class WsnzWellsCodeService {
 
-    private final WwsnzWellsCodeMapper mapper;
-    private final WwsnzWellsCodeConverter converter;
+    private final WsnzWellsCodeMapper mapper;
+    private final WsnzWellsCodeConverter converter;
 
     public List<SearchWorkingEngineersRes> getWorkingEngineers(
         SearchWorkingEngineersReq req
@@ -63,7 +65,7 @@ public class WwsnzWellsCodeService {
     public List<SearchDistrictsRes> getDistricts(
         SearchDistrictsReq dto
     ) {
-        List<WwsnzWellsCodeDistrictsDvo> result = switch (dto.searchType()) {
+        List<WsnzWellsCodeDistrictsDvo> result = switch (dto.searchType()) {
             case "sido" -> mapper.selectDistrictsSido(dto);
             case "gu" -> mapper.selectDistrictsGu(dto);
             case "guAll" -> mapper.selectDistrictsGuAll(dto);

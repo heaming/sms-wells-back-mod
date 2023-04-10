@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class WwsnzWellsCodeLgldCtpvLocarasDvo {
+public class WsnzWellsCodeLgldCtpvLocarasDvo {
     String amtdNm;
     String apyEnddt;
     String apyStrtdt;

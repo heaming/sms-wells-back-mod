@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.service.common.dto;
 
 import io.swagger.annotations.ApiModel;
 
-public class WwsnzWellsCodeDto {
+public class WsnzWellsCodeDto {
     @ApiModel(value = "ZwsnzWellsCodeDto-SearchWorkingEngineersReq")
     public record SearchWorkingEngineersReq() {}
 
