@@ -1,10 +1,11 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import com.kyowon.sms.wells.web.service.stock.converter.WsnaMcbyItmStocsConverter;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaMcbyItmStocsDto;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMcbyItmStocsDvo;
-import com.kyowon.sms.wells.web.service.stock.mapper.WsnaMcbyItmStocsMapper;
+import com.kyowon.sms.wells.web.service.stock.converter.WsnaMonthlyItemStocksConverter;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaMonthlyItemStocksDto;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksDvo;
+import com.kyowon.sms.wells.web.service.stock.mapper.WsnaMonthlyItemStocksMapper;
 import com.sds.sflex.system.config.validation.BizAssert;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,15 +27,14 @@ import java.util.Date;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class WsnaMcbyItmStocsService {
+public class WsnaMonthlyItemStocksService {
+    private final WsnaMonthlyItemStocksMapper mapper;
 
-    private final WsnaMcbyItmStocsMapper mapper;
-
-    private final WsnaMcbyItmStocsConverter converter;
+    private final WsnaMonthlyItemStocksConverter converter;
 
     /*월별품목재고내역 등록*/
-    public int saveMcbyStock(WsnaMcbyItmStocsDto.SaveReq dto) throws ParseException {
-        WsnaMcbyItmStocsDvo dvo = new WsnaMcbyItmStocsDvo();
+    public int saveMonthlyStock(WsnaMonthlyItemStocksDto.SaveReq dto) throws ParseException {
+        WsnaMonthlyItemStocksDvo dvo = new WsnaMonthlyItemStocksDvo();
         int processCount = 0;
 
         int strPitmStocAGdQty = 0; //시점재고A등급수량
@@ -42,8 +42,11 @@ public class WsnaMcbyItmStocsService {
         int strPitmStocEGdQty = 0; //시점재고E등급수량
         int strPitmStocRGdQty = 0; //시점재고R등급수량
         String strBaseYm = StringUtils.substring(dto.procsDt(), 0, 5);
+        dvo.setWareNo(dto.wareNo());
+        dvo.setItmPdCd(dto.itmPdCd());
+        dvo.setBaseYm(strBaseYm);
 
-        String MM = null;
+        String month = null;
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMM");
 
@@ -53,7 +56,7 @@ public class WsnaMcbyItmStocsService {
         int chkValue = mapper.selectCountMcbyStock(dto);
 
         if (chkValue > 0) {
-            WsnaMcbyItmStocsDvo mcbyDvo = mapper.selectMcbyItmStocs(dto);
+            WsnaMonthlyItemStocksDvo mcbyDvo = mapper.selectMcbyItmStocs(dto);
             log.info("mcbyDvo ----->", mcbyDvo);
 
             if (StringUtils.startsWith(dto.workDiv(), "A")) {
@@ -66,54 +69,42 @@ public class WsnaMcbyItmStocsService {
                 --시점재고 = 시점재고 + 구매입고
                 --구매입고 = 구매입고 + 구매입고
                 ===============================================================================*/
-                if ("110".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.PRCHS_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strPitmStocAGdQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                     int strPrchsStrQty = Integer.parseInt(mcbyDvo.getPrchsStrQty()) + Integer.parseInt(dto.qty());
 
                     dvo.setPitmStocAGdQty(String.valueOf(strPitmStocAGdQty));
                     dvo.setPrchsStrQty(String.valueOf(strPrchsStrQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updatePurchaseAStr(dvo);
 
-                } else if ("110".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.PRCHS_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strPitmStocBGdQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                     int strPrchsStrBGdQty = Integer.parseInt(mcbyDvo.getPrchsStrBGdQty()) + Integer.parseInt(dto.qty());
 
                     dvo.setPitmStocBGdQty(String.valueOf(strPitmStocBGdQty));
                     dvo.setPrchsStrBGdQty(String.valueOf(strPrchsStrBGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updatePurchaseBStr(dvo);
 
                 }
                 /*입출유형(117:기타입고*/
-                if ("117".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.ETC_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strPitmStocAGdQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                     /*기타입고A등급수량*/
                     int strEtcStrAGdQty = Integer.parseInt(mcbyDvo.getEtcStrAGdQty() + Integer.parseInt(dto.qty()));
 
                     dvo.setPitmStocAGdQty(String.valueOf(strPitmStocAGdQty));
                     dvo.setEtcStrAGdQty(String.valueOf(strEtcStrAGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateEtcAStr(dvo);
 
-                } else if ("117".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.ETC_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     strPitmStocEGdQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                     int strEtcStrEGdQty = Integer.parseInt(mcbyDvo.getEtcStrEGdQty()) + Integer.parseInt(dto.qty());
 
                     dvo.setPitmStocEGdQty(String.valueOf(strPitmStocEGdQty));
                     dvo.setEtcStrEGdQty(String.valueOf(strEtcStrEGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateEtcEStr(dvo);
 
@@ -128,61 +119,49 @@ public class WsnaMcbyItmStocsService {
                 --시점재고 = 시점재고 + 내부입고
                 --내부입고 = 내부입고 + 내부입고
                 ===============================================================================*/
-                if ("121".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.NOM_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strPitmStocAGdQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                     /*정상출고A등급수량*/
                     int strNomOstrAGdQTy = Integer.parseInt(mcbyDvo.getNomOstrAGdQty()) + Integer.parseInt(dto.qty());
 
                     dvo.setPitmStocAGdQty(String.valueOf(strPitmStocAGdQty));
                     dvo.setNomOstrAGdQty(String.valueOf(strNomOstrAGdQTy));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateNomOstrAQty(dvo);
 
-                } else if ("121".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.NOM_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strPitmStocBGdQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                     /*정상출고B등급수량*/
                     int strNomOstrBGdQTy = Integer.parseInt(mcbyDvo.getNomOstrBGdQty()) + Integer.parseInt(dto.qty());
 
                     dvo.setPitmStocAGdQty(String.valueOf(strPitmStocBGdQty));
                     dvo.setNomOstrAGdQty(String.valueOf(strNomOstrBGdQTy));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateNomOstrBQty(dvo);
 
-                } else if ("121".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.NOM_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     strPitmStocEGdQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                     /*정상출고E등급수량*/
                     int strNomOstrEGdQTy = Integer.parseInt(mcbyDvo.getNomOstrEGdQty()) + Integer.parseInt(dto.qty());
 
                     dvo.setPitmStocEGdQty(String.valueOf(strPitmStocEGdQty));
                     dvo.setNomOstrEGdQty(String.valueOf(strNomOstrEGdQTy));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateNomOstrEQty(dvo);
 
-                } else if ("121".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.NOM_STR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     strPitmStocRGdQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                     /*정상출고R등급수량*/
                     int strNomOstrRGdQTy = Integer.parseInt(mcbyDvo.getNomOstrRGdQty()) + Integer.parseInt(dto.qty());
 
                     dvo.setPitmStocRGdQty(String.valueOf(strPitmStocRGdQty));
                     dvo.setNomOstrRGdQty(String.valueOf(strNomOstrRGdQTy));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateNomOstrRQty(dvo);
 
                 }
                 /*입출유형(122:물량배정 A,B,E,R)*/
-                if ("122".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.QOM_ASN.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strPitmStocAGdQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                     /*물량배정입고A등급수량*/
                     int strQomAsnStrAGdQty = Integer.parseInt(mcbyDvo.getQomAsnOstrAGdQty())
@@ -190,12 +169,9 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocAGdQty(String.valueOf(strPitmStocAGdQty));
                     dvo.setQomAsnStrAGdQty(String.valueOf(strQomAsnStrAGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateQomAsnStrAGdQty(dvo);
-                } else if ("122".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_ASN.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strPitmStocBGdQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                     /*물량배정입고B등급수량*/
                     int strQomAsnStrBGdQty = Integer.parseInt(mcbyDvo.getQomAsnOstrBGdQty())
@@ -203,12 +179,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocBGdQty(String.valueOf(strPitmStocBGdQty));
                     dvo.setQomAsnStrBGdQty(String.valueOf(strQomAsnStrBGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
+
                     processCount += mapper.updateQomAsnStrBGdQty(dvo);
 
-                } else if ("122".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_ASN.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     strPitmStocEGdQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                     /*물량배정입고E등급수량*/
                     int strQomAsnStrEGdQty = Integer.parseInt(mcbyDvo.getQomAsnOstrEGdQty())
@@ -216,13 +190,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocEGdQty(String.valueOf(strPitmStocEGdQty));
                     dvo.setQomAsnStrEGdQty(String.valueOf(strQomAsnStrEGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateQomAsnStrEGdQty(dvo);
 
-                } else if ("122".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_ASN.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     strPitmStocRGdQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                     /*물량배정입고B등급수량*/
                     int strQomAsnStrRGdQty = Integer.parseInt(mcbyDvo.getQomAsnOstrRGdQty())
@@ -230,69 +201,54 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocRGdQty(String.valueOf(strPitmStocRGdQty));
                     dvo.setQomAsnStrRGdQty(String.valueOf(strQomAsnStrRGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateQomAsnStrRGdQty(dvo);
 
                 }
                 /*입출유형(123:물량이동)*/
-                if ("123".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.QOM_MMT.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strPitmStocAGdQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                     int strQomMmtStrAGdQty = Integer.parseInt(mcbyDvo.getQomMmtOstrAGdQty())
                         + Integer.parseInt(dto.qty());
 
                     dvo.setPitmStocAGdQty(String.valueOf(strPitmStocAGdQty));
                     dvo.setQomMmtStrAGdQty(String.valueOf(strQomMmtStrAGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateQomMmtStrAGdQty(dvo);
 
-                } else if ("123".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_MMT.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strPitmStocBGdQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                     int strQomMmtStrBGdQty = Integer.parseInt(mcbyDvo.getQomMmtOstrBGdQty())
                         + Integer.parseInt(dto.qty());
 
                     dvo.setPitmStocBGdQty(String.valueOf(strPitmStocBGdQty));
                     dvo.setQomMmtStrBGdQty(String.valueOf(strQomMmtStrBGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateQomMmtStrBGdQty(dvo);
 
-                } else if ("123".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_MMT.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     strPitmStocEGdQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                     int strQomMmtStrEGdQty = Integer.parseInt(mcbyDvo.getQomMmtOstrEGdQty())
                         + Integer.parseInt(dto.qty());
 
                     dvo.setPitmStocEGdQty(String.valueOf(strPitmStocEGdQty));
                     dvo.setQomMmtStrEGdQty(String.valueOf(strQomMmtStrEGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateQomMmtStrEGdQty(dvo);
 
-                } else if ("123".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_MMT.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     strPitmStocRGdQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                     int strQomMmtStrRGdQty = Integer.parseInt(mcbyDvo.getQomMmtOstrRGdQty())
                         + Integer.parseInt(dto.qty());
 
                     dvo.setPitmStocRGdQty(String.valueOf(strPitmStocRGdQty));
                     dvo.setQomMmtStrRGdQty(String.valueOf(strQomMmtStrRGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateQomMmtStrRGdQty(dvo);
 
                 }
                 /*입출유형(161:반품입고(내부))*/
-                if ("161".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.RTNGD_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strPitmStocAGdQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                     /*반품입고내부A등급수량*/
                     int strRtngdStrInsiAGdQty = Integer.parseInt(mcbyDvo.getRtngdStrInsiAGdQty())
@@ -300,13 +256,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocAGdQty(String.valueOf(strPitmStocAGdQty));
                     dvo.setRtngdStrInsiAGdQty(String.valueOf(strRtngdStrInsiAGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateRtngdStrInsiAgdQty(dvo);
 
-                } else if ("161".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strPitmStocBGdQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                     /*반품입고내부B등급수량*/
                     int strRtngdStrInsiBGdQty = Integer.parseInt(mcbyDvo.getRtngdStrInsiBGdQty())
@@ -314,13 +267,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocBGdQty(String.valueOf(strPitmStocBGdQty));
                     dvo.setRtngdStrInsiBGdQty(String.valueOf(strRtngdStrInsiBGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateRtngdStrInsiBgdQty(dvo);
 
-                } else if ("161".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     strPitmStocEGdQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                     /*반품입고내부E등급수량*/
                     int strRtngdStrInsiEGdQty = Integer.parseInt(mcbyDvo.getRtngdStrInsiEGdQty())
@@ -328,13 +278,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocEGdQty(String.valueOf(strPitmStocEGdQty));
                     dvo.setRtngdStrInsiEGdQty(String.valueOf(strRtngdStrInsiEGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateRtngdStrInsiEgdQty(dvo);
 
-                } else if ("161".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_STR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     strPitmStocRGdQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                     /*반품입고내부R등급수량*/
                     int strRtngdStrInsiRGdQty = Integer.parseInt(mcbyDvo.getRtngdStrInsiRGdQty())
@@ -342,9 +289,6 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocRGdQty(String.valueOf(strPitmStocRGdQty));
                     dvo.setRtngdStrInsiRGdQty(String.valueOf(strRtngdStrInsiRGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateRtngdStrInsiRgdQty(dvo);
 
@@ -360,7 +304,7 @@ public class WsnaMcbyItmStocsService {
                 --외부반품입고 = 외부반품입고 + 외부반품입고
                 ===============================================================================*/
                 /*입출유형(162:반품입고외부)*/
-                if ("162".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.RTNGD_OTSD_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strPitmStocAGdQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                     /*반품입고외부A등급수량*/
                     int strRtngdStrOtsdAGdQty = Integer.parseInt(mcbyDvo.getRtngdStrOtsdAGdQty())
@@ -368,12 +312,9 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocAGdQty(String.valueOf(strPitmStocAGdQty));
                     dvo.setRtngdStrInsiAGdQty(String.valueOf(strRtngdStrOtsdAGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateRtngStrOtsdAgdQty(dvo);
-                } else if ("162".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_OTSD_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strPitmStocBGdQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                     /*반품입고외부B등급수량*/
                     int strRtngdStrOtsdBGdQty = Integer.parseInt(mcbyDvo.getRtngdStrOtsdBGdQty())
@@ -381,11 +322,9 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocBGdQty(String.valueOf(strPitmStocBGdQty));
                     dvo.setRtngdStrInsiBGdQty(String.valueOf(strRtngdStrOtsdBGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
+
                     processCount += mapper.updateRtngStrOtsdBgdQty(dvo);
-                } else if ("162".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_OTSD_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     strPitmStocEGdQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                     /*반품입고외부E등급수량*/
                     int strRtngdStrOtsdEGdQty = Integer.parseInt(mcbyDvo.getRtngdStrOtsdEGdQty())
@@ -393,11 +332,9 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocEGdQty(String.valueOf(strPitmStocEGdQty));
                     dvo.setRtngdStrInsiEGdQty(String.valueOf(strRtngdStrOtsdEGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
+
                     processCount += mapper.updateRtngStrOtsdEgdQty(dvo);
-                } else if ("162".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_OTSD_STR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     strPitmStocRGdQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                     /*반품입고외부R등급수량*/
                     int strRtngdStrOtsdRGdQty = Integer.parseInt(mcbyDvo.getRtngdStrOtsdRGdQty())
@@ -405,9 +342,7 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocRGdQty(String.valueOf(strPitmStocRGdQty));
                     dvo.setRtngdStrInsiRGdQty(String.valueOf(strRtngdStrOtsdRGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
+
                     processCount += mapper.updateRtngStrOtsdRgdQty(dvo);
                 }
 
@@ -417,49 +352,37 @@ public class WsnaMcbyItmStocsService {
                 --시점재고 = 시점재고 + 재고조정입고
                 --재고조정입고 = 재고조정입고 + 재고조정입고
                 ===============================================================================*/
-                if ("181".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.STOC_CTR_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strPitmStocAGdQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                     /*기타입고A등급수량1*/
                     int strEtcStrAGdQty1 = Integer.parseInt(mcbyDvo.getEtcStrAGdQty1()) + Integer.parseInt(dto.qty());
                     dvo.setPitmStocAGdQty(String.valueOf(strPitmStocAGdQty));
                     dvo.setEtcStrAGdQty1(String.valueOf(strEtcStrAGdQty1));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateEtcStrAGdQty1(dvo);
 
-                } else if ("181".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.STOC_CTR_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strPitmStocBGdQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                     /*기타입고B등급수량1*/
                     int strEtcStrBGdQty1 = Integer.parseInt(mcbyDvo.getEtcStrBGdQty1()) + Integer.parseInt(dto.qty());
                     dvo.setPitmStocBGdQty(String.valueOf(strPitmStocBGdQty));
                     dvo.setEtcStrBGdQty1(String.valueOf(strEtcStrBGdQty1));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateEtcStrBGdQty1(dvo);
-                } else if ("181".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.STOC_CTR_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     strPitmStocEGdQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                     /*기타입고E등급수량1*/
                     int strEtcStrEGdQty1 = Integer.parseInt(mcbyDvo.getEtcStrEGdQty1()) + Integer.parseInt(dto.qty());
                     dvo.setPitmStocEGdQty(String.valueOf(strPitmStocEGdQty));
                     dvo.setEtcStrEGdQty1(String.valueOf(strEtcStrEGdQty1));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateEtcStrEGdQty1(dvo);
-                } else if ("181".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.STOC_CTR_STR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     strPitmStocRGdQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                     /*기타입고R등급수량1*/
                     int strEtcStrRGdQty1 = Integer.parseInt(mcbyDvo.getEtcStrRGdQty1()) + Integer.parseInt(dto.qty());
                     dvo.setPitmStocRGdQty(String.valueOf(strPitmStocRGdQty));
                     dvo.setEtcStrRGdQty1(String.valueOf(strEtcStrRGdQty1));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateEtcStrRGdQty1(dvo);
                 }
@@ -477,7 +400,7 @@ public class WsnaMcbyItmStocsService {
                 ===============================================================================*/
                 //입출유형(221:정상출고)
 
-                if ("221".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.NOM_OSTR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     /*시점재고*/
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                     int strNomOstrAGdQty = Integer.parseInt(mcbyDvo.getNomOstrAGdQty())
@@ -488,13 +411,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                     dvo.setNomOstrAGdQty(String.valueOf(strNomOstrAGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateNomOstrAGdQty(dvo);
 
-                } else if ("221".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.NOM_OSTR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                     int strNomOstrBGdQty = Integer.parseInt(mcbyDvo.getNomOstrBGdQty())
                         + Integer.parseInt(dto.qty());
@@ -504,13 +424,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                     dvo.setNomOstrBGdQty(String.valueOf(strNomOstrBGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateNomOstrBGdQty(dvo);
 
-                } else if ("221".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.NOM_OSTR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                     int strNomOstrEGdQty = Integer.parseInt(mcbyDvo.getNomOstrEGdQty())
                         + Integer.parseInt(dto.qty());
@@ -520,13 +437,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                     dvo.setNomOstrEGdQty(String.valueOf(strNomOstrEGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateNomOstrEGdQty(dvo);
 
-                } else if ("221".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.NOM_OSTR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                     int strNomOstrRGdQty = Integer.parseInt(mcbyDvo.getNomOstrRGdQty())
                         + Integer.parseInt(dto.qty());
@@ -536,15 +450,12 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                     dvo.setNomOstrRGdQty(String.valueOf(strNomOstrRGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateNomOstrRGdQty(dvo);
 
                 }
                 /*입출유형(222:물량배정)*/
-                if ("222".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.QOM_ASN_OSTR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
 
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                     /*물량배정출고A등급수량*/
@@ -556,13 +467,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                     dvo.setQomAsnOstrAGdQty(String.valueOf(strQomAsnOstrAGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateQomAsnOstrAGdQty(dvo);
 
-                } else if ("222".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_ASN_OSTR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
 
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                     /*물량배정출고B등급수량*/
@@ -574,13 +482,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                     dvo.setQomAsnOstrBGdQty(String.valueOf(strQomAsnOstrBGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateQomAsnOstrBGdQty(dvo);
 
-                } else if ("222".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_ASN_OSTR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
 
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                     /*물량배정출고E등급수량*/
@@ -592,13 +497,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                     dvo.setQomAsnOstrEGdQty(String.valueOf(strQomAsnOstrEGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateQomAsnOstrEGdQty(dvo);
 
-                } else if ("222".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_ASN_OSTR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
 
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                     /*물량배정출고R등급수량*/
@@ -610,15 +512,12 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                     dvo.setQomAsnOstrRGdQty(String.valueOf(strQomAsnOstrRGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateQomAsnOstrRGdQty(dvo);
 
                 }
                 /*입출유형(223:물량이동)*/
-                if ("223".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.QOM_MMT_OSTR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                     /*물량이동출고A등급수량*/
                     int strQomMmtOstrAGdQty = Integer.parseInt(mcbyDvo.getQomMmtOstrAGdQty())
@@ -629,13 +528,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                     dvo.setQomMmtOstrAGdQty(String.valueOf(strQomMmtOstrAGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateQomMmtOstrAGdQty(dvo);
 
-                } else if ("223".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_MMT_OSTR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                     /*물량이동출고B등급수량*/
                     int strQomMmtOstrBGdQty = Integer.parseInt(mcbyDvo.getQomMmtOstrBGdQty())
@@ -646,13 +542,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                     dvo.setQomMmtOstrBGdQty(String.valueOf(strQomMmtOstrBGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateQomMmtOstrBGdQty(dvo);
 
-                } else if ("223".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_MMT_OSTR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                     /*물량이동출고E등급수량*/
                     int strQomMmtOstrEGdQty = Integer.parseInt(mcbyDvo.getQomMmtOstrEGdQty())
@@ -663,13 +556,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                     dvo.setQomMmtOstrEGdQty(String.valueOf(strQomMmtOstrEGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateQomMmtOstrEGdQty(dvo);
 
-                } else if ("223".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_MMT_OSTR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                     /*물량이동출고R등급수량*/
                     int strQomMmtOstrRGdQty = Integer.parseInt(mcbyDvo.getQomMmtOstrRGdQty())
@@ -680,15 +570,12 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                     dvo.setQomMmtOstrRGdQty(String.valueOf(strQomMmtOstrRGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateQomMmtOstrRGdQty(dvo);
 
                 }
                 /*입출유형(261:반품출고(내부)*/
-                if ("261".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.RTNGD_OSTR_INSI.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                     /*반품출고내부A등급수량*/
                     int strRtnGdOstrInsiAGdQty = Integer.parseInt(mcbyDvo.getRtngdOstrInsiAGdQty())
@@ -699,13 +586,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                     dvo.setRtngdOstrInsiAGdQty(String.valueOf(strRtnGdOstrInsiAGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateRtngdOstrInsiAGdQty(dvo);
 
-                } else if ("261".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_OSTR_INSI.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                     /*반품출고내부B등급수량*/
                     int strRtnGdOstrInsiBGdQty = Integer.parseInt(mcbyDvo.getRtngdOstrInsiBGdQty())
@@ -716,12 +600,9 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                     dvo.setRtngdOstrInsiBGdQty(String.valueOf(strRtnGdOstrInsiBGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateRtngdOstrInsiBGdQty(dvo);
-                } else if ("261".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_OSTR_INSI.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                     /*반품출고내부E등급수량*/
                     int strRtnGdOstrInsiEGdQty = Integer.parseInt(mcbyDvo.getRtngdOstrInsiEGdQty())
@@ -732,12 +613,9 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                     dvo.setRtngdOstrInsiEGdQty(String.valueOf(strRtnGdOstrInsiEGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateRtngdOstrInsiEGdQty(dvo);
-                } else if ("261".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_OSTR_INSI.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                     /*반품출고내부R등급수량*/
                     int strRtnGdOstrInsiRGdQty = Integer.parseInt(mcbyDvo.getRtngdOstrInsiRGdQty())
@@ -748,9 +626,6 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                     dvo.setRtngdOstrInsiRGdQty(String.valueOf(strRtnGdOstrInsiRGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateRtngdOstrInsiRGdQty(dvo);
                 }
@@ -769,7 +644,7 @@ public class WsnaMcbyItmStocsService {
                 ===============================================================================*/
                 /*입출유형(262:반품출고외부*/
 
-                if ("262".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.RTNGD_OSTR_OTSD.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                     /*반품출고외부A등급수량*/
                     int strRtngdOstrOtsdAGdQty = Integer.parseInt(mcbyDvo.getRtngdOstrOtsdAGdQty())
@@ -780,13 +655,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                     dvo.setRtngdOstrOtsdAGdQty(String.valueOf(strRtngdOstrOtsdAGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateRtngdOstrOtsdAGdQty(dvo);
 
-                } else if ("262".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_OSTR_OTSD.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                     /*반품출고외부B등급수량*/
                     int strRtngdOstrOtsdBGdQty = Integer.parseInt(mcbyDvo.getRtngdOstrOtsdBGdQty())
@@ -797,13 +669,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                     dvo.setRtngdOstrOtsdBGdQty(String.valueOf(strRtngdOstrOtsdBGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateRtngdOstrOtsdBGdQty(dvo);
 
-                } else if ("262".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_OSTR_OTSD.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                     /*반품출고외부B등급수량*/
                     int strRtngdOstrOtsdEGdQty = Integer.parseInt(mcbyDvo.getRtngdOstrOtsdBGdQty())
@@ -814,13 +683,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                     dvo.setRtngdOstrOtsdEGdQty(String.valueOf(strRtngdOstrOtsdEGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateRtngdOstrOtsdEGdQty(dvo);
 
-                } else if ("262".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_OSTR_OTSD.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                     /*반품출고외부R등급수량*/
                     int strRtngdOstrOtsdRGdQty = Integer.parseInt(mcbyDvo.getRtngdOstrOtsdRGdQty())
@@ -831,14 +697,11 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                     dvo.setRtngdOstrOtsdEGdQty(String.valueOf(strRtngdOstrOtsdRGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateRtngdOstrOtsdRGdQty(dvo);
                 }
                 /*입출유형(211:판매*/
-                if ("211".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.OTSD_OSTR_SELL.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                     int strSellOstrQty = Integer.parseInt(mcbyDvo.getSellOstrQty()) + Integer.parseInt(dto.qty());
 
@@ -847,13 +710,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                     dvo.setSellOstrQty(String.valueOf(strSellOstrQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateSellOstrQty(dvo);
 
-                } else if ("211".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.OTSD_OSTR_SELL.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                     int strSellOstrBGdQty = Integer.parseInt(mcbyDvo.getSellOstrBGdQty()) + Integer.parseInt(dto.qty());
 
@@ -862,14 +722,11 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                     dvo.setSellOstrBGdQty(String.valueOf(strSellOstrBGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateSellOstrBGdQty(dvo);
                 }
 
-                if ("212".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.OTSD_OSTR_DSU.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                     int strDsuOstrAGdQty = Integer.parseInt(mcbyDvo.getDsuOstrAGdQty()) + Integer.parseInt(dto.qty());
 
@@ -878,13 +735,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                     dvo.setDsuOstrAGdQty(String.valueOf(strDsuOstrAGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateDsuOstrAGdQty(dvo);
 
-                } else if ("212".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.OTSD_OSTR_DSU.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                     int strDsuOstrBGdQty = Integer.parseInt(mcbyDvo.getDsuOstrBGdQty()) + Integer.parseInt(dto.qty());
 
@@ -893,13 +747,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                     dvo.setDsuOstrBGdQty(String.valueOf(strDsuOstrBGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateDsuOstrBGdQty(dvo);
 
-                } else if ("212".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.OTSD_OSTR_DSU.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                     int strDsuOstrEGdQty = Integer.parseInt(mcbyDvo.getDsuOstrEGdQty()) + Integer.parseInt(dto.qty());
 
@@ -908,13 +759,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                     dvo.setDsuOstrEGdQty(String.valueOf(strDsuOstrEGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateDsuOstrEGdQty(dvo);
 
-                } else if ("212".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.OTSD_OSTR_DSU.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                     int strDsuOstrRGdQty = Integer.parseInt(mcbyDvo.getDsuOstrRGdQty()) + Integer.parseInt(dto.qty());
 
@@ -923,15 +771,12 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                     dvo.setDsuOstrRGdQty(String.valueOf(strDsuOstrRGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateDsuOstrRGdQty(dvo);
 
                 }
 
-                if ("213".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.OTSD_OSTR_WK.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                     /*작업출고A등급수량*/
                     int strWkOstrAGdQty = Integer.parseInt(mcbyDvo.getWkOstrAGdQty()) + Integer.parseInt(dto.qty());
@@ -941,13 +786,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                     dvo.setWkOstrAGdQty(String.valueOf(strWkOstrAGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateWkOstrAGdQty(dvo);
 
-                } else if ("213".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.OTSD_OSTR_WK.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                     /*작업출고B등급수량*/
                     int strWkOstrBGdQty = Integer.parseInt(mcbyDvo.getWkOstrBGdQty()) + Integer.parseInt(dto.qty());
@@ -957,12 +799,9 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                     dvo.setWkOstrBGdQty(String.valueOf(strWkOstrBGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateWkOstrBGdQty(dvo);
-                } else if ("213".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.OTSD_OSTR_WK.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                     /*작업출고E등급수량*/
                     int strWkOstrEGdQty = Integer.parseInt(mcbyDvo.getWkOstrEGdQty()) + Integer.parseInt(dto.qty());
@@ -972,12 +811,9 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                     dvo.setWkOstrEGdQty(String.valueOf(strWkOstrEGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateWkOstrEGdQty(dvo);
-                } else if ("213".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.OTSD_OSTR_WK.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                     /*작업출고R등급수량*/
                     int strWkOstrRGdQty = Integer.parseInt(mcbyDvo.getWkOstrRGdQty()) + Integer.parseInt(dto.qty());
@@ -987,14 +823,11 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                     dvo.setWkOstrRGdQty(String.valueOf(strWkOstrRGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateWkOstrRGdQty(dvo);
                 }
                 /*입출유형(217:기타)*/
-                if ("217".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.OTSD_OSTR_ETC.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                     int strEtcOstrAGdQty = Integer.parseInt(mcbyDvo.getEtcOstrAGdQty()) + Integer.parseInt(dto.qty());
 
@@ -1003,13 +836,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                     dvo.setEtcOstrAGdQty(String.valueOf(strEtcOstrAGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateEtcOstrAGdQty(dvo);
 
-                } else if ("217".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.OTSD_OSTR_ETC.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                     int strEtcOstrBGdQty = Integer.parseInt(mcbyDvo.getEtcOstrBGdQty()) + Integer.parseInt(dto.qty());
 
@@ -1018,13 +848,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                     dvo.setEtcOstrBGdQty(String.valueOf(strEtcOstrBGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateEtcOstrBGdQty(dvo);
 
-                } else if ("217".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.OTSD_OSTR_ETC.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                     int strEtcOstrEGdQty = Integer.parseInt(mcbyDvo.getEtcOstrEGdQty()) + Integer.parseInt(dto.qty());
 
@@ -1033,13 +860,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                     dvo.setEtcOstrEGdQty(String.valueOf(strEtcOstrEGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateEtcOstrEGdQty(dvo);
 
-                } else if ("217".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.OTSD_OSTR_ETC.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                     int strEtcOstrRGdQty = Integer.parseInt(mcbyDvo.getEtcOstrRGdQty()) + Integer.parseInt(dto.qty());
 
@@ -1048,15 +872,12 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                     dvo.setEtcOstrRGdQty(String.valueOf(strEtcOstrRGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateEtcOstrRGdQty(dvo);
 
                 }
                 /*입출유형(218:리퍼완료)*/
-                if ("218".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.OTSD_OSTR_REFR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                     int strRefrOstrAGdQty = Integer.parseInt(mcbyDvo.getRefrOstrAGdQty()) + Integer.parseInt(dto.qty());
 
@@ -1065,13 +886,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                     dvo.setRefrOstrAGdQty(String.valueOf(strRefrOstrAGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateRefrOstrAGdQty(dvo);
 
-                } else if ("218".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.OTSD_OSTR_REFR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                     int strRefrOstrBGdQty = Integer.parseInt(mcbyDvo.getRefrOstrBGdQty()) + Integer.parseInt(dto.qty());
 
@@ -1080,14 +898,11 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                     dvo.setRefrOstrBGdQty(String.valueOf(strRefrOstrBGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateRefrOstrBGdQty(dvo);
 
-                } else if ("218".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
-                    strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
+                } else if (SnServiceConst.OTSD_OSTR_REFR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                    strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                     int strRefrOstrEGdQty = Integer.parseInt(mcbyDvo.getRefrOstrEGdQty()) + Integer.parseInt(dto.qty());
 
                     /*시점재고부수가 MINUS 발생 오류!*/
@@ -1095,13 +910,11 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                     dvo.setRefrOstrEGdQty(String.valueOf(strRefrOstrEGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
+
                     processCount += mapper.updateRefrOstrEGdQty(dvo);
 
-                } else if ("218".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
-                    strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
+                } else if (SnServiceConst.OTSD_OSTR_REFR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                    strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                     int strRefrOstrRGdQty = Integer.parseInt(mcbyDvo.getRefrOstrRGdQty()) + Integer.parseInt(dto.qty());
 
                     /*시점재고부수가 MINUS 발생 오류!*/
@@ -1109,9 +922,7 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                     dvo.setRefrOstrRGdQty(String.valueOf(strRefrOstrRGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
+
                     processCount += mapper.updateRefrOstrRGdQty(dvo);
                 }
                 /*===============================================================================
@@ -1120,7 +931,7 @@ public class WsnaMcbyItmStocsService {
                 --시점재고 = 시점재고 - 재고조정출고
                 --재고조정출고 = 재고조정출고 + 재고조정출고
                 ===============================================================================*/
-                if ("281".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.STOC_CTR_OSTR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                     int strEtcOstrAGdQty1 = Integer.parseInt(mcbyDvo.getEtcOstrAGdQty1()) + Integer.parseInt(dto.qty());
 
@@ -1129,13 +940,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                     dvo.setEtcOstrAGdQty1(String.valueOf(strEtcOstrAGdQty1));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateEtcOstrAGdQty1(dvo);
 
-                } else if ("281".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.STOC_CTR_OSTR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                     int strEtcOstrBGdQty1 = Integer.parseInt(mcbyDvo.getEtcOstrBGdQty1()) + Integer.parseInt(dto.qty());
 
@@ -1144,13 +952,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                     dvo.setEtcOstrBGdQty1(String.valueOf(strEtcOstrBGdQty1));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateEtcOstrBGdQty1(dvo);
 
-                } else if ("281".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.STOC_CTR_OSTR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                     int strEtcOstrEGdQty1 = Integer.parseInt(mcbyDvo.getEtcOstrEGdQty1()) + Integer.parseInt(dto.qty());
 
@@ -1159,13 +964,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                     dvo.setEtcOstrEGdQty1(String.valueOf(strEtcOstrEGdQty1));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateEtcOstrEGdQty1(dvo);
 
-                } else if ("281".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.STOC_CTR_OSTR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                     int strEtcOstrRGdQty1 = Integer.parseInt(mcbyDvo.getEtcOstrRGdQty1()) + Integer.parseInt(dto.qty());
 
@@ -1174,15 +976,12 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                     dvo.setEtcOstrRGdQty1(String.valueOf(strEtcOstrRGdQty1));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateEtcOstrRGdQty1(dvo);
 
                 }
                 /*입출유형(292:기타2)*/
-                if ("292".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.STOC_ACINSP_OSTR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                     int strStocAcinspOstrAGdQty = Integer.parseInt(mcbyDvo.getStocAcinspAGdQty())
                         + Integer.parseInt(dto.qty());
@@ -1192,13 +991,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                     dvo.setStocAcinspOstrAGdQty(String.valueOf(strStocAcinspOstrAGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateStocAcinspOstrAGdQty(dvo);
 
-                } else if ("292".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.STOC_ACINSP_OSTR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                     int strStocAcinspOstrBGdQty = Integer.parseInt(mcbyDvo.getStocAcinspBGdQty())
                         + Integer.parseInt(dto.qty());
@@ -1208,13 +1004,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                     dvo.setStocAcinspOstrBGdQty(String.valueOf(strStocAcinspOstrBGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateStocAcinspOstrBGdQty(dvo);
 
-                } else if ("292".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.STOC_ACINSP_OSTR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                     int strStocAcinspOstrEGdQty = Integer.parseInt(mcbyDvo.getStocAcinspEGdQty())
                         + Integer.parseInt(dto.qty());
@@ -1224,13 +1017,10 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                     dvo.setStocAcinspOstrEGdQty(String.valueOf(strStocAcinspOstrEGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateStocAcinspOstrEGdQty(dvo);
 
-                } else if ("292".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.STOC_ACINSP_OSTR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                     int strStocAcinspOstrRGdQty = Integer.parseInt(mcbyDvo.getStocAcinspRGdQty())
                         + Integer.parseInt(dto.qty());
@@ -1240,9 +1030,6 @@ public class WsnaMcbyItmStocsService {
 
                     dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                     dvo.setStocAcinspOstrRGdQty(String.valueOf(strStocAcinspOstrRGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(strBaseYm);
 
                     processCount += mapper.updateStocAcinspOstrRGdQty(dvo);
 
@@ -1254,10 +1041,10 @@ public class WsnaMcbyItmStocsService {
 
                 if (result < 0) {
 
-                    MM = StringUtils.substring(dto.procsDt(), 4, 2);
-                    log.info("MM dateCheck ----->", MM);
+                    month = StringUtils.substring(dto.procsDt(), 4, 2);
+                    log.info("MM dateCheck ----->", month);
                 }
-                WsnaMcbyItmStocsDvo CmprDvo = new WsnaMcbyItmStocsDvo();
+                WsnaMonthlyItemStocksDvo CmprDvo = new WsnaMonthlyItemStocksDvo();
 
                 if ("A".equals(dto.itemGd())) {
                     CmprDvo = mapper.selectPitmMmtStocAQty(dto);
@@ -1280,21 +1067,21 @@ public class WsnaMcbyItmStocsService {
                 String cmpApldYm = StringUtils.substring(dto.procsDt(), 0, 5);
 
                 /*수불월의 다음월 산출*/
-                int II = Integer.parseInt(MM) + 1;
-                log.info("II -------> 다음월 산출 데이터", II);
+                int nextMonth = Integer.parseInt(month) + 1;
+                log.info("II -------> 다음월 산출 데이터", nextMonth);
                 String strCmpApldYm = null;
 
-                if (II == 13) {
+                if (nextMonth == 13) {
                     strCmpApldYm = Integer.parseInt(StringUtils.substring(cmpApldYm, 0, 4)) + 1 + "01";
                     dvo.setBaseYm(strCmpApldYm);
                 } else {
-                    strCmpApldYm = StringUtils.substring(cmpApldYm, 0, 4) + String.format("%02d", II);
+                    strCmpApldYm = StringUtils.substring(cmpApldYm, 0, 4) + String.format("%02d", nextMonth);
                     dvo.setBaseYm(strCmpApldYm);
                 }
 
                 /*TODO : 월별 재고이월 호출(V_CMP_APLD_YM,V_WCOM_STCK_CD,V_WCOM_ITEM_CD,V_WCOM_ITEM_DEG,V_WCOM_STCK_MGR,V_CMP_ON_QTY,V_CMP_BUFF_QTY,V_LOG_ID)
                  *  개발완료 되면 붙일 예정*/
-                saveMcbyItmStocCrdovrs(converter.mapWsnaMcbyItmStocsDvoToCrdovrRes(dvo));
+                saveMonthlyItemStocCrdovrs(converter.mapWsnaMcbyItmStocsDvoToCrdovrRes(dvo));
             }
 
         } else {
@@ -1310,7 +1097,7 @@ public class WsnaMcbyItmStocsService {
                 --구매입고 = 구매입고 + 구매입고
                 ===============================================================================*/
                 //SUBSTR(V_WCOM_IO_DT,1,6), V_WCOM_STCK_CD, SUBSTR(V_WCOM_ITEM_CD,1,5), SUBSTR(V_WCOM_ITEM_CD,6,6), V_WCOM_STCK_MGR, V_WCOM_QTY, V_WCOM_QTY, V_REG_DT, V_REG_TM, V_LOG_ID
-                if ("110".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.PRCHS_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1318,7 +1105,7 @@ public class WsnaMcbyItmStocsService {
                     dvo.setPrchsStrQty(dto.qty());
                     dvo.setWareNo(dto.wareNo());
                     processCount += mapper.insertNewPrchStrQty(dvo);
-                } else if ("110".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.PRCHS_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1338,7 +1125,7 @@ public class WsnaMcbyItmStocsService {
                 --시점재고 = 시점재고 + 내부입고
                 --내부입고 = 내부입고 + 내부입고
                 ===============================================================================*/
-                if ("121".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.NOM_OSTR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1348,7 +1135,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertNomStrAGdQty(dvo);
 
-                } else if ("121".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.NOM_OSTR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1358,7 +1145,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertNomStrBGdQty(dvo);
 
-                } else if ("121".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.NOM_OSTR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1368,7 +1155,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertNomStrEGdQty(dvo);
 
-                } else if ("121".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.NOM_OSTR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1379,7 +1166,7 @@ public class WsnaMcbyItmStocsService {
                     processCount += mapper.insertNomStrRGdQty(dvo);
                 }
 
-                if ("122".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.QOM_ASN.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1389,7 +1176,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertQomAsnStrAGdQty(dvo);
 
-                } else if ("122".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_ASN.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1399,7 +1186,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertQomAsnStrBGdQty(dvo);
 
-                } else if ("122".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_ASN.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1409,7 +1196,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertQomAsnStrEGdQty(dvo);
 
-                } else if ("122".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_ASN.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1420,7 +1207,7 @@ public class WsnaMcbyItmStocsService {
                     processCount += mapper.insertQomAsnStrRGdQty(dvo);
                 }
 
-                if ("123".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.QOM_MMT.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1430,7 +1217,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertQomMmtStrAGdQty(dvo);
 
-                } else if ("123".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_MMT.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1440,7 +1227,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertQomMmtStrBGdQty(dvo);
 
-                } else if ("123".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_MMT.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1450,7 +1237,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertQomMmtStrEGdQty(dvo);
 
-                } else if ("123".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.QOM_MMT.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1462,7 +1249,7 @@ public class WsnaMcbyItmStocsService {
 
                 }
                 /*반품입고내부A등급수량*/
-                if ("161".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.RTNGD_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1472,7 +1259,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertRtngdStrInsiAGdQty(dvo);
 
-                } else if ("161".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1482,7 +1269,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertRtngdStrInsiBGdQty(dvo);
 
-                } else if ("161".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1492,7 +1279,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertRtngdStrInsiEGdQty(dvo);
 
-                } else if ("161".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_STR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1504,7 +1291,7 @@ public class WsnaMcbyItmStocsService {
 
                 }
                 /*기타입고A등급수량*/
-                if ("117".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.ETC_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1514,7 +1301,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertEtcStrAGdQty(dvo);
                     /*기타입고E등급수량*/
-                } else if ("117".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.ETC_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1534,7 +1321,7 @@ public class WsnaMcbyItmStocsService {
                 --외부반품입고 = 외부반품입고 + 외부반품입고
                 ===============================================================================*/
                 /*반품입고외부A등급수량*/
-                if ("162".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.RTNGD_OTSD_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1545,7 +1332,7 @@ public class WsnaMcbyItmStocsService {
                     processCount += mapper.insertRtngdStrOtsdAGdQty(dvo);
 
                     /*반품입고외부B등급수량*/
-                } else if ("162".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_OTSD_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1556,7 +1343,7 @@ public class WsnaMcbyItmStocsService {
                     processCount += mapper.insertRtngdStrOtsdBGdQty(dvo);
 
                     /*반품입고외부E등급수량*/
-                } else if ("162".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_OTSD_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1566,7 +1353,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertRtngdStrOtsdEGdQty(dvo);
                     /*반품입고외부R등급수량*/
-                } else if ("162".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.RTNGD_OTSD_STR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1585,7 +1372,7 @@ public class WsnaMcbyItmStocsService {
                 --재고조정입고 = 재고조정입고 + 재고조정입고
                 ===============================================================================*/
                 /*입출유형(181:재고조정입고)*/
-                if ("181".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+                if (SnServiceConst.STOC_CTR_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
@@ -1595,7 +1382,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertEtcStrAGdQty1(dvo);
 
-                } else if ("181".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+                } else if (SnServiceConst.STOC_CTR_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
 
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
@@ -1606,7 +1393,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertEtcStrBGdQty1(dvo);
 
-                } else if ("181".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+                } else if (SnServiceConst.STOC_CTR_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
 
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
@@ -1617,7 +1404,7 @@ public class WsnaMcbyItmStocsService {
 
                     processCount += mapper.insertEtcStrEGdQty1(dvo);
 
-                } else if ("181".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+                } else if (SnServiceConst.STOC_CTR_STR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
 
                     dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
@@ -1636,10 +1423,10 @@ public class WsnaMcbyItmStocsService {
 
                 if (result < 0) {
 
-                    MM = StringUtils.substring(dto.procsDt(), 4, 2);
-                    log.info("MM dateCheck ----->", MM);
+                    month = StringUtils.substring(dto.procsDt(), 4, 2);
+                    log.info("MM dateCheck ----->", month);
                 }
-                WsnaMcbyItmStocsDvo NewCmprDvo = new WsnaMcbyItmStocsDvo();
+                WsnaMonthlyItemStocksDvo NewCmprDvo = new WsnaMonthlyItemStocksDvo();
 
                 if ("A".equals(dto.itemGd())) {
                     NewCmprDvo = mapper.selectPitmMmtStocAQty(dto);
@@ -1662,20 +1449,21 @@ public class WsnaMcbyItmStocsService {
                 String cmpApldYm = StringUtils.substring(dto.procsDt(), 0, 5);
 
                 /*수불월의 다음월 산출*/
-                int II = Integer.parseInt(MM) + 1;
-                log.info("II -------> 다음월 산출 데이터", II);
+                int nextMonth = Integer.parseInt(month) + 1;
+                log.info("II -------> 다음월 산출 데이터", nextMonth);
                 String strCmpApldYm = null;
 
-                if (II == 13) {
+                if (nextMonth == 13) {
                     strCmpApldYm = Integer.parseInt(StringUtils.substring(cmpApldYm, 0, 4)) + 1 + "01";
                     dvo.setBaseYm(strCmpApldYm);
                 } else {
-                    strCmpApldYm = StringUtils.substring(dto.procsYm(), 0, 4) + String.format("%02d", II);
+                    strCmpApldYm = StringUtils.substring(dto.procsYm(), 0, 4) + String.format("%02d", nextMonth);
                     dvo.setBaseYm(strCmpApldYm);
                 }
 
                 /*TODO : 월별 재고이월 호출(V_CMP_APLD_YM,V_WCOM_STCK_CD,V_WCOM_ITEM_CD,V_WCOM_ITEM_DEG,V_WCOM_STCK_MGR,V_CMP_ON_QTY,V_CMP_BUFF_QTY,V_LOG_ID)
                  *  개발완료 되면 붙일 예정*/
+                saveMonthlyItemStocCrdovrs(converter.mapWsnaMcbyItmStocsDvoToCrdovrRes(dvo));
 
             }
 
@@ -1689,17 +1477,20 @@ public class WsnaMcbyItmStocsService {
      *            itemGd : 상품등급 , qty : 수량 , mvcYn : ?? , freeYn : ??, chgYn : ??}]
      * 월별 품목재고내역 삭제
      */
-    public int removeMcbyStock(WsnaMcbyItmStocsDto.SaveReq dto) throws ParseException {
+    public int removeMonthlyStock(WsnaMonthlyItemStocksDto.SaveReq dto) throws ParseException {
         int processCount = 0;
-        WsnaMcbyItmStocsDvo dvo = new WsnaMcbyItmStocsDvo();
+        WsnaMonthlyItemStocksDvo dvo = new WsnaMonthlyItemStocksDvo();
 
-        WsnaMcbyItmStocsDvo mcbyDvo = mapper.selectMcbyItmStocs(dto);
+        WsnaMonthlyItemStocksDvo mcbyDvo = mapper.selectMcbyItmStocs(dto);
         int strPitmStocAGdQty = 0; //시점재고A등급수량
         int strPitmStocBGdQty = 0; //시점재고B등급수량
         int strPitmStocEGdQty = 0; //시점재고E등급수량
         int strPitmStocRGdQty = 0; //시점재고R등급수량
+        String month = null;
         String strBaseYm = StringUtils.substring(dto.procsDt(), 0, 5);
-        String MM = null;
+        dvo.setWareNo(dto.wareNo());
+        dvo.setItmPdCd(dto.itmPdCd());
+        dvo.setBaseYm(strBaseYm);
 
         int strCmpOnQty = 0;
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMM");
@@ -1714,27 +1505,21 @@ public class WsnaMcbyItmStocsService {
             --시점재고 = 시점재고 + 구매입고
             --구매입고 = 구매입고 + 구매입고
             ===============================================================================*/
-            if ("110".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.PRCHS_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strPitmStocAGdQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                 int strPrchsStrQty = Integer.parseInt(mcbyDvo.getPrchsStrQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocAGdQty(String.valueOf(strPitmStocAGdQty));
                 dvo.setPrchsStrQty(String.valueOf(strPrchsStrQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updatePurchaseAStr(dvo);
 
-            } else if ("110".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.PRCHS_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strPitmStocBGdQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                 int strPrchsStrBGdQty = Integer.parseInt(mcbyDvo.getPrchsStrBGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocBGdQty(String.valueOf(strPitmStocBGdQty));
                 dvo.setPrchsStrBGdQty(String.valueOf(strPrchsStrBGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updatePurchaseBStr(dvo);
 
@@ -1749,62 +1534,50 @@ public class WsnaMcbyItmStocsService {
                 --시점재고 = 시점재고 + 내부입고
                 --내부입고 = 내부입고 + 내부입고
                 ===============================================================================*/
-            if ("121".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.NOM_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strPitmStocAGdQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                 /*정상출고A등급수량*/
                 int strNomOstrAGdQTy = Integer.parseInt(mcbyDvo.getNomOstrAGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocAGdQty(String.valueOf(strPitmStocAGdQty));
                 dvo.setNomOstrAGdQty(String.valueOf(strNomOstrAGdQTy));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateNomOstrAQty(dvo);
 
-            } else if ("121".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.NOM_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strPitmStocBGdQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                 /*정상출고B등급수량*/
                 int strNomOstrBGdQTy = Integer.parseInt(mcbyDvo.getNomOstrBGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocAGdQty(String.valueOf(strPitmStocBGdQty));
                 dvo.setNomOstrAGdQty(String.valueOf(strNomOstrBGdQTy));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateNomOstrBQty(dvo);
 
-            } else if ("121".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.NOM_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                 strPitmStocEGdQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                 /*정상출고E등급수량*/
                 int strNomOstrEGdQTy = Integer.parseInt(mcbyDvo.getNomOstrEGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocEGdQty(String.valueOf(strPitmStocEGdQty));
                 dvo.setNomOstrEGdQty(String.valueOf(strNomOstrEGdQTy));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateNomOstrEQty(dvo);
 
-            } else if ("121".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.NOM_STR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 strPitmStocRGdQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                 /*정상출고R등급수량*/
                 int strNomOstrRGdQTy = Integer.parseInt(mcbyDvo.getNomOstrRGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocRGdQty(String.valueOf(strPitmStocRGdQty));
                 dvo.setNomOstrRGdQty(String.valueOf(strNomOstrRGdQTy));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateNomOstrRQty(dvo);
 
             }
 
             /*입출유형(122:물량배정 A,B,E,R)*/
-            if ("122".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.QOM_ASN.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strPitmStocAGdQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                 /*물량배정입고A등급수량*/
                 int strQomAsnStrAGdQty = Integer.parseInt(mcbyDvo.getQomAsnOstrAGdQty())
@@ -1812,12 +1585,9 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocAGdQty(String.valueOf(strPitmStocAGdQty));
                 dvo.setQomAsnStrAGdQty(String.valueOf(strQomAsnStrAGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateQomAsnStrAGdQty(dvo);
-            } else if ("122".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.QOM_ASN.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strPitmStocBGdQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                 /*물량배정입고B등급수량*/
                 int strQomAsnStrBGdQty = Integer.parseInt(mcbyDvo.getQomAsnOstrBGdQty())
@@ -1825,12 +1595,10 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocBGdQty(String.valueOf(strPitmStocBGdQty));
                 dvo.setQomAsnStrBGdQty(String.valueOf(strQomAsnStrBGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
+
                 processCount += mapper.updateQomAsnStrBGdQty(dvo);
 
-            } else if ("122".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.QOM_ASN.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                 strPitmStocEGdQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                 /*물량배정입고E등급수량*/
                 int strQomAsnStrEGdQty = Integer.parseInt(mcbyDvo.getQomAsnOstrEGdQty())
@@ -1838,13 +1606,10 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocEGdQty(String.valueOf(strPitmStocEGdQty));
                 dvo.setQomAsnStrEGdQty(String.valueOf(strQomAsnStrEGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateQomAsnStrEGdQty(dvo);
 
-            } else if ("122".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.QOM_ASN.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 strPitmStocRGdQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                 /*물량배정입고B등급수량*/
                 int strQomAsnStrRGdQty = Integer.parseInt(mcbyDvo.getQomAsnOstrRGdQty())
@@ -1852,69 +1617,54 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocRGdQty(String.valueOf(strPitmStocRGdQty));
                 dvo.setQomAsnStrRGdQty(String.valueOf(strQomAsnStrRGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateQomAsnStrRGdQty(dvo);
 
             }
             /*입출유형(123:물량이동)*/
-            if ("123".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.QOM_MMT.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strPitmStocAGdQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                 int strQomMmtStrAGdQty = Integer.parseInt(mcbyDvo.getQomMmtOstrAGdQty())
                     - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocAGdQty(String.valueOf(strPitmStocAGdQty));
                 dvo.setQomMmtStrAGdQty(String.valueOf(strQomMmtStrAGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateQomMmtStrAGdQty(dvo);
 
-            } else if ("123".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.QOM_MMT.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strPitmStocBGdQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                 int strQomMmtStrBGdQty = Integer.parseInt(mcbyDvo.getQomMmtOstrBGdQty())
                     - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocBGdQty(String.valueOf(strPitmStocBGdQty));
                 dvo.setQomMmtStrBGdQty(String.valueOf(strQomMmtStrBGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateQomMmtStrBGdQty(dvo);
 
-            } else if ("123".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.QOM_MMT.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                 strPitmStocEGdQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                 int strQomMmtStrEGdQty = Integer.parseInt(mcbyDvo.getQomMmtOstrEGdQty())
                     - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocEGdQty(String.valueOf(strPitmStocEGdQty));
                 dvo.setQomMmtStrEGdQty(String.valueOf(strQomMmtStrEGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateQomMmtStrEGdQty(dvo);
 
-            } else if ("123".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.QOM_MMT.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 strPitmStocRGdQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                 int strQomMmtStrRGdQty = Integer.parseInt(mcbyDvo.getQomMmtOstrRGdQty())
                     - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocRGdQty(String.valueOf(strPitmStocRGdQty));
                 dvo.setQomMmtStrRGdQty(String.valueOf(strQomMmtStrRGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateQomMmtStrRGdQty(dvo);
 
             }
             /*입출유형(161:반품입고(내부))*/
-            if ("161".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.RTNGD_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strPitmStocAGdQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                 /*반품입고내부A등급수량*/
                 int strRtngdStrInsiAGdQty = Integer.parseInt(mcbyDvo.getRtngdStrInsiAGdQty())
@@ -1922,13 +1672,10 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocAGdQty(String.valueOf(strPitmStocAGdQty));
                 dvo.setRtngdStrInsiAGdQty(String.valueOf(strRtngdStrInsiAGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateRtngdStrInsiAgdQty(dvo);
 
-            } else if ("161".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.RTNGD_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strPitmStocBGdQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                 /*반품입고내부B등급수량*/
                 int strRtngdStrInsiBGdQty = Integer.parseInt(mcbyDvo.getRtngdStrInsiBGdQty())
@@ -1936,13 +1683,10 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocBGdQty(String.valueOf(strPitmStocBGdQty));
                 dvo.setRtngdStrInsiBGdQty(String.valueOf(strRtngdStrInsiBGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateRtngdStrInsiBgdQty(dvo);
 
-            } else if ("161".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.RTNGD_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                 strPitmStocEGdQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                 /*반품입고내부E등급수량*/
                 int strRtngdStrInsiEGdQty = Integer.parseInt(mcbyDvo.getRtngdStrInsiEGdQty())
@@ -1950,13 +1694,10 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocEGdQty(String.valueOf(strPitmStocEGdQty));
                 dvo.setRtngdStrInsiEGdQty(String.valueOf(strRtngdStrInsiEGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateRtngdStrInsiEgdQty(dvo);
 
-            } else if ("161".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.RTNGD_STR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 strPitmStocRGdQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                 /*반품입고내부R등급수량*/
                 int strRtngdStrInsiRGdQty = Integer.parseInt(mcbyDvo.getRtngdStrInsiRGdQty())
@@ -1964,9 +1705,6 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocRGdQty(String.valueOf(strPitmStocRGdQty));
                 dvo.setRtngdStrInsiRGdQty(String.valueOf(strRtngdStrInsiRGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateRtngdStrInsiRgdQty(dvo);
 
@@ -1981,7 +1719,7 @@ public class WsnaMcbyItmStocsService {
             --외부반품입고 = 외부반품입고 + 외부반품입고
             ===============================================================================*/
             /*입출유형(162:반품입고외부)*/
-            if ("162".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.RTNGD_OTSD_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strPitmStocAGdQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                 /*반품입고외부A등급수량*/
                 int strRtngdStrOtsdAGdQty = Integer.parseInt(mcbyDvo.getRtngdStrOtsdAGdQty())
@@ -1989,12 +1727,9 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocAGdQty(String.valueOf(strPitmStocAGdQty));
                 dvo.setRtngdStrInsiAGdQty(String.valueOf(strRtngdStrOtsdAGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateRtngStrOtsdAgdQty(dvo);
-            } else if ("162".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.RTNGD_OTSD_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strPitmStocBGdQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                 /*반품입고외부B등급수량*/
                 int strRtngdStrOtsdBGdQty = Integer.parseInt(mcbyDvo.getRtngdStrOtsdBGdQty())
@@ -2002,11 +1737,9 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocBGdQty(String.valueOf(strPitmStocBGdQty));
                 dvo.setRtngdStrInsiBGdQty(String.valueOf(strRtngdStrOtsdBGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
+
                 processCount += mapper.updateRtngStrOtsdBgdQty(dvo);
-            } else if ("162".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.RTNGD_OTSD_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                 strPitmStocEGdQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                 /*반품입고외부E등급수량*/
                 int strRtngdStrOtsdEGdQty = Integer.parseInt(mcbyDvo.getRtngdStrOtsdEGdQty())
@@ -2014,11 +1747,9 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocEGdQty(String.valueOf(strPitmStocEGdQty));
                 dvo.setRtngdStrInsiEGdQty(String.valueOf(strRtngdStrOtsdEGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
+
                 processCount += mapper.updateRtngStrOtsdEgdQty(dvo);
-            } else if ("162".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.RTNGD_OTSD_STR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 strPitmStocRGdQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                 /*반품입고외부R등급수량*/
                 int strRtngdStrOtsdRGdQty = Integer.parseInt(mcbyDvo.getRtngdStrOtsdRGdQty())
@@ -2026,9 +1757,7 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocRGdQty(String.valueOf(strPitmStocRGdQty));
                 dvo.setRtngdStrInsiRGdQty(String.valueOf(strRtngdStrOtsdRGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
+
                 processCount += mapper.updateRtngStrOtsdRgdQty(dvo);
             }
 
@@ -2038,49 +1767,37 @@ public class WsnaMcbyItmStocsService {
             --시점재고 = 시점재고 + 재고조정입고
             --재고조정입고 = 재고조정입고 + 재고조정입고
             ===============================================================================*/
-            if ("181".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.STOC_CTR_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strPitmStocAGdQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                 /*기타입고A등급수량1*/
                 int strEtcStrAGdQty1 = Integer.parseInt(mcbyDvo.getEtcStrAGdQty1()) - Integer.parseInt(dto.qty());
                 dvo.setPitmStocAGdQty(String.valueOf(strPitmStocAGdQty));
                 dvo.setEtcStrAGdQty1(String.valueOf(strEtcStrAGdQty1));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateEtcStrAGdQty1(dvo);
 
-            } else if ("181".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.STOC_CTR_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strPitmStocBGdQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                 /*기타입고B등급수량1*/
                 int strEtcStrBGdQty1 = Integer.parseInt(mcbyDvo.getEtcStrBGdQty1()) - Integer.parseInt(dto.qty());
                 dvo.setPitmStocBGdQty(String.valueOf(strPitmStocBGdQty));
                 dvo.setEtcStrBGdQty1(String.valueOf(strEtcStrBGdQty1));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateEtcStrBGdQty1(dvo);
-            } else if ("181".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.STOC_CTR_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                 strPitmStocEGdQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                 /*기타입고E등급수량1*/
                 int strEtcStrEGdQty1 = Integer.parseInt(mcbyDvo.getEtcStrEGdQty1()) - Integer.parseInt(dto.qty());
                 dvo.setPitmStocEGdQty(String.valueOf(strPitmStocEGdQty));
                 dvo.setEtcStrEGdQty1(String.valueOf(strEtcStrEGdQty1));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateEtcStrEGdQty1(dvo);
-            } else if ("181".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.STOC_CTR_STR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 strPitmStocRGdQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                 /*기타입고R등급수량1*/
                 int strEtcStrRGdQty1 = Integer.parseInt(mcbyDvo.getEtcStrRGdQty1()) - Integer.parseInt(dto.qty());
                 dvo.setPitmStocRGdQty(String.valueOf(strPitmStocRGdQty));
                 dvo.setEtcStrRGdQty1(String.valueOf(strEtcStrRGdQty1));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateEtcStrRGdQty1(dvo);
             }
@@ -2097,7 +1814,7 @@ public class WsnaMcbyItmStocsService {
                 ===============================================================================*/
             //입출유형(221:정상출고)
 
-            if ("221".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.NOM_OSTR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 /*시점재고*/
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                 int strNomOstrAGdQty = Integer.parseInt(mcbyDvo.getNomOstrAGdQty())
@@ -2105,54 +1822,42 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                 dvo.setNomOstrAGdQty(String.valueOf(strNomOstrAGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateNomOstrAGdQty(dvo);
 
-            } else if ("221".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.NOM_OSTR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                 int strNomOstrBGdQty = Integer.parseInt(mcbyDvo.getNomOstrBGdQty())
                     - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                 dvo.setNomOstrBGdQty(String.valueOf(strNomOstrBGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateNomOstrBGdQty(dvo);
 
-            } else if ("221".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.NOM_OSTR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                 int strNomOstrEGdQty = Integer.parseInt(mcbyDvo.getNomOstrEGdQty())
                     - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                 dvo.setNomOstrEGdQty(String.valueOf(strNomOstrEGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateNomOstrEGdQty(dvo);
 
-            } else if ("221".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.NOM_OSTR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                 int strNomOstrRGdQty = Integer.parseInt(mcbyDvo.getNomOstrRGdQty())
                     - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                 dvo.setNomOstrRGdQty(String.valueOf(strNomOstrRGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateNomOstrRGdQty(dvo);
 
             }
             /*입출유형(222:물량배정)*/
-            if ("222".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.QOM_ASN_OSTR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
 
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                 /*물량배정출고A등급수량*/
@@ -2161,13 +1866,10 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                 dvo.setQomAsnOstrAGdQty(String.valueOf(strQomAsnOstrAGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateQomAsnOstrAGdQty(dvo);
 
-            } else if ("222".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.QOM_ASN_OSTR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
 
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                 /*물량배정출고B등급수량*/
@@ -2176,13 +1878,10 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                 dvo.setQomAsnOstrBGdQty(String.valueOf(strQomAsnOstrBGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateQomAsnOstrBGdQty(dvo);
 
-            } else if ("222".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.QOM_ASN_OSTR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
 
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                 /*물량배정출고E등급수량*/
@@ -2191,13 +1890,10 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                 dvo.setQomAsnOstrEGdQty(String.valueOf(strQomAsnOstrEGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateQomAsnOstrEGdQty(dvo);
 
-            } else if ("222".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.QOM_ASN_OSTR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
 
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                 /*물량배정출고R등급수량*/
@@ -2206,15 +1902,12 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                 dvo.setQomAsnOstrRGdQty(String.valueOf(strQomAsnOstrRGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateQomAsnOstrRGdQty(dvo);
 
             }
             /*입출유형(223:물량이동)*/
-            if ("223".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.QOM_MMT_OSTR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                 /*물량이동출고A등급수량*/
                 int strQomMmtOstrAGdQty = Integer.parseInt(mcbyDvo.getQomMmtOstrAGdQty())
@@ -2222,13 +1915,10 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                 dvo.setQomMmtOstrAGdQty(String.valueOf(strQomMmtOstrAGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateQomMmtOstrAGdQty(dvo);
 
-            } else if ("223".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.QOM_MMT_OSTR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                 /*물량이동출고B등급수량*/
                 int strQomMmtOstrBGdQty = Integer.parseInt(mcbyDvo.getQomMmtOstrBGdQty())
@@ -2236,13 +1926,10 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                 dvo.setQomMmtOstrBGdQty(String.valueOf(strQomMmtOstrBGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateQomMmtOstrBGdQty(dvo);
 
-            } else if ("223".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.QOM_MMT_OSTR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                 /*물량이동출고E등급수량*/
                 int strQomMmtOstrEGdQty = Integer.parseInt(mcbyDvo.getQomMmtOstrEGdQty())
@@ -2250,13 +1937,10 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                 dvo.setQomMmtOstrEGdQty(String.valueOf(strQomMmtOstrEGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateQomMmtOstrEGdQty(dvo);
 
-            } else if ("223".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.QOM_MMT_OSTR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                 /*물량이동출고R등급수량*/
                 int strQomMmtOstrRGdQty = Integer.parseInt(mcbyDvo.getQomMmtOstrRGdQty())
@@ -2264,15 +1948,12 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                 dvo.setQomMmtOstrRGdQty(String.valueOf(strQomMmtOstrRGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateQomMmtOstrRGdQty(dvo);
 
             }
             /*입출유형(261:반품출고(내부)*/
-            if ("261".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.RTNGD_OSTR_INSI.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                 /*반품출고내부A등급수량*/
                 int strRtnGdOstrInsiAGdQty = Integer.parseInt(mcbyDvo.getRtngdOstrInsiAGdQty())
@@ -2280,13 +1961,10 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                 dvo.setRtngdOstrInsiAGdQty(String.valueOf(strRtnGdOstrInsiAGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateRtngdOstrInsiAGdQty(dvo);
 
-            } else if ("261".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.RTNGD_OSTR_INSI.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                 /*반품출고내부B등급수량*/
                 int strRtnGdOstrInsiBGdQty = Integer.parseInt(mcbyDvo.getRtngdOstrInsiBGdQty())
@@ -2294,12 +1972,9 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                 dvo.setRtngdOstrInsiBGdQty(String.valueOf(strRtnGdOstrInsiBGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateRtngdOstrInsiBGdQty(dvo);
-            } else if ("261".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.RTNGD_OSTR_INSI.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                 /*반품출고내부E등급수량*/
                 int strRtnGdOstrInsiEGdQty = Integer.parseInt(mcbyDvo.getRtngdOstrInsiEGdQty())
@@ -2307,12 +1982,9 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                 dvo.setRtngdOstrInsiEGdQty(String.valueOf(strRtnGdOstrInsiEGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateRtngdOstrInsiEGdQty(dvo);
-            } else if ("261".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.RTNGD_OSTR_INSI.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                 /*반품출고내부R등급수량*/
                 int strRtnGdOstrInsiRGdQty = Integer.parseInt(mcbyDvo.getRtngdOstrInsiRGdQty())
@@ -2320,9 +1992,6 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                 dvo.setRtngdOstrInsiRGdQty(String.valueOf(strRtnGdOstrInsiRGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateRtngdOstrInsiRGdQty(dvo);
             }
@@ -2340,7 +2009,7 @@ public class WsnaMcbyItmStocsService {
             ===============================================================================*/
             /*입출유형(262:반품출고외부*/
 
-            if ("262".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.RTNGD_OSTR_OTSD.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                 /*반품출고외부A등급수량*/
                 int strRtngdOstrOtsdAGdQty = Integer.parseInt(mcbyDvo.getRtngdOstrOtsdAGdQty())
@@ -2348,13 +2017,10 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                 dvo.setRtngdOstrOtsdAGdQty(String.valueOf(strRtngdOstrOtsdAGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateRtngdOstrOtsdAGdQty(dvo);
 
-            } else if ("262".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.RTNGD_OSTR_OTSD.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                 /*반품출고외부B등급수량*/
                 int strRtngdOstrOtsdBGdQty = Integer.parseInt(mcbyDvo.getRtngdOstrOtsdBGdQty())
@@ -2362,13 +2028,10 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                 dvo.setRtngdOstrOtsdBGdQty(String.valueOf(strRtngdOstrOtsdBGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateRtngdOstrOtsdBGdQty(dvo);
 
-            } else if ("262".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.RTNGD_OSTR_OTSD.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                 /*반품출고외부B등급수량*/
                 int strRtngdOstrOtsdEGdQty = Integer.parseInt(mcbyDvo.getRtngdOstrOtsdBGdQty())
@@ -2376,13 +2039,10 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                 dvo.setRtngdOstrOtsdEGdQty(String.valueOf(strRtngdOstrOtsdEGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateRtngdOstrOtsdEGdQty(dvo);
 
-            } else if ("262".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.RTNGD_OSTR_OTSD.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                 /*반품출고외부R등급수량*/
                 int strRtngdOstrOtsdRGdQty = Integer.parseInt(mcbyDvo.getRtngdOstrOtsdRGdQty())
@@ -2390,75 +2050,57 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                 dvo.setRtngdOstrOtsdEGdQty(String.valueOf(strRtngdOstrOtsdRGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateRtngdOstrOtsdRGdQty(dvo);
             }
             /*입출유형(211:판매*/
-            if ("211".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.OTSD_OSTR_SELL.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                 int strSellOstrQty = Integer.parseInt(mcbyDvo.getSellOstrQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                 dvo.setSellOstrQty(String.valueOf(strSellOstrQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateSellOstrQty(dvo);
 
-            } else if ("211".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.OTSD_OSTR_SELL.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                 int strSellOstrBGdQty = Integer.parseInt(mcbyDvo.getSellOstrBGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                 dvo.setSellOstrBGdQty(String.valueOf(strSellOstrBGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateSellOstrBGdQty(dvo);
             }
 
-            if ("212".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.OTSD_OSTR_DSU.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                 int strDsuOstrAGdQty = Integer.parseInt(mcbyDvo.getDsuOstrAGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                 dvo.setDsuOstrAGdQty(String.valueOf(strDsuOstrAGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateDsuOstrAGdQty(dvo);
 
-            } else if ("212".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.OTSD_OSTR_DSU.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                 int strDsuOstrBGdQty = Integer.parseInt(mcbyDvo.getDsuOstrBGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                 dvo.setDsuOstrBGdQty(String.valueOf(strDsuOstrBGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateDsuOstrBGdQty(dvo);
 
-            } else if ("212".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.OTSD_OSTR_DSU.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                 int strDsuOstrEGdQty = Integer.parseInt(mcbyDvo.getDsuOstrEGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                 dvo.setDsuOstrEGdQty(String.valueOf(strDsuOstrEGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateDsuOstrEGdQty(dvo);
 
-            } else if ("212".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.OTSD_OSTR_DSU.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                 int strDsuOstrRGdQty = Integer.parseInt(mcbyDvo.getDsuOstrRGdQty()) + Integer.parseInt(dto.qty());
 
@@ -2467,15 +2109,12 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                 dvo.setDsuOstrRGdQty(String.valueOf(strDsuOstrRGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateDsuOstrRGdQty(dvo);
 
             }
 
-            if ("213".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.OTSD_OSTR_WK.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                 /*작업출고A등급수량*/
                 int strWkOstrAGdQty = Integer.parseInt(mcbyDvo.getWkOstrAGdQty()) - Integer.parseInt(dto.qty());
@@ -2485,87 +2124,66 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                 dvo.setWkOstrAGdQty(String.valueOf(strWkOstrAGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateWkOstrAGdQty(dvo);
 
-            } else if ("213".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.OTSD_OSTR_WK.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                 /*작업출고B등급수량*/
                 int strWkOstrBGdQty = Integer.parseInt(mcbyDvo.getWkOstrBGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                 dvo.setWkOstrBGdQty(String.valueOf(strWkOstrBGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateWkOstrBGdQty(dvo);
-            } else if ("213".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.OTSD_OSTR_WK.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                 /*작업출고E등급수량*/
                 int strWkOstrEGdQty = Integer.parseInt(mcbyDvo.getWkOstrEGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                 dvo.setWkOstrEGdQty(String.valueOf(strWkOstrEGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateWkOstrEGdQty(dvo);
-            } else if ("213".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.OTSD_OSTR_WK.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                 /*작업출고R등급수량*/
                 int strWkOstrRGdQty = Integer.parseInt(mcbyDvo.getWkOstrRGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                 dvo.setWkOstrRGdQty(String.valueOf(strWkOstrRGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateWkOstrRGdQty(dvo);
             }
             /*입출유형(217:기타)*/
-            if ("217".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.OTSD_OSTR_ETC.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                 int strEtcOstrAGdQty = Integer.parseInt(mcbyDvo.getEtcOstrAGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                 dvo.setEtcOstrAGdQty(String.valueOf(strEtcOstrAGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateEtcOstrAGdQty(dvo);
 
-            } else if ("217".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.OTSD_OSTR_ETC.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                 int strEtcOstrBGdQty = Integer.parseInt(mcbyDvo.getEtcOstrBGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                 dvo.setEtcOstrBGdQty(String.valueOf(strEtcOstrBGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateEtcOstrBGdQty(dvo);
 
-            } else if ("217".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.OTSD_OSTR_ETC.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                 int strEtcOstrEGdQty = Integer.parseInt(mcbyDvo.getEtcOstrEGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                 dvo.setEtcOstrEGdQty(String.valueOf(strEtcOstrEGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateEtcOstrEGdQty(dvo);
 
-            } else if ("217".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.OTSD_OSTR_ETC.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                 int strEtcOstrRGdQty = Integer.parseInt(mcbyDvo.getEtcOstrRGdQty()) - Integer.parseInt(dto.qty());
 
@@ -2574,59 +2192,46 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                 dvo.setEtcOstrRGdQty(String.valueOf(strEtcOstrRGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateEtcOstrRGdQty(dvo);
 
             }
 
             /*입출유형(218:리퍼완료)*/
-            if ("218".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.OTSD_OSTR_REFR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                 int strRefrOstrAGdQty = Integer.parseInt(mcbyDvo.getRefrOstrAGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                 dvo.setRefrOstrAGdQty(String.valueOf(strRefrOstrAGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateRefrOstrAGdQty(dvo);
 
-            } else if ("218".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.OTSD_OSTR_REFR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                 int strRefrOstrBGdQty = Integer.parseInt(mcbyDvo.getRefrOstrBGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                 dvo.setRefrOstrBGdQty(String.valueOf(strRefrOstrBGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateRefrOstrBGdQty(dvo);
 
-            } else if ("218".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.OTSD_OSTR_REFR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                 int strRefrOstrEGdQty = Integer.parseInt(mcbyDvo.getRefrOstrEGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                 dvo.setRefrOstrEGdQty(String.valueOf(strRefrOstrEGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
+
                 processCount += mapper.updateRefrOstrEGdQty(dvo);
 
-            } else if ("218".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.OTSD_OSTR_REFR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                 int strRefrOstrRGdQty = Integer.parseInt(mcbyDvo.getRefrOstrRGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                 dvo.setRefrOstrRGdQty(String.valueOf(strRefrOstrRGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
+
                 processCount += mapper.updateRefrOstrRGdQty(dvo);
             }
 
@@ -2636,7 +2241,7 @@ public class WsnaMcbyItmStocsService {
             --시점재고 = 시점재고 - 재고조정출고
             --재고조정출고 = 재고조정출고 + 재고조정출고
             ===============================================================================*/
-            if ("281".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.STOC_CTR_OSTR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                 int strEtcOstrAGdQty1 = Integer.parseInt(mcbyDvo.getEtcOstrAGdQty1()) - Integer.parseInt(dto.qty());
 
@@ -2645,100 +2250,76 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                 dvo.setEtcOstrAGdQty1(String.valueOf(strEtcOstrAGdQty1));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateEtcOstrAGdQty1(dvo);
 
-            } else if ("281".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.STOC_CTR_OSTR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                 int strEtcOstrBGdQty1 = Integer.parseInt(mcbyDvo.getEtcOstrBGdQty1()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                 dvo.setEtcOstrBGdQty1(String.valueOf(strEtcOstrBGdQty1));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateEtcOstrBGdQty1(dvo);
 
-            } else if ("281".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.STOC_CTR_OSTR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                 int strEtcOstrEGdQty1 = Integer.parseInt(mcbyDvo.getEtcOstrEGdQty1()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                 dvo.setEtcOstrEGdQty1(String.valueOf(strEtcOstrEGdQty1));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateEtcOstrEGdQty1(dvo);
 
-            } else if ("281".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.STOC_CTR_OSTR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                 int strEtcOstrRGdQty1 = Integer.parseInt(mcbyDvo.getEtcOstrRGdQty1()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                 dvo.setEtcOstrRGdQty1(String.valueOf(strEtcOstrRGdQty1));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateEtcOstrRGdQty1(dvo);
 
             }
 
             /*입출유형(292:기타2)*/
-            if ("292".equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
+            if (SnServiceConst.STOC_ACINSP_OSTR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                 int strStocAcinspOstrAGdQty = Integer.parseInt(mcbyDvo.getStocAcinspAGdQty())
                     - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocAGdQty(String.valueOf(strCmpOnQty));
                 dvo.setStocAcinspOstrAGdQty(String.valueOf(strStocAcinspOstrAGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateStocAcinspOstrAGdQty(dvo);
 
-            } else if ("292".equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
+            } else if (SnServiceConst.STOC_ACINSP_OSTR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                 int strStocAcinspOstrBGdQty = Integer.parseInt(mcbyDvo.getStocAcinspBGdQty())
                     - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocBGdQty(String.valueOf(strCmpOnQty));
                 dvo.setStocAcinspOstrBGdQty(String.valueOf(strStocAcinspOstrBGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateStocAcinspOstrBGdQty(dvo);
 
-            } else if ("292".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
+            } else if (SnServiceConst.STOC_ACINSP_OSTR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                 int strStocAcinspOstrEGdQty = Integer.parseInt(mcbyDvo.getStocAcinspEGdQty())
                     - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocEGdQty(String.valueOf(strCmpOnQty));
                 dvo.setStocAcinspOstrEGdQty(String.valueOf(strStocAcinspOstrEGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateStocAcinspOstrEGdQty(dvo);
 
-            } else if ("292".equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
+            } else if (SnServiceConst.STOC_ACINSP_OSTR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                 strCmpOnQty = Integer.parseInt(mcbyDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                 int strStocAcinspOstrRGdQty = Integer.parseInt(mcbyDvo.getStocAcinspRGdQty())
                     - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocRGdQty(String.valueOf(strCmpOnQty));
                 dvo.setStocAcinspOstrRGdQty(String.valueOf(strStocAcinspOstrRGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
-                dvo.setBaseYm(strBaseYm);
 
                 processCount += mapper.updateStocAcinspOstrRGdQty(dvo);
 
@@ -2749,10 +2330,10 @@ public class WsnaMcbyItmStocsService {
 
             if (result < 0) {
 
-                MM = StringUtils.substring(dto.procsDt(), 4, 2);
-                log.info("MM dateCheck ----->", MM);
+                month = StringUtils.substring(dto.procsDt(), 4, 2);
+                log.info("MM dateCheck ----->", month);
             }
-            WsnaMcbyItmStocsDvo CmprDvo = new WsnaMcbyItmStocsDvo();
+            WsnaMonthlyItemStocksDvo CmprDvo = new WsnaMonthlyItemStocksDvo();
 
             if ("A".equals(dto.itemGd())) {
                 CmprDvo = mapper.selectPitmMmtStocAQty(dto);
@@ -2775,21 +2356,21 @@ public class WsnaMcbyItmStocsService {
             String cmpApldYm = StringUtils.substring(dto.procsDt(), 0, 5);
 
             /*수불월의 다음월 산출*/
-            int II = Integer.parseInt(MM) + 1;
-            log.info("II -------> 다음월 산출 데이터", II);
+            int nextMonth = Integer.parseInt(month) + 1;
+            log.info("II -------> 다음월 산출 데이터", nextMonth);
             String strCmpApldYm = null;
 
-            if (II == 13) {
+            if (nextMonth == 13) {
                 strCmpApldYm = Integer.parseInt(StringUtils.substring(cmpApldYm, 0, 4)) + 1 + "01";
                 dvo.setBaseYm(strCmpApldYm);
             } else {
-                strCmpApldYm = StringUtils.substring(cmpApldYm, 0, 4) + String.format("%02d", II);
+                strCmpApldYm = StringUtils.substring(cmpApldYm, 0, 4) + String.format("%02d", nextMonth);
                 dvo.setBaseYm(strCmpApldYm);
             }
             //            SP_ST122TB_IWL(V_CMP_APLD_YM,V_WCOM_STCK_CD,V_WCOM_ITEM_CD,V_WCOM_ITEM_DEG,V_WCOM_STCK_MGR,V_CMP_ON_QTY,V_CMP_BUFF_QTY,V_LOG_ID)
             /*TODO : 월별 재고이월 호출(V_CMP_APLD_YM,V_WCOM_STCK_CD,V_WCOM_ITEM_CD,V_WCOM_ITEM_DEG,V_WCOM_STCK_MGR,V_CMP_ON_QTY,V_CMP_BUFF_QTY,V_LOG_ID)
              *  개발완료 되면 붙일 예정*/
-            saveMcbyItmStocCrdovrs(converter.mapWsnaMcbyItmStocsDvoToCrdovrRes(dvo));
+            saveMonthlyItemStocCrdovrs(converter.mapWsnaMcbyItmStocsDvoToCrdovrRes(dvo));
         }
 
         return processCount;
@@ -2814,9 +2395,9 @@ public class WsnaMcbyItmStocsService {
      ST122_ON_QTY_A, ST122_BUFF_QTY_A
      */
 
-    public int saveMcbyItmStocCrdovrs(WsnaMcbyItmStocsDto.CrdovrReq dto) {
+    public int saveMonthlyItemStocCrdovrs(WsnaMonthlyItemStocksDto.CrdovrReq dto) {
 
-        WsnaMcbyItmStocsDvo dvo = new WsnaMcbyItmStocsDvo();
+        WsnaMonthlyItemStocksDvo dvo = new WsnaMonthlyItemStocksDvo();
         int processCount = 0;
         String strWareMngtPrtnrNo = null;
         int strBaseQty = 0; //기초재고
@@ -2824,8 +2405,13 @@ public class WsnaMcbyItmStocsService {
         int strOutQty = 0; //출고정보
         int strOnQty = 0; //시점재고
 
+        /*필수로 입력되는 파라미터 세팅*/
+        dvo.setBaseYm(dto.baseYm());
+        dvo.setWareNo(dto.wareNo());
+        dvo.setItmPdCd(dto.itmPdCd());
+
         /*넘어온 파라미터로 해당하는 창고관리파트너번호를 조회한다.*/
-        WsnaMcbyItmStocsDvo wareDvo = mapper.selectWareMngtPrtnrNo(dto);
+        WsnaMonthlyItemStocksDvo wareDvo = mapper.selectWareMngtPrtnrNo(dto);
 
         if (StringUtils.isEmpty(wareDvo.getWareMngtPrtnrNo())) {
             strWareMngtPrtnrNo = dto.wareMngtPrtnrNo();
@@ -2835,7 +2421,7 @@ public class WsnaMcbyItmStocsService {
         int chkValue = mapper.selectCountMcbyItmStoc(dto);
 
         if (chkValue > 0) {
-            WsnaMcbyItmStocsDvo crdovrsDvo = mapper.selectMcbyItmStocCrdovrs(dto);
+            WsnaMonthlyItemStocksDvo crdovrsDvo = mapper.selectMcbyItmStocCrdovrs(dto);
             if ("A".equals(dto.itemGd())) {
                 //기초재고
                 strBaseQty = Integer.parseInt(StringUtil.nvl(dto.pitmStocQty(), "0"));
@@ -2884,9 +2470,6 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setBtdStocAGdQty(String.valueOf(strBaseQty));
                 dvo.setPitmStocAGdQty(String.valueOf(strOnQty));
-                dvo.setBaseYm(dto.baseYm());
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
 
                 processCount += mapper.updateCrdovrStocAGdQty(dvo);
 
@@ -2930,9 +2513,6 @@ public class WsnaMcbyItmStocsService {
 
                 dvo.setBtdStocEGdQty(String.valueOf(strBaseQty));
                 dvo.setPitmStocEGdQty(String.valueOf(strOnQty));
-                dvo.setBaseYm(dto.baseYm());
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
 
                 processCount += mapper.updateCrdovrStocEGdQty(dvo);
             } else if ("R".equals(dto.itemGd())) {
@@ -2973,9 +2553,7 @@ public class WsnaMcbyItmStocsService {
                 strOnQty = strBaseQty + strInQty - strOutQty;
                 dvo.setBtdStocRGdQty(String.valueOf(strBaseQty));
                 dvo.setPitmStocRGdQty(String.valueOf(strOnQty));
-                dvo.setBaseYm(dto.baseYm());
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
+
                 processCount += mapper.updateCrdovrStocRGdQty(dvo);
 
             }
@@ -2983,9 +2561,7 @@ public class WsnaMcbyItmStocsService {
         } else {
             /*조회된 데이터가 없을경우 신규로 월별품목재고내역에 데이터를 INSERT처리*/
             if ("A".equals(dto.itemGd())) {
-                dvo.setBaseYm(dto.baseYm());
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
+
                 dvo.setBtdStocAGdQty(dto.pitmStocQty());
                 dvo.setPitmStocAGdQty(dto.pitmStocQty());
                 dvo.setMmtStocAGdQty(dto.mmtStocQty());
@@ -2993,9 +2569,7 @@ public class WsnaMcbyItmStocsService {
                 processCount += mapper.insertCrdovrStocAGdQty(dvo);
 
             } else if ("E".equals(dto.itemGd())) {
-                dvo.setBaseYm(dto.baseYm());
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
+
                 dvo.setBtdStocEGdQty(dto.pitmStocQty());
                 dvo.setPitmStocEGdQty(dto.pitmStocQty());
                 dvo.setMmtStocEGdQty(dto.mmtStocQty());
@@ -3003,9 +2577,7 @@ public class WsnaMcbyItmStocsService {
                 processCount += mapper.insertCrdovrStocEGdQty(dvo);
 
             } else if ("E".equals(dto.itemGd())) {
-                dvo.setBaseYm(dto.baseYm());
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
+
                 dvo.setBtdStocRGdQty(dto.pitmStocQty());
                 dvo.setPitmStocRGdQty(dto.pitmStocQty());
                 dvo.setMmtStocRGdQty(dto.mmtStocQty());

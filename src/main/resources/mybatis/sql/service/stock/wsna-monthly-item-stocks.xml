@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaMcbyItmStocsMapper">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaMonthlyItemStocksMapper">
 
     <select id="selectCountMcbyStock" resultType="integer">
         SELECT COUNT(*) AS CNT
@@ -11,7 +11,7 @@
 
     </select>
 
-    <select id="selectMcbyItmStocs" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMcbyItmStocsDvo">
+    <select id="selectMcbyItmStocs" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksDvo">
         SELECT BASE_YM                   /* 기준년월 */
              , WARE_NO                   /* 창고번호 */
              , ITM_PD_CD                 /* 품목상품코드 */
@@ -131,7 +131,7 @@
     </select>
 
 
-    <select id="selectPitmMmtStocAQty" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMcbyItmStocsDvo">
+    <select id="selectPitmMmtStocAQty" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksDvo">
     SELECT PITM_STOC_A_GD_QTY /*시점재고 A등급 수량*/
          , MMT_STOC_A_GD_QTY /*이동재고 A등급 수량*/
       FROM TB_SVST_MCITM_STOC_IZ
@@ -142,7 +142,7 @@
 
     </select>
 
-    <select id="selectPitmMmtStocBQty" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMcbyItmStocsDvo">
+    <select id="selectPitmMmtStocBQty" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksDvo">
     SELECT PITM_STOC_B_GD_QTY /*시점재고 A등급 수량*/
          , MMT_STOC_B_GD_QTY /*이동재고 A등급 수량*/
       FROM TB_SVST_MCITM_STOC_IZ
@@ -153,7 +153,7 @@
 
     </select>
 
-    <select id="selectPitmMmtStocEQty" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMcbyItmStocsDvo">
+    <select id="selectPitmMmtStocEQty" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksDvo">
     SELECT PITM_STOC_E_GD_QTY /*시점재고 A등급 수량*/
          , MMT_STOC_E_GD_QTY /*이동재고 A등급 수량*/
       FROM TB_SVST_MCITM_STOC_IZ
@@ -164,7 +164,7 @@
 
     </select>
 
-    <select id="selectPitmMmtStocRQty" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMcbyItmStocsDvo">
+    <select id="selectPitmMmtStocRQty" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksDvo">
     SELECT PITM_STOC_R_GD_QTY /*시점재고 A등급 수량*/
          , MMT_STOC_R_GD_QTY /*이동재고 A등급 수량*/
       FROM TB_SVST_MCITM_STOC_IZ
@@ -1534,7 +1534,7 @@
     </insert>
 
 
-    <select id="selectWareMngtPrtnrNo" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMcbyItmStocsDvo">
+    <select id="selectWareMngtPrtnrNo" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksDvo">
         SELECT WARE_MNGT_PRTNR_NO /*창고관리파트너번호*/
           FROM TB_SVST_MCBY_WARE_IZ
          WHERE APY_YM = #{baseYm}
@@ -1542,7 +1542,7 @@
     </select>
 
 
-<select id="selectMcbyItmStocCrdovrs" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMcbyItmStocsDvo">
+<select id="selectMcbyItmStocCrdovrs" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksDvo">
         SELECT BASE_YM                   /* 기준년월 */
              , WARE_NO                   /* 창고번호 */
              , ITM_PD_CD                 /* 품목상품코드 */

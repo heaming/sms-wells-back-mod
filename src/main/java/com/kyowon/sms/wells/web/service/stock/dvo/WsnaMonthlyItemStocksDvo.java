@@ -14,7 +14,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WsnaMcbyItmStocsDvo {
+public class WsnaMonthlyItemStocksDvo {
     String baseYm; /* 기준년월 */
     String wareNo; /* 창고번호 */
     String itmPdCd; /* 품목상품코드 */

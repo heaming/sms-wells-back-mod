@@ -10,7 +10,7 @@ import io.swagger.annotations.ApiModel;
  * @author SongTaeSung
  * @since 2023.04.05
  */
-public class WsnaMcbyItmStocsDto {
+public class WsnaMonthlyItemStocksDto {
 
     @ApiModel(value = "WsnaMcbyItmStocsDto-SaveReq")
     public record SaveReq(
