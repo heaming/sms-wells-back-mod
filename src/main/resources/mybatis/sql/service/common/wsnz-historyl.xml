@@ -13,6 +13,8 @@
              , SV_BIZ_HCLSF_CD
              , SV_BIZ_DCLSF_CD
              , RCP_SV_BIZ_DCLSF_CD
+             , RCP_OG_TP_CD
+             , RCP_ICHR_PRTNR_NO
              , RCPDT
              , RCP_HH
              , URGT_YN
@@ -59,6 +61,8 @@
              , SV_BIZ_HCLSF_CD
              , SV_BIZ_DCLSF_CD
              , RCP_SV_BIZ_DCLSF_CD
+             , RCP_OG_TP_CD
+             , RCP_ICHR_PRTNR_NO
              , RCPDT
              , RCP_HH
              , URGT_YN
@@ -120,7 +124,6 @@
              , VST_TP_DV_CD
              , MNGR_DV_CD
              , SV_BIZ_HCLSF_CD
-             , SV_BIZ_MCLSF_CD
              , SV_BIZ_DCLSF_CD
              , VST_CAN_RSON_CD
              , VST_OJ_LOCARA_CD
@@ -190,7 +193,6 @@
              , VST_TP_DV_CD
              , MNGR_DV_CD
              , SV_BIZ_HCLSF_CD
-             , SV_BIZ_MCLSF_CD
              , SV_BIZ_DCLSF_CD
              , VST_CAN_RSON_CD
              , VST_OJ_LOCARA_CD
@@ -414,9 +416,7 @@
              , CNTR_PD_ENDDT
              , CNTR_DTL_STAT_CD
              , SELL_TP_CD
-             , DSC_APY_TP_CD
-             , DSC_APY_DTL_CD
-             , DSC_APY_DRM_VAL
+             , SELL_TP_DTL_CD
              , SV_PTRM_UNIT_CD
              , SV_PRD
              , CNTRW_TP_CD
@@ -429,6 +429,10 @@
              , PD_MCLSF_ID
              , PD_LCLSF_ID
              , PD_DCLSF_ID
+             , SELL_DSC_DV_CD
+             , SELL_DSCR_CD
+             , SELL_DSC_CTR_AMT
+             , SELL_DSC_TP_CD
              , STLM_TP_CD
              , CRNCY_DV_CD
              , APY_EXCR
@@ -437,20 +441,24 @@
              , VAT
              , SELL_AMT
              , CNTR_AMT
+             , DSC_AMT
+             , CNTRAM_DSC_AMT
              , ISTM_PCAM_AMT
              , ISTM_INT_AMT
              , MM_ISTM_AMT
+             , CRP_UC_AMT
+             , SELL_FEE
              , ACKMT_PERF_RT
              , ACKMT_PERF_AMT
              , CVT_PERF_AMT
+             , FEE_ACKMT_CT
+             , FEE_ACKMT_BASE_AMT
+             , FEE_FXAM_YN
              , SPP_DUEDT
              , RESUB_YN
              , RSTL_YN
              , FRISU_YN
              , FRISU_DSB_TP_CD
-             , FEE_ACKMT_CT
-             , FEE_ACKMT_BASE_AMT
-             , FEE_FXAM_YN
              , TXINV_PBL_OJ_YN
              , SMTPL_ID
              , SMTPL_SN
@@ -482,9 +490,7 @@
              , CNTR_PD_ENDDT
              , CNTR_DTL_STAT_CD
              , SELL_TP_CD
-             , DSC_APY_TP_CD
-             , DSC_APY_DTL_CD
-             , DSC_APY_DRM_VAL
+             , SELL_TP_DTL_CD
              , SV_PTRM_UNIT_CD
              , SV_PRD
              , CNTRW_TP_CD
@@ -497,6 +503,10 @@
              , PD_MCLSF_ID
              , PD_LCLSF_ID
              , PD_DCLSF_ID
+             , SELL_DSC_DV_CD
+             , SELL_DSCR_CD
+             , SELL_DSC_CTR_AMT
+             , SELL_DSC_TP_CD
              , STLM_TP_CD
              , CRNCY_DV_CD
              , APY_EXCR
@@ -505,20 +515,24 @@
              , VAT
              , SELL_AMT
              , CNTR_AMT
+             , DSC_AMT
+             , CNTRAM_DSC_AMT
              , ISTM_PCAM_AMT
              , ISTM_INT_AMT
              , MM_ISTM_AMT
+             , CRP_UC_AMT
+             , SELL_FEE
              , ACKMT_PERF_RT
              , ACKMT_PERF_AMT
              , CVT_PERF_AMT
+             , FEE_ACKMT_CT
+             , FEE_ACKMT_BASE_AMT
+             , FEE_FXAM_YN
              , SPP_DUEDT
              , RESUB_YN
              , RSTL_YN
              , FRISU_YN
              , FRISU_DSB_TP_CD
-             , FEE_ACKMT_CT
-             , FEE_ACKMT_BASE_AMT
-             , FEE_FXAM_YN
              , TXINV_PBL_OJ_YN
              , SMTPL_ID
              , SMTPL_SN
