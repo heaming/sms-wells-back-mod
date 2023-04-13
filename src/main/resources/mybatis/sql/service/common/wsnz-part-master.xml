@@ -29,7 +29,7 @@
          , T1.SAP_PDCT_SCLSRT_STRC_VAL AS SVPD_PDCT_CLSS_RSC
          , T1.PDCT_UPRC                AS SVPD_STD_PR
          , T1.IMG_APN_FILE_ID          AS SVPD_IMG_URL
-         , T1.PD_EPL_CN                AS SVPD_DESC1
+         , T1.PD_EPL_CN                AS SVPD_RMKS
          , T2.PD_PRP_VAL21             AS SVPD_COMM_GB
          , T6.CD_CNTN                  AS SVPD_COMM_GB_NM
          , T2.PD_PRP_VAL04             AS SVPD_LP_GB
