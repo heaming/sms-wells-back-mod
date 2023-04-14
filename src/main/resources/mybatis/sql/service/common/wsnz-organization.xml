@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WsnzOrganizationMapper">
+    <select id="selectGeneralDivisions" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto$SearchOrganizationRes">
+        SELECT T1.OG_ID
+             , T1.OG_TP_CD
+             , T1.OG_CD
+             , T1.OG_NM
+             , T1.OG_NM || ' (' || T1.OG_CD || ')' AS OG_CD_NM
+             , T1.HOO_OG_TP_CD
+             , T1.HOO_PRTNR_NO
+             , T1.HOO_PRTNR_NM
+             , T1.HGR_OG_ID
+             , (SELECT OG_NM
+                  FROM TB_OGBS_MM_OG_IZ
+                 WHERE BASE_YM = T1.BASE_YM
+                   AND OG_ID = T1.HGR_OG_ID
+                   AND DTA_DL_YN = 'N') AS HGR_OG_NM
+             , '' AS BIZ_ICHR_NO
+             , '' AS BIZ_ICHR_NM
+          FROM TB_OGBS_MM_OG_IZ T1
+         WHERE T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+           AND T1.OG_TP_CD IN ('W02', 'ALC')
+           AND T1.OG_LEVL_DV_CD = '1'
+           <!-- AND T1.CLO_YN = 'N' -->
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.OG_CD != 'Y000000'
+         ORDER BY T1.OG_CD
+    </select>
+
+    <select id="selectRegionalGroups" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto$SearchOrganizationRes">
+        SELECT T1.OG_ID
+             , T1.OG_TP_CD
+             , T1.OG_CD
+             , T1.OG_NM
+             , T1.OG_NM || ' (' || T1.OG_CD || ')' AS OG_CD_NM
+             , T1.HOO_OG_TP_CD
+             , T1.HOO_PRTNR_NO
+             , T1.HOO_PRTNR_NM
+             , T1.HGR_OG_ID
+             , (SELECT OG_NM
+                  FROM TB_OGBS_MM_OG_IZ
+                 WHERE BASE_YM = T1.BASE_YM
+                   AND OG_ID = T1.HGR_OG_ID
+                   AND DTA_DL_YN = 'N') AS HGR_OG_NM
+             , (SELECT PRTNR_NO
+                  FROM TB_OGBS_SPPT_OG_IZ
+                 WHERE OG_ID = T1.OG_ID
+                   AND OG_TP_CD = T1.OG_TP_CD
+                   AND BZNS_SPPT_RSB_DV_CD = 'W0206'
+                   AND DTA_DL_YN = 'N') AS BIZ_ICHR_NO
+             , (SELECT TT2.PRTNR_KNM
+                  FROM TB_OGBS_SPPT_OG_IZ TT1
+                 INNER JOIN TB_OGBS_MM_PRTNR_IZ TT2
+                    ON TT2.OG_TP_CD = TT1.OG_TP_CD
+                   AND TT2.PRTNR_NO = TT1.PRTNR_NO
+                   AND TT2.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND TT1.DTA_DL_YN = 'N'
+                   AND TT2.DTA_DL_YN = 'N'
+                 WHERE TT1.OG_ID = T1.OG_ID
+                   AND TT1.OG_TP_CD = T1.OG_TP_CD
+                   AND TT1.BZNS_SPPT_RSB_DV_CD = 'W0206') AS BIZ_ICHR_NM
+          FROM TB_OGBS_MM_OG_IZ T1
+         WHERE T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+        <if test='@MybatisUtils@isNotEmpty(ogId)'>
+           AND T1.DGR1_LEVL_OG_ID = #{ogId}
+        </if>
+           AND T1.OG_TP_CD IN ('W02', 'ALC')
+           AND T1.OG_LEVL_DV_CD = '2'
+           <!-- AND T1.CLO_YN = 'N' -->
+           AND T1.DTA_DL_YN = 'N'
+         ORDER BY T1.OG_CD
+    </select>
+
+    <select id="selectBranchs" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto$SearchOrganizationRes">
+        SELECT T1.OG_ID
+             , T1.OG_TP_CD
+             , T1.OG_CD
+             , T1.OG_NM
+             , T1.OG_NM || ' (' || T1.OG_CD || ')' AS OG_CD_NM
+             , T1.HOO_OG_TP_CD
+             , T1.HOO_PRTNR_NO
+             , T1.HOO_PRTNR_NM
+             , T1.HGR_OG_ID
+             , (SELECT OG_NM
+                  FROM TB_OGBS_MM_OG_IZ
+                 WHERE BASE_YM = T1.BASE_YM
+                   AND OG_ID = T1.HGR_OG_ID
+                   AND DTA_DL_YN = 'N') AS HGR_OG_NM
+             , '' AS BIZ_ICHR_NO
+             , '' AS BIZ_ICHR_NM
+          FROM TB_OGBS_MM_OG_IZ T1
+         WHERE T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+           AND T1.OG_TP_CD IN ('W02','ALC')
+           AND T1.OG_LEVL_DV_CD = '3'
+        <if test='@MybatisUtils@isNotEmpty(ogId)'>
+           AND T1.DGR2_LEVL_OG_ID = #{ogId}
+        </if>
+           <!-- AND T1.CLO_YN = 'N' -->
+           AND T1.DTA_DL_YN = 'N'
+         ORDER BY T1.OG_CD
+    </select>
+
+    <select id="selectManagers" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto$SearchPrtnrRes">
+        SELECT T1.OG_TP_CD
+             , T1.PRTNR_NO
+             , T1.PRTNR_KNM AS PRTNR_NM
+             , T1.PRTNR_KNM || ' (' || T1.PRTNR_NO || ')' AS PRTNR_NO_NM
+             , T1.OG_ID AS BRNH_ID
+             , T1.OG_CD AS BRNH_CD
+             , T2.DGR2_LEVL_OG_ID AS BIZ_ID
+             , T2.DGR2_LEVL_OG_CD AS BIZ_CD
+             , T2.DGR1_LEVL_OG_ID AS ADMIN_ID
+             , T2.DGR1_LEVL_OG_CD AS ADMIN_CD
+          FROM TB_OGBS_MM_PRTNR_IZ T1
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T2
+            ON T2.BASE_YM = T1.BASE_YM
+           AND T2.OG_ID = T1.OG_ID
+           AND T1.DTA_DL_YN = 'N'
+           AND T2.DTA_DL_YN = 'N'
+         WHERE T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+           AND T1.OG_TP_CD = 'W02'
+        <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+           AND T2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgId)'>
+           AND T2.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgId)'>
+           AND T2.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}
+        </if>
+           AND (T1.BZ_STAT_CD = '1' OR T1.CLTN_DT LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')||'%')
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+</mapper>
