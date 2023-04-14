@@ -55,7 +55,7 @@ public class WsnzOrganizationController {
         @RequestParam
         String ogId
     ) {
-        return service.getBranchOgs(ogId);
+        return service.getBranchs(ogId);
     }
 
     @ApiOperation(value = "매니저 조회", notes = "매니저 조회")

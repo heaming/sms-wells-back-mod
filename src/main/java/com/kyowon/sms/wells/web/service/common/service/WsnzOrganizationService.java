@@ -24,7 +24,7 @@ public class WsnzOrganizationService {
         return mapper.selectRegionalGroups(ogId);
     }
 
-    public List<SearchOrganizationRes> getBranchOgs(String ogId) {
+    public List<SearchOrganizationRes> getBranchs(String ogId) {
         return mapper.selectBranchs(ogId);
     }
 
