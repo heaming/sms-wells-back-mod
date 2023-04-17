@@ -32,7 +32,7 @@ public interface WsnzWellsCodeMapper {
 
     List<WsnzWellsCodeDistrictsDvo> selectDistricts(SearchDistrictsReq req);
 
-    List<WsnzWellsCodeProductBaseDvo> selectProductBase(SearchProductBaseReq req);
+    //List<WsnzWellsCodeProductBaseDvo> selectProductBase(SearchProductBaseReq req);
 
     List<WsnzWellsCodeMonthCstServsDvo> selectMonthCstServs(SearchMcbyCstSvOjIzReq req);
 

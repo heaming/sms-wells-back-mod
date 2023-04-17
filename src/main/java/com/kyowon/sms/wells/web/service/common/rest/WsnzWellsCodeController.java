@@ -103,7 +103,7 @@ public class WsnzWellsCodeController {
         return service.getPartMaster(req);
     }
 
-    @ApiOperation(value = "상품기본조회")
+    /*@ApiOperation(value = "상품기본조회")
     @GetMapping("/products")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "newAdrZip", paramType = "query", example = "37714"),
@@ -118,7 +118,7 @@ public class WsnzWellsCodeController {
         SearchProductBaseReq req
     ) {
         return service.getProductBase(req);
-    }
+    }*/
 
     @ApiOperation(value = "서비스센터 조직 조회")
     @GetMapping("/service-center-orgs")

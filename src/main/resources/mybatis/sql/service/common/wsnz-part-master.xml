@@ -54,6 +54,7 @@
          , T2.PD_PRP_VAL09             AS SVPD_PLT_WEI
          , T2.PD_PRP_VAL07             AS SVPD_MOQ
          , T2.PD_PRP_VAL30             AS SVPD_TURNOVER_TGT
+         , T1.PD_TP_CD                 AS SVPD_PD_TP_CD
       ]]>
       FROM TB_PDBS_PD_BAS T1
      INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
