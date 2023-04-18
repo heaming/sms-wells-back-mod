@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.common.service;
 
 import java.util.List;
 
+import com.sds.sflex.common.utils.StringUtil;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.common.converter.WsnzWellsCodeConverter;
@@ -65,7 +66,7 @@ public class WsnzWellsCodeService {
     public List<SearchDistrictsRes> getDistricts(
         SearchDistrictsReq dto
     ) {
-        List<WsnzWellsCodeDistrictsDvo> result = switch (dto.searchType()) {
+        List<WsnzWellsCodeDistrictsDvo> result = switch (StringUtil.nvl(dto.searchType(), "")) {
             case "sido" -> mapper.selectDistrictsSido(dto);
             case "gu" -> mapper.selectDistrictsGu(dto);
             case "guAll" -> mapper.selectDistrictsGuAll(dto);
@@ -74,11 +75,11 @@ public class WsnzWellsCodeService {
         return converter.mapAllDistrictsDvoToRes(result);
     }
 
-    public List<SearchProductBaseRes> getProductBase(
+    /*public List<SearchProductBaseRes> getProductBase(
         SearchProductBaseReq dto
     ) {
         return converter.mapAllProductBaseDvoToRes(mapper.selectProductBase(dto));
-    }
+    }*/
 
     public List<SearchMcbyCstSvOjIzRes> getMonthCstServs(
         SearchMcbyCstSvOjIzReq dto
