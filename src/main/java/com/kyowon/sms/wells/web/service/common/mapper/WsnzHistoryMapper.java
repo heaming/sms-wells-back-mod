@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.common.mapper;
 
+import java.util.Map;
+
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
@@ -17,5 +19,9 @@ public interface WsnzHistoryMapper {
     int updateCttChHistByPk(String cttOjId);
 
     int insertCttChHistByPk(String cttOjId);
+
+    int insertCstSvBfsvcAsnHistByMap(Map param);
+
+    int insertCstBfsvcOjHistByMap(Map param);
 
 }
