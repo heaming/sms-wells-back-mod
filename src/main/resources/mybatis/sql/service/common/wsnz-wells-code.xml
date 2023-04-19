@@ -500,9 +500,8 @@
            TB_SVPD_MCBY_CST_SV_OJ_IZ:월별고객서비스대상내역
            TB_PDBS_PD_BAS:상품기본
          */
-        SELECT DISTINCT A.PD_CD, B.PD_NM
+        SELECT DISTINCT A.BASE_PD_CD AS PD_CD, (SELECT PD_NM FROM TB_PDBS_PD_BAS T WHERE A.BASE_PD_CD = T.PD_CD) PD_NM
           FROM TB_SVPD_MCBY_CST_SV_OJ_IZ A
-          LEFT OUTER JOIN TB_PDBS_PD_BAS B ON SUBSTR(A.PD_CD, 0, 4) = B.PD_CD
          WHERE A.DTA_DL_YN = 'N'
            <if test='@MybatisUtils@isNotEmpty(mngtYm)'>
            AND A.MNGT_YM LIKE  #{mngtYm}|| '%'
