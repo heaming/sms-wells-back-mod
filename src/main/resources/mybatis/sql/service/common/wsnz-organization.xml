@@ -6,7 +6,7 @@
              , T1.OG_TP_CD
              , T1.OG_CD
              , T1.OG_NM
-             , '[' || T1.OG_CD || '] ' || T1.OG_NM AS OG_CD_NM
+             , T1.OG_NM || ' (' || T1.OG_CD || ')' AS OG_CD_NM
              , T1.HOO_OG_TP_CD
              , T1.HOO_PRTNR_NO
              , T1.HOO_PRTNR_NM
@@ -33,7 +33,7 @@
              , T1.OG_TP_CD
              , T1.OG_CD
              , T1.OG_NM
-             , '[' || T1.OG_CD || '] ' || T1.OG_NM AS OG_CD_NM
+             , T1.OG_NM || ' (' || T1.OG_CD || ')' AS OG_CD_NM
              , T1.HOO_OG_TP_CD
              , T1.HOO_PRTNR_NO
              , T1.HOO_PRTNR_NM
@@ -77,7 +77,7 @@
              , T1.OG_TP_CD
              , T1.OG_CD
              , T1.OG_NM
-             , '[' || T1.OG_CD || '] ' || T1.OG_NM AS OG_CD_NM
+             , T1.OG_NM || ' (' || T1.OG_CD || ')' AS OG_CD_NM
              , T1.HOO_OG_TP_CD
              , T1.HOO_PRTNR_NO
              , T1.HOO_PRTNR_NM
