@@ -632,4 +632,176 @@
           FROM TB_SSOP_CTT_BAS
          WHERE CTT_OJ_ID = #{cttOjId}
     </insert>
+
+     <insert id="insertCstSvBfsvcAsnHistByMap">
+          INSERT INTO TB_SVPD_CST_SV_BFSVC_ASN_HIST (
+                BFSVC_EXCN_ASN_IZ_ID
+              , CST_SV_ASN_NO
+              , ASN_OJ_YM
+              , CNTR_NO
+              , CNTR_SN
+              , SV_BIZ_MCLSF_CD
+              , SV_BIZ_DCLSF_CD
+              , WK_SN
+              , ASN_PSIC_MNGT_DV_CD
+              , ASN_PSIC_DV_CD
+              , ASN_PSIC_PRTNR_OG_TP_CD
+              , ASN_PSIC_PRTNR_NO
+              , CNFM_PSIC_MNGT_DV_CD
+              , CNFM_PSIC_ASN_DT
+              , CNFM_PSIC_ASN_HH
+              , CNFM_PSIC_DV_CD
+              , CNFM_PSIC_PRTNR_OG_TP_CD
+              , CNFM_PSIC_PRTNR_NO
+              , EGER_PSTN_CD
+              , EGER_RSB_CD
+              , VST_CNFMDT
+              , VST_CNFM_HH
+              , VST_OJ_LOCARA_CD
+              , MNGER_RGLVL_DV_CD
+              , LSTMM_CRDOVR_YN
+              , LSTMM_VST_CNFMDT
+              , LSTMM_VST_CNFM_HH
+              , VST_DUEDT
+              , VST_EXP_HH
+              , VST_PRGS_STAT_CD
+              , WK_EXCN_DT
+              , WK_CAN_RSON_CD
+              , ASN_TF_DV_CD
+              , SITE_AW_PD_GRP_CD
+              , SITE_AW_SV_TP_CD
+              , SITE_AW_ATC_CD
+              , CST_CNTC_DT
+              , CNTC_ICHR_PRTNR_OG_TP_CD
+              , CNTC_ICHR_PRTNR_NO
+              , CST_CNTC_CD
+              , CST_CNTC_MO_CN
+              , SPC_AS_TP_CD
+              , HPCALL_FW_YN
+              , ICHR_LOCARA_DV_CD
+              , ARV_DT
+              , ARV_HH
+              , WK_GRP_CD
+              , LOCARA_GD_CD
+              , LOCARA_CHAOS_GD_CD
+              , DTA_DL_YN
+                <include refid="COMMON.insertSystemField"/>
+          ) VALUES (
+                (
+                    SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVPD_CST_SV_BFSVC_ASN_HIST$BFSVC_EXCN_ASN_IZ_ID.NEXTVAL, 12, '0') AS BFSVC_EXCN_ASN_IZ_ID
+                      FROM DUAL
+                )
+              , #{cstSvAsnNo}
+              , #{asnOjYm}
+              , #{cntrNo}
+              , #{cntrSn}
+              , #{svBizMclsfCd}
+              , #{svBizDclsfCd}
+              , #{wkSn}
+              , #{asnPsicMngtDvCd}
+              , #{asnPsicDvCd}
+              , #{asnPsicPrtnrOgTpCd}
+              , #{asnPsicPrtnrNo}
+              , #{cnfmPsicMngtDvCd}
+              , #{cnfmPsicAsnDt}
+              , #{cnfmPsicAsnHh}
+              , #{cnfmPsicDvCd}
+              , #{cnfmPsicPrtnrOgTpCd}
+              , #{cnfmPsicPrtnrNo}
+              , #{egerPstnCd}
+              , #{egerRsbCd}
+              , #{vstCnfmdt}
+              , #{vstCnfmHh}
+              , #{vstOjLocaraCd}
+              , #{mngerRglvlDvCd}
+              , #{lstmmCrdovrYn}
+              , #{lstmmVstCnfmdt}
+              , #{lstmmVstCnfmHh}
+              , #{vstDuedt}
+              , #{vstExpHh}
+              , #{vstPrgsStatCd}
+              , #{wkExcnDt}
+              , #{wkCanRsonCd}
+              , #{asnTfDvCd}
+              , #{siteAwPdGrpCd}
+              , #{siteAwSvTpCd}
+              , #{siteAwAtcCd}
+              , #{cstCntcDt}
+              , #{cntcIchrPrtnrOgTpCd}
+              , #{cntcIchrPrtnrNo}
+              , #{cstCntcCd}
+              , #{cstCntcMoCn}
+              , #{spcAsTpCd}
+              , #{hpcallFwYn}
+              , #{ichrLocaraDvCd}
+              , #{arvDt}
+              , #{arvHh}
+              , #{wkGrpCd}
+              , #{locaraGdCd}
+              , #{locaraChaosGdCd}
+              , #{dtaDlYn}
+                <include refid="COMMON.insertSystemFieldValue"/>
+          )
+     </insert>
+
+     <insert id="insertCstBfsvcOjHistByMap">
+          INSERT INTO TB_SVPD_CST_SV_BFSVC_OJ_HIST (
+                BFSVC_OJ_IZ_ID
+              , CNTR_NO
+              , ASN_OJ_YM
+              , CNTR_SN
+              , SV_BIZ_MCLSF_CD
+              , SV_BIZ_DCLSF_CD
+              , WK_SN
+              , MNGR_DV_CD
+              , RLTD_SV_BIZ_DCLSF_CD
+              , CLSF_CD_SRN_PRNT_CN
+              , ADR_ID
+              , LSTMM_CRDOVR_YN
+              , BF_VST_DUEDT
+              , PDCT_PD_CD
+              , IST_NMN_N
+              , VST_NMN_N
+              , EGER_WK_YN
+              , VST_DUEDT
+              , AS_REFRI_DV_CD
+              , BFSVC_REFRI_DV_CD
+              , VST_DV_CD
+              , MTR_STAT_CD
+              , SPC_AS_TP_CD
+              , CST_SV_ASN_NO
+              , DTA_DL_YN
+                <include refid="COMMON.insertSystemField"/>
+          ) VALUES (
+                (
+                    SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVPD_CST_SV_BFSVC_OJ_HIST$BFSVC_OJ_IZ_ID.NEXTVAL, 12, '0') AS BFSVC_OJ_IZ_ID
+                      FROM DUAL
+                )
+              , #{cntrNo}
+              , #{asnOjYm}
+              , #{cntrSn}
+              , #{svBizMclsfCd}
+              , #{svBizDclsfCd}
+              , #{wkSn}
+              , #{mngrDvCd}
+              , #{rltdSvBizDclsfCd}
+              , #{clsfCdSrnPrntCn}
+              , #{adrId}
+              , #{lstmmCrdovrYn}
+              , #{bfVstDuedt}
+              , #{pdctPdCd}
+              , #{istNmnN}
+              , #{vstNmnN}
+              , #{egerWkYn}
+              , #{vstDuedt}
+              , #{asRefriDvCd}
+              , #{bfsvcRefriDvCd}
+              , #{vstDvCd}
+              , #{mtrStatCd}
+              , #{spcAsTpCd}
+              , #{cstSvAsnNo}
+              , #{dtaDlYn}
+                <include refid="COMMON.insertSystemFieldValue"/>
+          )
+     </insert>
 </mapper>
