@@ -112,6 +112,7 @@
              , TRIM(T3.ROL_DV_CD)                                                                                  AS EMP_ROL_DV_VAL    --직무
              , F_CMZ_CD_NM('TNT_WELLS', 'EGER_EMP_DV_CD', T3.HIR_FOM_CD)                                           AS EMP_DV_VAL_NM     --사원구분 명
              , F_CMZ_CD_NM('TNT_WELLS', 'EGER_ROL_CD', T2.ROL_DV_CD)                                               AS EMP_ROL_DV_VAL_NM --직무 명
+             , T1.OG_TP_CD
           FROM TB_OGBS_PRTNR_BAS T1
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T2 ON T1.PRTNR_NO = T2.PRTNR_NO
           LEFT OUTER JOIN TB_OGBS_PRTNR_DTL T3 ON T1.PRTNR_NO = T3.PRTNR_NO
