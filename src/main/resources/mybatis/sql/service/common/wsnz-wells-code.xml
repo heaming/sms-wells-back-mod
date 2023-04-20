@@ -93,32 +93,33 @@
         SELECT '38337' AS CODE_ID, '한승윤(38337)' AS CODE_NM, '한승윤' AS CODE_NM1, '한승윤' AS CODE_NM2, '010-2788-0123' AS CPHON_IDV_TNO, '71357' AS OG_CD, '부산지점' AS OG_NM, '2' AS EMP_DV_VAL, '' AS EMP_RSB_DV_VAL, '' AS EMP_TP_VAL, '20211214' AS ENTCO_DT, '' AS RSGN_DT, '37' AS EMP_ROL_DV_VAL, '직무사원(1급)' AS EMP_DV_VAL_NM, '엔지니어' AS EMP_ROL_DV_VAL_NM FROM DUAL UNION ALL
         SELECT '38844' AS CODE_ID, '김혁재(38844)' AS CODE_NM, '김혁재' AS CODE_NM1, '김혁재' AS CODE_NM2, '010-2788-8801' AS CPHON_IDV_TNO, '71357' AS OG_CD, '부산지점' AS OG_NM, '6' AS EMP_DV_VAL, '' AS EMP_RSB_DV_VAL, '' AS EMP_TP_VAL, '20220314' AS ENTCO_DT, '' AS RSGN_DT, '37' AS EMP_ROL_DV_VAL, '' AS EMP_DV_VAL_NM, '엔지니어' AS EMP_ROL_DV_VAL_NM FROM DUAL*/
 
-        SELECT TRIM(T1.PRTNR_NO)                                                                                   AS CODE_ID           --사번
-             , TRIM(T1.PRTNR_KNM) || '(' || TRIM(T1.PRTNR_NO) || ')'                                               AS CODE_NM           --성명 한글
-             , TRIM(T1.PRTNR_KNM)                                                                                  AS CODE_NM1          --성명 한자
-             , TRIM(T1.PRTNR_KNM)                                                                                  AS CODE_NM2          --성명 영문
+        SELECT TRIM(T1.PRTNR_NO)                                                                                AS CODE_ID           --사번
+             , TRIM(T1.PRTNR_KNM) || '(' || TRIM(T1.PRTNR_NO) || ')'                                            AS CODE_NM           --성명 한글
+             , TRIM(T1.PRTNR_KNM)                                                                               AS CODE_NM1          --성명 한자
+             , TRIM(T1.PRTNR_KNM)                                                                               AS CODE_NM2          --성명 영문
              , (CASE WHEN TRIM(T1.CRAL_LOCARA_TNO) || '-' || T1.MEXNO_ENCR || '-' || TRIM(T1.CRAL_IDV_TNO) = '--' THEN ''
-                     ELSE TRIM(T1.CRAL_LOCARA_TNO) || '-' || T1.MEXNO_ENCR || '-' || TRIM(T1.CRAL_IDV_TNO) END)    AS CPHON_IDV_TNO     --핸드폰 번호
+                     ELSE TRIM(T1.CRAL_LOCARA_TNO) || '-' || T1.MEXNO_ENCR || '-' || TRIM(T1.CRAL_IDV_TNO) END) AS CPHON_IDV_TNO     --핸드폰 번호
              , T1.CRAL_LOCARA_TNO
              , T1.MEXNO_ENCR
              , T1.CRAL_IDV_TNO
-             , (CASE WHEN T1.PRTNR_NO = '32000' THEN '70569' ELSE TRIM(T1.OG_CD) END)                              AS OG_CD             --부서코드
-             , (CASE WHEN T1.PRTNR_NO = '32000' THEN '인천공장서비스센터' ELSE TRIM(T1.OG_NM) END)                  AS OG_NM             --부서명
-             , TRIM(T3.HIR_FOM_CD)                                                                                 AS EMP_DV_VAL        --사원구분 1 정규직, 2 직무사원 또는 계약직
-             , NULL                                                                                                AS EMP_RSB_DV_VAL    --직책
-             , NULL                                                                                                AS EMP_TP_VAL        --사원유형
-             , TRIM(T3.CNTR_DT)                                                                                    AS ENTCO_DT          --입사일자
-             , TRIM(T3.CLTN_DT)                                                                                    AS RSGN_DT           --퇴사일자
-             , TRIM(T3.ROL_DV_CD)                                                                                  AS EMP_ROL_DV_VAL    --직무
-             , F_CMZ_CD_NM('TNT_WELLS', 'EGER_EMP_DV_CD', T3.HIR_FOM_CD)                                           AS EMP_DV_VAL_NM     --사원구분 명
-             , F_CMZ_CD_NM('TNT_WELLS', 'EGER_ROL_CD', T2.ROL_DV_CD)                                               AS EMP_ROL_DV_VAL_NM --직무 명
+             , (CASE WHEN T1.PRTNR_NO = '32000' THEN '70569' ELSE TRIM(T1.OG_CD) END)                           AS OG_CD             --부서코드
+             , (CASE WHEN T1.PRTNR_NO = '32000' THEN '인천공장서비스센터' ELSE TRIM(T1.OG_NM) END)               AS OG_NM             --부서명
+             , TRIM(T2.HIR_FOM_CD)                                                                              AS EMP_DV_VAL        --사원구분 1 정규직, 2 직무사원 또는 계약직
+             , NULL                                                                                             AS EMP_RSB_DV_VAL    --직책
+             , NULL                                                                                             AS EMP_TP_VAL        --사원유형
+             , TRIM(T2.CNTR_DT)                                                                                 AS ENTCO_DT          --입사일자
+             , TRIM(T2.CLTN_DT)                                                                                 AS RSGN_DT           --퇴사일자
+             , TRIM(T2.ROL_DV_CD)                                                                               AS EMP_ROL_DV_VAL    --직무
+             , F_CMZ_CD_NM('TNT_WELLS', 'EGER_EMP_DV_CD', T2.HIR_FOM_CD)                                        AS EMP_DV_VAL_NM     --사원구분 명
+             , F_CMZ_CD_NM('TNT_WELLS', 'EGER_ROL_CD', T3.ROL_DV_CD)                                            AS EMP_ROL_DV_VAL_NM --직무 명
              , T1.OG_TP_CD
-          FROM TB_OGBS_PRTNR_BAS T1
-          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T2 ON T1.PRTNR_NO = T2.PRTNR_NO
-          LEFT OUTER JOIN TB_OGBS_PRTNR_DTL T3 ON T1.PRTNR_NO = T3.PRTNR_NO
-         WHERE (T1.OG_CD LIKE 'V%' OR T1.OG_CD IN (SELECT DEPT_CD FROM TB_OGBS_DEPT_BAS WHERE HGR_DEPT_CD = '71314')) --상위 소속이 Wells서비스관리팀 또는 Wells고객서비스부문
-           AND T3.CLTN_DT IS NULL
-         ORDER BY T3.CLTN_DT, OG_CD, EMP_DV_VAL, EMP_ROL_DV_VAL_NM, EMP_ROL_DV_VAL DESC
+          FROM TB_OGBS_PRTNR_BAS /*파트너기본*/ T1
+          LEFT OUTER JOIN TB_OGBS_PRTNR_DTL /*파트너상세*/ T2 ON T1.PRTNR_NO = T2.PRTNR_NO AND T1.OG_TP_CD = T2.OG_TP_CD
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ /*월파트너내역*/ T3 ON T3.PRTNR_NO = T1.PRTNR_NO AND T3.OG_TP_CD = T1.OG_TP_CD AND T3.BASE_YM = TO_CHAR(SYSDATE, 'yyyyMM')
+         WHERE (T1.OG_CD LIKE 'V%'
+            OR T1.OG_CD IN (SELECT DEPT_CD FROM TB_OGBS_DEPT_BAS WHERE HGR_DEPT_CD = '71314')) --상위 소속이 Wells서비스관리팀 또는 Wells고객서비스부문
+           AND T3.FNL_CLTN_DT IS NULL
+         ORDER BY T2.CLTN_DT, OG_CD, EMP_DV_VAL, EMP_ROL_DV_VAL_NM, EMP_ROL_DV_VAL DESC
 
     </select>
 
@@ -287,27 +288,35 @@
         SELECT '00810' AS HGR_DEPT_CD, '1694507' AS CODE_ID, '류재우(1694507)' AS CODE_NM, '류재우' AS CODE_NM1, '류재우' AS CODE_NM2, '010-2788-3489' AS CPHON_IDV_TNO, 'V910150' AS OG_CD, 'V910150 지점' AS OG_NM, null AS EMP_DV_VAL, null AS EMP_RSB_DV_VAL, null AS EMP_TP_VAL, '20200325' AS ENTCO_DT, '20200901' AS RSGN_DT, null AS EMP_ROL_DV_VAL, null AS EMP_DV_VAL_NM, '엔지니어' AS EMP_ROL_DV_VAL_NM FROM DUAL UNION ALL
         SELECT '00810' AS HGR_DEPT_CD, '1693899' AS CODE_ID, '문대영(1693899)' AS CODE_NM, '문대영' AS CODE_NM1, '문대영' AS CODE_NM2, '010-2788-7046' AS CPHON_IDV_TNO, 'V910110' AS OG_CD, 'V910110 지점' AS OG_NM, null AS EMP_DV_VAL, null AS EMP_RSB_DV_VAL, null AS EMP_TP_VAL, '20200305' AS ENTCO_DT, null AS RSGN_DT, null AS EMP_ROL_DV_VAL, null AS EMP_DV_VAL_NM, '엔지니어' AS EMP_ROL_DV_VAL_NM FROM DUAL*/
 
-        SELECT T1.PRTNR_NO AS CODE_ID
-             , T1.PRTNR_KNM || '(' || T1.PRTNR_NO || ')' AS CODE_NM
-             , T1.PRTNR_KNM AS CODE_NM1
-             , T1.PRTNR_ENM AS CODE_NM2
-             , '' AS CPHON_IDV_TNO
-             , T1.OG_CD AS OG_CD
-             , T1.OG_NM AS OG_NM
-             , '' AS EMP_DV_VAL
-             , '' AS EMP_RSB_DV_VAL
-             , '' AS EMP_TP_VAL
-             , T1.CNTR_DT AS ENTCO_DT
-             , T1.CLTN_DT AS RSGN_DT
-             , T1.ROL_DV_CD AS EMP_ROL_DV_VAL
-             , '' AS EMP_DV_VAL_NM
-             , '' AS EMP_ROL_DV_VAL_NM
-             , T1.OG_TP_CD AS OG_TP_CD
-          FROM TB_OGBS_MM_PRTNR_IZ T1
-         WHERE T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
-           AND T1.OG_TP_CD = 'W06'
-           AND T1.CLTN_DT IS NULL
-         ORDER BY EMP_ROL_DV_VAL DESC, CODE_NM, RSGN_DT, OG_CD, EMP_DV_VAL, EMP_ROL_DV_VAL_NM
+        SELECT T1.PRTNR_NO                                                                                            AS CODE_ID           -- 사번
+             , TRIM(T1.PRTNR_KNM) || '(' || TRIM(T1.PRTNR_NO) || ')'                                                  AS CODE_NM           -- 성명 한글
+             , TRIM(T1.PRTNR_KNM)                                                                                     AS CODE_NM1          -- 성명 한자
+             , TRIM(T1.PRTNR_ENM)                                                                                     AS CODE_NM2          -- 성명 영문
+             , (CASE WHEN TRIM(T1.CRAL_LOCARA_TNO) || '-' || TRIM(T1.MEXNO_ENCR) || '-' || TRIM(T1.CRAL_IDV_TNO) = '--' THEN ''
+                     ELSE TRIM(T1.CRAL_LOCARA_TNO) || '-' || TRIM(T1.MEXNO_ENCR) || '-' || TRIM(T1.CRAL_IDV_TNO) END) AS CPHON_IDV_TNO     --핸드폰 번호
+             , (CASE WHEN T1.PRTNR_NO = '32000' THEN '70569' ELSE TRIM(T1.OG_CD) END)                                 AS OG_CD             -- 부서코드
+             , (CASE WHEN T1.PRTNR_NO = '32000' THEN '인천공장서비스센터' ELSE TRIM(T1.OG_NM) END)                     AS OG_NM             -- 부서명
+             , TRIM(T2.HIR_FOM_CD)                                                                                    AS EMP_DV_VAL        --사원구분 1 정규직, 2 직무사원 또는 계약직
+               /*@TODO HIR_FOM_CD의 값이 공통코드와 일치하지 않음 확인 필요*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'HIR_FOM_CD', T2.HIR_FOM_CD)                                                  AS EMP_DV_VAL_NM     --사원구분 명
+             , TRIM(T3.RSB_DV_CD)                                                                                     AS EMP_RSB_DV_VAL    -- 직책
+             , F_CMZ_CD_NM('TNT_WELLS', 'RSB_DV_CD', T3.RSB_DV_CD)                                                    AS EMP_RSB_DV_VAL_NM --직책명
+             , TRIM('')                                                                                               AS EMP_TP_VAL        -- 사원유형
+             , TRIM(T3.FST_CNTR_DT)                                                                                   AS ENTCO_DT          -- 입사일자
+             , TRIM(T3.FNL_CLTN_DT)                                                                                   AS RSGN_DT--  퇴사일자
+             , TRIM(T2.ROL_DV_CD)                                                                                     AS EMP_ROL_DV_VAL    --직무
+               /*@TODO HIR_FOM_CD의 값이 공통코드와 일치하지 않음 확인 필요*/
+             , F_CMZ_CD_NM('TNT_WELLS', 'EGER_EMP_DV_CD', T2.HIR_FOM_CD || T2.PSTN_DV_CD)                             AS EMP_DV_VAL_NM--사원구분 명
+             , F_CMZ_CD_NM('TNT_WELLS', 'EGER_ROL_CD', T2.ROL_DV_CD)                                                  AS EMP_ROL_DV_VAL_NM --직무 명
+          FROM TB_OGBS_PRTNR_BAS /*파트너기본*/ T1
+          LEFT OUTER JOIN TB_OGBS_PRTNR_DTL /*파트너상세*/ T2 ON T1.PRTNR_NO = T2.PRTNR_NO AND T1.OG_TP_CD = T2.OG_TP_CD
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ /*월파트너내역*/ T3 ON T3.PRTNR_NO = T1.PRTNR_NO AND T3.OG_TP_CD = T1.OG_TP_CD AND T3.BASE_YM = TO_CHAR(SYSDATE, 'yyyyMM')
+         WHERE T1.OG_CD IN (SELECT DEPT_CD
+                             FROM TB_OGBS_DEPT_BAS
+                            WHERE ENDDT IS NULL OR ENDDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+                              AND HGR_DEPT_CD = NVL(#{hgrDeptCd},'00810'))
+            OR T1.PRTNR_NO = '32000'
+         ORDER BY T2.ROL_DV_CD DESC, T1.PRTNR_KNM, T3.FNL_CLTN_DT, T1.OG_CD, T2.HIR_FOM_CD
     </select>
 
     <select id="selectPartMaster" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodePartMasterDvo">
