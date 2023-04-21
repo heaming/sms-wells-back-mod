@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.common.rest;
 
+import static com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto.*;
+
 import java.util.List;
 
 import org.springframework.validation.annotation.Validated;
@@ -8,9 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto.SearchOrganizationRes;
-import com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto.SearchPrtnrReq;
-import com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto.SearchPrtnrRes;
 import com.kyowon.sms.wells.web.service.common.service.WsnzOrganizationService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 
@@ -30,7 +29,7 @@ public class WsnzOrganizationController {
 
     @ApiOperation(value = "매니저 조직 총괄단 조회", notes = "매니저 조직 총괄단 조회")
     @GetMapping("/general-division")
-    public List<SearchOrganizationRes> getGeneralDivisions() {
+    public List<SearchManagerOgRes> getGeneralDivisions() {
         return service.getGeneralDivisions();
     }
 
@@ -39,7 +38,7 @@ public class WsnzOrganizationController {
         @ApiImplicitParam(name = "ogId", value = "조직ID", paramType = "query"),
     })
     @GetMapping("/regional-group")
-    public List<SearchOrganizationRes> getRegionalGroups(
+    public List<SearchManagerOgRes> getRegionalGroups(
         @RequestParam
         String ogId
     ) {
@@ -51,7 +50,7 @@ public class WsnzOrganizationController {
         @ApiImplicitParam(name = "ogId", value = "조직ID", paramType = "query"),
     })
     @GetMapping("/branch")
-    public List<SearchOrganizationRes> getBranchs(
+    public List<SearchManagerOgRes> getBranchs(
         @RequestParam
         String ogId
     ) {
@@ -65,7 +64,22 @@ public class WsnzOrganizationController {
         @ApiImplicitParam(name = "dgr3LevlOgId", value = "3위계 조직ID", paramType = "query"),
     })
     @GetMapping("/manager")
-    public List<SearchPrtnrRes> getManagers(SearchPrtnrReq dto) {
+    public List<SearchManagerRes> getManagers(SearchPrtnrReq dto) {
         return service.getManagers(dto);
+    }
+
+    @ApiOperation(value = "엔지니어 조직 센터 조회", notes = "엔지니어 조직 센터 조회")
+    @GetMapping("/service-center")
+    public List<SearchEngineerOgRes> getServiceCenters() {
+        return service.getServiceCenters();
+    }
+
+    @ApiOperation(value = "엔지니어 조회", notes = "엔지니어 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "dgr1LevlOgId", value = "1위계 조직ID", paramType = "query")
+    })
+    @GetMapping("/engineer")
+    public List<SearchEngineerRes> getEngineers(SearchPrtnrReq dto) {
+        return service.getEngineers(dto);
     }
 }

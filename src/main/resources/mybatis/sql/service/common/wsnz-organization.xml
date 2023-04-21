@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.common.mapper.WsnzOrganizationMapper">
-    <select id="selectGeneralDivisions" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto$SearchOrganizationRes">
+    <select id="selectGeneralDivisions" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto$SearchManagerOgRes">
         SELECT T1.OG_ID
              , T1.OG_TP_CD
              , T1.OG_CD
@@ -19,7 +19,7 @@
              , '' AS BIZ_ICHR_NO
              , '' AS BIZ_ICHR_NM
           FROM TB_OGBS_MM_OG_IZ T1
-         WHERE T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+         WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND T1.OG_TP_CD IN ('W02', 'ALC')
            AND T1.OG_LEVL_DV_CD = '1'
            <!-- AND T1.CLO_YN = 'N' -->
@@ -28,7 +28,7 @@
          ORDER BY T1.OG_CD
     </select>
 
-    <select id="selectRegionalGroups" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto$SearchOrganizationRes">
+    <select id="selectRegionalGroups" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto$SearchManagerOgRes">
         SELECT T1.OG_ID
              , T1.OG_TP_CD
              , T1.OG_CD
@@ -54,14 +54,14 @@
                  INNER JOIN TB_OGBS_MM_PRTNR_IZ TT2
                     ON TT2.OG_TP_CD = TT1.OG_TP_CD
                    AND TT2.PRTNR_NO = TT1.PRTNR_NO
-                   AND TT2.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND TT2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                    AND TT1.DTA_DL_YN = 'N'
                    AND TT2.DTA_DL_YN = 'N'
                  WHERE TT1.OG_ID = T1.OG_ID
                    AND TT1.OG_TP_CD = T1.OG_TP_CD
                    AND TT1.BZNS_SPPT_RSB_DV_CD = 'W0206') AS BIZ_ICHR_NM
           FROM TB_OGBS_MM_OG_IZ T1
-         WHERE T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+         WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
         <if test='@MybatisUtils@isNotEmpty(ogId)'>
            AND T1.DGR1_LEVL_OG_ID = #{ogId}
         </if>
@@ -72,7 +72,7 @@
          ORDER BY T1.OG_CD
     </select>
 
-    <select id="selectBranchs" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto$SearchOrganizationRes">
+    <select id="selectBranchs" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto$SearchManagerOgRes">
         SELECT T1.OG_ID
              , T1.OG_TP_CD
              , T1.OG_CD
@@ -90,8 +90,8 @@
              , '' AS BIZ_ICHR_NO
              , '' AS BIZ_ICHR_NM
           FROM TB_OGBS_MM_OG_IZ T1
-         WHERE T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
-           AND T1.OG_TP_CD IN ('W02','ALC')
+         WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T1.OG_TP_CD IN ('W02', 'ALC')
            AND T1.OG_LEVL_DV_CD = '3'
         <if test='@MybatisUtils@isNotEmpty(ogId)'>
            AND T1.DGR2_LEVL_OG_ID = #{ogId}
@@ -101,7 +101,7 @@
          ORDER BY T1.OG_CD
     </select>
 
-    <select id="selectManagers" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto$SearchPrtnrRes">
+    <select id="selectManagers" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto$SearchManagerRes">
         SELECT T1.OG_TP_CD
              , T1.PRTNR_NO
              , T1.PRTNR_KNM AS PRTNR_NM
@@ -118,7 +118,7 @@
            AND T2.OG_ID = T1.OG_ID
            AND T1.DTA_DL_YN = 'N'
            AND T2.DTA_DL_YN = 'N'
-         WHERE T1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+         WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND T1.OG_TP_CD = 'W02'
         <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
            AND T2.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}
@@ -131,5 +131,44 @@
         </if>
            AND (T1.BZ_STAT_CD = '1' OR T1.CLTN_DT LIKE TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')||'%')
            AND T1.DTA_DL_YN = 'N'
+         ORDER BY T1.PRTNR_KNM, T1.PRTNR_NO
+    </select>
+
+    <select id="selectServiceCenters" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto$SearchEngineerOgRes">
+        SELECT T1.OG_ID
+             , T1.OG_TP_CD
+             , T1.OG_CD
+             , T1.OG_NM
+             , T1.OG_NM || ' (' || T1.OG_CD || ')' AS OG_CD_NM
+             , T1.HGR_OG_ID
+          FROM TB_OGBS_MM_OG_IZ T1
+         WHERE 1 = 1
+           AND T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T1.OG_TP_CD IN ('W03', 'W06')
+           AND T1.CLO_DT IS NULL
+           AND T1.DTA_DL_YN = 'N'
+         ORDER BY T1.OG_CD
+    </select>
+
+    <select id="selectEngineers" resultType="com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto$SearchEngineerRes">
+        SELECT T1.OG_TP_CD
+             , T1.PRTNR_NO
+             , T1.PRTNR_KNM AS PRTNR_NM
+             , T1.PRTNR_KNM || ' (' || T1.PRTNR_NO || ')' AS PRTNR_NO_NM
+             , T1.PSTN_DV_CD
+             , T1.RSB_DV_CD
+             , T1.ROL_DV_CD
+             , T1.OG_ID
+             , T1.OG_CD
+             , T1.OG_NM
+          FROM TB_OGBS_MM_PRTNR_IZ T1
+         WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T1.OG_TP_CD IN ('W03', 'W06')
+        <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgId)'>
+           AND T1.OG_ID = #{dgr1LevlOgId}
+        </if>
+           AND T1.BZ_STAT_CD = '1'
+           AND T1.DTA_DL_YN = 'N'
+         ORDER BY T1.PRTNR_KNM, T1.PRTNR_NO
     </select>
 </mapper>
