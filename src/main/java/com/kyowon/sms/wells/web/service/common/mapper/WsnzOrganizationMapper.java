@@ -6,8 +6,6 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto.*;
-
 @Mapper
 public interface WsnzOrganizationMapper {
     List<SearchManagerOgRes> selectGeneralDivisions();
