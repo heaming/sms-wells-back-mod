@@ -1,20 +1,24 @@
 package com.kyowon.sms.wells.web.service.common.mapper;
 
+import static com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto.*;
+
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto.SearchOrganizationRes;
-import com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto.SearchPrtnrReq;
-import com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto.SearchPrtnrRes;
+import com.kyowon.sms.wells.web.service.common.dto.WsnzOrganizationDto.*;
 
 @Mapper
 public interface WsnzOrganizationMapper {
-    List<SearchOrganizationRes> selectGeneralDivisions();
+    List<SearchManagerOgRes> selectGeneralDivisions();
 
-    List<SearchOrganizationRes> selectRegionalGroups(String ogId);
+    List<SearchManagerOgRes> selectRegionalGroups(String ogId);
 
-    List<SearchOrganizationRes> selectBranchs(String ogId);
+    List<SearchManagerOgRes> selectBranchs(String ogId);
 
-    List<SearchPrtnrRes> selectManagers(SearchPrtnrReq dto);
+    List<SearchManagerRes> selectManagers(SearchPrtnrReq dto);
+
+    List<SearchEngineerOgRes> selectServiceCenters();
+
+    List<SearchEngineerRes> selectEngineers(SearchPrtnrReq dto);
 }
