@@ -135,7 +135,7 @@
            <if test='@MybatisUtils@isNotEmpty(hgrWareNo)'>
            AND HGR_WARE_NO = #{hgrWareNo}
            </if>
-         ORDER BY WARE_NO ASC
+         ORDER BY WARE_NM ASC, WARE_NO ASC
     </select>
 
     <select id="selectMonthStocks" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeMonthStockDvo">
