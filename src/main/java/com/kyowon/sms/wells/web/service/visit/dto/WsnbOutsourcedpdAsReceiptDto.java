@@ -1,8 +1,14 @@
-package com.kyowon.sms.wells.web.service.allocate.dto;
+package com.kyowon.sms.wells.web.service.visit.dto;
 
 import io.swagger.annotations.ApiModel;
 
-public class WsncOutsourcedpdAsReceiptDto {
+public class WsnbOutsourcedpdAsReceiptDto {
+
+    @ApiModel(value = "WsncOutsourcedpdAsReceiptDto-SearchReq")
+    public record SearchReq(
+        String cnrNm, /* as센터명 */
+        String pdNm /* 제품명 */
+    ) {}
 
     @ApiModel(value = "WsncOutsourcedpdAsReceiptDto-SearchRes")
     public record SearchRes(

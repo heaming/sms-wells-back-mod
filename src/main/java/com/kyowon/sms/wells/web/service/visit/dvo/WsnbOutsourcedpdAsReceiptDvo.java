@@ -1,11 +1,11 @@
-package com.kyowon.sms.wells.web.service.allocate.dvo;
+package com.kyowon.sms.wells.web.service.visit.dvo;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
 @Getter
-public class WsncOutsourcedpdAsReceiptDvo {
+public class WsnbOutsourcedpdAsReceiptDvo {
 
     String cnrNm; /* as센터명 */
     String cnrTno; /* as센터연락처 */
