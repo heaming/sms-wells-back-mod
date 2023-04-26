@@ -1,40 +1,53 @@
-package com.kyowon.sms.wells.web.service.allocate.service;
+package com.kyowon.sms.wells.web.service.visit.service;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.kyowon.sms.wells.web.service.visit.converter.WsnbOutsourcedpdAsReceiptConverter;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
-import com.kyowon.sms.wells.web.service.allocate.converter.WsncOutsourcedpdAsReceiptConverter;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncOutsourcedpdAsReceiptDto.BiztalkReq;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncOutsourcedpdAsReceiptDto.SearchRes;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncOutsourcedpdAsReceiptDvo;
-import com.kyowon.sms.wells.web.service.allocate.mapper.WsncOutsourcedpdAsReceiptMapper;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbOutsourcedpdAsReceiptDto.BiztalkReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbOutsourcedpdAsReceiptDto.SearchReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbOutsourcedpdAsReceiptDto.SearchRes;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbOutsourcedpdAsReceiptDvo;
+import com.kyowon.sms.wells.web.service.visit.mapper.WsnbOutsourcedpdAsReceiptMapper;
 import com.sds.sflex.common.common.service.TemplateService;
 import com.sds.sflex.system.config.core.service.ConfigurationService;
+import com.sds.sflex.system.config.datasource.PageInfo;
+import com.sds.sflex.system.config.datasource.PagingResult;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class WsncOutsourcedpdAsReceiptService {
-    private final WsncOutsourcedpdAsReceiptMapper mapper;
+public class WsnbOutsourcedpdAsReceiptService {
+    private final WsnbOutsourcedpdAsReceiptMapper mapper;
     private final TemplateService templateService;
-    private final WsncOutsourcedpdAsReceiptConverter converter;
+    private final WsnbOutsourcedpdAsReceiptConverter converter;
     private final ConfigurationService configurationService;
     private final KakaoMessageService kakaoMessageService;
 
     /**
-     * 외주상품 A/S 접수처 조회
-     * @param  searchParam : as센터명 or 제품명
+     * 외주상품 A/S 접수처 조회 - 페이징
+     * @param  dto : {String cnrNm,  String pdNm }
      * @return 조회결과
      */
-    public List<SearchRes> getOutsourcedpdAsReceipts(String searchParam) {
+    public PagingResult<SearchRes> getOutsourcedpdAsReceipts(SearchReq dto, PageInfo pageInfo) {
 
-        return mapper.selectOutsourcedpdAsReceipts(searchParam);
+        return mapper.selectOutsourcedpdAsReceipts(dto, pageInfo);
+    }
+
+    /**
+     * 외주상품 A/S 접수처 조회 - 엑셀다운로드
+     * @param  dto : {String cnrNm,  String pdNm }
+     * @return 조회결과
+     */
+    public List<SearchRes> getOutsourcedpdAsReceipts(SearchReq dto) {
+
+        return mapper.selectOutsourcedpdAsReceipts(dto);
     }
 
     /**
@@ -46,7 +59,7 @@ public class WsncOutsourcedpdAsReceiptService {
 
         int processCount = 0;
         String callbackValue = configurationService.getConfigurationValue("CFG_SNB_WELLS_CST_CNR_TNO");
-        WsncOutsourcedpdAsReceiptDvo dvo = converter.mapBiztalkReqToWsncOutsourcedpdAsReceiptDvo(dto);
+        WsnbOutsourcedpdAsReceiptDvo dvo = converter.mapBiztalkReqToWsncOutsourcedpdAsReceiptDvo(dto);
 
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("cstKnm", dto.cstKnm());

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncOutsourcedpdAsReceiptMapper">
-    <select id="selectOutsourcedpdAsReceipts" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncOutsourcedpdAsReceiptDto$SearchRes">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbOutsourcedpdAsReceiptMapper">
+    <!--@TODO TEMP_CODE :DB2 테이블 확인 필요-->
+    <select id="selectOutsourcedpdAsReceipts" resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbOutsourcedpdAsReceiptDto$SearchRes">
         SELECT A.CNR_NM  /* AS센터명 */
              , A.PD_NM   /* 제품명 */
              , A.CNR_TNO  /* AS센터연락처 */
@@ -25,8 +26,14 @@
               SELECT '신일전자', '신일 만능 믹서기 사용 중 고장', '1577-6667', '', '신일전자 고객센터', '이세화' FROM DUAL
             ) A
         WHERE 1=1
-          AND A.PD_NM LIKE '%'||#{searchParam}||'%'
-           OR A.CNR_NM LIKE '%'||#{searchParam}||'%'
+        <if test='@MybatisUtils@isEmpty(pdNm) and @MybatisUtils@isNotEmpty(cnrNm)'>
+          AND A.PD_NM LIKE '%'||#{cnrNm}||'%'
+           OR A.CNR_NM LIKE '%'||#{cnrNm}||'%'
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(pdNm) and @MybatisUtils@isNotEmpty(cnrNm)'>
+          AND A.PD_NM LIKE '%'||#{pdNm}||'%'
+          AND A.CNR_NM LIKE '%'||#{cnrNm}||'%'
+        </if>
     </select>
 
 </mapper>
