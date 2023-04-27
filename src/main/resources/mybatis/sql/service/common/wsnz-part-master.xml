@@ -3,58 +3,64 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.common.BASE">
     <sql id="selectPartMaster">
     <![CDATA[
-    SELECT T1.PD_CD                    AS SVPD_PD_CD
-         , T2.PD_PRP_VAL01             AS SVPD_ITEM_CD
-         , T2.PD_PRP_VAL31             AS SVPD_PART_CD
-         , T1.PD_NM                    AS SVPD_NM_KOR
-         , T1.PD_ABBR_NM               AS SVPD_NM_ABBR1
-         , T1.CST_BASE_PD_ABBR_NM      AS SVPD_NM_CUST
-         , T2.PD_PRP_VAL19             AS SVPD_ITEM_KND
-         , T4.CD_CNTN                  AS SVPD_ITEM_KND_NM
-         , T2.PD_PRP_VAL20             AS SVPD_ITEM_GR
-         , T5.CD_CNTN                  AS SVPD_ITEM_GR_NM
-         , T1.PD_CLSF_ID               AS SVPD_CLSF_ID          /*상품분류ID*/
-         , T1.PD_HCLSF_ID              AS SVPD_HCLSF_ID         /*상품대분류ID*/
-         , T1.PD_MCLSF_ID              AS SVPD_MCLSF_ID         /*상품중분류ID*/
-         , T1.PD_LCLSF_ID              AS SVPD_LCLSF_ID         /*상품소분류ID*/
-         , T1.PD_DCLSF_ID              AS SVPD_DCLSF_ID         /*상품세분류ID*/
-         , T1.SELL_TP_CD               AS SVPD_SELL_TP_CD       /*판매유형코드*/
-         , CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDD') >= NVL(t1.RVPY_STRTDT,'19000101') AND TO_CHAR(SYSDATE,'YYYYMMDD') <= NVL(t1.RVPY_ENDDT,'99991231') THEN 'Y' ELSE 'N' END AS SVPD_USE_YN
-         , t1.RVPY_STRTDT              AS SVPD_APLD_FR
-         , t1.RVPY_ENDDT               AS SVPD_APLD_TO
-         , T1.SAP_MAT_CD               AS SVPD_SAP_CD
-         , T1.SAP_MAT_GRP_VAL          AS SVPD_SAP_GRP
-         , T1.SAP_PDCT_SCLSRT_STRC_VAL AS SVPD_SAP_LEVEL
-         , T1.SAP_MAT_EVL_CLSS_VAL     AS SVPD_SAP_CLASS
-         , T1.SAP_PDCT_SCLSRT_STRC_VAL AS SVPD_PDCT_CLSS_RSC
-         , T1.PDCT_UPRC                AS SVPD_STD_PR
-         , T1.IMG_APN_FILE_ID          AS SVPD_IMG_URL
-         , T1.PD_EPL_CN                AS SVPD_RMKS
-         , T2.PD_PRP_VAL21             AS SVPD_COMM_GB
-         , T6.CD_CNTN                  AS SVPD_COMM_GB_NM
-         , T2.PD_PRP_VAL04             AS SVPD_LP_GB
-         , T2.PD_PRP_VAL02             AS SVPD_MGT_TYP
-         , T7.CD_CNTN                  AS SVPD_MGT_TYP_NM
-         , T2.PD_PRP_VAL10             AS SVPD_SFTY_QTY
-         , T2.PD_PRP_VAL03             AS SVPD_SIZE
-         , T2.PD_PRP_VAL05             AS SVPD_MGT_UNT
-         , T8.CD_CNTN                  AS SVPD_MGT_UNT_NM
-         , T2.PD_PRP_VAL06             AS SVPD_LT
-         , T2.PD_PRP_VAL11             AS SVPD_DEL_UNT
-         , T9.CD_CNTN                  AS SVPD_DEL_UNT_NM
-         , T2.PD_PRP_VAL12             AS SVPD_BOX_QTY
-         , T2.PD_PRP_VAL13             AS SVPD_PLT_QTY
-         , T2.PD_PRP_VAL14             AS SVPD_BAR_CD
-         , T2.PD_PRP_VAL15             AS SVPD_BASE_GB
-         , T2.PD_PRP_VAL16             AS SVPD_BASE_COLOR_GB
-         , T2.PD_PRP_VAL24             AS SVPD_REFUR_YN
-         , T2.PD_PRP_VAL25             AS SVPD_QTYLMT_YN
-         , T2.PD_PRP_VAL26             AS SVPD_DISPOSAL_COST
-         , T2.PD_PRP_VAL08             AS SVPD_TOT_WEI
-         , T2.PD_PRP_VAL09             AS SVPD_PLT_WEI
-         , T2.PD_PRP_VAL07             AS SVPD_MOQ
-         , T2.PD_PRP_VAL30             AS SVPD_TURNOVER_TGT
-         , T1.PD_TP_CD                 AS SVPD_PD_TP_CD
+        SELECT T1.PD_CD                    AS SVPD_PD_CD
+             , T2.PD_PRP_VAL01             AS SVPD_ITEM_CD
+             , T2.PD_PRP_VAL31             AS SVPD_PART_CD
+             , T1.PD_NM                    AS SVPD_NM_KOR
+             , T1.PD_ABBR_NM               AS SVPD_NM_ABBR1
+             , T1.CST_BASE_PD_ABBR_NM      AS SVPD_NM_CUST
+             , T2.PD_PRP_VAL19             AS SVPD_ITEM_KND
+             , T4.CD_CNTN                  AS SVPD_ITEM_KND_NM
+             , T2.PD_PRP_VAL20             AS SVPD_ITEM_GR
+             , T5.CD_CNTN                  AS SVPD_ITEM_GR_NM
+             , T1.PD_CLSF_ID               AS SVPD_CLSF_ID          /*상품분류ID*/
+             , T1.PD_HCLSF_ID              AS SVPD_HCLSF_ID         /*상품대분류ID*/
+             , T1.PD_MCLSF_ID              AS SVPD_MCLSF_ID         /*상품중분류ID*/
+             , T1.PD_LCLSF_ID              AS SVPD_LCLSF_ID         /*상품소분류ID*/
+             , T1.PD_DCLSF_ID              AS SVPD_DCLSF_ID         /*상품세분류ID*/
+             , T1.SELL_TP_CD               AS SVPD_SELL_TP_CD       /*판매유형코드*/
+             , CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDD') >= NVL(t1.RVPY_STRTDT,'19000101') AND TO_CHAR(SYSDATE,'YYYYMMDD') <= NVL(t1.RVPY_ENDDT,'99991231') THEN 'Y' ELSE 'N' END AS SVPD_USE_YN
+             , t1.RVPY_STRTDT              AS SVPD_APLD_FR
+             , t1.RVPY_ENDDT               AS SVPD_APLD_TO
+             , T1.SAP_MAT_CD               AS SVPD_SAP_CD
+             , T1.SAP_MAT_GRP_VAL          AS SVPD_SAP_GRP
+             , T1.SAP_PDCT_SCLSRT_STRC_VAL AS SVPD_SAP_LEVEL
+             , T1.SAP_MAT_EVL_CLSS_VAL     AS SVPD_SAP_CLASS
+             , T1.SAP_PDCT_SCLSRT_STRC_VAL AS SVPD_PDCT_CLSS_RSC
+             , T1.PDCT_UPRC                AS SVPD_STD_PR
+             , T1.IMG_APN_FILE_ID          AS SVPD_IMG_URL
+             , T1.PD_EPL_CN                AS SVPD_RMKS
+             , T2.PD_PRP_VAL21             AS SVPD_COMM_GB
+             , T6.CD_CNTN                  AS SVPD_COMM_GB_NM
+             , T2.PD_PRP_VAL04             AS SVPD_LP_GB
+             , T2.PD_PRP_VAL02             AS SVPD_MGT_TYP
+             , T7.CD_CNTN                  AS SVPD_MGT_TYP_NM
+             , T2.PD_PRP_VAL10             AS SVPD_SFTY_QTY
+             , T2.PD_PRP_VAL03             AS SVPD_SIZE
+             , T2.PD_PRP_VAL05             AS SVPD_MGT_UNT
+             , T8.CD_CNTN                  AS SVPD_MGT_UNT_NM
+             , T2.PD_PRP_VAL06             AS SVPD_LT
+             , T2.PD_PRP_VAL11             AS SVPD_DEL_UNT
+             , T9.CD_CNTN                  AS SVPD_DEL_UNT_NM
+             , T2.PD_PRP_VAL12             AS SVPD_BOX_QTY
+             , T2.PD_PRP_VAL13             AS SVPD_PLT_QTY
+             , T2.PD_PRP_VAL14             AS SVPD_BARCODE_YN
+             , T2.PD_PRP_VAL15             AS SVPD_BASE_GB
+             , T2.PD_PRP_VAL16             AS SVPD_BASE_COLOR_GB
+             , T2.PD_PRP_VAL24             AS SVPD_REFUR_YN
+             , T2.PD_PRP_VAL25             AS SVPD_QTYLMT_YN
+             , T2.PD_PRP_VAL26             AS SVPD_DISPOSAL_COST
+             , T2.PD_PRP_VAL08             AS SVPD_TOT_WEI
+             , T2.PD_PRP_VAL09             AS SVPD_PLT_WEI
+             , T2.PD_PRP_VAL07             AS SVPD_MOQ
+             , T2.PD_PRP_VAL30             AS SVPD_TURNOVER_TGT
+             , T1.PD_TP_CD                 AS SVPD_PD_TP_CD
+             , T2.PD_PRP_VAL22             AS SVPD_BAR_CD
+             , T2.PD_PRP_VAL23             AS SVPD_BAR_CD_18
+             , T2.PD_PRP_VAL29             AS SVPD_PICK_QTY
+             , T2.PD_PRP_VAL32             AS SVPD_SERVICE_USE_YN
+             , T2.PD_PRP_VAL36             AS SVPD_PART_GR
+             , T2.PD_PRP_VAL37             AS SVPD_HMCR_USE_YN
       ]]>
       FROM TB_PDBS_PD_BAS T1
      INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
