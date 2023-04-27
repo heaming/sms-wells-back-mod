@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaAutomaticOstrAkNpDlMapper">
+    <update id="deleteAutoOstrAkNpDls">
+        MERGE INTO TB_SVST_ITM_OSTR_AK_IZ T1
+        USING ( SELECT S1.OSTR_AK_NO
+                      , S1.OSTR_AK_SN
+                   FROM TB_SVST_ITM_OSTR_AK_IZ S1
+                      , TB_SVST_CST_SV_ITM_STOC_IZ S2
+                  WHERE S1.OSTR_AK_TP_CD = '330'
+                    AND S1.RECT_OSTR_DT IS NULL
+                    AND S1.STR_OJ_WARE_NO = S2.WARE_NO
+                    AND S1.ITM_PD_CD = S2.ITM_PD_CD
+                    AND S1.OSTR_CNFM_QTY <![CDATA[<]]> S2.PITM_STOC_A_GD_QTY
+              ) T2
+           ON T1.OSTR_AK_NO = T2.OSTR_AK_NO
+          AND T1.OSTR_AK_SN = T2.OSTR_AK_SN
+         WHEN MATCHED THEN
+              UPDATE SET T1.DTA_DL_YN = 'Y'
+    </update>
+</mapper>
