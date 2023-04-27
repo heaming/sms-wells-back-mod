@@ -6,7 +6,6 @@
           FROM TB_SSCT_CNTR_ADR_REL
          WHERE DTL_CNTR_NO = #{cntrNo}
            AND DTL_CNTR_SN = #{cntrSn}
-           AND CNTR_UNIT_TP_CD = '020'
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
            AND ADRPC_TP_CD = '3'
            AND DTA_DL_YN = 'N'
