@@ -370,8 +370,8 @@
              , SELL_TP_CD
              , SELL_TP_DTL_CD
              , CNTR_DTL_STAT_CD
-             , CNTR_PTRM_UNIT_CD
-             , CNTR_PTRM
+             <!--, CNTR_PTRM_UNIT_CD
+             , CNTR_PTRM-->
              , CNTR_PD_STRTDT
              , CNTR_PD_ENDDT
              , STPL_PTRM_UNIT_CD
@@ -408,7 +408,7 @@
              , MM_ISTM_AMT
              , CRP_UC_AMT
              , SELL_FEE
-             , CNTR_TAM
+             <!--, CNTR_TAM-->
              , ACKMT_PERF_RT
              , ACKMT_PERF_AMT
              , CVT_PERF_AMT
@@ -449,8 +449,8 @@
              , SELL_TP_CD
              , SELL_TP_DTL_CD
              , CNTR_DTL_STAT_CD
-             , CNTR_PTRM_UNIT_CD
-             , CNTR_PTRM
+             <!--, CNTR_PTRM_UNIT_CD
+             , CNTR_PTRM-->
              , CNTR_PD_STRTDT
              , CNTR_PD_ENDDT
              , STPL_PTRM_UNIT_CD
@@ -487,7 +487,7 @@
              , MM_ISTM_AMT
              , CRP_UC_AMT
              , SELL_FEE
-             , CNTR_TAM
+             <!--, CNTR_TAM-->
              , ACKMT_PERF_RT
              , ACKMT_PERF_AMT
              , CVT_PERF_AMT
