@@ -122,7 +122,6 @@
              , SV_BIZ_HCLSF_CD
              , SV_BIZ_DCLSF_CD
              , SV_CNR_OG_ID
-             , PRTNR_DSN_DT
              , ASN_DT
              , EGER_ASN_DT
              , EGER_ASN_HH
@@ -171,7 +170,6 @@
              , SV_BIZ_HCLSF_CD
              , SV_BIZ_DCLSF_CD
              , SV_CNR_OG_ID
-             , '' AS PRTNR_DSN_DT
              , ASN_DT
              , EGER_ASN_DT
              , EGER_ASN_HH
