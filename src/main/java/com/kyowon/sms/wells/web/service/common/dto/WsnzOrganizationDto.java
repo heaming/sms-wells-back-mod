@@ -45,7 +45,9 @@ public class WsnzOrganizationDto {
         String bizId,
         String bizCd,
         String adminId,
-        String adminCd
+        String adminCd,
+        String cntrDt,
+        String cltnDt
     ) {}
 
     // 엔지니어 조직 Search Result Dto
@@ -71,6 +73,8 @@ public class WsnzOrganizationDto {
         String rolDvCd,
         String ogId,
         String ogCd,
-        String ogNm
+        String ogNm,
+        String cntrDt,
+        String cltnDt
     ) {}
 }
