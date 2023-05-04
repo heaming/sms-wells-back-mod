@@ -112,6 +112,8 @@
              , T2.DGR2_LEVL_OG_CD AS BIZ_CD
              , T2.DGR1_LEVL_OG_ID AS ADMIN_ID
              , T2.DGR1_LEVL_OG_CD AS ADMIN_CD
+             , T1.CNTR_DT
+             , T1.CLTN_DT
           FROM TB_OGBS_MM_PRTNR_IZ T1
           LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T2
             ON T2.BASE_YM = T1.BASE_YM
@@ -161,6 +163,8 @@
              , T1.OG_ID
              , T1.OG_CD
              , T1.OG_NM
+             , T1.CNTR_DT
+             , T1.CLTN_DT
           FROM TB_OGBS_MM_PRTNR_IZ T1
          WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND T1.OG_TP_CD IN ('W03', 'W06')
