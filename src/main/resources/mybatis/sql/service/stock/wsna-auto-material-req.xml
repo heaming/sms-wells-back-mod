@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaAutoMaterialReqMapper">
+    <select id="selectOstrAkNo" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaAutoMaterialReqDto$SearchRes">
+        SELECT '330'
+               || TO_CHAR(SYSDATE, 'YYYYMMDD')
+               || LPAD(SQ_SVST_ITM_OSTR_IZ$ITM_OSTR_NO.NEXTVAL, 7, 0) AS OSTR_AK_NO
+             , J1.WARE_NO
+         FROM TB_SVST_MCBY_WARE_IZ J1
+        INNER JOIN TB_OGBS_MM_PRTNR_IZ J2
+           ON (J2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+               AND J1.APY_YM = J2.BASE_YM
+               AND J1.WARE_MNGT_PRTNR_NO = J2.PRTNR_NO
+               AND J2.OG_TP_CD = 'W06'
+               AND J2.CLTN_DT IS NULL
+               AND J2.BZ_STAT_CD = '1'
+               AND J1.WARE_USE_YN = 'Y'
+              )
+        WHERE J1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+    </select>
+
+    <insert id="insertAutoMaterialEngineerReq">
+        INSERT INTO TB_SVST_ITM_OSTR_AK_IZ
+             ( OSTR_AK_NO
+             , OSTR_AK_TP_CD
+             , STR_OJ_WARE_NO
+             , OSTR_AK_RGST_DT
+             , OSTR_AK_SN
+             , STR_HOP_DT
+             , ITM_PD_CD
+             , OSTR_AK_WARE_DV_CD
+             , WARE_MNGT_PRTNR_NO
+             , OSTR_OJ_WARE_DV_CD
+             , OSTR_OJ_WARE_NO
+             , OSTR_WARE_MNGT_PRTNR_NO
+             , MNGT_UNIT_CD
+             , BOX_UNIT_QTY
+             , ITM_GD_CD
+             , OSTR_AK_QTY
+             , OSTR_CNFM_QTY
+             <include refid="COMMON.insertSystemField" />
+             )
+        SELECT T5.OSTR_AK_NO
+             , '330' AS OSTR_AK_TP_CD
+             , T1.WARE_NO AS STR_OJ_WARE_NO
+             , TO_CHAR(SYSDATE, 'YYYYMMDD') AS OSTR_AK_RGST_DT
+             , RANK()OVER(PARTITION BY T1.WARE_NO ORDER BY T4.SVPD_PD_CD) AS OSTR_AK_SN
+             , TO_CHAR(SYSDATE, 'YYYYMMDD') AS STR_HOP_DT
+             , T4.SVPD_PD_CD AS ITM_PD_CD
+             , T1.WARE_DV_CD AS OSTR_AK_WARE_DV_CD
+             , T1.WARE_MNGT_PRTNR_NO AS WARE_MNGT_PRTNR_NO
+             , OSTR.WARE_DV_CD AS OSTR_OJ_WARE_DV_CD
+             , OSTR.WARE_NO AS OSTR_OJ_WARE_NO
+             , OSTR.WARE_MNGT_PRTNR_NO AS OSTR_WARE_MNGT_PRTNR_NO
+             , T4.SVPD_MGT_UNT AS MNGT_UNIT_CD
+             , T4.SVPD_BOX_QTY AS BOX_UNIT_QTY
+             , 'A' AS ITM_GD_CD
+             , (T4.SVPD_SFTY_QTY - (NVL(T3.PITM_STOC_A_GD_QTY, 0)
+                                       + (SELECT COUNT(1)
+                                            FROM TB_SVST_ITM_OSTR_AK_IZ W1
+                                           WHERE W1.STR_OJ_WARE_NO = T1.WARE_NO
+                                             AND W1.ITM_PD_CD = T4.SVPD_PD_CD
+                                             AND W1.ITM_GD_CD = 'A'
+                                             AND W1.OSTR_AK_TP_CD = '330'
+                                             AND W1.OSTR_AK_RGST_DT <![CDATA[>]]> '20190700')
+                                   )) AS OSTR_AK_QTY
+             , (T4.SVPD_SFTY_QTY - (NVL(T3.PITM_STOC_A_GD_QTY, 0)
+                                       + (SELECT COUNT(1)
+                                            FROM TB_SVST_ITM_OSTR_AK_IZ W1
+                                           WHERE W1.STR_OJ_WARE_NO = T1.WARE_NO
+                                             AND W1.ITM_PD_CD = T4.SVPD_PD_CD
+                                             AND W1.ITM_GD_CD = 'A'
+                                             AND W1.OSTR_AK_TP_CD = '330'
+                                             AND W1.OSTR_AK_RGST_DT <![CDATA[>]]> '20190700')
+                                   )) AS OSTR_CNFM_QTY
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_SVST_MCBY_WARE_IZ T1
+         INNER JOIN TB_SVST_MCBY_WARE_IZ OSTR
+            ON (OSTR.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                AND T1.HGR_WARE_NO = OSTR.WARE_NO
+               )
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ T2
+            ON (T2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                AND T1.WARE_MNGT_PRTNR_NO = T2.PRTNR_NO
+                AND T2.OG_TP_CD = 'W06'
+                AND T2.CLTN_DT IS NULL
+                AND T2.BZ_STAT_CD = '1'
+               )
+          LEFT OUTER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T3
+            ON T1.WARE_NO = T3.WARE_NO
+         RIGHT OUTER JOIN
+               (SELECT JW1.SVPD_PD_CD
+                     , JW1.SVPD_SFTY_QTY
+                     , JW1.SVPD_MGT_UNT
+                     , JW1.SVPD_BOX_QTY
+                  FROM (SELECT J1.SVPD_PD_CD
+                             , TO_NUMBER(NVL(J1.SVPD_SFTY_QTY,'0') DEFAULT -1 ON CONVERSION ERROR) AS SVPD_SFTY_QTY
+                             , J1.SVPD_MGT_UNT
+                             , J1.SVPD_BOX_QTY
+                          FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) J1
+                       )JW1
+                 WHERE JW1.SVPD_SFTY_QTY <![CDATA[>]]> 0
+               )T4
+            ON (T4.SVPD_PD_CD = T3.ITM_PD_CD)
+         INNER JOIN
+               (
+                <foreach collection="list" item="item" separator=" UNION ALL" >
+                  SELECT #{item.wareNo} AS WARE_NO, #{item.ostrAkNo} AS OSTR_AK_NO FROM DUAL
+                </foreach>
+               )T5
+            ON T1.WARE_NO = T5.WARE_NO
+         <where>
+           AND T1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T1.WARE_DV_CD = '2'
+           AND T1.WARE_DTL_DV_CD = '21'
+           AND T1.WARE_USE_YN = 'Y'
+           AND T4.SVPD_SFTY_QTY > (NVL(T3.PITM_STOC_A_GD_QTY, 0)
+                                    + (SELECT COUNT(1)
+                                         FROM TB_SVST_ITM_OSTR_AK_IZ W1
+                                        WHERE W1.STR_OJ_WARE_NO = T1.WARE_NO
+                                          AND W1.ITM_PD_CD = T4.SVPD_PD_CD
+                                          AND W1.ITM_GD_CD = 'A'
+                                          AND W1.OSTR_AK_TP_CD = '330'
+                                          AND W1.OSTR_AK_RGST_DT <![CDATA[>]]> '20190700' )
+                                   )
+           <!-- TODO: 제외창고에 대한 월별창고 내역에서 필드가 정리가 되면 아래쿼리에 해당하는 값을 설정해야함.
+           /*19.07.02 포항 엔지니어 제외 정종운(32541)-201049*/
+           /*20.07.09 자동발주 제외 인원(서비스매니저) - 윤상모 */
+           AND ST102_STCK_GB || ST102_SEQ NOT IN ('201049','8878','8871','24445','9234','9284','9676','24817','9573')
+           AND ST102_STCK_GB_UP || ST102_SEQ_UP NOT IN ('200961', '200975', '200986', '201017', '200749', '200813', '200868', '200879')
+           -->
+         </where>
+    </insert>
+
+    <insert id="insertAutoMaterialBranchReq">
+        INSERT INTO TB_SVST_ITM_OSTR_AK_IZ
+             ( OSTR_AK_NO
+             , OSTR_AK_TP_CD
+             , STR_OJ_WARE_NO
+             , OSTR_AK_RGST_DT
+             , OSTR_AK_SN
+             , STR_HOP_DT
+             , ITM_PD_CD
+             , OSTR_AK_WARE_DV_CD
+             , WARE_MNGT_PRTNR_NO
+             , OSTR_OJ_WARE_DV_CD
+             , OSTR_OJ_WARE_NO
+             , OSTR_WARE_MNGT_PRTNR_NO
+             , MNGT_UNIT_CD
+             , BOX_UNIT_QTY
+             , ITM_GD_CD
+             , OSTR_AK_QTY
+             , OSTR_CNFM_QTY
+             <include refid="COMMON.insertSystemField" />
+             )
+        SELECT W2.OSTR_AK_NO
+             , W1.OSTR_AK_TP_CD
+             , W1.STR_OJ_WARE_NO
+             , W1.OSTR_AK_RGST_DT
+             , W1.OSTR_AK_SN
+             , W1.STR_HOP_DT
+             , W1.SVPD_PD_CD AS ITM_PD_CD
+             , W1.OSTR_AK_WARE_DV_CD
+             , W1.WARE_MNGT_PRTNR_NO
+             , W1.OSTR_OJ_WARE_DV_CD
+             , W1.OSTR_OJ_WARE_NO
+             , W1.OSTR_WARE_MNGT_PRTNR_NO
+             , W1.MNGT_UNIT_CD
+             , W1.BOX_UNIT_QTY
+             , W1.ITM_GD_CD
+             , (W1.SVPD_SFTY_QTY * W1.CNT * W1.SUM_QTY) AS OSTR_AK_QTY
+             , (W1.SVPD_SFTY_QTY * W1.CNT * W1.SUM_QTY) AS OSTR_CNFM_QTY
+          FROM
+          (SELECT '330' AS OSTR_AK_TP_CD
+                , T2.WARE_NO AS STR_OJ_WARE_NO
+                , TO_CHAR(SYSDATE, 'YYYYMMDD') AS OSTR_AK_RGST_DT
+                , RANK()OVER(PARTITION BY T2.WARE_NO ORDER BY T5.SVPD_PD_CD) AS OSTR_AK_SN
+                , TO_CHAR(SYSDATE, 'YYYYMMDD') AS STR_HOP_DT
+                , T5.SVPD_PD_CD
+                , T2.WARE_DV_CD AS OSTR_AK_WARE_DV_CD
+                , T2.WARE_MNGT_PRTNR_NO AS WARE_MNGT_PRTNR_NO
+                , OSTR.WARE_DV_CD AS OSTR_OJ_WARE_DV_CD
+                , OSTR.WARE_NO AS OSTR_OJ_WARE_NO
+                , OSTR.WARE_MNGT_PRTNR_NO AS OSTR_WARE_MNGT_PRTNR_NO
+                , T5.SVPD_MGT_UNT AS MNGT_UNIT_CD
+                , T5.SVPD_BOX_QTY AS BOX_UNIT_QTY
+                , 'A' AS ITM_GD_CD
+                , T5.SVPD_SFTY_QTY
+                , T1.PITM_STOC_A_GD_QTY
+                , (
+                  SELECT COUNT(1)
+                    FROM TB_SVST_MCBY_WARE_IZ S1
+                   INNER JOIN TB_OGBS_MM_PRTNR_IZ S2
+                      ON (S1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                          AND S2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                          AND S1.WARE_MNGT_PRTNR_NO = S2.PRTNR_NO
+                         )
+                   WHERE S1.WARE_USE_YN = 'Y'
+                     AND S1.WARE_DV_CD = '2'
+                     AND S1.WARE_DTL_DV_CD = '21'
+                     AND S2.CLTN_DT IS NULL
+                     AND S1.HGR_WARE_NO = T2.WARE_NO
+                  ) AS CNT
+                , (SELECT (CASE WHEN (SUM(S2.USE_QTY) / 3 <![CDATA[>=]]> 5) THEN 1 ELSE 0.3 END) AS SUM_QTY
+                     FROM TB_SVST_MCBY_WARE_IZ S1
+                    INNER JOIN TB_SVST_SV_WK_OSTR_IZ S2
+                       ON (S1.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                           AND S1.WARE_NO = S2.WK_WARE_NO
+                          )
+                    WHERE S2.FNL_VST_FSH_DT > TO_CHAR(ADD_MONTHS(SYSDATE, -3), 'YYYYMMDD')
+                      AND S1.HGR_WARE_NO = T2.WARE_NO
+                      AND S2.ITM_PD_CD = T5.SVPD_PD_CD
+                  ) AS SUM_QTY
+            FROM TB_SVST_CST_SV_ITM_STOC_IZ T1
+           RIGHT OUTER JOIN TB_SVST_MCBY_WARE_IZ T2
+              ON (T2.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                  AND T2.WARE_NO = T1.WARE_NO
+                  AND T2.WARE_USE_YN = 'Y'
+                  <!--
+                  /* TODO: 제외창고에 대한 월별창고 내역에서 필드가 정리가 되면 아래쿼리에 해당하는 값을 설정해야함.*/
+                  /* AND ST102_STCK_GB || ST102_SEQ NOT IN ('200986', '200749', '201064', '201064', '201040')*/
+                  /* 홈케어서비스센터, 서비스관리팀, 인천공장, 충주출장소 제외 */
+                  -->
+                  AND T2.WARE_LOCARA_CD != '99' /*아웃소싱업체 창고제외*/
+                  AND T2.WARE_DV_CD='2'
+                  AND T2.WARE_DTL_DV_CD = '20'
+                 )
+            LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ OSTR
+                   ON (OSTR.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                       AND T2.HGR_WARE_NO = OSTR.WARE_NO
+                       AND OSTR.WARE_USE_YN = 'Y'
+                      )
+           RIGHT OUTER JOIN
+                 (SELECT JW1.SVPD_PD_CD
+                       , JW1.SVPD_SFTY_QTY
+                       , JW1.SVPD_MGT_UNT
+                       , JW1.SVPD_BOX_QTY
+                    FROM (SELECT J1.SVPD_PD_CD
+                               , TO_NUMBER(NVL(J1.SVPD_SFTY_QTY,'0') DEFAULT -1 ON CONVERSION ERROR) AS SVPD_SFTY_QTY
+                               , J1.SVPD_MGT_UNT
+                               , J1.SVPD_BOX_QTY
+                            FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>)J1
+                          ) JW1
+                   WHERE JW1.SVPD_SFTY_QTY > 0
+                 ) T5
+              ON T5.SVPD_PD_CD = T1.ITM_PD_CD
+           WHERE TO_CHAR(SYSDATE, 'YYYYMMDD') <![CDATA[>]]> '20190700'
+             AND (SELECT COUNT(1)
+                    FROM TB_SVST_ITM_OSTR_AK_IZ WS1
+                   WHERE WS1.STR_OJ_WARE_NO = T2.WARE_NO
+                     AND WS1.ITM_PD_CD = T5.SVPD_PD_CD
+                     AND WS1.ITM_GD_CD = 'A'
+                     AND WS1.OSTR_AK_TP_CD = '330'
+                     AND WS1.OSTR_AK_RGST_DT <![CDATA[>]]> '20190700' ) = 0
+        ) W1
+        INNER JOIN
+            ( <foreach collection="list" item="item" separator=" UNION ALL" >
+                SELECT #{item.wareNo} AS WARE_NO, #{item.ostrAkNo} AS OSTR_AK_NO FROM DUAL
+              </foreach>
+            ) W2
+           ON W1.STR_OJ_WARE_NO = W2.WARE_NO
+        WHERE ROUND(W1.SVPD_SFTY_QTY * W1.CNT * W1.SUM_QTY * 0.5,0) <![CDATA[>]]> NVL(W1.PITM_STOC_A_GD_QTY,0)
+    </insert>
+</mapper>
