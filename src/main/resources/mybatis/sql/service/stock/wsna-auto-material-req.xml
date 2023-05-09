@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaAutoMaterialReqMapper">
+
     <select id="selectOstrAkNo" resultType="com.kyowon.sms.wells.web.service.stock.dto.WsnaAutoMaterialReqDto$SearchRes">
         SELECT '330'
                || TO_CHAR(SYSDATE, 'YYYYMMDD')
@@ -123,12 +124,8 @@
                                           AND W1.OSTR_AK_TP_CD = '330'
                                           AND W1.OSTR_AK_RGST_DT <![CDATA[>]]> '20190700' )
                                    )
-           <!-- TODO: 제외창고에 대한 월별창고 내역에서 필드가 정리가 되면 아래쿼리에 해당하는 값을 설정해야함.
-           /*19.07.02 포항 엔지니어 제외 정종운(32541)-201049*/
-           /*20.07.09 자동발주 제외 인원(서비스매니저) - 윤상모 */
-           AND ST102_STCK_GB || ST102_SEQ NOT IN ('201049','8878','8871','24445','9234','9284','9676','24817','9573')
-           AND ST102_STCK_GB_UP || ST102_SEQ_UP NOT IN ('200961', '200975', '200986', '201017', '200749', '200813', '200868', '200879')
-           -->
+           AND NVL(T1.AUTO_APLC_EXCD_YN,'N') != 'Y'
+           AND NVL(OSTR.AUTO_APLC_EXCD_YN,'N') != 'Y'
          </where>
     </insert>
 
@@ -216,14 +213,10 @@
               ON (T2.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
                   AND T2.WARE_NO = T1.WARE_NO
                   AND T2.WARE_USE_YN = 'Y'
-                  <!--
-                  /* TODO: 제외창고에 대한 월별창고 내역에서 필드가 정리가 되면 아래쿼리에 해당하는 값을 설정해야함.*/
-                  /* AND ST102_STCK_GB || ST102_SEQ NOT IN ('200986', '200749', '201064', '201064', '201040')*/
-                  /* 홈케어서비스센터, 서비스관리팀, 인천공장, 충주출장소 제외 */
-                  -->
                   AND T2.WARE_LOCARA_CD != '99' /*아웃소싱업체 창고제외*/
                   AND T2.WARE_DV_CD='2'
                   AND T2.WARE_DTL_DV_CD = '20'
+                  AND NVL(T2.AUTO_APLC_EXCD_YN,'N') != 'Y'
                  )
             LEFT OUTER JOIN TB_SVST_MCBY_WARE_IZ OSTR
                    ON (OSTR.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
@@ -261,4 +254,55 @@
            ON W1.STR_OJ_WARE_NO = W2.WARE_NO
         WHERE ROUND(W1.SVPD_SFTY_QTY * W1.CNT * W1.SUM_QTY * 0.5,0) <![CDATA[>]]> NVL(W1.PITM_STOC_A_GD_QTY,0)
     </insert>
+
+    <insert id="insertOteamMatAutoAplcIz">
+        INSERT INTO TB_SVST_OTEAM_MAT_AUTO_APLC_IZ(
+               MNGT_YM
+             , MAT_AUTO_OSTR_DV_CD
+             , WARE_NO
+             , PD_CD /* ST182_ITEM_CD, ST182_PART_CD */
+             , APLC_SN
+             , BASE_QTY
+             , MMS3_USE_QTY
+             , EGER_PSNO
+             , AUTO_APLC_QTY
+             , MIN_HV_QTY
+             , QOM_AUTO_APLC_QTY
+             , BRCH_MIN_HV_QTY
+             , QOM_AUTO_APLC_YN
+             , BRCH_AUTO_APLC_YN
+             <include refid="COMMON.insertSystemField" />
+        )
+        SELECT TO_CHAR(SYSDATE, 'YYYYMM') AS MNGT_YM
+             , T1.MAT_AUTO_OSTR_DV_CD
+             , T1.WARE_NO
+             , T1.PD_CD  /* ST182_ITEM_CD, ST182_PART_CD */
+             , T1.APLC_SN
+             , T1.BASE_QTY
+             , T1.MMS3_USE_QTY
+             , T1.EGER_PSNO
+             , T1.AUTO_APLC_QTY
+             , T1.MIN_HV_QTY
+             , T1.QOM_AUTO_APLC_QTY
+             , T1.BRCH_MIN_HV_QTY
+             , T1.QOM_AUTO_APLC_YN
+             , T1.BRCH_AUTO_APLC_YN
+             <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SVST_OTEAM_MAT_AUTO_APLC_IZ T1
+         WHERE T1.MNGT_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+           AND T1.APLC_SN = (SELECT MAX(S1.APLC_SN) FROM TB_SVST_OTEAM_MAT_AUTO_APLC_IZ S1
+                              WHERE S1.MNGT_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+                                AND S1.WARE_NO = T1.WARE_NO
+                                AND S1.PD_CD = T1.PD_CD
+                            )
+    </insert>
+    <update id="updateItmOstrAkIz">
+        UPDATE TB_SVST_ITM_OSTR_AK_IZ
+           SET STR_HOP_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+               /* , ST156_UPD_ID = '37615' */
+               <include refid="COMMON.updateSystemField"/>
+         WHERE OSTR_AK_TP_CD = '330' /* TOBE CODE 확인 필요 */
+           AND RECT_OSTR_DT IS NULL
+           AND STR_HOP_DT  = TO_CHAR(ADD_MONTHS(SYSDATE , -1), 'YYYYMM')
+    </update>
 </mapper>

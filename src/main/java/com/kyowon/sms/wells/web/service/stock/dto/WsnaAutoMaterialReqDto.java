@@ -9,9 +9,4 @@ public class WsnaAutoMaterialReqDto {
         String ostrAkNo,
         String wareNo
     ) {}
-
-    @ApiModel(value = "WsnaAutoMaterialReqDto-CreateReq")
-    public record CreateReq(
-
-    ) {}
 }
