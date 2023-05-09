@@ -12,11 +12,11 @@ import com.sds.sflex.system.config.datasource.PagingResult;
 @Mapper
 public interface WsncAsTransferMapper {
 
-    PagingResult<SearchRes> selectAsTransferPages(
+    PagingResult<WsncAsTransferDvo> selectAsTransferPages(
         SearchReq dto, PageInfo pageInfo
     );
 
-    List<SearchRes> selectAsTransferPages(SearchReq dto);
+    List<WsncAsTransferDvo> selectAsTransferPages(SearchReq dto);
 
     int insertAssignResultTransferIz(WsncAsTransferDvo dvo);
 

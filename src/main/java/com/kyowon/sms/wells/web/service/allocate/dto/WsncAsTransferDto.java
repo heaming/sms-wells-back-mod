@@ -25,6 +25,7 @@ public class WsncAsTransferDto {
     public record SearchRes(
         String cstSvAsnNo, /* 고객서비스배정번호 */
         String cntrNo, /* 계약번호 */
+        String cntrSn, /* 계약일련번호 */
         String rcgvpKnm, /* 고객명 */
         String sellTpNm, /* 판매유형 */
         String sapMatCd, /* SAP코드 */
@@ -41,9 +42,12 @@ public class WsncAsTransferDto {
         String dtmChCausNm, /* 변경원인 */
         String dtmChRsonNm, /* 변경사유 */
         String dtmChRsonDtlCn, /* 변경사유상세 */
-        String tno, /* 연락처 */
-        String mpno, /* 휴대전화번호 */
-        String mtrStatNm, /* 작업상태 */
+        String locaraTno, /* 연락처 */
+        String exnoEncr,
+        String idvTno,
+        String cralLocaraTno, /* 휴대전화번호 */
+        String mexnoEncr,
+        String cralIdvTno,
         String wkPrgsDvNm, /* 진행구분 */
         String vstCnfmDtm, /* 방문확정일시 */
         String asnDtm, /* 배정일시 */

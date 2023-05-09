@@ -30,7 +30,11 @@ public class WsncAsTransferService {
     public PagingResult<SearchRes> getAsTransferPages(
         SearchReq dto, PageInfo pageInfo
     ) {
-        return mapper.selectAsTransferPages(dto, pageInfo);
+        PagingResult<SearchRes> pagingResult = converter.mapWsncAsTransferDvoToSearchRes(
+            mapper.selectAsTransferPages(dto, pageInfo)
+        );
+        pagingResult.setPageInfo(pageInfo);
+        return pagingResult;
     }
 
     /**
@@ -42,7 +46,8 @@ public class WsncAsTransferService {
     public List<SearchRes> getAsTransferPagesExcelDownload(
         SearchReq dto
     ) {
-        return mapper.selectAsTransferPages(dto);
+
+        return converter.mapWsncAsTransferDvoToSearchRes(mapper.selectAsTransferPages(dto));
     }
 
     /**
