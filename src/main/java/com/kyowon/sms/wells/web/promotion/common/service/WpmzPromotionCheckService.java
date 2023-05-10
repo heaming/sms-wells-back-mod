@@ -28,14 +28,15 @@ public class WpmzPromotionCheckService {
     private final MessageResourceService messageService;
     private final ZpmzPromotionApplyService applyService;
 
-    public List<WpmzPromotionOutputDvo> getAppliedPromotionList(WpmzPromotionInputDvo paramDvo) throws IllegalAccessException, NoSuchFieldException {
+    public List<WpmzPromotionOutputDvo> getAppliedPromotions(WpmzPromotionInputDvo paramDvo) throws IllegalAccessException, NoSuchFieldException {
 
         /* 1. 입력 파라미터 Validation Check */
         // 1.1. 필수 항목 체크 - 기준상품코드/복합상품코드/상품가격상세코드
         boolean mandatoryAtcCheck = false;
         for (Field field : paramDvo.getClass().getDeclaredFields()) {
             field.setAccessible(true);
-            if (StringUtils.isNotEmpty(Objects.toString(field.get(paramDvo), "")) && Arrays.stream(PmPromotionConst.MANDATORY_INPUT_ATCS).anyMatch(field.getName()::equals)){
+            boolean isMandatoryInputAtcs = Arrays.stream(PmPromotionConst.MANDATORY_INPUT_ATCS).anyMatch(field.getName()::equals);
+            if (isMandatoryInputAtcs && StringUtils.isNotEmpty(Objects.toString(field.get(paramDvo), ""))){
                 mandatoryAtcCheck = true;
                 break;
             }

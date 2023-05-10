@@ -9,6 +9,9 @@ import lombok.ToString;
 @ToString
 public class WpmzPromotionInputDvo {
     private String pmotCd;              /* 프로모션코드       */
+    private String pmotOjGrpDvCd;       /* 프로모대상그룹코드   */
+    private String pmotApyChnlCd;       /* 프로모션적용채널코드 */
+    private String pmotApyOgTpCd;       /* 프로모션적용조직코드 */
     private String basePdCd;            /* 상품코드          */
     private String basePdPrcDtlCd;      /* 상품가격상세코드    */
     private String lkPdClsfCd;          /* 연계상품분류(모종 상품분류코드)  */

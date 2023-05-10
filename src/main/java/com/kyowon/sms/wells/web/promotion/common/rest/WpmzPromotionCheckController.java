@@ -27,8 +27,8 @@ public class WpmzPromotionCheckController {
 
     @ApiOperation(value = "(서비스 API) 적용 프로모션 정보 조회", notes = "조건에 맞는 적용 프로모션 리스트를 조회한다.")
     @GetMapping("/promotions")
-    public List<WpmzPromotionOutputDvo> getAppliedPromotionList(WpmzPromotionInputDvo dvo) throws NoSuchFieldException, IllegalAccessException {
+    public List<WpmzPromotionOutputDvo> getAppliedPromotions(WpmzPromotionInputDvo dvo) throws NoSuchFieldException, IllegalAccessException {
 
-        return service.getAppliedPromotionList(dvo);
+        return service.getAppliedPromotions(dvo);
     }
 }
