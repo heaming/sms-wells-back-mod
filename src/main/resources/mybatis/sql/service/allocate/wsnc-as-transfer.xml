@@ -35,205 +35,147 @@
          ORDER BY CODE_NAME
     </select>
     <select id="selectAsTransferPages" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsTransferDvo">
-<!--        SELECT I1.CNTR_NO-->
-<!--             , I1.CNTR_SN-->
-<!--             , T3.RCGVP_KNM-->
-<!--             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', D1.SELL_TP_CD, #{session.langId}) AS SELL_TP_NM-->
-<!--             , (SELECT SAP_MAT_CD-->
-<!--                  FROM TB_PDBS_PD_BAS-->
-<!--                 WHERE 1=1-->
-<!--                   AND DTA_DL_YN = 'N'-->
-<!--                   AND PD_CD     = D1.BASE_PD_CD) AS SAP_MAT_CD-->
-<!--             , D1.BASE_PD_CD-->
-<!--             , (SELECT PD_ABBR_NM-->
-<!--                  FROM TB_PDBS_PD_BAS-->
-<!--                 WHERE 1=1-->
-<!--                   AND DTA_DL_YN = 'N'-->
-<!--                   AND PD_CD     = D1.BASE_PD_CD) AS PD_ABBR_NM-->
-<!--             , F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_HCLSF_CD', I1.SV_BIZ_HCLSF_CD, #{session.langId}) AS WK_DV_NM-->
-<!--             , E1.CTPV_NM-->
-<!--             , E1.CTCTY_NM-->
-<!--             , E1.AMTD_NM-->
-<!--             , OI1.CNSL_MO_CN-->
-<!--             , AB1.NEW_ADR_ZIP-->
-<!--             , AB1.RNADR || AB1.RDADR AS ADR-->
-<!--             , (CASE WHEN EI1.ALNC_BZS_CD = '21' THEN 'EDU 2차제휴'-->
-<!--                     WHEN EI1.ALNC_BZS_CD = '30' THEN '구몬 2차제휴'-->
-<!--                     ELSE ''-->
-<!--                END) AS ALNC_DV_NM-->
-<!--             , F_CMZ_CD_NM(#{session.tenantId}, 'WK_DTM_CH_RSON_CD', I1.DTM_CH_CAUS_CD, #{session.langId}) AS DTM_CH_CAUS_NM-->
-<!--             , F_CMZ_CD_NM(#{session.tenantId}, 'WK_DTM_CH_RSON_DTL_CD', I1.DTM_CH_RSON_CD, #{session.langId}) AS DTM_CH_RSON_NM-->
-<!--             , I1.DTM_CH_RSON_DTL_CN-->
-<!--             , T3.LOCARA_TNO-->
-<!--             , T3.EXNO_ENCR-->
-<!--             , T3.IDV_TNO-->
-<!--             , T3.CRAL_LOCARA_TNO-->
-<!--             , T3.MEXNO_ENCR-->
-<!--             , T3.CRAL_IDV_TNO-->
-<!--             , F_CMZ_CD_NM(#{session.tenantId}, 'WK_PRGS_STAT_CD', I1.WK_PRGS_STAT_CD, #{session.langId}) AS WK_PRGS_DV_NM-->
-<!--             , I1.VST_CNFMDT || I1.VST_CNFM_HH AS VST_CNFM_DTM-->
-<!--             , I1.FST_RGST_DTM AS ASN_DTM-->
-<!--             , OI1.RCP_ICHR_PRTNR_NO AS RCST-->
-<!--             , (SELECT OG_NM-->
-<!--                  FROM TB_OGBS_MM_PRTNR_IZ-->
-<!--                 WHERE 1=1-->
-<!--                   AND PRTNR_NO  = I1.ICHR_PRTNR_NO-->
-<!--                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')-->
-<!--                   AND OG_TP_CD  = I1.ICHR_OG_TP_CD-->
-<!--                   AND DTA_DL_YN = 'N'-->
-<!--                ) AS BFCH_BLG_NM-->
-<!--             , I1.ICHR_PRTNR_NO AS BFCH_EMPNO-->
-<!--             , (SELECT PRTNR_KNM-->
-<!--                  FROM TB_OGBS_MM_PRTNR_IZ-->
-<!--                 WHERE 1=1-->
-<!--                   AND PRTNR_NO  = I1.ICHR_PRTNR_NO-->
-<!--                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')-->
-<!--                   AND OG_TP_CD  = I1.ICHR_OG_TP_CD-->
-<!--                   AND DTA_DL_YN = 'N'-->
-<!--                ) AS BFCH_FNM-->
-<!--             , (SELECT OG_NM-->
-<!--                  FROM TB_OGBS_MM_PRTNR_IZ-->
-<!--                 WHERE 1=1-->
-<!--                   AND PRTNR_NO  = TI1.AFCH_ICHR_PRTNR_NO-->
-<!--                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')-->
-<!--                   AND OG_TP_CD  = TI1.AFCH_ICHR_PRTNR_OG_TP_CD-->
-<!--                   AND DTA_DL_YN = 'N'-->
-<!--                ) AS AFCH_BLG_NM-->
-<!--             , TI1.AFCH_ICHR_PRTNR_NO AS AFCH_EMPNO-->
-<!--             , (SELECT PRTNR_KNM-->
-<!--                  FROM TB_OGBS_MM_PRTNR_IZ-->
-<!--                 WHERE 1=1-->
-<!--                   AND PRTNR_NO  = TI1.AFCH_ICHR_PRTNR_NO-->
-<!--                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')-->
-<!--                   AND OG_TP_CD  = TI1.AFCH_ICHR_PRTNR_OG_TP_CD-->
-<!--                   AND DTA_DL_YN = 'N'-->
-<!--                ) AS AFCH_FNM-->
-<!--             , TI1.TF_CNFMDT AS TF_DT-->
-<!--             , F_CMZ_CD_NM(#{session.tenantId}, 'MTR_STAT_CD', TI1.TF_AK_RSON_CD, #{session.langId}) AS TF_RSON_NM-->
-<!--             , (SELECT OG_NM-->
-<!--                  FROM TB_OGBS_MM_PRTNR_IZ-->
-<!--                 WHERE 1=1-->
-<!--                   AND PRTNR_NO  = TI1.TF_AK_PRTNR_NO-->
-<!--                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')-->
-<!--                   AND OG_TP_CD  = TI1.TF_AK_PRTNR_OG_TP_CD-->
-<!--                   AND DTA_DL_YN = 'N'-->
-<!--                ) AS TF_BLG_NM-->
-<!--             , (SELECT PRTNR_KNM-->
-<!--                  FROM TB_OGBS_MM_PRTNR_IZ-->
-<!--                 WHERE 1=1-->
-<!--                   AND PRTNR_NO  = TI1.TF_AK_PRTNR_NO-->
-<!--                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')-->
-<!--                   AND OG_TP_CD  = TI1.TF_AK_PRTNR_OG_TP_CD-->
-<!--                   AND DTA_DL_YN = 'N'-->
-<!--                ) AS TF_FNM-->
-<!--          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ I1-->
-<!--         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ OI1-->
-<!--            ON I1.CST_SV_ASN_NO = OI1.CST_SV_ASN_NO-->
-<!--           AND OI1.DTA_DL_YN = 'N'-->
-<!--         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ EI1-->
-<!--            ON I1.CNTR_NO    = EI1.CNTR_NO-->
-<!--           AND I1.CNTR_SN    = EI1.CNTR_SN-->
-<!--           AND EI1.DTA_DL_YN = 'N'-->
-<!--         INNER JOIN (SELECT T1.DTL_CNTR_NO-->
-<!--                          , T1.DTL_CNTR_SN-->
-<!--                          , TRIM(T2.RCGVP_KNM) AS RCGVP_KNM-->
-<!--                          , T2.ADR_ID-->
-<!--                          , T2.LOCARA_TNO-->
-<!--                          , T2.EXNO_ENCR-->
-<!--                          , T2.IDV_TNO-->
-<!--                          , T2.CRAL_LOCARA_TNO-->
-<!--                          , T2.MEXNO_ENCR-->
-<!--                          , T2.CRAL_IDV_TNO-->
-<!--                               FROM TB_SSCT_CNTR_ADR_REL T1-->
-<!--                              INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T2-->
-<!--                                 ON T2.CNTR_ADRPC_ID = T1.CNTR_ADRPC_ID-->
-<!--                                AND T2.DTA_DL_YN = 'N'-->
-<!--                              WHERE 1=1-->
-<!--                                AND T1.DTA_DL_YN = 'N'-->
-<!--                                AND T1.ADRPC_TP_CD = '3'        /* 설치처 */-->
-<!--                                AND T1.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')-->
-<!--                                AND T1.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')-->
-<!--                            ) T3-->
-<!--            ON EI1.CNTR_NO = T3.DTL_CNTR_NO-->
-<!--           AND EI1.CNTR_SN = T3.DTL_CNTR_SN-->
-<!--         INNER JOIN TB_GBCO_ADR_BAS AB1-->
-<!--            ON T3.ADR_ID     = AB1.ADR_ID-->
-<!--           AND AB1.DTA_DL_YN = 'N'-->
-<!--         INNER JOIN TB_SSCT_CNTR_DTL D1-->
-<!--            ON I1.CNTR_NO   = D1.CNTR_NO-->
-<!--           AND I1.CNTR_SN   = D1.CNTR_SN-->
-<!--           AND D1.DTA_DL_YN = 'N'-->
-<!--         INNER JOIN TB_SVPD_EGER_ASN_ADR_IZ E1-->
-<!--            ON E1.EMD_SN      = (SELECT MAX(EMD_SN)-->
-<!--                                   FROM TB_SVPD_EGER_ASN_ADR_IZ-->
-<!--                                  WHERE NEW_ADR_ZIP = AB1.NEW_ADR_ZIP)-->
-<!--           AND E1.DTA_DL_YN   = 'N'-->
-<!--           AND E1.NEW_ADR_ZIP = AB1.NEW_ADR_ZIP-->
-<!--          LEFT OUTER JOIN TB_SVPD_ASN_RS_TF_IZ TI1-->
-<!--            ON TI1.TF_SN = (SELECT MAX(TF_SN)-->
-<!--                             FROM TB_SVPD_ASN_RS_TF_IZ-->
-<!--                            WHERE CST_SV_ASN_NO = I1.CST_SV_ASN_NO-->
-<!--                           )-->
-<!--           AND TI1.DTA_DL_YN = 'N'-->
-<!--         WHERE 1=1-->
-        SELECT A.CST_SV_ASN_NO
-             , A.CNTR_NO
-             , A.RCGVP_KNM
-             , A.SELL_TP_NM
-             , A.SAP_MAT_CD
-             , A.BASE_PD_CD
-             , A.PD_ABBR_NM
-             , A.WK_DV_NM
-             , A.CTPV_NM
-             , A.CTCTY_NM
-             , A.AMTD_NM
-             , A.CNSL_MO_CN
-             , A.NEW_ADR_ZIP
-             , A.ADR
-             , A.ALNC_DV_NM
-             , A.DTM_CH_CAUS_NM
-             , A.DTM_CH_RSON_NM
-             , A.DTM_CH_RSON_DTL_CN
-			 , A.LOCARA_TNO
-			 , A.EXNO_ENCR
-			 , A.IDV_TNO
-			 , A.CRAL_LOCARA_TNO
-			 , A.MEXNO_ENCR
-			 , A.CRAL_IDV_TNO
-             , A.MTR_STAT_NM
-             , A.WK_PRGS_DV_NM
-             , (SUBSTR(A.VST_CNFM_DTM,1,4)||'-'||SUBSTR(A.VST_CNFM_DTM,5,2)||'-'||SUBSTR(A.VST_CNFM_DTM,7,2)||' '||
-               SUBSTR(A.VST_CNFM_DTM,9,2)||':'||SUBSTR(A.VST_CNFM_DTM,10,2)) AS VST_CNFM_DTM
-             , A.ASN_DTM
-             , A.RCST
-             , A.BFCH_BLG_NM
-             , A.BFCH_EMPNO
-             , A.BFCH_FNM
-             , A.AFCH_BLG_CD AS AFCH_BLG_CD_ORIGIN
-             , A.AFCH_EMPNO AS AFCH_EMPNO_ORIGIN
-             , A.AFCH_BLG_CD
-             , A.AFCH_BLG_NM
-             , A.AFCH_EMPNO
-             , A.AFCH_FNM
-             , A.TF_DT
-             , A.TF_RSON_NM
-             , A.TF_BLG_NM
-             , A.TF_FNM
-        FROM (
-              SELECT '1202101010000000030' AS CST_SV_ASN_NO, '2023-0000001' AS CNTR_NO, '한국야쿠르트' AS RCGVP_KNM, '렌탈' AS SELL_TP_NM, '300006924' AS SAP_MAT_CD, '49607-000000' AS BASE_PD_CD, '비데(BM550RWQA)' AS PD_ABBR_NM, '1' AS SV_BIZ_HCLSF_CD ,'설치' AS WK_DV_NM, '경기도' AS CTPV_NM, '용인시 기흥구' AS CTCTY_NM, '보정동' AS AMTD_NM, '설치 방문전 연락 부탁드려요' AS CNSL_MO_CN, '16931' AS NEW_ADR_ZIP, '경기 용인시 기흥구 이현로 29번길 72-11' AS ADR, '' AS ALNC_DV_NM, '외부고객' AS DTM_CH_CAUS_NM, '고객요청' AS DTM_CH_RSON_NM, '곽선일_오전요청' AS DTM_CH_RSON_DTL_CN, '010' AS LOCARA_TNO, '5254' AS EXNO_ENCR, '1115' AS IDV_TNO, '010' AS CRAL_LOCARA_TNO, '5254' AS MEXNO_ENCR, '1115' AS CRAL_IDV_TNO, '정상' AS MTR_STAT_NM, '대기' AS WK_PRGS_DV_NM, '202303181000' AS VST_CNFM_DTM, '20230202102338' AS ASN_DTM, '명순덕' AS RCST, 'OGO20230113484' AS SV_CNR_OG_ID, '수원 / 금곡' AS BFCH_BLG_NM, '1239715' AS BFCH_EMPNO, '신영근' AS BFCH_FNM, 'OGO20230113484' AS AFCH_BLG_CD, '수원 / 금곡' AS AFCH_BLG_NM, '1370010' AS AFCH_EMPNO, '김길란' AS AFCH_FNM, '2022-12-29' AS TF_DT, '업무조정' AS TF_RSON_NM, '차세대Biz혁신팀' AS TF_BLG_NM, '김호영' AS TF_FNM FROM DUAL UNION ALL
-              SELECT '1202101010000000031', '2023-0000002', '세진이비인후과', '렌탈', '300006925', '24510-000000', '청정기(AN734CWB)34평', '1', '설치', '서울특별시', '용산구', '이태원동', '설치 방문전 연락 부탁드려요', '21541', '서울 용산구 이태원로 21 세진이비인후과', '', '외부고객', '고객요청', '김다영_오전요청', '02', '115', '4478', '02', '115', '4478', '정상', '대기', '202303181000', '20230228131541', '박순자', 'OGO20230113484', '수원 / 금곡', '1370010', '김길란', 'OGO20230113484', '수원 / 금곡', '1307870', '김낙훈', '2023-03-05', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
-              SELECT '1202101010000000032', '2023-0000003', '세진이비인후과', '렌탈', '300001426', '51120-000000', '정수기(KW-PK2W1)', '1', '설치', '서울특별시', '용산구', '이태원동', '설치 방문전 연락 부탁드려요', '21541', '서울 용산구 이태원로 21 세진이비인후과', '', '외부고객', '고객요청', '김다영_오전요청', '02', '115', '4478', '02', '115', '4478', '정상', '대기', '202303181000', '20230228131541', '박순자', 'OGO20230113484', '수원 / 금곡', '1370010', '김길란', 'OGO20230113484', '수원 / 금곡', '1307870', '김낙훈', '2023-03-05', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
-              SELECT '1202101010000000033', '2023-0000004', '제이그림', '렌탈', '300006924', '49607-000000', '비데(BM550RWQA)', '3', 'A/S', '전라북도', '전주시', '송천동2가', '설치 방문전 연락 부탁드려요', '50148', '전북 전주시 덕진구 와룡로 58-3', '', '외부고객', '고객요청', '최성미_오전요청', '010', '6772', '2333', '010', '6772', '2333', '정상', '대기', '202303181130', '20230303152041', '박혜은', 'OGO20230113471', '의정부 / 센트럴', '1465030', '이지연', 'OGO20230113471', '의정부 / 센트럴', '1433672', '구혜영', '2023-03-06', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
-              SELECT '1202101010000000034', '2023-0000005', '제이그림', '렌탈', '300006925', '24510-000000', '청정기(AN734CWB)34평', '3', 'A/S', '전라북도', '전주시', '송천동2가', '설치 방문전 연락 부탁드려요', '50148', '전북 전주시 덕진구 와룡로 58-3', '', '외부고객', '고객요청', '최성미_오전요청', '010', '6772', '2333','010', '6772', '2333', '정상', '대기', '202303181130', '20230303152041', '박혜은', 'OGO20230113471', '의정부 / 센트럴', '1465030', '이지연', 'OGO20230113471', '의정부 / 센트럴', '1433672', '구혜영', '2023-03-06', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
-              SELECT '1202101010000000035', '2023-0000006', '제이그림', '렌탈', '300001426', '51120-000000', '정수기(KW-PK2W1)', '3', 'A/S', '전라북도', '전주시', '송천동2가', '설치 방문전 연락 부탁드려요', '50148', '전북 전주시 덕진구 와룡로 58-3', '', '외부고객', '고객요청', '최성미_오전요청', '010', '6772', '2333','010', '6772', '2333', '정상', '대기', '202303181130', '20230303152041', '박혜은', 'OGO20230113471', '의정부 / 센트럴', '1465030', '이지연', 'OGO20230113471', '의정부 / 센트럴', '1433672', '구혜영', '2023-03-06', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
-              SELECT '1202101010000000036', '2023-0000007', '권명국', '렌탈', '300006924', '49607-000000', '비데(BM550RWQA)', '1', '설치', '서울특별시', '용산구', '이태원동', '설치 방문전 연락 부탁드려요', '22651', '서울 용산구 이태원로 221 주영아파트 지하 2층 직원식당', '', '외부고객', '고객요청', '김다영_오전요청', '010', '2222', '3333', '010', '2222', '3333', '정상', '대기', '202303190900', '20230307091226', '박순자', 'OGO20230113484', '수원 / 금곡', '1307870', '김낙훈', 'OGO20230113484' ,'수원 / 금곡', '1239715', '신영근', '2023-03-07', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
-              SELECT '1202101010000000037', '2023-0000008', '권명국', '렌탈', '300006925', '24510-000000', '청정기(AN734CWB)34평', '1', '설치', '서울특별시', '용산구', '이태원동', '설치 방문전 연락 부탁드려요', '22651', '서울 용산구 이태원로 221 주영아파트 지하 2층 직원식당', '', '외부고객', '고객요청', '김다영_오전요청', '010', '2222', '3333','010', '2222', '3333', '정상', '대기', '202303190900', '20230307091226', '박순자', 'OGO20230113484', '수원 / 금곡', '1307870', '김낙훈', 'OGO20230113484', '수원 / 금곡', '1239715', '신영근', '2023-03-07', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
-              SELECT '1202101010000000038', '2023-0000009', '권명국', '렌탈', '300001426', '51120-000000', '정수기(KW-PK2W1)', '1', '설치', '서울특별시', '용산구', '이태원동', '설치 방문전 연락 부탁드려요', '22651', '서울 용산구 이태원로 221 주영아파트 지하 2층 직원식당', '', '외부고객', '고객요청', '김다영_오전요청', '010', '2222', '3333','010', '2222', '3333', '정상', '대기', '202303190900', '20230307091226', '박순자', 'OGO20230113484', '수원 / 금곡', '1307870', '김낙훈', 'OGO20230113484', '수원 / 금곡', '1239715', '신영근', '2023-03-07', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
-              SELECT '1202101010000000039', '2023-0000010', '빨간펜수학의달인 후암점', '렌탈', '300001426', '5112-000000', '정수기(KW-PK2W1)', '1', '설치', '서울특별시', '용산구', '후암동', '설치 방문전 연락 부탁드려요', '21845', '서울 용산구 후암로28가길 3 동인주택', 'EDU 2차제휴', '내부고객', '고객요청', '김다영_오전요청', '02', '355', '7416', '02', '355', '7416', '정상', '대기', '202303201030', '20230226120902', '박순자', 'OGO20230113484', '수원 / 금곡', '1307870', '김낙훈', 'OGO20230113484', '수원 / 금곡', '1239715', '신영근', '2023-03-06', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
-              SELECT '1202101010000000040', '2023-0000011', '빨간펜수학의달인 후암점', '렌탈', '300006925', '24510-000000', '청정기(AN734CWB)34평', '1', '설치', '서울특별시', '용산구', '후암동', '설치 방문전 연락 부탁드려요', '21845', '서울 용산구 후암로28가길 3 동인주택', 'EDU 2차제휴', '내부고객', '고객요청', '김다영_오전요청', '02', '355', '7416','02', '355', '7416', '정상', '대기', '202303201030', '20230226120902', '박순자', 'OGO20230113484', '수원 / 금곡', '1307870', '김낙훈', 'OGO20230113484', '수원 / 금곡', '1239715', '신영근', '2023-03-06', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL UNION ALL
-              SELECT '1202101010000000041', '2023-0000012', '빨간펜수학의달인 신당점', '렌탈', '300006925', '24510-000000', '청정기(AN734CWB)34평', '1', '설치', '서울특별시', '중구', '신당동', '설치 방문전 연락 부탁드려요', '11452', '서울 중구 청구로3나길 12 2층', 'EDU 2차제휴', '내부고객', '고객요청', '김금숙_오후요청', '02', '344', '7741', '02', '344', '7741', '정상', '대기', '202303201400', '20230302104515', '박순자', 'OGO20230113484', '수원 / 금곡', '1307870', '김낙훈', 'OGO20230113484', '수원 / 금곡', '1239715', '신영근', '2023-03-07', '업무조정', '차세대Biz혁신팀', '김호영' FROM DUAL
-             ) A
-       WHERE 1=1
+        SELECT I1.CNTR_NO
+             , I1.CNTR_SN
+             , T3.RCGVP_KNM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', D1.SELL_TP_CD, #{session.langId}) AS SELL_TP_NM
+             , (SELECT SAP_MAT_CD
+                  FROM TB_PDBS_PD_BAS
+                 WHERE 1=1
+                   AND DTA_DL_YN = 'N'
+                   AND PD_CD     = D1.BASE_PD_CD) AS SAP_MAT_CD
+             , D1.BASE_PD_CD
+             , (SELECT PD_ABBR_NM
+                  FROM TB_PDBS_PD_BAS
+                 WHERE 1=1
+                   AND DTA_DL_YN = 'N'
+                   AND PD_CD     = D1.BASE_PD_CD) AS PD_ABBR_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_HCLSF_CD', I1.SV_BIZ_HCLSF_CD, #{session.langId}) AS WK_DV_NM
+             , E1.CTPV_NM
+             , E1.CTCTY_NM
+             , E1.AMTD_NM
+             , OI1.CNSL_MO_CN
+             , AB1.NEW_ADR_ZIP
+             , AB1.RNADR || AB1.RDADR AS ADR
+             , (CASE WHEN EI1.ALNC_BZS_CD = '21' THEN 'EDU 2차제휴'
+                     WHEN EI1.ALNC_BZS_CD = '30' THEN '구몬 2차제휴'
+                     ELSE ''
+                END) AS ALNC_DV_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'WK_DTM_CH_RSON_CD', I1.DTM_CH_CAUS_CD, #{session.langId}) AS DTM_CH_CAUS_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'WK_DTM_CH_RSON_DTL_CD', I1.DTM_CH_RSON_CD, #{session.langId}) AS DTM_CH_RSON_NM
+             , I1.DTM_CH_RSON_DTL_CN
+             , T3.LOCARA_TNO
+             , T3.EXNO_ENCR
+             , T3.IDV_TNO
+             , T3.CRAL_LOCARA_TNO
+             , T3.MEXNO_ENCR
+             , T3.CRAL_IDV_TNO
+             , F_CMZ_CD_NM(#{session.tenantId}, 'WK_PRGS_STAT_CD', I1.WK_PRGS_STAT_CD, #{session.langId}) AS WK_PRGS_DV_NM
+             , I1.VST_CNFMDT || I1.VST_CNFM_HH AS VST_CNFM_DTM
+             , I1.FST_RGST_DTM AS ASN_DTM
+             , OI1.RCP_ICHR_PRTNR_NO AS RCST
+             , (SELECT OG_NM
+                  FROM TB_OGBS_MM_PRTNR_IZ
+                 WHERE 1=1
+                   AND PRTNR_NO  = I1.ICHR_PRTNR_NO
+                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND OG_TP_CD  = I1.ICHR_OG_TP_CD
+                   AND DTA_DL_YN = 'N'
+                ) AS BFCH_BLG_NM
+             , I1.ICHR_PRTNR_NO AS BFCH_EMPNO
+             , (SELECT PRTNR_KNM
+                  FROM TB_OGBS_MM_PRTNR_IZ
+                 WHERE 1=1
+                   AND PRTNR_NO  = I1.ICHR_PRTNR_NO
+                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND OG_TP_CD  = I1.ICHR_OG_TP_CD
+                   AND DTA_DL_YN = 'N'
+                ) AS BFCH_FNM
+             , (SELECT OG_NM
+                  FROM TB_OGBS_MM_PRTNR_IZ
+                 WHERE 1=1
+                   AND PRTNR_NO  = TI1.AFCH_ICHR_PRTNR_NO
+                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND OG_TP_CD  = TI1.AFCH_ICHR_PRTNR_OG_TP_CD
+                   AND DTA_DL_YN = 'N'
+                ) AS AFCH_BLG_NM
+             , TI1.AFCH_ICHR_PRTNR_NO AS AFCH_EMPNO
+             , (SELECT PRTNR_KNM
+                  FROM TB_OGBS_MM_PRTNR_IZ
+                 WHERE 1=1
+                   AND PRTNR_NO  = TI1.AFCH_ICHR_PRTNR_NO
+                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND OG_TP_CD  = TI1.AFCH_ICHR_PRTNR_OG_TP_CD
+                   AND DTA_DL_YN = 'N'
+                ) AS AFCH_FNM
+             , TI1.TF_CNFMDT AS TF_DT
+             , F_CMZ_CD_NM(#{session.tenantId}, 'MTR_STAT_CD', TI1.TF_AK_RSON_CD, #{session.langId}) AS TF_RSON_NM
+             , (SELECT OG_NM
+                  FROM TB_OGBS_MM_PRTNR_IZ
+                 WHERE 1=1
+                   AND PRTNR_NO  = TI1.TF_AK_PRTNR_NO
+                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND OG_TP_CD  = TI1.TF_AK_PRTNR_OG_TP_CD
+                   AND DTA_DL_YN = 'N'
+                ) AS TF_BLG_NM
+             , (SELECT PRTNR_KNM
+                  FROM TB_OGBS_MM_PRTNR_IZ
+                 WHERE 1=1
+                   AND PRTNR_NO  = TI1.TF_AK_PRTNR_NO
+                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND OG_TP_CD  = TI1.TF_AK_PRTNR_OG_TP_CD
+                   AND DTA_DL_YN = 'N'
+                ) AS TF_FNM
+          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ I1
+         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ OI1
+            ON I1.CST_SV_ASN_NO = OI1.CST_SV_ASN_NO
+           AND OI1.DTA_DL_YN = 'N'
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ EI1
+            ON I1.CNTR_NO    = EI1.CNTR_NO
+           AND I1.CNTR_SN    = EI1.CNTR_SN
+           AND EI1.DTA_DL_YN = 'N'
+         INNER JOIN (SELECT T1.DTL_CNTR_NO
+                          , T1.DTL_CNTR_SN
+                          , TRIM(T2.RCGVP_KNM) AS RCGVP_KNM
+                          , T2.ADR_ID
+                          , T2.LOCARA_TNO
+                          , T2.EXNO_ENCR
+                          , T2.IDV_TNO
+                          , T2.CRAL_LOCARA_TNO
+                          , T2.MEXNO_ENCR
+                          , T2.CRAL_IDV_TNO
+                               FROM TB_SSCT_CNTR_ADR_REL T1
+                              INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T2
+                                 ON T2.CNTR_ADRPC_ID = T1.CNTR_ADRPC_ID
+                                AND T2.DTA_DL_YN = 'N'
+                              WHERE 1=1
+                                AND T1.DTA_DL_YN = 'N'
+                                AND T1.ADRPC_TP_CD = '3'        /* 설치처 */
+                                AND T1.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                                AND T1.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                            ) T3
+            ON EI1.CNTR_NO = T3.DTL_CNTR_NO
+           AND EI1.CNTR_SN = T3.DTL_CNTR_SN
+         INNER JOIN TB_GBCO_ADR_BAS AB1
+            ON T3.ADR_ID     = AB1.ADR_ID
+           AND AB1.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_DTL D1
+            ON I1.CNTR_NO   = D1.CNTR_NO
+           AND I1.CNTR_SN   = D1.CNTR_SN
+           AND D1.DTA_DL_YN = 'N'
+         INNER JOIN TB_SVPD_EGER_ASN_ADR_IZ E1
+            ON E1.EMD_SN      = (SELECT MAX(EMD_SN)
+                                   FROM TB_SVPD_EGER_ASN_ADR_IZ
+                                  WHERE NEW_ADR_ZIP = AB1.NEW_ADR_ZIP)
+           AND E1.DTA_DL_YN   = 'N'
+           AND E1.NEW_ADR_ZIP = AB1.NEW_ADR_ZIP
+          LEFT OUTER JOIN TB_SVPD_ASN_RS_TF_IZ TI1
+            ON TI1.TF_SN = (SELECT MAX(TF_SN)
+                             FROM TB_SVPD_ASN_RS_TF_IZ
+                            WHERE CST_SV_ASN_NO = I1.CST_SV_ASN_NO
+                           )
+           AND TI1.DTA_DL_YN = 'N'
+         WHERE 1=1
         <if test='@MybatisUtils@isNotEmpty(svCnrOgId)'>
            AND I1.SV_CNR_OG_ID = #{svCnrOgId}
         </if>
