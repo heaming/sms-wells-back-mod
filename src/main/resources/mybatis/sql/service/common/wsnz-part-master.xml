@@ -10,9 +10,9 @@
              , T1.PD_ABBR_NM               AS SVPD_NM_ABBR1
              , T1.CST_BASE_PD_ABBR_NM      AS SVPD_NM_CUST
              , T2.PD_PRP_VAL19             AS SVPD_ITEM_KND
-             , T4.CD_CNTN                  AS SVPD_ITEM_KND_NM
+             , F_CMZ_CD_NM('TNT_WELLS','ITM_KND_CD', T2.PD_PRP_VAL19, 'ko') AS SVPD_ITEM_KND_NM
              , T2.PD_PRP_VAL20             AS SVPD_ITEM_GR
-             , T5.CD_CNTN                  AS SVPD_ITEM_GR_NM
+             , F_CMZ_CD_NM('TNT_WELLS','PD_GRP_CD', T2.PD_PRP_VAL20, 'ko')  AS SVPD_ITEM_GR_NM
              , T1.PD_CLSF_ID               AS SVPD_CLSF_ID          /*상품분류ID*/
              , T1.PD_HCLSF_ID              AS SVPD_HCLSF_ID         /*상품대분류ID*/
              , T1.PD_MCLSF_ID              AS SVPD_MCLSF_ID         /*상품중분류ID*/
@@ -20,28 +20,28 @@
              , T1.PD_DCLSF_ID              AS SVPD_DCLSF_ID         /*상품세분류ID*/
              , T1.SELL_TP_CD               AS SVPD_SELL_TP_CD       /*판매유형코드*/
              , CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDD') >= NVL(t1.RVPY_STRTDT,'19000101') AND TO_CHAR(SYSDATE,'YYYYMMDD') <= NVL(t1.RVPY_ENDDT,'99991231') THEN 'Y' ELSE 'N' END AS SVPD_USE_YN
-             , t1.RVPY_STRTDT              AS SVPD_APLD_FR
-             , t1.RVPY_ENDDT               AS SVPD_APLD_TO
+             , T1.RVPY_STRTDT              AS SVPD_APLD_FR
+             , T1.RVPY_ENDDT               AS SVPD_APLD_TO
              , T1.SAP_MAT_CD               AS SVPD_SAP_CD
              , T1.SAP_MAT_GRP_VAL          AS SVPD_SAP_GRP
              , T1.SAP_PDCT_SCLSRT_STRC_VAL AS SVPD_SAP_LEVEL
              , T1.SAP_MAT_EVL_CLSS_VAL     AS SVPD_SAP_CLASS
              , T1.SAP_PDCT_SCLSRT_STRC_VAL AS SVPD_PDCT_CLSS_RSC
              , T1.PDCT_UPRC                AS SVPD_STD_PR
-             , T1.IMG_APN_FILE_ID          AS SVPD_IMG_URL
+             , T3.FILE_UID                 AS SVPD_IMG_URL
              , T1.PD_EPL_CN                AS SVPD_RMKS
              , T2.PD_PRP_VAL21             AS SVPD_COMM_GB
-             , T6.CD_CNTN                  AS SVPD_COMM_GB_NM
+             , F_CMZ_CD_NM('TNT_WELLS','CMN_PART_DV_CD', T2.PD_PRP_VAL21, 'ko') AS SVPD_COMM_GB_NM
              , T2.PD_PRP_VAL04             AS SVPD_LP_GB
              , T2.PD_PRP_VAL02             AS SVPD_MGT_TYP
-             , T7.CD_CNTN                  AS SVPD_MGT_TYP_NM
+             , F_CMZ_CD_NM('TNT_WELLS','MAT_MNGT_DV_CD', T2.PD_PRP_VAL02, 'ko') AS SVPD_MGT_TYP_NM
              , T2.PD_PRP_VAL10             AS SVPD_SFTY_QTY
              , T2.PD_PRP_VAL03             AS SVPD_SIZE
              , T2.PD_PRP_VAL05             AS SVPD_MGT_UNT
-             , T8.CD_CNTN                  AS SVPD_MGT_UNT_NM
+             , F_CMZ_CD_NM('TNT_WELLS','MNGT_UNIT_CD', T2.PD_PRP_VAL05, 'ko')   AS SVPD_MGT_UNT_NM
              , T2.PD_PRP_VAL06             AS SVPD_LT
              , T2.PD_PRP_VAL11             AS SVPD_DEL_UNT
-             , T9.CD_CNTN                  AS SVPD_DEL_UNT_NM
+             , F_CMZ_CD_NM('TNT_WELLS','OSTR_UNIT_CD', T2.PD_PRP_VAL11, 'ko')   AS SVPD_DEL_UNT_NM
              , T2.PD_PRP_VAL12             AS SVPD_BOX_QTY
              , T2.PD_PRP_VAL13             AS SVPD_PLT_QTY
              , T2.PD_PRP_VAL14             AS SVPD_BARCODE_YN
@@ -63,41 +63,14 @@
              , T2.PD_PRP_VAL37             AS SVPD_HMCR_USE_YN
       ]]>
       FROM TB_PDBS_PD_BAS T1
-     INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
-        ON T1.PD_CD = T2.PD_CD
-       AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
-       AND T2.DTA_DL_YN = 'N'
-      LEFT OUTER JOIN T_CMZ_CD_D T4
-        ON T2.PD_PRP_VAL19 = T4.CD_VLD_VAL
-       AND T4.TENANT_ID = 'TNT_WELLS'
-       AND T4.CD_ID = 'ITM_KND_CD'
-       AND T4.DEL_YN = 'N'
-      LEFT OUTER JOIN T_CMZ_CD_D T5
-        ON T2.PD_PRP_VAL20 = T5.CD_VLD_VAL
-       AND T5.TENANT_ID = 'TNT_WELLS'
-       AND T5.CD_ID = 'PD_GRP_CD'
-       AND T5.DEL_YN = 'N'
-      LEFT OUTER JOIN T_CMZ_CD_D T6
-        ON T2.PD_PRP_VAL21 = T6.CD_VLD_VAL
-       AND T6.TENANT_ID = 'TNT_WELLS'
-       AND T6.CD_ID = 'CMN_PART_DV_CD'
-       AND T6.DEL_YN = 'N'
-      LEFT OUTER JOIN T_CMZ_CD_D T7
-        ON T2.PD_PRP_VAL02 = T7.CD_VLD_VAL
-       AND T7.TENANT_ID = 'TNT_WELLS'
-       AND T7.CD_ID = 'MAT_MNGT_DV_CD'
-       AND T7.DEL_YN = 'N'
-      LEFT OUTER JOIN T_CMZ_CD_D T8
-        ON T2.PD_PRP_VAL05 = T8.CD_VLD_VAL
-       AND T8.TENANT_ID = 'TNT_WELLS'
-       AND T8.CD_ID = 'MNGT_UNIT_CD'
-       AND T8.DEL_YN = 'N'
-      LEFT OUTER JOIN T_CMZ_CD_D T9
-        ON T2.PD_PRP_VAL11 = T9.CD_VLD_VAL
-       AND T9.TENANT_ID = 'TNT_WELLS'
-       AND T9.CD_ID = 'OSTR_UNIT_CD'
-       AND T9.DEL_YN = 'N'
-     WHERE T1.PD_TP_CD = 'M'
-       AND T1.DTA_DL_YN = 'N'
+      INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+      ON T1.PD_CD = T2.PD_CD
+      AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+      AND T2.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN T_CMD_ATTH_FILE_D T3
+      ON T1.IMG_APN_FILE_ID = T3.ATTH_DOC_ID
+      AND T3.TENANT_ID = 'TNT_WELLS'
+      WHERE T1.PD_TP_CD = 'M'
+        AND T1.DTA_DL_YN = 'N'
     </sql>
 </mapper>
