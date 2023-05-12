@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncOutsourcedpdAsReceiptMapper">
+    <select id="selectOutsourcedpdAsReceiptIzs" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncOutsourcedpdAsReceiptDvo">
+        SELECT T1.RCP_SN
+             , T1.ENTRP_DV_CD
+             , T2.SV_CNR_SN
+             , T1.PD_NM
+             , T2.SV_CNR_NM
+             , T2.SV_CNR_LOCARA_TNO
+             , T2.SV_CNR_EXNO_ENCR
+             , T2.SV_CNR_IDV_TNO
+             , T2.SV_CNR_ADR
+             , T2.SV_CNR_DTL_ADR
+             , T2.SV_CNR_ICHR_PRTNR_NM
+          FROM TB_SVPD_OUTS_SV_RCP_IZ T1
+         INNER JOIN TB_SVPD_OUTS_SV_CNR_IZ T2
+            ON T2.SV_CNR_SN = T1.SV_CNR_SN
+           AND T2.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND T1.DTA_DL_YN   = 'N'
+           AND T1.ENTRP_DV_CD = '7'
+        <if test='@MybatisUtils@isEmpty(pdNm) and @MybatisUtils@isNotEmpty(cnrNm)'>
+          AND T1.PD_NM LIKE '%'||#{cnrNm}||'%'
+           OR T1.SV_CNR_NM LIKE '%'||#{cnrNm}||'%'
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(pdNm) and @MybatisUtils@isNotEmpty(cnrNm)'>
+          AND T1.PD_NM LIKE '%'||#{pdNm}||'%'
+          AND T1.SV_CNR_NM LIKE '%'||#{cnrNm}||'%'
+        </if>
+    </select>
+
+    <update id="deleteOutsourcedpdAsReceiptIz">
+        UPDATE TB_SVPD_OUTS_SV_RCP_IZ
+           SET DTA_DL_YN = 'Y'
+            <include refid="COMMON.updateSystemField"/>
+         WHERE RCP_SN = #{rcpSn}
+    </update>
+
+    <insert id="insertOutsourcedpdAsReceiptIz">
+        INSERT INTO TB_SVPD_OUTS_SV_RCP_IZ
+             ( RCP_SN
+             , SV_CNR_SN
+             , ENTRP_DV_CD
+             , PD_NM
+             , DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES
+             ( (SELECT COALESCE(MAX(RCP_SN),0) + 1
+                  FROM TB_SVPD_OUTS_SV_RCP_IZ
+               )
+             , #{svCnrSn}
+             , '7'
+             , #{pdNm}
+             , 'N'
+              <include refid="COMMON.insertSystemFieldValue"/>
+             )
+    </insert>
+
+    <update id="updateOutsourcedpdAsReceiptIz">
+        UPDATE TB_SVPD_OUTS_SV_RCP_IZ
+           SET PD_NM     = #{pdNm}
+             , SV_CNR_SN = #{svCnrSn}
+              <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND RCP_SN = #{rcpSn}
+    </update>
+
+    <select id="selectOutsourcedpdAsReceiptBzs" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncOutsourcedpdAsReceiptDvo">
+        SELECT SV_CNR_SN
+             , SV_CNR_NM
+             , SV_CNR_LOCARA_TNO
+             , SV_CNR_EXNO_ENCR
+             , SV_CNR_IDV_TNO
+             , SV_CNR_ZIP
+             , SV_CNR_ADR
+             , SV_CNR_DTL_ADR
+             , SV_CNR_ICHR_PRTNR_NM
+          FROM TB_SVPD_OUTS_SV_CNR_IZ
+         WHERE 1=1
+           AND DTA_DL_YN = 'N'
+         ORDER BY SV_CNR_NM
+    </select>
+
+    <update id="deleteOutsourcedpdAsReceiptBz">
+        UPDATE TB_SVPD_OUTS_SV_CNR_IZ
+           SET DTA_DL_YN = 'Y'
+         WHERE SV_CNR_SN = #{svCnrSn}
+    </update>
+
+    <insert id="insertOutsourcedpdAsReceiptBz">
+        INSERT INTO TB_SVPD_OUTS_SV_CNR_IZ
+             ( SV_CNR_SN
+             , ENTRP_DV_CD
+             , SV_CNR_NM
+             , SV_CNR_LOCARA_TNO
+             , SV_CNR_EXNO_ENCR
+             , SV_CNR_IDV_TNO
+             , SV_CNR_CRAL_LOCARA_TNO
+             , SV_CNR_MEXNO_ENCR
+             , SV_CNR_CRAL_IDV_TNO
+             , SV_CNR_EMADR
+             , SV_CNR_ZIP
+             , SV_CNR_ADR
+             , SV_CNR_DTL_ADR
+             , SV_CNR_ICHR_PRTNR_NM
+             , DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES
+             ( (SELECT COALESCE(MAX(SV_CNR_SN), 0) + 1
+                  FROM TB_SVPD_OUTS_SV_CNR_IZ
+               )
+             , '7'
+             , #{svCnrNm}
+             , #{svCnrLocaraTno}
+             , #{svCnrExnoEncr}
+             , #{svCnrIdvTno}
+             , ''
+             , ''
+             , ''
+             , ''
+             , #{svCnrZip}
+             , #{svCnrAdr}
+             , #{svCnrDtlAdr}
+             , #{svCnrIchrPrtnrNm}
+             , 'N'
+              <include refid="COMMON.insertSystemFieldValue"/>
+             )
+    </insert>
+
+    <update id="updateOutsourcedpdAsReceiptBz">
+        UPDATE TB_SVPD_OUTS_SV_CNR_IZ
+           SET SV_CNR_NM            = #{svCnrNm}
+             , SV_CNR_LOCARA_TNO    = #{svCnrLocaraTno}
+             , SV_CNR_EXNO_ENCR     = #{svCnrExnoEncr}
+             , SV_CNR_IDV_TNO       = #{svCnrIdvTno}
+             , SV_CNR_ZIP           = #{svCnrZip}
+             , SV_CNR_ADR           = #{svCnrAdr}
+             , SV_CNR_DTL_ADR       = #{svCnrDtlAdr}
+             , SV_CNR_ICHR_PRTNR_NM = #{svCnrIchrPrtnrNm}
+              <include refid="COMMON.updateSystemField"/>
+         WHERE SV_CNR_SN = #{svCnrSn}
+    </update>
+</mapper>
