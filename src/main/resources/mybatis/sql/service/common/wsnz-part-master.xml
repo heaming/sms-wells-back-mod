@@ -1,6 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.common.BASE">
+
+    <sql id="selectSaleCd">
+        SELECT BAS.PD_CD
+             , BAS.PD_NM
+             , REL.BASE_PD_CD AS SALE_CD
+             -- 제품과 기준상품코드의 관계 = 1:N
+             , BAS1.PD_NM AS SALE_CD_NM
+        FROM TB_PDBS_PD_BAS BAS
+        INNER JOIN TB_PDBS_PD_REL REL
+           ON BAS.PD_CD = REL.OJ_PD_CD
+          AND REL.PD_REL_TP_CD = '05'
+          AND REL.DTA_DL_YN = 'N'
+          AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+        INNER JOIN TB_PDBS_PD_BAS BAS1
+           ON REL.BASE_PD_CD = BAS1.PD_CD
+          AND BAS1.DTA_DL_YN = 'N'
+        WHERE BAS.DTA_DL_YN = 'N'
+        -- 예시
+        -------------------------------------------------------------------------------
+        -- PD_CD      PD_NM                SALE_CD     SALE_CD_NM
+        -------------------------------------------------------------------------------
+        -- WM01100237 WP67LNWA             WP01130408  WP67LNWA/신채널 멤버십 일시불
+        -- WM01100225 더원S(WM978NWA)      WP01130384  더원S(WM978NWA) 멤버십 렌탈
+        -- WM02100244 무풍클래식벽걸이2019 WP02130427  무풍클래식벽걸이2019 멤버십 렌탈
+        -- WM05100689 에코체그린           WP05130619  에코체그린 멤버십 일시불
+
+    </sql>
+
     <sql id="selectPartMaster">
     <![CDATA[
         SELECT T1.PD_CD                    AS SVPD_PD_CD
