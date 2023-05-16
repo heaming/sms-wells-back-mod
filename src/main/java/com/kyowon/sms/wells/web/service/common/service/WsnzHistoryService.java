@@ -5,6 +5,7 @@ import com.kyowon.sms.wells.web.service.common.mapper.WsnzHistoryMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -84,6 +85,7 @@ public class WsnzHistoryService {
      *
      * @return
      */
+    @Transactional
     public int insertCstSvBfsvcAsnHistByMap(Object vo){
         return mapper.insertCstSvBfsvcAsnHistByMap(this.convertVoToMap(vo));
     }
@@ -119,8 +121,20 @@ public class WsnzHistoryService {
      *
      * @return
      */
+    @Transactional
     public int insertCstBfsvcOjHistByMap(Object vo){
         return mapper.insertCstBfsvcOjHistByMap(this.convertVoToMap(vo));
+    }
+
+    /**
+     * 고객서비스BS배정이력 History Log By Pk
+     * (TB_SVPD_CST_SV_BFSVC_ASN_HIST)
+     * @param cstSvAsnNo
+     * @return
+     */
+    @Transactional
+    public int insertCstSvBfsvcAsnHistByPk(String cstSvAsnNo){
+        return mapper.insertCstSvBfsvcAsnHistByPk(cstSvAsnNo);
     }
 
 }
