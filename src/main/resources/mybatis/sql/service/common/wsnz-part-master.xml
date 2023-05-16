@@ -12,12 +12,12 @@
         INNER JOIN TB_PDBS_PD_REL REL
            ON BAS.PD_CD = REL.OJ_PD_CD
           AND REL.PD_REL_TP_CD = '05'
+          AND REL.DTA_DL_YN = 'N'
           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
         INNER JOIN TB_PDBS_PD_BAS BAS1
            ON REL.BASE_PD_CD = BAS1.PD_CD
-        WHERE BAS.DTA_DL_YN = 'N'
-          AND REL.DTA_DL_YN = 'N'
           AND BAS1.DTA_DL_YN = 'N'
+        WHERE BAS.DTA_DL_YN = 'N'
         -- 예시
         -------------------------------------------------------------------------------
         -- PD_CD      PD_NM                SALE_CD     SALE_CD_NM
