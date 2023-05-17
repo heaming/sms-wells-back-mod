@@ -8,9 +8,17 @@ public class PmPromotionConst {
     public static final String REST_URL_V1 = CommConst.REST_URL_V1 + "/sms/wells/promotion";
 
     public static final String[] MANDATORY_INPUT_ATCS = new String[]{"basePdCd", "cptPdCd", "basePdPrcDtlCd"};  // 필수 입력항목
-    public static final String PRODUCT_CODE_POSTFIX = "pdcd";
+    public static final String PRODUCT_CODE_POSTFIX = "PdCd";
     public static final String CLASSIFICATION_CODE_POSTFIX = "PdClsfCd";
     public static final String PRICE_CODE_POSTFIX = "PrcDtlCd";
+
+    /* 시스템항목명 */
+    public static final String SYS_CMPP_NM_BASE_PD_CD = "basePdCd";                 // (시스템항목명) 기준상품코드
+    public static final String SYS_CMPP_NM_BASE_PD_CLSF_CD = "basePdClsfCd";        // (시스템항목명) 기준상품분류코드
+    public static final String SYS_CMPP_NM_SERVICE_PD_CD = "svPdCd";                // (시스템항목명) 서비스코드
+    public static final String SYS_CMPP_NM_STPL_PRD_CD = "stplPrdCd";               // (시스템항목명) 약정주기코드
+    public static final String SYS_CMPP_NM_RENTAL_DSC_DV_CD = "rentalDscDvCd";      // (시스템항목명) 렌탈할인구분코드
+    public static final String SYS_CMPP_NM_RENTAL_DSC_TP_CD = "rentalDscTpCd";      // (시스템항목명) 렌탈할인유형코드
     public static final String SYS_CMPP_NM_DISCOUNT_FIX_AMOUNT = "dscFxam";         // (시스템항목명) 할인금액
     public static final String SYS_CMPP_NM_DISCOUNT_MONTHS = "dscMcnt";             // (시스템항목명) 할인개월
     public static final String SYS_CMPP_NM_DISCOUNT_TYPE = "dscTpCd";               // (시스템항목명) 프로모션할인유형코드

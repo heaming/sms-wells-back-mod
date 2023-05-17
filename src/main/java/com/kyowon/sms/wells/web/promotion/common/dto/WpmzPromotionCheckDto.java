@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.promotion.common.dto;
 
 import java.util.List;
 
-import com.kyowon.sms.wells.web.promotion.common.dvo.WpmzPromotionFreeGiftDvo;
+import com.kyowon.sms.common.web.promotion.common.dvo.ZpmzPromotionFreeGiftDvo;
 
 import io.swagger.annotations.ApiModel;
 
@@ -100,6 +100,6 @@ public class WpmzPromotionCheckDto {
         String fgptChoCd,           /* 사은품선택 */
         String prmDupPrmitYn,       /* 선납중복허용여부 */
         String pdPrcDtlCd,          /* 상품가격상세코드 */
-        List<WpmzPromotionFreeGiftDvo> pmotFreeGifts  /* 사은품목록 */
+        List<ZpmzPromotionFreeGiftDvo> pmotFreeGifts  /* 사은품목록 */
     ) {}
 }

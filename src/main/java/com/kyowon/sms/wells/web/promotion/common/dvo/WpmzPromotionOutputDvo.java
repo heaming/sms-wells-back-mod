@@ -2,6 +2,8 @@ package com.kyowon.sms.wells.web.promotion.common.dvo;
 
 import java.util.List;
 
+import com.kyowon.sms.common.web.promotion.common.dvo.ZpmzPromotionFreeGiftDvo;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -24,7 +26,7 @@ public class WpmzPromotionOutputDvo {
     private String fgptChoCd;           /* 사은품선택 */
     private String prmDupPrmitYn;       /* 선납중복허용여부 */
     private String pdPrcDtlCd;          /* 상품가격상세코드 */
-    private List<WpmzPromotionFreeGiftDvo> pmotFreeGifts;  /* 사은품목록 */
+    private List<ZpmzPromotionFreeGiftDvo> pmotFreeGifts;  /* 사은품목록 */
 
 
 }

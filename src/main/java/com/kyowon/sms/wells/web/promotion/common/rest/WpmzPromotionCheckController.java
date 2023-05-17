@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 public class WpmzPromotionCheckController {
 
     private final WpmzPromotionCheckService service;
-    private final WpmzPromotionCheckConverter converter;
 
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "pmotCd",              value = "프로모션코드",             paramType = "query", required = false, example = ""),
@@ -58,6 +57,6 @@ public class WpmzPromotionCheckController {
     @GetMapping("/promotions")
     public List<SearchRes> getAppliedPromotions(SearchReq req) throws NoSuchFieldException, IllegalAccessException {
 
-        return converter.mapAllWpmzPromotionOutputDvoToSearchRes(service.getAppliedPromotions(converter.mapSearchReqToWpmzPromotionInputDvo(req)));
+        return service.getAppliedPromotions(req);
     }
 }
