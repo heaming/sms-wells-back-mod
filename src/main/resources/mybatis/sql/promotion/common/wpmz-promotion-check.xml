@@ -1,9 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.promotion.common.mapper.WpmzPromotionCheckMapper">
-    <select id="selectProductClassificationInfo" resultType="String">
-       SELECT PD_HCLSF_ID || '>' || PD_MCLSF_ID || '>' || PD_LCLSF_ID || '>' || PD_DCLSF_ID
-          FROM TB_PDBS_PD_BAS
-      WHERE PD_CD = #{pdCd}
+    <select id="selectProductPriceDetailInfo" resultType="com.kyowon.sms.wells.web.promotion.common.dvo.WpmzPromotionPriceDetailDvo">
+       SELECT PD_CD
+            , SV_PD_CD
+            , STPL_PRD_CD
+            , PD_PRC_CNDT_CHRC_VAL01
+            , PD_PRC_CNDT_CHRC_VAL02
+            , PD_PRC_CNDT_CHRC_VAL03
+            , PD_PRC_CNDT_CHRC_VAL04
+            , PD_PRC_CNDT_CHRC_VAL05
+            , PD_PRC_CNDT_CHRC_VAL06
+            , PD_PRC_CNDT_CHRC_VAL07
+            , PD_PRC_CNDT_CHRC_VAL08
+            , PD_PRC_CNDT_CHRC_VAL09
+            , PD_PRC_CNDT_CHRC_VAL10
+            , PD_PRC_CNDT_CHRC_VAL11
+            , PD_PRC_CNDT_CHRC_VAL12
+            , PD_PRC_CNDT_CHRC_VAL13
+            , PD_PRC_CNDT_CHRC_VAL14
+            , PD_PRC_CNDT_CHRC_VAL15
+            , PD_PRC_CNDT_CHRC_VAL16
+            , PD_PRC_CNDT_CHRC_VAL17
+            , PD_PRC_CNDT_CHRC_VAL18
+            , PD_PRC_CNDT_CHRC_VAL19
+            , PD_PRC_CNDT_CHRC_VAL20
+         FROM TB_PDBS_PD_PRC_FNL_DTL T1
+        WHERE PD_PRC_FNL_DTL_ID = #{pdPrcDtlCd}
+          AND DTA_DL_YN = 'N'
+          AND EXISTS (SELECT 1
+                        FROM (SELECT PD_PRC_FNL_DTL_ID
+                                   , VER_SN
+                                   , ROW_NUMBER() OVER(PARTITION BY PD_PRC_FNL_DTL_ID ORDER BY VER_SN DESC, HIST_STRT_DTM DESC, FST_RGST_DTM DESC) RN
+                                FROM TB_PDBS_PD_PRC_FNL_DTL
+                               WHERE PD_PRC_FNL_DTL_ID = T1.PD_PRC_FNL_DTL_ID
+                                 AND DTA_DL_YN = 'N')
+                       WHERE PD_PRC_FNL_DTL_ID = T1.PD_PRC_FNL_DTL_ID
+                         AND VER_SN = T1.VER_SN
+                         AND RN = 1)
+    </select>
+
+    <select id="selectProductPriceMetaInfo" resultType="com.kyowon.sms.wells.web.promotion.common.dvo.WpmzPromotionPriceDetailDvo">
+        SELECT MAX(CASE WHEN COL_NM = 'RENTAL_DSC_DV_CD' THEN COL_ID END) AS RENTAL_DSC_DV_CD
+             , MAX(CASE WHEN COL_NM = 'RENTAL_DSC_TP_CD' THEN COL_ID END) AS RENTAL_DSC_TP_CD
+          FROM TB_PDBS_PD_PRP_META_BAS M1
+         WHERE M1.DTA_DL_YN = 'N'
+           AND M1.USE_YN = 'Y'
+         GROUP BY 1
     </select>
 </mapper>

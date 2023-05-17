@@ -4,15 +4,21 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.common.web.promotion.common.dvo.ZpmzPromotionAtcDvo;
 import com.kyowon.sms.common.web.promotion.common.dvo.ZpmzPromotionDtlFvrDvo;
+import com.kyowon.sms.common.web.promotion.common.dvo.ZpmzPromotionFreeGiftDvo;
 import com.kyowon.sms.common.web.promotion.common.dvo.ZpmzPromotionInfoDvo;
+import com.kyowon.sms.common.web.promotion.common.mapper.ZpmzPromotionApplyMapper;
 import com.kyowon.sms.common.web.promotion.common.service.ZpmzPromotionApplyService;
-import com.kyowon.sms.wells.web.promotion.common.dvo.WpmzPromotionFreeGiftDvo;
+import com.kyowon.sms.wells.web.promotion.common.converter.WpmzPromotionCheckConverter;
+import com.kyowon.sms.wells.web.promotion.common.dto.WpmzPromotionCheckDto.SearchReq;
+import com.kyowon.sms.wells.web.promotion.common.dto.WpmzPromotionCheckDto.SearchRes;
 import com.kyowon.sms.wells.web.promotion.common.dvo.WpmzPromotionInputDvo;
 import com.kyowon.sms.wells.web.promotion.common.dvo.WpmzPromotionOutputDvo;
+import com.kyowon.sms.wells.web.promotion.common.dvo.WpmzPromotionPriceDetailDvo;
 import com.kyowon.sms.wells.web.promotion.common.mapper.WpmzPromotionCheckMapper;
 import com.kyowon.sms.wells.web.promotion.zcommon.constants.PmPromotionConst;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
@@ -25,8 +31,15 @@ import lombok.RequiredArgsConstructor;
 public class WpmzPromotionCheckService {
 
     private final WpmzPromotionCheckMapper mapper;
+    private final WpmzPromotionCheckConverter converter;
+    private final ZpmzPromotionApplyMapper commonMapper;
     private final MessageResourceService messageService;
     private final ZpmzPromotionApplyService applyService;
+
+
+    public List<SearchRes> getAppliedPromotions(SearchReq req) throws IllegalAccessException, NoSuchFieldException {
+        return converter.mapAllWpmzPromotionOutputDvoToSearchRes(getAppliedPromotions(converter.mapSearchReqToWpmzPromotionInputDvo(req)));
+    }
 
     public List<WpmzPromotionOutputDvo> getAppliedPromotions(WpmzPromotionInputDvo paramDvo) throws IllegalAccessException, NoSuchFieldException {
 
@@ -35,8 +48,8 @@ public class WpmzPromotionCheckService {
         boolean mandatoryAtcCheck = false;
         for (Field field : paramDvo.getClass().getDeclaredFields()) {
             field.setAccessible(true);
-            boolean isMandatoryInputAtcs = Arrays.stream(PmPromotionConst.MANDATORY_INPUT_ATCS).anyMatch(field.getName()::equals);
-            if (isMandatoryInputAtcs && StringUtils.isNotEmpty(Objects.toString(field.get(paramDvo), ""))){
+            boolean isExistMandatoryInputAtcs = Arrays.stream(PmPromotionConst.MANDATORY_INPUT_ATCS).anyMatch(field.getName()::equals);
+            if (isExistMandatoryInputAtcs && StringUtils.isNotEmpty(Objects.toString(field.get(paramDvo), ""))){
                 mandatoryAtcCheck = true;
                 break;
             }
@@ -53,19 +66,8 @@ public class WpmzPromotionCheckService {
             }
         }
 
-        // 2.2. 상품코드가 존재하는 경우, 상품분류 항목 추가
-        List<ZpmzPromotionAtcDvo> addClsfInputDvos = new ArrayList<>();
-        for (ZpmzPromotionAtcDvo inputAtc : inputDvos) {
-            int pdIndex = inputAtc.getSysCmppNm().toLowerCase().indexOf(PmPromotionConst.PRODUCT_CODE_POSTFIX);
-            if (pdIndex > -1) {   // 상품코드인 경우
-                String sysCmppNm = inputAtc.getSysCmppNm().substring(0, pdIndex) + PmPromotionConst.CLASSIFICATION_CODE_POSTFIX;
-                sysCmppNm = sysCmppNm.substring(0, 1).toUpperCase() + sysCmppNm.substring(1);
-                Optional<ZpmzPromotionAtcDvo> clsfDvoOpt = inputDvos.stream().filter(item -> item.getSysCmppNm().toLowerCase().endsWith(PmPromotionConst.CLASSIFICATION_CODE_POSTFIX.toLowerCase())).findAny();
-                if (clsfDvoOpt.isEmpty() || !StringUtils.equals(clsfDvoOpt.get().getSysCmppNm(), sysCmppNm)) {
-                    addClsfInputDvos.add(new ZpmzPromotionAtcDvo(sysCmppNm, mapper.selectProductClassificationInfo(inputAtc.getVarbBasVal())));
-                }
-            }
-        }
+        // 2.2. 상품관련 항목 추가
+        List<ZpmzPromotionAtcDvo> addClsfInputDvos = getAdditionalProductArticles(inputDvos);
         if (!addClsfInputDvos.isEmpty()) inputDvos.addAll(addClsfInputDvos);
 
         /* 3. 적용되는 프로모션 목록 조회 */
@@ -76,6 +78,96 @@ public class WpmzPromotionCheckService {
 
         /* 5. 프로모션 혜택 결과 정리 후 리턴 */
         return convertAppliedPromotionsToFinalResults(appliedPromotions);
+    }
+
+    /**
+     * 상품관련 항목 추가
+     * @param inputDvos
+     * @return
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     */
+    private List<ZpmzPromotionAtcDvo> getAdditionalProductArticles(List<ZpmzPromotionAtcDvo> inputDvos) throws NoSuchFieldException, IllegalAccessException {
+
+        List<ZpmzPromotionAtcDvo> addClsfInputDvos = new ArrayList<>();
+        for (ZpmzPromotionAtcDvo inputAtc : inputDvos) {
+            /* 1. 상품가격상세코드가 존재하는 경우 */
+            int priceIndex = inputAtc.getSysCmppNm().indexOf(PmPromotionConst.PRICE_CODE_POSTFIX);
+            if (priceIndex > -1) {
+                WpmzPromotionPriceDetailDvo priceDetailDvo = mapper.selectProductPriceDetailInfo(inputAtc.getVarbBasVal());
+                if (priceDetailDvo != null) {
+                    // 1.1. 상품가격조건특성값에서 렌탈할인구분코드, 렌탈할인유형코드 추출 후 적용
+                    setRentalDscValue(priceDetailDvo);
+
+                    // 1.2. 기준상품코드 / 기준상품분류코드
+                    if (StringUtils.isNotBlank(Objects.toString(priceDetailDvo.getPdCd(), ""))) {
+                        // 기준상품코드
+                        Optional<ZpmzPromotionAtcDvo> dvoOpt = inputDvos.stream().filter(item -> StringUtils.equals(item.getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_BASE_PD_CD)).findAny();
+                        if (dvoOpt.isEmpty()) addClsfInputDvos.add(new ZpmzPromotionAtcDvo(PmPromotionConst.SYS_CMPP_NM_BASE_PD_CD, priceDetailDvo.getPdCd()));
+                        else dvoOpt.get().setVarbBasVal(priceDetailDvo.getPdCd());
+                        // 기준상품분류코드
+                        String pdClfCd = commonMapper.selectProductClassificationInfo(priceDetailDvo.getPdCd());
+                        if (StringUtils.isNotBlank(pdClfCd)) {
+                            Optional<ZpmzPromotionAtcDvo> clsfDvoOpt = inputDvos.stream().filter(item -> StringUtils.equals(item.getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_BASE_PD_CLSF_CD)).findAny();
+                            if (clsfDvoOpt.isEmpty()) addClsfInputDvos.add(new ZpmzPromotionAtcDvo(PmPromotionConst.SYS_CMPP_NM_BASE_PD_CLSF_CD, pdClfCd));
+                            else clsfDvoOpt.get().setVarbBasVal(pdClfCd);
+                        }
+                    }
+                    // 1.3. 서비스코드
+                    if (StringUtils.isNotBlank(Objects.toString(priceDetailDvo.getSvPdCd(), ""))) {
+                        Optional<ZpmzPromotionAtcDvo> dvoOpt = inputDvos.stream().filter(item -> StringUtils.equals(item.getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_SERVICE_PD_CD)).findAny();
+                        if (dvoOpt.isEmpty()) addClsfInputDvos.add(new ZpmzPromotionAtcDvo(PmPromotionConst.SYS_CMPP_NM_SERVICE_PD_CD, priceDetailDvo.getSvPdCd()));
+                        else dvoOpt.get().setVarbBasVal(priceDetailDvo.getSvPdCd());
+                    }
+                    // 1.4. 약정주기코드
+                    if (StringUtils.isNotBlank(Objects.toString(priceDetailDvo.getStplPrdCd(), ""))) {
+                        Optional<ZpmzPromotionAtcDvo> dvoOpt = inputDvos.stream().filter(item -> StringUtils.equals(item.getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_STPL_PRD_CD)).findAny();
+                        if (dvoOpt.isEmpty()) addClsfInputDvos.add(new ZpmzPromotionAtcDvo(PmPromotionConst.SYS_CMPP_NM_STPL_PRD_CD, priceDetailDvo.getStplPrdCd()));
+                        else dvoOpt.get().setVarbBasVal(priceDetailDvo.getStplPrdCd());
+                    }
+                    // 1.5. 렌탈할인구분코드
+                    if (StringUtils.isNotBlank(Objects.toString(priceDetailDvo.getRentalDscDvCd(), ""))) {
+                        Optional<ZpmzPromotionAtcDvo> dvoOpt = inputDvos.stream().filter(item -> StringUtils.equals(item.getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_RENTAL_DSC_DV_CD)).findAny();
+                        if (dvoOpt.isEmpty()) addClsfInputDvos.add(new ZpmzPromotionAtcDvo(PmPromotionConst.SYS_CMPP_NM_RENTAL_DSC_DV_CD, priceDetailDvo.getRentalDscDvCd()));
+                        else dvoOpt.get().setVarbBasVal(priceDetailDvo.getRentalDscDvCd());
+                    }
+                    // 1.6. 렌탈할인유형코드
+                    if (StringUtils.isNotBlank(Objects.toString(priceDetailDvo.getRentalDscTpCd(), ""))) {
+                        Optional<ZpmzPromotionAtcDvo> dvoOpt = inputDvos.stream().filter(item -> StringUtils.equals(item.getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_RENTAL_DSC_TP_CD)).findAny();
+                        if (dvoOpt.isEmpty()) addClsfInputDvos.add(new ZpmzPromotionAtcDvo(PmPromotionConst.SYS_CMPP_NM_RENTAL_DSC_TP_CD, priceDetailDvo.getRentalDscTpCd()));
+                        else dvoOpt.get().setVarbBasVal(priceDetailDvo.getRentalDscTpCd());
+                    }
+                }
+            }
+
+            /* 2. 상품코드가 존재하는 경우 */
+            // 상품분류항목 추가
+            int pdIndex = inputAtc.getSysCmppNm().toLowerCase().indexOf(PmPromotionConst.PRODUCT_CODE_POSTFIX.toLowerCase());
+            if (pdIndex > -1) {
+                String sysCmppNm = inputAtc.getSysCmppNm().substring(0, pdIndex) + PmPromotionConst.CLASSIFICATION_CODE_POSTFIX;
+                sysCmppNm = sysCmppNm.substring(0, 1).toUpperCase() + sysCmppNm.substring(1);
+                Optional<ZpmzPromotionAtcDvo> clsfDvoOpt = inputDvos.stream().filter(item -> item.getSysCmppNm().toLowerCase().endsWith(PmPromotionConst.CLASSIFICATION_CODE_POSTFIX.toLowerCase())).findAny();
+                if (clsfDvoOpt.isEmpty() || !StringUtils.equals(clsfDvoOpt.get().getSysCmppNm(), sysCmppNm)) {
+                    addClsfInputDvos.add(new ZpmzPromotionAtcDvo(sysCmppNm, commonMapper.selectProductClassificationInfo(inputAtc.getVarbBasVal())));
+                }
+            }
+        }
+        return addClsfInputDvos;
+    }
+
+    private void setRentalDscValue(WpmzPromotionPriceDetailDvo priceDetailDvo) throws NoSuchFieldException, IllegalAccessException {
+        // 상품가격조건특성 메타 조회
+        WpmzPromotionPriceDetailDvo metaDvo = mapper.selectProductPriceMetaInfo();
+
+        // 상품가격조건특성값에서 렌탈할인구분코드 추출
+        Field rentalDscDvCdField = priceDetailDvo.getClass().getDeclaredField(JdbcUtils.convertUnderscoreNameToPropertyName(metaDvo.getRentalDscDvCd()));
+        rentalDscDvCdField.setAccessible(true);
+        priceDetailDvo.setRentalDscDvCd(Objects.toString(rentalDscDvCdField.get(priceDetailDvo), ""));
+
+        // 상품가격조건특성값에서 렌탈할인유형코드 추출
+        Field rentalDscTpCdField = priceDetailDvo.getClass().getDeclaredField(JdbcUtils.convertUnderscoreNameToPropertyName(metaDvo.getRentalDscTpCd()));
+        rentalDscTpCdField.setAccessible(true);
+        priceDetailDvo.setRentalDscTpCd(Objects.toString(rentalDscTpCdField.get(priceDetailDvo), ""));
     }
 
     private List<WpmzPromotionOutputDvo> convertAppliedPromotionsToFinalResults(List<ZpmzPromotionInfoDvo> appliedPromotions) {
@@ -158,7 +250,7 @@ public class WpmzPromotionCheckService {
                             if (resultDvo.getPmotFreeGifts() == null) {
                                 resultDvo.setPmotFreeGifts(new ArrayList<>());
                             }
-                            resultDvo.getPmotFreeGifts().add(new WpmzPromotionFreeGiftDvo(fvrDvo.getVarbBasVal(), getFavorValue(infoDvo.getPmotDtlFvrs(), fvrDvo, PmPromotionConst.SYS_CMPP_NM_FREE_GIFT_QUANTITY)));
+                            resultDvo.getPmotFreeGifts().add(new ZpmzPromotionFreeGiftDvo(fvrDvo.getVarbBasVal(), getFavorValue(infoDvo.getPmotDtlFvrs(), fvrDvo, PmPromotionConst.SYS_CMPP_NM_FREE_GIFT_QUANTITY)));
                         }
                     }
                 }
