@@ -2,7 +2,7 @@ package com.kyowon.sms.wells.web.promotion.common.dto;
 
 import java.util.List;
 
-import com.kyowon.sms.common.web.promotion.common.dvo.ZpmzPromotionFreeGiftDvo;
+import com.kyowon.sms.common.web.promotion.common.dto.ZpmzPromotionApplyDto;
 
 import io.swagger.annotations.ApiModel;
 
@@ -69,6 +69,7 @@ public class WpmzPromotionCheckDto {
     /**
      * SearchRes - 조회 결과 DTO
      * @param pmotCd
+     * @param pmotCndtFvrRelId
      * @param dscMcnt
      * @param dscFxam
      * @param freeMcnt
@@ -87,6 +88,7 @@ public class WpmzPromotionCheckDto {
     @ApiModel(value = "WpmzPromotionCheckDto-SearchRes")
     public record SearchRes(
         String pmotCd,              /* 프로모션코드      */
+        String pmotCndtFvrRelId,    /* 프로모션조건혜택관계ID */
         String dscMcnt,             /* 할인개월         */
         String dscFxam,             /* 할인금액         */
         String freeMcnt,            /* 무료개월         */
@@ -100,6 +102,6 @@ public class WpmzPromotionCheckDto {
         String fgptChoCd,           /* 사은품선택 */
         String prmDupPrmitYn,       /* 선납중복허용여부 */
         String pdPrcDtlCd,          /* 상품가격상세코드 */
-        List<ZpmzPromotionFreeGiftDvo> pmotFreeGifts  /* 사은품목록 */
+        List<ZpmzPromotionApplyDto.FreeGiftRes> pmotFreeGifts  /* 사은품목록 */
     ) {}
 }

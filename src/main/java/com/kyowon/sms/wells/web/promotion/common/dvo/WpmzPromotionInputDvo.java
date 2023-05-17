@@ -27,8 +27,8 @@ public class WpmzPromotionInputDvo {
     private String alncBzsCd;           /* 제휴업체코드 */
     private String evCd;                /* 행사코드 */
     private String selrCd;              /* 판매자코드 */
-    private String dupApyPsbYn;         /* 중복적용가능여부 */
     private String crpDscExcdYn;        /* 법인DC제외여부 */
     private String spcDscCd;            /* 특별할인코드 */
+    private String freExpnYn;           /* 무료체험여부 */
 
 }
