@@ -102,6 +102,6 @@ public class WpmzPromotionCheckDto {
         String fgptChoCd,           /* 사은품선택 */
         String prmDupPrmitYn,       /* 선납중복허용여부 */
         String pdPrcDtlCd,          /* 상품가격상세코드 */
-        List<ZpmzPromotionApplyDto.FreeGiftRes> pmotFreeGifts  /* 사은품목록 */
+        List<ZpmzPromotionApplyDto.FreeGift> pmotFreeGifts  /* 사은품목록 */
     ) {}
 }
