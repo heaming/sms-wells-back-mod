@@ -13,6 +13,7 @@ import lombok.ToString;
 @ToString
 public class WpmzPromotionOutputDvo {
     private String pmotCd;              /* 프로모션코드      */
+    private String pmotCndtFvrRelId;    /* 프로모션조건혜택관계ID */
     private String dscMcnt;             /* 할인개월         */
     private String dscFxam;             /* 할인금액         */
     private String freeMcnt;            /* 무료개월         */

@@ -178,8 +178,9 @@ public class WpmzPromotionCheckService {
 
                 WpmzPromotionOutputDvo resultDvo = new WpmzPromotionOutputDvo();
 
-                /* 1. 프로모션코드 */
+                /* 1. 프로모션코드 / 프로모션조건혜택관계ID */
                 resultDvo.setPmotCd(infoDvo.getPmotCd());
+                resultDvo.setPmotCndtFvrRelId(infoDvo.getPmotCndtFvrRelId());
 
                 /* 2. 프로모션 혜택정리 */
                 if (infoDvo.getPmotDtlFvrs() != null) {
