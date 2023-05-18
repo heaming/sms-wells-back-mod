@@ -324,7 +324,7 @@
     </select>
 
     <select id="selectPartMaster" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodePartMasterDvo">
-        SELECT SVPD_ITEM_CD || SVPD_PART_CD AS CD
+        SELECT SVPD_PD_CD                   AS CD
              , SVPD_NM_KOR                  AS CD_NM
              , SVPD_ITEM_CD || SVPD_PART_CD AS CODE_ID
              , SVPD_NM_KOR                  AS CODE_NAME
