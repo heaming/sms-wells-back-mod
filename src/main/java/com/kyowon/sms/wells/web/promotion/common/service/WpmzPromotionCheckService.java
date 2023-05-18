@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.promotion.common.service;
 import java.lang.reflect.Field;
 import java.util.*;
 
+import com.sds.sflex.system.config.validation.BizAssert;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.stereotype.Service;
@@ -54,7 +55,31 @@ public class WpmzPromotionCheckService {
                 break;
             }
         }
-        ValidAssert.isTrue(mandatoryAtcCheck, messageService.getMessage("MSG_ALT_REQ_INPUT_VAL", PmPromotionConst.MANDATORY_INPUT_ATCS));
+        ValidAssert.isTrue(mandatoryAtcCheck, messageService.getMessage("MSG_ALT_REQ_INPUT_VALS", Arrays.toString(PmPromotionConst.MANDATORY_INPUT_ATCS)));
+
+        // 1.2. 프로모션 유효성 체크
+        if (StringUtils.isNotBlank(paramDvo.getPmotCd())) {
+            boolean isVaild = StringUtils.equals("Y", Objects.toString(commonMapper.selectPromotionValidCheckYn(paramDvo.getPmotCd()), ""));
+            BizAssert.isTrue(isVaild, messageService.getMessage("MSG_ALT_INVALID_ANYTHING", messageService.getMessage("MSG_TXT_PMOT"), paramDvo.getPmotCd()));
+        }
+
+        // 1.3. 기준상품 유효성 체크
+        if (StringUtils.isNotBlank(paramDvo.getBasePdCd())) {
+            boolean isVaild = StringUtils.equals("Y", Objects.toString(commonMapper.selectProductValidCheckYn(paramDvo.getBasePdCd()), ""));
+            BizAssert.isTrue(isVaild, messageService.getMessage("MSG_ALT_INVALID_ANYTHING", messageService.getMessage("MSG_TXT_PRDT"), paramDvo.getBasePdCd()));
+        }
+
+        // 1.4. 연계상품(모종) 유효성 체크
+        if (StringUtils.isNotBlank(paramDvo.getLkPdCd())) {
+            boolean isVaild = StringUtils.equals("Y", Objects.toString(commonMapper.selectProductValidCheckYn(paramDvo.getLkPdCd()), ""));
+            BizAssert.isTrue(isVaild, messageService.getMessage("MSG_ALT_INVALID_ANYTHING", messageService.getMessage("MSG_TXT_PRDT"), paramDvo.getLkPdCd()));
+        }
+
+        // 1.5. 패키지필수상품 유효성 체크
+        if (StringUtils.isNotBlank(paramDvo.getPkgMndtPdCd())) {
+            boolean isVaild = StringUtils.equals("Y", Objects.toString(commonMapper.selectProductValidCheckYn(paramDvo.getPkgMndtPdCd()), ""));
+            BizAssert.isTrue(isVaild, messageService.getMessage("MSG_ALT_INVALID_ANYTHING", messageService.getMessage("MSG_TXT_PRDT"), paramDvo.getPkgMndtPdCd()));
+        }
 
         /* 2. 프로모션용 dvo로 변경 */
         // 2.1. 입력 데이터 전체 항목 dvo로 이관

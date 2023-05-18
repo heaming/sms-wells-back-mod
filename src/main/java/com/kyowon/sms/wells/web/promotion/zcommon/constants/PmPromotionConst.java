@@ -7,7 +7,7 @@ public class PmPromotionConst {
     // 프로모션 - 공통
     public static final String REST_URL_V1 = CommConst.REST_URL_V1 + "/sms/wells/promotion";
 
-    public static final String[] MANDATORY_INPUT_ATCS = new String[]{"basePdCd", "cptPdCd", "basePdPrcDtlCd"};  // 필수 입력항목
+    public static final String[] MANDATORY_INPUT_ATCS = new String[]{"pmotCd", "basePdCd", "basePdPrcDtlCd"};  // 필수 입력항목
     public static final String PRODUCT_CODE_POSTFIX = "PdCd";
     public static final String CLASSIFICATION_CODE_POSTFIX = "PdClsfCd";
     public static final String PRICE_CODE_POSTFIX = "PrcDtlCd";
