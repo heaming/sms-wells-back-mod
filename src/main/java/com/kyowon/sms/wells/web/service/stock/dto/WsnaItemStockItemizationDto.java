@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 import javax.validation.constraints.NotBlank;
 
@@ -15,6 +16,7 @@ import javax.validation.constraints.NotBlank;
 public class WsnaItemStockItemizationDto {
 
     @ApiModel(value = "WsnaItemStockItemizationDto-SaveReq")
+    @Builder
     public record SaveReq(
         String procsYm, /*처리년월*/
         String procsDt, /*처리일자*/
