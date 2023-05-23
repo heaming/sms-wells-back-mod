@@ -22,11 +22,11 @@
            AND T1.ENTRP_DV_CD = '7'
         <if test='@MybatisUtils@isEmpty(pdNm) and @MybatisUtils@isNotEmpty(cnrNm)'>
           AND T1.PD_NM LIKE '%'||#{cnrNm}||'%'
-           OR T1.SV_CNR_NM LIKE '%'||#{cnrNm}||'%'
+           OR T2.SV_CNR_NM LIKE '%'||#{cnrNm}||'%'
         </if>
         <if test='@MybatisUtils@isNotEmpty(pdNm) and @MybatisUtils@isNotEmpty(cnrNm)'>
           AND T1.PD_NM LIKE '%'||#{pdNm}||'%'
-          AND T1.SV_CNR_NM LIKE '%'||#{cnrNm}||'%'
+          AND T2.SV_CNR_NM LIKE '%'||#{cnrNm}||'%'
         </if>
     </select>
 
