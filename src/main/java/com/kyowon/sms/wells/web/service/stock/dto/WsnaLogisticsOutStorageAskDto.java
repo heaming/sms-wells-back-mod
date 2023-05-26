@@ -107,9 +107,7 @@ public class WsnaLogisticsOutStorageAskDto {
         String strOjWareDtlDvCd,
 
         // 입고대상창고명 (STR_OJ_WARE_NM)
-        String strOjWareNm,
-
-        String s
+        String strOjWareNm
     ) {}
 
 }
