@@ -1,6 +1,9 @@
 package com.kyowon.sms.wells.web.service.stock.dto;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
+
+import com.sds.sflex.system.config.validation.validator.ValidDate;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
@@ -25,6 +28,7 @@ public class WsnaLogisticsOutStorageAskDto {
         String ostrAkNo,
 
         // 출고요청일련번호 (OSTR_AK_SN)
+        @Positive
         int ostrAkSn,
 
         // 출고요청유형코드 (OSTR_AK_TP_CD)
@@ -33,9 +37,11 @@ public class WsnaLogisticsOutStorageAskDto {
 
         // 출고요청일자 (OSTR_RQDT)
         @NotBlank
+        @ValidDate
         String ortrRqdt,
 
         // 출고희망일자 (OSTR_HOP_DT)
+        @ValidDate
         String ostrHopDt,
 
         // 입출고요청구분코드 (IOST_AK_DV_CD)
@@ -69,6 +75,7 @@ public class WsnaLogisticsOutStorageAskDto {
         String itmPdCd,
 
         // 출고요청수량 (OSTR_AK_QTY)
+        @Positive
         int ostrAkQty,
 
         // 품목등급코드 (ITM_GD_CD)

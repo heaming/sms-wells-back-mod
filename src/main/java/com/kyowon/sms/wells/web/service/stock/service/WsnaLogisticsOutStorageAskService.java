@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
  */
 
 @Service
+@Validated
 @RequiredArgsConstructor
 public class WsnaLogisticsOutStorageAskService {
 
@@ -55,7 +56,7 @@ public class WsnaLogisticsOutStorageAskService {
      * @param dtos  (필수) 출고요청품목 리스트
      * @return 출고요청품목 데이터 생성 건수
      */
-    @Validated
+
     @Transactional
     public int createOutOfStorageAsks(@Valid
     List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
@@ -152,7 +153,8 @@ public class WsnaLogisticsOutStorageAskService {
      * @throws 물류 출고가 완료된 경우 BizExcpeiton 처리
      */
     @Transactional
-    public int editOutOfStorageAsk(List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
+    public int editOutOfStorageAsk(@Valid
+    List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
 
         int cnt = 0;
 
