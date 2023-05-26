@@ -17,10 +17,15 @@ public interface WsnaLogisticsOutStorageAskMapper {
 
     int insertOstrAkDtlSendEtxt(WsnaLogisticsOutStorageAskDtlDvo dvo);
 
-    WsnaLogisticsOutStorageAskDtlDvo selectOstrAkSendEtxtByRelNoAndRelSn(
+    WsnaLogisticsOutStorageAskDtlDvo selectOstrAkDtlSendEtxtByRelNoAndRelSn(
         WsnaLogisticsOutStorageAskDto.SaveReq dto
     );
 
-    int updateOstrAkSendEtxt(WsnaLogisticsOutStorageAskDtlDvo dvo);
+    int updateOstrAkDtlSendEtxt(WsnaLogisticsOutStorageAskDtlDvo dvo);
 
+    int updateOstrAkDtlSendEtxtForRemove(WsnaLogisticsOutStorageAskDtlDvo dvo);
+
+    Integer selectOstrAkDtlSendEtxtCount(String ostrAkNo);
+
+    int updateItmOstrAkSendEtxtForRemove(WsnaLogisticsOutStorageAskDvo dvo);
 }

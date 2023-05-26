@@ -149,7 +149,7 @@ public class WsnaLogisticsOutStorageAskService {
      * 출고요청품목 수정
      * @param dtos  (필수) 출고요청품목 데이터 리스트
      * @return 데이터 수정 건수
-     * @throws 물류출고가 완료된 경우 BizExcpeiton 처리
+     * @throws 물류 출고가 완료된 경우 BizExcpeiton 처리
      */
     @Transactional
     public int editOutOfStorageAsk(List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
@@ -159,7 +159,7 @@ public class WsnaLogisticsOutStorageAskService {
         if (CollectionUtils.isNotEmpty(dtos)) {
             for (WsnaLogisticsOutStorageAskDto.SaveReq dto : dtos) {
                 // 출고요청상세송신전문 데이터 조회
-                WsnaLogisticsOutStorageAskDtlDvo askDtlDvo = this.mapper.selectOstrAkSendEtxtByRelNoAndRelSn(dto);
+                WsnaLogisticsOutStorageAskDtlDvo askDtlDvo = this.mapper.selectOstrAkDtlSendEtxtByRelNoAndRelSn(dto);
                 if (ObjectUtils.isNotEmpty(askDtlDvo)) {
                     // 전송여부 체크
                     String trsYn = askDtlDvo.getTrsYn();
@@ -177,7 +177,55 @@ public class WsnaLogisticsOutStorageAskService {
                     updateDvo.setOstrAkSn(askDtlDvo.getOstrAkSn());
 
                     // 출고요청상세송신전문 데이터 변경
-                    cnt += this.mapper.updateOstrAkSendEtxt(updateDvo);
+                    cnt += this.mapper.updateOstrAkDtlSendEtxt(updateDvo);
+                }
+            }
+        }
+
+        return cnt;
+    }
+
+    /**
+     * 출고요청품목 삭제
+     * @param dtos  (필수) 출고요청품목 데이터 리스트
+     * @return 데이터 삭제 건수
+     */
+    @Transactional
+    public int removeOutOfStorageAsk(List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
+
+        int cnt = 0;
+
+        if (CollectionUtils.isNotEmpty(dtos)) {
+            for (WsnaLogisticsOutStorageAskDto.SaveReq dto : dtos) {
+                // 출고요청상세송신전문 데이터 조회
+                WsnaLogisticsOutStorageAskDtlDvo askDtlDvo = this.mapper.selectOstrAkDtlSendEtxtByRelNoAndRelSn(dto);
+                if (ObjectUtils.isNotEmpty(askDtlDvo)) {
+                    // 전송여부 체크
+                    String trsYn = askDtlDvo.getTrsYn();
+                    // 물류에서 이미 전송이 완료된 경우 취소 API 호출
+                    if (YN_Y.equals(trsYn)) {
+                        // TODO: 물류 취소 API 호출 및 Exception 처리 추가.
+                    }
+
+                    // 데이터 삭제처리
+                    askDtlDvo.setDtaDlYn(YN_Y);
+                    cnt += this.mapper.updateOstrAkDtlSendEtxtForRemove(askDtlDvo);
+                }
+            }
+
+            // 출고요청번호 필터링
+            List<String> ostrAkNos = dtos.stream().map(WsnaLogisticsOutStorageAskDto.SaveReq::ostrAkNo).distinct()
+                .toList();
+            for (String ostrAkNo : ostrAkNos) {
+                // 품목출고요청상세송신 데이터가 모두 삭제처리 되었는지 체크
+                Integer removeCount = this.mapper.selectOstrAkDtlSendEtxtCount(ostrAkNo);
+                if (ObjectUtils.isEmpty(removeCount)) {
+                    // 품목출고요청상세송신 데이터가 모두 삭제된 경우 품목 출고요청송신 데이터 삭제처리
+                    WsnaLogisticsOutStorageAskDvo askDvo = this.mapper.selectItmOstrAkSendEtxtByOstrAkNo(ostrAkNo);
+                    if (ObjectUtils.isNotEmpty(askDvo)) {
+                        askDvo.setDtaDlYn(YN_Y);
+                        this.mapper.updateItmOstrAkSendEtxtForRemove(askDvo);
+                    }
                 }
             }
         }

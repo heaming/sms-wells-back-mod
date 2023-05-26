@@ -48,7 +48,7 @@
              , TRS_YN                /* 전송여부 */
              , TRS_DTM               /* 전송일시 */
              , DTA_DL_YN             /* 데이터삭제여부 */
-             <include refid="COMMON.insertSystemField" />
+               <include refid="COMMON.insertSystemField" />
              )
         VALUES
              (
@@ -66,7 +66,7 @@
              , #{trsYn}
              , #{trsDtm}
              , #{dtaDlYn}
-             <include refid="COMMON.insertSystemFieldValue" />
+               <include refid="COMMON.insertSystemFieldValue" />
              )
     </insert>
 
@@ -103,7 +103,7 @@
              , TRS_YN                 /* 전송여부 */
              , TRS_DTM                /* 전송일시 */
              , DTA_DL_YN              /* 데이터삭제여부 */
-             <include refid="COMMON.insertSystemField" />
+               <include refid="COMMON.insertSystemField" />
              )
         VALUES
              (
@@ -140,11 +140,11 @@
              , #{trsYn}
              , #{trsDtm}
              , #{dtaDlYn}
-             <include refid="COMMON.insertSystemFieldValue" />
+               <include refid="COMMON.insertSystemFieldValue" />
              )
     </insert>
 
-    <select id="selectOstrAkSendEtxtByRelNoAndRelSn" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo">
+    <select id="selectOstrAkDtlSendEtxtByRelNoAndRelSn" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo">
         SELECT SAP_PLNT_CD       /* SAP플랜트코드 */
              , LGST_OSTR_AK_NO   /* 물류출고요청번호 */
              , OSTR_AK_SN        /* 출고요청일련번호 */
@@ -156,7 +156,7 @@
            AND ROWNUM    = 1
     </select>
 
-    <update id="updateOstrAkSendEtxt" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo">
+    <update id="updateOstrAkDtlSendEtxt" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo">
         UPDATE TB_IFIN_OSTR_AK_DTL_SEND_ETXT
            SET MPAC_SN              = #{mpacSn}             /* 합포장일련번호 */
              , SAP_IOST_TP_CD       = #{sapIostTpCd}        /* SAP입출고유형코드 */
@@ -180,11 +180,37 @@
              , HSMTRL_CLSF_NM       = #{hsmtrlClsfNm}       /* 학습지분류명 */
              , BACT_PROCS_QTY       = #{bactProcsQty}       /* 후행처리수량 */
              , RMK_CN               = #{rmkCn}              /* 비고내용 */
-             <include refid="COMMON.updateSystemField"/>
+               <include refid="COMMON.updateSystemField"/>
          WHERE SAP_PLNT_CD     = #{sapPlntCd}
            AND LGST_OSTR_AK_NO = #{lgstOstrAkNo}
            AND OSTR_AK_SN      = #{ostrAkSn}
            AND TRS_YN          = 'N'   /* 전송여부가 N일 경우만 업데이트 */
+           AND DTA_DL_YN       = 'N'   /* 유효한 데이터 */
+    </update>
+
+    <update id="updateOstrAkDtlSendEtxtForRemove" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo">
+        UPDATE TB_IFIN_OSTR_AK_DTL_SEND_ETXT
+           SET DTA_DL_YN = #{dtaDlYn}   /* 데이터삭제여부 */
+               <include refid="COMMON.updateSystemField"/>
+         WHERE SAP_PLNT_CD     = #{sapPlntCd}
+           AND LGST_OSTR_AK_NO = #{lgstOstrAkNo}
+           AND OSTR_AK_SN      = #{ostrAkSn}
+    </update>
+
+    <select id="selectOstrAkDtlSendEtxtCount" resultType="java.lang.Integer">
+        SELECT 1
+          FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT
+         WHERE REL_NO    = #{ostrAkNo}
+           AND DTA_DL_YN = 'N'   /* 유효한 데이터 */
+           AND ROWNUM    = 1
+    </select>
+
+    <update id="updateItmOstrAkSendEtxtForRemove" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDvo">
+        UPDATE TB_IFIN_ITM_OSTR_AK_SEND_ETXT
+           SET DTA_DL_YN = #{dtaDlYn}   /* 데이터삭제여부 */
+               <include refid="COMMON.updateSystemField"/>
+         WHERE SAP_PLNT_CD     = #{sapPlntCd}
+           AND LGST_OSTR_AK_NO = #{lgstOstrAkNo}
     </update>
 
 </mapper>
