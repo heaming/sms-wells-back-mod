@@ -15,6 +15,7 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaLogisticsOutStorageAskDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsOutStorageAskMapper;
+import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -34,6 +35,8 @@ public class WsnaLogisticsOutStorageAskService {
     private final WsnaLogisticsOutStorageAskMapper mapper;
 
     private final WsnaLogisticsOutStorageAskConverter converter;
+
+    private static final String YN_Y = "Y";
 
     private static final String LGST_OSTR_CD = "ORWE";
 
@@ -136,6 +139,46 @@ public class WsnaLogisticsOutStorageAskService {
                 askDtlDvo.setRelSn(askDtlDvo.getOstrAkSn());
 
                 cnt += this.mapper.insertOstrAkDtlSendEtxt(askDtlDvo);
+            }
+        }
+
+        return cnt;
+    }
+
+    /**
+     * 출고요청품목 수정
+     * @param dtos  (필수) 출고요청품목 데이터 리스트
+     * @return 데이터 수정 건수
+     * @throws 물류출고가 완료된 경우 BizExcpeiton 처리
+     */
+    @Transactional
+    public int editOutOfStorageAsk(List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
+
+        int cnt = 0;
+
+        if (CollectionUtils.isNotEmpty(dtos)) {
+            for (WsnaLogisticsOutStorageAskDto.SaveReq dto : dtos) {
+                // 출고요청상세송신전문 데이터 조회
+                WsnaLogisticsOutStorageAskDtlDvo askDtlDvo = this.mapper.selectOstrAkSendEtxtByRelNoAndRelSn(dto);
+                if (ObjectUtils.isNotEmpty(askDtlDvo)) {
+                    // 전송여부 체크
+                    String trsYn = askDtlDvo.getTrsYn();
+                    // 물류에서 이미 전송이 완료된 경우 메시지 처리
+                    if (YN_Y.equals(trsYn)) {
+                        // 이미 물류출고 처리되어 변경할 수 없습니다.
+                        throw new BizException("MSG_ALT_ALRDY_LGST_PROC_CANT_CHNG");
+                    }
+
+                    WsnaLogisticsOutStorageAskDtlDvo updateDvo = this.converter
+                        .mapSaveReqToWsnaLogisticsOutStorageAskDtlDvo(dto);
+                    // PK 셋팅
+                    updateDvo.setSapPlntCd(askDtlDvo.getSapPlntCd());
+                    updateDvo.setLgstOstrAkNo(askDtlDvo.getLgstOstrAkNo());
+                    updateDvo.setOstrAkSn(askDtlDvo.getOstrAkSn());
+
+                    // 출고요청상세송신전문 데이터 변경
+                    cnt += this.mapper.updateOstrAkSendEtxt(updateDvo);
+                }
             }
         }
 

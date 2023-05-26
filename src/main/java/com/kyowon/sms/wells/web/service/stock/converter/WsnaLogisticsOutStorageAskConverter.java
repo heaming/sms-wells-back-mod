@@ -22,4 +22,8 @@ public interface WsnaLogisticsOutStorageAskConverter {
         List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos
     );
 
+    WsnaLogisticsOutStorageAskDtlDvo mapSaveReqToWsnaLogisticsOutStorageAskDtlDvo(
+        WsnaLogisticsOutStorageAskDto.SaveReq dto
+    );
+
 }

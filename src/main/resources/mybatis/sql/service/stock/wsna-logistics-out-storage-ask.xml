@@ -17,23 +17,21 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsOutStorageAskMapper">
 
     <select id="selectItmOstrAkSendEtxtByOstrAkNo" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDvo">
-        /* com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsOutStorageAskMapper.selectItmOstrAkSendEtxtByOstrAkNo */
         SELECT SAP_PLNT_CD       /* SAP플랜트코드 */
              , LGST_OSTR_AK_NO   /* 물류출고요청번호 */
              , OSTR_AK_NO        /* 출고요청번호 */
           FROM TB_IFIN_ITM_OSTR_AK_SEND_ETXT
          WHERE OSTR_AK_NO = #{ostrAkNo}
+           AND DTA_DL_YN  = 'N'   /* 유효한 데이터 */
            AND ROWNUM     = 1
     </select>
 
     <select id="selectNewLgstOstrAkNo" resultType="java.lang.String">
-        /* com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsOutStorageAskMapper.selectNewLgstOstrAkNo */
         SELECT #{lgstOstrCd} || TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_IFIN_ITM_OSTR_AK_SEND_ETXT$LGST_OSTR_AK_NO.NEXTVAL, 6, '0') AS LGST_OSTR_AK_NO
           FROM DUAL
     </select>
 
     <insert id="insertItmOstrAkSendEtxt" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDvo">
-        /* com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsOutStorageAskMapper.insertItmOstrAkSendEtxt */
         INSERT INTO TB_IFIN_ITM_OSTR_AK_SEND_ETXT   /* 품목출고요청송신전문 */
              (
                SAP_PLNT_CD           /* SAP플랜트코드 */
@@ -73,7 +71,6 @@
     </insert>
 
     <insert id="insertOstrAkDtlSendEtxt" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo">
-        /* com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsOutStorageAskMapper.insertOstrAkDtlSendEtxt */
         INSERT INTO TB_IFIN_OSTR_AK_DTL_SEND_ETXT   /* 출고요청상세송신전문 */
              (
                SAP_PLNT_CD            /* SAP플랜트코드 */
@@ -146,5 +143,48 @@
              <include refid="COMMON.insertSystemFieldValue" />
              )
     </insert>
+
+    <select id="selectOstrAkSendEtxtByRelNoAndRelSn" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo">
+        SELECT SAP_PLNT_CD       /* SAP플랜트코드 */
+             , LGST_OSTR_AK_NO   /* 물류출고요청번호 */
+             , OSTR_AK_SN        /* 출고요청일련번호 */
+             , TRS_YN            /* 전송여부 */
+          FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT
+         WHERE REL_NO    = #{ostrAkNo}
+           AND REL_SN    = #{ostrAkSn}
+           AND DTA_DL_YN = 'N'   /* 유효한 데이터 */
+           AND ROWNUM    = 1
+    </select>
+
+    <update id="updateOstrAkSendEtxt" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo">
+        UPDATE TB_IFIN_OSTR_AK_DTL_SEND_ETXT
+           SET MPAC_SN              = #{mpacSn}             /* 합포장일련번호 */
+             , SAP_IOST_TP_CD       = #{sapIostTpCd}        /* SAP입출고유형코드 */
+             , LGST_SPP_MTHD_CD     = #{lgstSppMthdCd}      /* 물류배송방식코드 */
+             , LGST_WK_MTHD_CD      = #{lgstWkMthdCd}       /* 물류작업방식코드 */
+             , MDLV_PRTNR_NO        = #{mdlvPrtnrNo}        /* 배달파트너번호 */
+             , ITM_PD_CD            = #{itmPdCd}            /* 품목상품코드 */
+             , OSTR_AK_QTY          = #{ostrAkQty}          /* 출고요청수량 */
+             , LGST_ITM_GD_CD       = #{lgstItmGdCd}        /* 물류품목등급코드 */
+             , CST_NO               = #{cstNo}              /* 고객번호 */
+             , CST_NM               = #{cstNm}              /* 고객명 */
+             , CNTR_NO              = #{cntrNo}             /* 계약번호 */
+             , CNTR_SN              = #{cntrSn}             /* 계약일련번호 */
+             , SV_CNR_CD            = #{svCnrCd}            /* 서비스센터코드 */
+             , SV_CNR_NM            = #{svCnrNm}            /* 서비스센터명 */
+             , SV_CNR_ICHR_PRTNR_NM = #{svCnrIchrPrtnrNm}   /* 서비스센터담당파트너명 */
+             , SV_CNR_LK_TNO_ENCR   = #{svCnrLkTnoEncr}     /* 서비스센터연계전화번호암호화 */
+             , SV_CNR_ADR           = #{svCnrAdr}           /* 서비스센터주소 */
+             , OVIV_TP_CD           = #{ovivTpCd}           /* 배차유형코드 */
+             , HSMTRL_CLSF_CD       = #{hsmtrlClsfCd}       /* 학습지분류코드 */
+             , HSMTRL_CLSF_NM       = #{hsmtrlClsfNm}       /* 학습지분류명 */
+             , BACT_PROCS_QTY       = #{bactProcsQty}       /* 후행처리수량 */
+             , RMK_CN               = #{rmkCn}              /* 비고내용 */
+             <include refid="COMMON.updateSystemField"/>
+         WHERE SAP_PLNT_CD     = #{sapPlntCd}
+           AND LGST_OSTR_AK_NO = #{lgstOstrAkNo}
+           AND OSTR_AK_SN      = #{ostrAkSn}
+           AND TRS_YN          = 'N'   /* 전송여부가 N일 경우만 업데이트 */
+    </update>
 
 </mapper>
