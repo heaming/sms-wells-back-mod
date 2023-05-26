@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---
+ ****************************************************************************************************
+ * 프로그램 개요
+ ****************************************************************************************************
+ 1. 모듈 : SNA (재고관리)
+ 2. 프로그램 ID : W-SV-S-0088 AS 물류 출고요청 인터페이스 데이터 생성
+ 3. 작성자 : SaeRomI.Kim
+ 4. 작성일 : 2023.05.25
+ ****************************************************************************************************
+ * 프로그램 설명
+ ****************************************************************************************************
+ - 물류 출고요청 인터페이스 (물류센터에 출고요청 하기 위한 인터페이스)
+ ****************************************************************************************************
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsOutStorageAskMapper">
+
+    <select id="selectItmOstrAkSendEtxtByOstrAkNo" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDvo">
+        /* com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsOutStorageAskMapper.selectItmOstrAkSendEtxtByOstrAkNo */
+        SELECT SAP_PLNT_CD       /* SAP플랜트코드 */
+             , LGST_OSTR_AK_NO   /* 물류출고요청번호 */
+             , OSTR_AK_NO        /* 출고요청번호 */
+          FROM TB_IFIN_ITM_OSTR_AK_SEND_ETXT
+         WHERE OSTR_AK_NO = #{ostrAkNo}
+           AND ROWNUM     = 1
+    </select>
+
+    <select id="selectNewLgstOstrAkNo" resultType="java.lang.String">
+        /* com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsOutStorageAskMapper.selectNewLgstOstrAkNo */
+        SELECT #{lgstOstrCd} || TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_IFIN_ITM_OSTR_AK_SEND_ETXT$LGST_OSTR_AK_NO.NEXTVAL, 6, '0') AS LGST_OSTR_AK_NO
+          FROM DUAL
+    </select>
+
+    <insert id="insertItmOstrAkSendEtxt" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDvo">
+        /* com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsOutStorageAskMapper.insertItmOstrAkSendEtxt */
+        INSERT INTO TB_IFIN_ITM_OSTR_AK_SEND_ETXT   /* 품목출고요청송신전문 */
+             (
+               SAP_PLNT_CD           /* SAP플랜트코드 */
+             , LGST_OSTR_AK_NO       /* 물류출고요청번호 */
+             , SAP_CO_CD             /* SAP회사코드 */
+             , SAP_SAVE_LCT_CD       /* SAP저장위치코드 */
+             , OSTR_AK_NO            /* 출고요청번호 */
+             , OSTR_WARE_NO          /* 출고창고번호 */
+             , OSTR_RQDT             /* 출고요청일자 */
+             , OSTR_HOP_DT           /* 출고희망일자 */
+             , IOST_AK_DV_CD         /* 입출고요청구분코드 */
+             , ICHR_PRTNR_NO         /* 담당파트너번호 */
+             , ICHR_PRTNR_OG_TP_CD   /* 담당파트너조직유형코드 */
+             , TRS_YN                /* 전송여부 */
+             , TRS_DTM               /* 전송일시 */
+             , DTA_DL_YN             /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />
+             )
+        VALUES
+             (
+               #{sapPlntCd}
+             , #{lgstOstrAkNo}
+             , #{sapCoCd}
+             , #{sapSaveLctCd}
+             , #{ostrAkNo}
+             , #{ostrWareNo}
+             , #{ostrRqdt}
+             , #{ostrHopDt}
+             , #{iostAkDvCd}
+             , #{ichrPrtnrNo}
+             , #{ichrPrtnrOgTpCd}
+             , #{trsYn}
+             , #{trsDtm}
+             , #{dtaDlYn}
+             <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+
+    <insert id="insertOstrAkDtlSendEtxt" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo">
+        /* com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsOutStorageAskMapper.insertOstrAkDtlSendEtxt */
+        INSERT INTO TB_IFIN_OSTR_AK_DTL_SEND_ETXT   /* 출고요청상세송신전문 */
+             (
+               SAP_PLNT_CD            /* SAP플랜트코드 */
+             , LGST_OSTR_AK_NO        /* 물류출고요청번호 */
+             , OSTR_AK_SN             /* 출고요청일련번호 */
+             , MPAC_SN                /* 합포장일련번호 */
+             , REL_NO                 /* 관계번호 */
+             , REL_SN                 /* 관계일련번호 */
+             , SAP_IOST_TP_CD         /* SAP입출고유형코드 */
+             , LGST_SPP_MTHD_CD       /* 물류배송방식코드 */
+             , LGST_WK_MTHD_CD        /* 물류작업방식코드 */
+             , MDLV_PRTNR_NO          /* 배달파트너번호 */
+             , ITM_PD_CD              /* 품목상품코드 */
+             , OSTR_AK_QTY            /* 출고요청수량 */
+             , LGST_ITM_GD_CD         /* 물류품목등급코드 */
+             , CST_NO                 /* 고객번호 */
+             , CST_NM                 /* 고객명 */
+             , CNTR_NO                /* 계약번호 */
+             , CNTR_SN                /* 계약일련번호 */
+             , SV_CNR_CD              /* 서비스센터코드 */
+             , SV_CNR_NM              /* 서비스센터명 */
+             , SV_CNR_ICHR_PRTNR_NM   /* 서비스센터담당파트너명 */
+             , SV_CNR_LK_TNO_ENCR     /* 서비스센터연계전화번호암호화 */
+             , SV_CNR_ADR             /* 서비스센터주소 */
+             , OVIV_TP_CD             /* 배차유형코드 */
+             , HSMTRL_CLSF_CD         /* 학습지분류코드 */
+             , HSMTRL_CLSF_NM         /* 학습지분류명 */
+             , BACT_PROCS_QTY         /* 후행처리수량 */
+             , RMK_CN                 /* 비고내용 */
+             , TRS_YN                 /* 전송여부 */
+             , TRS_DTM                /* 전송일시 */
+             , DTA_DL_YN              /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />
+             )
+        VALUES
+             (
+               #{sapPlntCd}
+             , #{lgstOstrAkNo}
+             , #{ostrAkSn}
+             , #{mpacSn}
+             , #{relNo}
+             , #{relSn}
+             , #{sapIostTpCd}
+             , #{lgstSppMthdCd}
+             , #{lgstWkMthdCd}
+             , #{mdlvPrtnrNo}
+             , #{itmPdCd}
+             , #{ostrAkQty}
+             , #{lgstItmGdCd}
+             , #{cstNo}
+             , #{cstNm}
+             , #{cntrNo}
+             , #{cntrSn}
+             , #{svCnrCd}
+             , #{svCnrNm}
+             , #{svCnrIchrPrtnrNm}
+             , #{svCnrLkTnoEncr}
+             , #{svCnrAdr}
+             , #{ovivTpCd}
+             , #{hsmtrlClsfCd}
+             , #{hsmtrlClsfNm}
+             , #{bactProcsQty}
+             , #{rmkCn}
+             , #{trsYn}
+             , #{trsDtm}
+             , #{dtaDlYn}
+             <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+
+</mapper>
