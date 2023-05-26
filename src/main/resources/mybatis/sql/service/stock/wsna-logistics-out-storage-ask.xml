@@ -21,8 +21,8 @@
              , LGST_OSTR_AK_NO   /* 물류출고요청번호 */
              , OSTR_AK_NO        /* 출고요청번호 */
           FROM TB_IFIN_ITM_OSTR_AK_SEND_ETXT
-         WHERE OSTR_AK_NO = #{ostrAkNo}
-           AND DTA_DL_YN  = 'N'   /* 유효한 데이터 */
+         WHERE OSTR_AK_NO = #{ostrAkNo}   /* 출고요청번호 */
+           AND DTA_DL_YN  = 'N'           /* 유효한 데이터 */
            AND ROWNUM     = 1
     </select>
 
@@ -150,9 +150,9 @@
              , OSTR_AK_SN        /* 출고요청일련번호 */
              , TRS_YN            /* 전송여부 */
           FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT
-         WHERE REL_NO    = #{ostrAkNo}
-           AND REL_SN    = #{ostrAkSn}
-           AND DTA_DL_YN = 'N'   /* 유효한 데이터 */
+         WHERE REL_NO    = #{ostrAkNo}   /* 출고요청번호 */
+           AND REL_SN    = #{ostrAkSn}   /* 출고요청일련번호 */
+           AND DTA_DL_YN = 'N'           /* 유효한 데이터 */
            AND ROWNUM    = 1
     </select>
 
@@ -181,27 +181,27 @@
              , BACT_PROCS_QTY       = #{bactProcsQty}       /* 후행처리수량 */
              , RMK_CN               = #{rmkCn}              /* 비고내용 */
                <include refid="COMMON.updateSystemField"/>
-         WHERE SAP_PLNT_CD     = #{sapPlntCd}
-           AND LGST_OSTR_AK_NO = #{lgstOstrAkNo}
-           AND OSTR_AK_SN      = #{ostrAkSn}
-           AND TRS_YN          = 'N'   /* 전송여부가 N일 경우만 업데이트 */
-           AND DTA_DL_YN       = 'N'   /* 유효한 데이터 */
+         WHERE SAP_PLNT_CD     = #{sapPlntCd}      /* SAP플랜트코드 */
+           AND LGST_OSTR_AK_NO = #{lgstOstrAkNo}   /* 물류출고요청번호 */
+           AND OSTR_AK_SN      = #{ostrAkSn}       /* 출고요청일련번호 */
+           AND TRS_YN          = 'N'               /* 전송여부가 N일 경우만 */
+           AND DTA_DL_YN       = 'N'               /* 유효한 데이터 */
     </update>
 
     <update id="updateOstrAkDtlSendEtxtForRemove" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo">
         UPDATE TB_IFIN_OSTR_AK_DTL_SEND_ETXT
            SET DTA_DL_YN = #{dtaDlYn}   /* 데이터삭제여부 */
                <include refid="COMMON.updateSystemField"/>
-         WHERE SAP_PLNT_CD     = #{sapPlntCd}
-           AND LGST_OSTR_AK_NO = #{lgstOstrAkNo}
-           AND OSTR_AK_SN      = #{ostrAkSn}
+         WHERE SAP_PLNT_CD     = #{sapPlntCd}      /* SAP플랜트코드 */
+           AND LGST_OSTR_AK_NO = #{lgstOstrAkNo}   /* 물류출고요청번호 */
+           AND OSTR_AK_SN      = #{ostrAkSn}       /* 출고요청일련번호 */
     </update>
 
     <select id="selectOstrAkDtlSendEtxtCount" resultType="java.lang.Integer">
         SELECT 1
           FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT
-         WHERE REL_NO    = #{ostrAkNo}
-           AND DTA_DL_YN = 'N'   /* 유효한 데이터 */
+         WHERE REL_NO    = #{ostrAkNo}   /* 출고요청번호 */
+           AND DTA_DL_YN = 'N'           /* 유효한 데이터 */
            AND ROWNUM    = 1
     </select>
 
@@ -209,8 +209,8 @@
         UPDATE TB_IFIN_ITM_OSTR_AK_SEND_ETXT
            SET DTA_DL_YN = #{dtaDlYn}   /* 데이터삭제여부 */
                <include refid="COMMON.updateSystemField"/>
-         WHERE SAP_PLNT_CD     = #{sapPlntCd}
-           AND LGST_OSTR_AK_NO = #{lgstOstrAkNo}
+         WHERE SAP_PLNT_CD     = #{sapPlntCd}      /* SAP플랜트코드 */
+           AND LGST_OSTR_AK_NO = #{lgstOstrAkNo}   /* 물류출고요청번호 */
     </update>
 
 </mapper>

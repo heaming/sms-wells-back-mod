@@ -56,7 +56,6 @@ public class WsnaLogisticsOutStorageAskService {
      * @param dtos  (필수) 출고요청품목 리스트
      * @return 출고요청품목 데이터 생성 건수
      */
-
     @Transactional
     public int createOutOfStorageAsks(@Valid
     List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
@@ -83,7 +82,7 @@ public class WsnaLogisticsOutStorageAskService {
                 }
                 // 출고요청상세송신전문 데이터 생성
                 if (ObjectUtils.isNotEmpty(askDvo)) {
-                    cnt += this.insertOstrAkDtlSendEtxt(askDvo, itms);
+                    cnt += this.insertOstrAkDtlSendEtxts(askDvo, itms);
                 }
             }
         }
@@ -122,7 +121,7 @@ public class WsnaLogisticsOutStorageAskService {
      * @return 데이터 생성 건수
      */
     @Transactional
-    private int insertOstrAkDtlSendEtxt(
+    private int insertOstrAkDtlSendEtxts(
         WsnaLogisticsOutStorageAskDvo askDvo, List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos
     ) {
 
@@ -153,7 +152,7 @@ public class WsnaLogisticsOutStorageAskService {
      * @throws 물류 출고가 완료된 경우 BizExcpeiton 처리
      */
     @Transactional
-    public int editOutOfStorageAsk(@Valid
+    public int editOutOfStorageAsks(@Valid
     List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
 
         int cnt = 0;
@@ -161,7 +160,9 @@ public class WsnaLogisticsOutStorageAskService {
         if (CollectionUtils.isNotEmpty(dtos)) {
             for (WsnaLogisticsOutStorageAskDto.SaveReq dto : dtos) {
                 // 출고요청상세송신전문 데이터 조회
-                WsnaLogisticsOutStorageAskDtlDvo askDtlDvo = this.mapper.selectOstrAkDtlSendEtxtByRelNoAndRelSn(dto);
+                WsnaLogisticsOutStorageAskDto.RemoveReq removeReq = this.converter.mapSaveReqToRemoveReq(dto);
+                WsnaLogisticsOutStorageAskDtlDvo askDtlDvo = this.mapper
+                    .selectOstrAkDtlSendEtxtByRelNoAndRelSn(removeReq);
                 if (ObjectUtils.isNotEmpty(askDtlDvo)) {
                     // 전송여부 체크
                     String trsYn = askDtlDvo.getTrsYn();
@@ -193,12 +194,13 @@ public class WsnaLogisticsOutStorageAskService {
      * @return 데이터 삭제 건수
      */
     @Transactional
-    public int removeOutOfStorageAsk(List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
+    public int removeOutOfStorageAsks(@Valid
+    List<WsnaLogisticsOutStorageAskDto.RemoveReq> dtos) {
 
         int cnt = 0;
 
         if (CollectionUtils.isNotEmpty(dtos)) {
-            for (WsnaLogisticsOutStorageAskDto.SaveReq dto : dtos) {
+            for (WsnaLogisticsOutStorageAskDto.RemoveReq dto : dtos) {
                 // 출고요청상세송신전문 데이터 조회
                 WsnaLogisticsOutStorageAskDtlDvo askDtlDvo = this.mapper.selectOstrAkDtlSendEtxtByRelNoAndRelSn(dto);
                 if (ObjectUtils.isNotEmpty(askDtlDvo)) {
@@ -216,7 +218,7 @@ public class WsnaLogisticsOutStorageAskService {
             }
 
             // 출고요청번호 필터링
-            List<String> ostrAkNos = dtos.stream().map(WsnaLogisticsOutStorageAskDto.SaveReq::ostrAkNo).distinct()
+            List<String> ostrAkNos = dtos.stream().map(WsnaLogisticsOutStorageAskDto.RemoveReq::ostrAkNo).distinct()
                 .toList();
             for (String ostrAkNo : ostrAkNos) {
                 // 품목출고요청상세송신 데이터가 모두 삭제처리 되었는지 체크
@@ -234,4 +236,107 @@ public class WsnaLogisticsOutStorageAskService {
 
         return cnt;
     }
+
+    /**
+     * 물량배정출고요청품목 생성
+     * @param dtos  (필수) 물량배정출고요청품목 데이터 리스트
+     * @return 데이터 생성 건수
+     */
+    @Transactional
+    public int createQomOutOfStorageAsks(@Valid
+    List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
+
+        // 출고요청품목생성 메소드 호출
+        int count = this.createOutOfStorageAsks(dtos);
+
+        // TODO: 배송요청 인터페이스 호출
+
+        return count;
+    }
+
+    /**
+     * 물량배정출고요청품목 수정
+     * @param dtos  (필수) 물량배정출고요청품목 데이터 리스트
+     * @return
+     */
+    @Transactional
+    public int editQomOutOfStorageAsks(@Valid
+    List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
+
+        // 출고요청품목수정 메소드 호출
+        int count = this.editOutOfStorageAsks(dtos);
+
+        // TODO: 배송요청 인터페이스 호출
+
+        return count;
+    }
+
+    /**
+     * 물량배정출고요청품목 삭제
+     * @param dtos  (필수) 물량배정출고요청품목 데이터 리스트
+     * @return 데이터 삭제 건수
+     */
+    @Transactional
+    public int removeQomOutOfStorageAsks(@Valid
+    List<WsnaLogisticsOutStorageAskDto.RemoveReq> dtos) {
+
+        // 출고요청품목삭제 메소드 호출
+        int count = this.removeOutOfStorageAsks(dtos);
+
+        // TODO: 배송요청 인터페이스 호출
+
+        return count;
+    }
+
+    /**
+     * 자가필터/건식상품 출고요청품목 생성
+     * @param dtos  (필수) 자가필터/건식상품 출고요청품목 데이터 리스트
+     * @return 데이터 생성 건수
+     */
+    @Transactional
+    public int createSelfFilterOutOfStorageAsks(@Valid
+    List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
+
+        // 출고요청품목생성 메소드 호출
+        int count = this.createOutOfStorageAsks(dtos);
+
+        // TODO: 택배 테이블 데이터 생성
+
+        return count;
+    }
+
+    /**
+     * 자가필터/건식상품 출고요청품목 수정
+     * @param dtos  (필수) 자가필터/건식상품 출고요청품목 데이터 리스트
+     * @return 데이터 수정 건수
+     */
+    @Transactional
+    public int editSelfFilterOutOfStorageAsks(@Valid
+    List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
+
+        // 출고요청품목수정 메소드 호출
+        int count = this.editOutOfStorageAsks(dtos);
+
+        // TODO: 택배 테이블 데이터 수정
+
+        return count;
+    }
+
+    /**
+     * 자가필터/건식상품 출고요청품목 삭제
+     * @param dtos  (필수) 자가필터/건식상품 출고요청품목 데이터 리스트
+     * @return 데이터 삭제 건수
+     */
+    @Transactional
+    public int removeSelfFilterOutOfStorageAsks(@Valid
+    List<WsnaLogisticsOutStorageAskDto.RemoveReq> dtos) {
+
+        // 출고요청품목삭제 메소드 호출
+        int count = this.removeOutOfStorageAsks(dtos);
+
+        // TODO: 택배 테이블 데이터 삭제
+
+        return count;
+    }
+
 }

@@ -18,7 +18,7 @@ public interface WsnaLogisticsOutStorageAskMapper {
     int insertOstrAkDtlSendEtxt(WsnaLogisticsOutStorageAskDtlDvo dvo);
 
     WsnaLogisticsOutStorageAskDtlDvo selectOstrAkDtlSendEtxtByRelNoAndRelSn(
-        WsnaLogisticsOutStorageAskDto.SaveReq dto
+        WsnaLogisticsOutStorageAskDto.RemoveReq dto
     );
 
     int updateOstrAkDtlSendEtxt(WsnaLogisticsOutStorageAskDtlDvo dvo);

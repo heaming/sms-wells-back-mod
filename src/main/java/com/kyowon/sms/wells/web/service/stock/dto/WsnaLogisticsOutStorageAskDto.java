@@ -117,4 +117,17 @@ public class WsnaLogisticsOutStorageAskDto {
         String strOjWareNm
     ) {}
 
+    @Builder
+    @ApiModel("WsnaLogisticsOutStorageAskDto-RemoveReq")
+    public record RemoveReq(
+        // 출고요청번호 (OSTR_AK_NO)
+        @NotBlank
+        String ostrAkNo,
+
+        // 출고요청일련번호 (OSTR_AK_SN)
+        @Positive
+        int ostrAkSn
+
+    ) {}
+
 }

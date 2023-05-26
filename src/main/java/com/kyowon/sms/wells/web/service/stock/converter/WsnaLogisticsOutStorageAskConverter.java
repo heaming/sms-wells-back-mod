@@ -26,4 +26,6 @@ public interface WsnaLogisticsOutStorageAskConverter {
         WsnaLogisticsOutStorageAskDto.SaveReq dto
     );
 
+    WsnaLogisticsOutStorageAskDto.RemoveReq mapSaveReqToRemoveReq(WsnaLogisticsOutStorageAskDto.SaveReq dto);
+
 }
