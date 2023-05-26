@@ -112,7 +112,10 @@
              (
                #{sapPlntCd}
              , #{lgstOstrAkNo}
-             , #{ostrAkSn}
+             , ( SELECT NVL(MAX(OSTR_AK_SN), 0) + 1
+                   FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT
+                  WHERE SAP_PLNT_CD     = #{sapPlntCd}
+                    AND LGST_OSTR_AK_NO = #{lgstOstrAkNo} )
              , #{mpacSn}
              , #{relNo}
              , #{relSn}
