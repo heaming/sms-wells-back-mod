@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndpStockBldTfMapper;
-import com.sds.sflex.system.config.response.SaveResponse;
+import com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndpStockBuildingTransferMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -10,10 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class WsnaIndpStockBldTfService {
-    private final WsnaIndpStockBldTfMapper mapper;
+public class WsnaIndpStockBuildingTransferService {
+    private final WsnaIndpStockBuildingTransferMapper mapper;
     @Transactional
-    public int SaveCarriedOverAddressUseYn(){
+    public int saveCarriedOverAddressUseYn(){
         return mapper.updateCarriedOverAddressUseYn();
     }
 }

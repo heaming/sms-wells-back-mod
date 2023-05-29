@@ -1,10 +1,11 @@
 package com.kyowon.sms.wells.web.service.stock.rest;
 
-import com.kyowon.sms.wells.web.service.stock.service.WsnaIndpStockBldTfService;
+import com.kyowon.sms.wells.web.service.stock.service.WsnaIndpStockBuildingTransferService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.response.SaveResponse;
 import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -12,13 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/indp-stock-bld-tf")
-public class WsnaIndpStockBldTfController {
+public class WsnaIndpStockBuildingTransferController {
 
-    private final WsnaIndpStockBldTfService service;
+    private final WsnaIndpStockBuildingTransferService service;
 
+    @PostMapping
     public SaveResponse createIndpWareBldTfs(){
         return SaveResponse.builder()
-            .processCount(service.SaveCarriedOverAddressUseYn())
+            .processCount(service.saveCarriedOverAddressUseYn())
             .build();
     }
 }
