@@ -44,7 +44,6 @@ public class WsnaLogisticsOutStorageAskDvo {
     String iostAkDvCd;
 
     // 담당파트너번호 (ICHR_PRTNR_NO)
-
     String ichrMngtPrtnrNo;
 
     // 담당파트너조직유형코드 (ICHR_PRTNR_OG_TP_CD)

@@ -13,6 +13,8 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDvo;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface WsnaLogisticsOutStorageAskConverter {
 
+    @Mapping(source = "strHopDt", target = "ostrHopDt")
+    @Mapping(source = "ostrAkRgstDt", target = "ostrRqdt")
     @Mapping(source = "ostrOjWareNo", target = "ostrWareNo")
     @Mapping(source = "wareMngtPrtnrNo", target = "ichrMngtPrtnrNo")
     @Mapping(source = "wareMngtPrtnrOgTpCd", target = "ichrPrtnrOgTpCd")
@@ -28,4 +30,11 @@ public interface WsnaLogisticsOutStorageAskConverter {
 
     WsnaLogisticsOutStorageAskDto.RemoveReq mapSaveReqToRemoveReq(WsnaLogisticsOutStorageAskDto.SaveReq dto);
 
+    List<WsnaLogisticsOutStorageAskDto.SaveReq> mapAllSaveQomReqToSaveReq(
+        List<WsnaLogisticsOutStorageAskDto.SaveQomReq> dtos
+    );
+
+    List<WsnaLogisticsOutStorageAskDto.SaveReq> mapAllSaveSelfFilterReqToSaveReq(
+        List<WsnaLogisticsOutStorageAskDto.SaveSelfFilterReq> dtos
+    );
 }

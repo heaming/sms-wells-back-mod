@@ -51,4 +51,14 @@ public class SnServiceConst {
     // 외부출고(기타)(292)
     public static final String STOC_ACINSP_OSTR = "292";
 
+    /**
+     * SAP 관련 코드
+     */
+    // (주)교원프라퍼티
+    public static final String SAP_CO_CD = "2000";
+    // (주)교원프라퍼티파주물류(Wells)
+    public static final String SAP_PLNT_CD = "2108";
+    // 프라파주창고(Wells)
+    public static final String SAP_SAVE_LCT_CD = "21082082";
+
 }

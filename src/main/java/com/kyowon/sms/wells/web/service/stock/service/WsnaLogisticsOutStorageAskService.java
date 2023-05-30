@@ -17,6 +17,7 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDvo;
 import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1005.request.LogisticsOutOfStorageCancelReqIvo;
 import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1005.response.LogisticsOutOfStorageCancelResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsOutStorageAskMapper;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.common.common.service.EaiInterfaceService;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
@@ -26,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * <pre>
- * W-SV-S-0088 물류 출고요청 관련 서비스
+ * W-SV-S-0088 물류 출고요청 인터페이스 데이터 생성
  * </pre>
  *
  * @author SaeRomI.Kim
@@ -50,18 +51,8 @@ public class WsnaLogisticsOutStorageAskService {
 
     private static final String LGST_OSTR_CD = "ORWE";
 
-    /**
-     * SAP 관련 코드
-     */
-    // (주)교원프라퍼티
-    private static final String SAP_CO_CD = "2000";
-    // (주)교원프라퍼티파주물류(Wells)
-    private static final String SAP_PLNT_CD = "2108";
-    // 프라파주창고(Wells)
-    private static final String SAP_SAVE_LCT_CD = "21082082";
-
     // 출고요청취소 URI
-    private static final String KLS_REMOVE_DATA = "/C/BD/EAI_CBDO1005/req";
+    private static final String EAI_CBD01005 = "/C/BD/EAI_CBDO1005/req";
 
     /**
      * 출고요청품목 생성
@@ -72,7 +63,7 @@ public class WsnaLogisticsOutStorageAskService {
     public int createOutOfStorageAsks(@Valid
     List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
 
-        int cnt = 0;
+        int count = 0;
 
         if (CollectionUtils.isNotEmpty(dtos)) {
 
@@ -94,12 +85,12 @@ public class WsnaLogisticsOutStorageAskService {
                 }
                 // 출고요청상세송신전문 데이터 생성
                 if (ObjectUtils.isNotEmpty(askDvo)) {
-                    cnt += this.insertOstrAkDtlSendEtxts(askDvo, itms);
+                    count += this.insertOstrAkDtlSendEtxts(askDvo, itms);
                 }
             }
         }
 
-        return cnt;
+        return count;
     }
 
     /**
@@ -116,9 +107,9 @@ public class WsnaLogisticsOutStorageAskService {
         dvo.setLgstOstrAkNo(lgstOstrAkNo);
 
         // SAP 코드
-        dvo.setSapPlntCd(SAP_PLNT_CD);
-        dvo.setSapCoCd(SAP_CO_CD);
-        dvo.setSapSaveLctCd(SAP_SAVE_LCT_CD);
+        dvo.setSapPlntCd(SnServiceConst.SAP_PLNT_CD);
+        dvo.setSapCoCd(SnServiceConst.SAP_CO_CD);
+        dvo.setSapSaveLctCd(SnServiceConst.SAP_SAVE_LCT_CD);
 
         // 데이터 생성
         this.mapper.insertItmOstrAkSendEtxt(dvo);
@@ -137,7 +128,7 @@ public class WsnaLogisticsOutStorageAskService {
         WsnaLogisticsOutStorageAskDvo askDvo, List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos
     ) {
 
-        int cnt = 0;
+        int count = 0;
 
         if (ObjectUtils.isNotEmpty(askDvo) && CollectionUtils.isNotEmpty(dtos)) {
             List<WsnaLogisticsOutStorageAskDtlDvo> askDtlDvos = this.converter
@@ -150,11 +141,11 @@ public class WsnaLogisticsOutStorageAskService {
                 askDtlDvo.setRelNo(askDvo.getOstrAkNo());
                 askDtlDvo.setRelSn(askDtlDvo.getOstrAkSn());
 
-                cnt += this.mapper.insertOstrAkDtlSendEtxt(askDtlDvo);
+                count += this.mapper.insertOstrAkDtlSendEtxt(askDtlDvo);
             }
         }
 
-        return cnt;
+        return count;
     }
 
     /**
@@ -167,7 +158,7 @@ public class WsnaLogisticsOutStorageAskService {
     public int editOutOfStorageAsks(@Valid
     List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
 
-        int cnt = 0;
+        int count = 0;
 
         if (CollectionUtils.isNotEmpty(dtos)) {
             for (WsnaLogisticsOutStorageAskDto.SaveReq dto : dtos) {
@@ -181,7 +172,7 @@ public class WsnaLogisticsOutStorageAskService {
                     // 물류에서 이미 전송이 완료된 경우 메시지 처리
                     if (YN_Y.equals(trsYn)) {
                         // 이미 물류출고 처리되어 변경할 수 없습니다.
-                        throw new BizException("MSG_ALT_ALRDY_LGST_PROC_CANT_CHNG");
+                        throw new BizException("MSG_ALT_ALRDY_LGST_OSTR_CANT_CHNG");
                     }
 
                     WsnaLogisticsOutStorageAskDtlDvo updateDvo = this.converter
@@ -192,12 +183,12 @@ public class WsnaLogisticsOutStorageAskService {
                     updateDvo.setOstrAkSn(askDtlDvo.getOstrAkSn());
 
                     // 출고요청상세송신전문 데이터 변경
-                    cnt += this.mapper.updateOstrAkDtlSendEtxt(updateDvo);
+                    count += this.mapper.updateOstrAkDtlSendEtxt(updateDvo);
                 }
             }
         }
 
-        return cnt;
+        return count;
     }
 
     /**
@@ -209,7 +200,7 @@ public class WsnaLogisticsOutStorageAskService {
     public int removeOutOfStorageAsks(@Valid
     List<WsnaLogisticsOutStorageAskDto.RemoveReq> dtos) {
 
-        int cnt = 0;
+        int count = 0;
 
         if (CollectionUtils.isNotEmpty(dtos)) {
             for (WsnaLogisticsOutStorageAskDto.RemoveReq dto : dtos) {
@@ -225,13 +216,13 @@ public class WsnaLogisticsOutStorageAskService {
                         // Exception 처리, TODO: resultCode 값 확인 후 로직 수정 필요
                         if (ObjectUtils.isNotEmpty(resIvo) && RESULT_CODE_F.equals(resIvo.getResultCode())) {
                             // 이미 물류출고 처리되어 삭제할 수 없습니다.
-                            throw new BizException("MSG_ALT_ALRDY_LGST_PROC_CANT_DEL");
+                            throw new BizException("MSG_ALT_ALRDY_LGST_OSTR_CANT_DEL");
                         }
                     }
 
                     // 데이터 삭제처리
                     askDtlDvo.setDtaDlYn(YN_Y);
-                    cnt += this.mapper.updateOstrAkDtlSendEtxtForRemove(askDtlDvo);
+                    count += this.mapper.updateOstrAkDtlSendEtxtForRemove(askDtlDvo);
                 }
             }
 
@@ -252,13 +243,13 @@ public class WsnaLogisticsOutStorageAskService {
             }
         }
 
-        return cnt;
+        return count;
     }
 
     /**
      * 물류 출고요청 취소 API 호출
      * @param askDtlDvo (필수) 출고요청상세송신전문 데이터
-     * @return
+     * @return 물류 출고요청 취소 Response Interface Dvo
      */
     private LogisticsOutOfStorageCancelResIvo cancelLogisticsOutOfStorage(
         WsnaLogisticsOutStorageAskDtlDvo askDtlDvo
@@ -276,7 +267,7 @@ public class WsnaLogisticsOutStorageAskService {
         req.setAkCanDeptId(session.getDepartmentId());
 
         return this.interfaceService
-            .post(KLS_REMOVE_DATA, req, LogisticsOutOfStorageCancelResIvo.class);
+            .post(EAI_CBD01005, req, LogisticsOutOfStorageCancelResIvo.class);
     }
 
     /**
@@ -286,10 +277,12 @@ public class WsnaLogisticsOutStorageAskService {
      */
     @Transactional
     public int createQomOutOfStorageAsks(@Valid
-    List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
+    List<WsnaLogisticsOutStorageAskDto.SaveQomReq> dtos) {
+
+        List<WsnaLogisticsOutStorageAskDto.SaveReq> convDtos = this.converter.mapAllSaveQomReqToSaveReq(dtos);
 
         // 출고요청품목생성 메소드 호출
-        int count = this.createOutOfStorageAsks(dtos);
+        int count = this.createOutOfStorageAsks(convDtos);
 
         // TODO: 배송요청 인터페이스 호출
 
@@ -303,10 +296,12 @@ public class WsnaLogisticsOutStorageAskService {
      */
     @Transactional
     public int editQomOutOfStorageAsks(@Valid
-    List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
+    List<WsnaLogisticsOutStorageAskDto.SaveQomReq> dtos) {
+
+        List<WsnaLogisticsOutStorageAskDto.SaveReq> convDtos = this.converter.mapAllSaveQomReqToSaveReq(dtos);
 
         // 출고요청품목수정 메소드 호출
-        int count = this.editOutOfStorageAsks(dtos);
+        int count = this.editOutOfStorageAsks(convDtos);
 
         // TODO: 배송요청 인터페이스 호출
 
@@ -337,10 +332,12 @@ public class WsnaLogisticsOutStorageAskService {
      */
     @Transactional
     public int createSelfFilterOutOfStorageAsks(@Valid
-    List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
+    List<WsnaLogisticsOutStorageAskDto.SaveSelfFilterReq> dtos) {
+
+        List<WsnaLogisticsOutStorageAskDto.SaveReq> convDtos = this.converter.mapAllSaveSelfFilterReqToSaveReq(dtos);
 
         // 출고요청품목생성 메소드 호출
-        int count = this.createOutOfStorageAsks(dtos);
+        int count = this.createOutOfStorageAsks(convDtos);
 
         // TODO: 택배 테이블 데이터 생성
 
@@ -354,10 +351,12 @@ public class WsnaLogisticsOutStorageAskService {
      */
     @Transactional
     public int editSelfFilterOutOfStorageAsks(@Valid
-    List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos) {
+    List<WsnaLogisticsOutStorageAskDto.SaveSelfFilterReq> dtos) {
+
+        List<WsnaLogisticsOutStorageAskDto.SaveReq> convDtos = this.converter.mapAllSaveSelfFilterReqToSaveReq(dtos);
 
         // 출고요청품목수정 메소드 호출
-        int count = this.editOutOfStorageAsks(dtos);
+        int count = this.editOutOfStorageAsks(convDtos);
 
         // TODO: 택배 테이블 데이터 수정
 

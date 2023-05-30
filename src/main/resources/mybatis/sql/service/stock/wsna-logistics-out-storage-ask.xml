@@ -20,7 +20,7 @@
         SELECT SAP_PLNT_CD       /* SAP플랜트코드 */
              , LGST_OSTR_AK_NO   /* 물류출고요청번호 */
              , OSTR_AK_NO        /* 출고요청번호 */
-          FROM TB_IFIN_ITM_OSTR_AK_SEND_ETXT
+          FROM TB_IFIN_ITM_OSTR_AK_SEND_ETXT   /* 품목출고요청송신전문 */
          WHERE OSTR_AK_NO = #{ostrAkNo}   /* 출고요청번호 */
            AND DTA_DL_YN  = 'N'           /* 유효한 데이터 */
            AND ROWNUM     = 1
@@ -149,7 +149,7 @@
              , LGST_OSTR_AK_NO   /* 물류출고요청번호 */
              , OSTR_AK_SN        /* 출고요청일련번호 */
              , TRS_YN            /* 전송여부 */
-          FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT
+          FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT   /* 출고요청상세송신전문 */
          WHERE REL_NO    = #{ostrAkNo}   /* 출고요청번호 */
            AND REL_SN    = #{ostrAkSn}   /* 출고요청일련번호 */
            AND DTA_DL_YN = 'N'           /* 유효한 데이터 */
@@ -157,7 +157,7 @@
     </select>
 
     <update id="updateOstrAkDtlSendEtxt" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo">
-        UPDATE TB_IFIN_OSTR_AK_DTL_SEND_ETXT
+        UPDATE TB_IFIN_OSTR_AK_DTL_SEND_ETXT   /* 출고요청상세송신전문 */
            SET MPAC_SN              = #{mpacSn}             /* 합포장일련번호 */
              , SAP_IOST_TP_CD       = #{sapIostTpCd}        /* SAP입출고유형코드 */
              , LGST_SPP_MTHD_CD     = #{lgstSppMthdCd}      /* 물류배송방식코드 */
@@ -189,7 +189,7 @@
     </update>
 
     <update id="updateOstrAkDtlSendEtxtForRemove" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo">
-        UPDATE TB_IFIN_OSTR_AK_DTL_SEND_ETXT
+        UPDATE TB_IFIN_OSTR_AK_DTL_SEND_ETXT   /* 출고요청상세송신전문 */
            SET DTA_DL_YN = #{dtaDlYn}   /* 데이터삭제여부 */
                <include refid="COMMON.updateSystemField"/>
          WHERE SAP_PLNT_CD     = #{sapPlntCd}      /* SAP플랜트코드 */
@@ -199,14 +199,14 @@
 
     <select id="selectOstrAkDtlSendEtxtCount" resultType="java.lang.Integer">
         SELECT 1
-          FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT
+          FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT   /* 출고요청상세송신전문 */
          WHERE REL_NO    = #{ostrAkNo}   /* 출고요청번호 */
            AND DTA_DL_YN = 'N'           /* 유효한 데이터 */
            AND ROWNUM    = 1
     </select>
 
     <update id="updateItmOstrAkSendEtxtForRemove" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDvo">
-        UPDATE TB_IFIN_ITM_OSTR_AK_SEND_ETXT
+        UPDATE TB_IFIN_ITM_OSTR_AK_SEND_ETXT   /* 품목출고요청송신전문 */
            SET DTA_DL_YN = #{dtaDlYn}   /* 데이터삭제여부 */
                <include refid="COMMON.updateSystemField"/>
          WHERE SAP_PLNT_CD     = #{sapPlntCd}      /* SAP플랜트코드 */
