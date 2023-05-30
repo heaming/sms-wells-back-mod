@@ -165,7 +165,7 @@ public class WsnaLogisticsOutStorageAskService {
                 // 출고요청상세송신전문 데이터 조회
                 WsnaLogisticsOutStorageAskDto.RemoveReq removeReq = this.converter.mapSaveReqToRemoveReq(dto);
                 WsnaLogisticsOutStorageAskDtlDvo askDtlDvo = this.mapper
-                    .selectOstrAkDtlSendEtxtByRelNoAndRelSn(removeReq);
+                    .selectOstrAkDtlSendEtxtByOstrAkNoAndOstrAkSn(removeReq);
                 if (ObjectUtils.isNotEmpty(askDtlDvo)) {
                     // 전송여부 체크
                     String trsYn = askDtlDvo.getTrsYn();
@@ -205,7 +205,8 @@ public class WsnaLogisticsOutStorageAskService {
         if (CollectionUtils.isNotEmpty(dtos)) {
             for (WsnaLogisticsOutStorageAskDto.RemoveReq dto : dtos) {
                 // 출고요청상세송신전문 데이터 조회
-                WsnaLogisticsOutStorageAskDtlDvo askDtlDvo = this.mapper.selectOstrAkDtlSendEtxtByRelNoAndRelSn(dto);
+                WsnaLogisticsOutStorageAskDtlDvo askDtlDvo = this.mapper
+                    .selectOstrAkDtlSendEtxtByOstrAkNoAndOstrAkSn(dto);
                 if (ObjectUtils.isNotEmpty(askDtlDvo)) {
                     // 전송여부 체크
                     String trsYn = askDtlDvo.getTrsYn();

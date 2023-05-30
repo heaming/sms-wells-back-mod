@@ -16,7 +16,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsInStorageAskMapper">
 
-    <select id="selectRtngdAkDtlSendEtxtByRelNoAndRelSn" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDtlDvo">
+    <select id="selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDtlDvo">
         SELECT SAP_PLNT_CD      /* SAP플랜트코드 */
              , LGST_STR_AK_NO   /* 물류입고요청번호 */
              , STR_AK_SN        /* 입고요청일련번호 */
@@ -33,7 +33,7 @@
              , LGST_STR_AK_NO   /* 물류출고요청번호 */
              , RTNGD_AK_NO      /* 반품요청번호 */
           FROM TB_IFIN_PD_RTNGD_AK_SEND_ETXT   /* 상품반품요청송신전문 */
-         WHERE RTNGD_AK_NO = #{ostrAkNo}   /* 반품요청번호 */
+         WHERE RTNGD_AK_NO = #{rtngdAkNo}   /* 반품요청번호 */
            AND DTA_DL_YN  = 'N'            /* 유효한 데이터 */
            AND ROWNUM     = 1
     </select>

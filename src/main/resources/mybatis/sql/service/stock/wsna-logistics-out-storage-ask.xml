@@ -144,7 +144,7 @@
              )
     </insert>
 
-    <select id="selectOstrAkDtlSendEtxtByRelNoAndRelSn" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo">
+    <select id="selectOstrAkDtlSendEtxtByOstrAkNoAndOstrAkSn" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo">
         SELECT SAP_PLNT_CD       /* SAP플랜트코드 */
              , LGST_OSTR_AK_NO   /* 물류출고요청번호 */
              , OSTR_AK_SN        /* 출고요청일련번호 */

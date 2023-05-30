@@ -9,9 +9,11 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDvo;
 @Mapper
 public interface WsnaLogisticsInStorageAskMapper {
 
-    WsnaLogisticsInStorageAskDtlDvo selectRtngdAkDtlSendEtxtByRelNoAndRelSn(WsnaLogisticsInStorageAskDto.FindReq dto);
+    WsnaLogisticsInStorageAskDtlDvo selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(
+        WsnaLogisticsInStorageAskDto.FindReq dto
+    );
 
-    WsnaLogisticsInStorageAskDvo selectPdRtngdAkSendEtxtByRtngdAkNo(String ostrAkNo);
+    WsnaLogisticsInStorageAskDvo selectPdRtngdAkSendEtxtByRtngdAkNo(String rtngdAkNo);
 
     String selectNewLgstStrAkNo(String lgstStrCd);
 

@@ -62,7 +62,7 @@ public class WsnaLogisticsInStorageAskService {
     public WsnaLogisticsInStorageAskDto.FindRes getTransferYn(@Valid
     WsnaLogisticsInStorageAskDto.FindReq dto) {
         // 반품요청상세송신전문 조회
-        WsnaLogisticsInStorageAskDtlDvo dvo = this.mapper.selectRtngdAkDtlSendEtxtByRelNoAndRelSn(dto);
+        WsnaLogisticsInStorageAskDtlDvo dvo = this.mapper.selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(dto);
 
         return this.converter.mapWsnaLogisticsInStorageAskDtlDvoToFindRes(dvo);
     }
@@ -176,7 +176,7 @@ public class WsnaLogisticsInStorageAskService {
                 // 상품반품요청송신전문 데이터 조회
                 WsnaLogisticsInStorageAskDto.FindReq removeReq = this.converter.mapSaveReqToFindReq(dto);
                 WsnaLogisticsInStorageAskDtlDvo askDtlDvo = this.mapper
-                    .selectRtngdAkDtlSendEtxtByRelNoAndRelSn(removeReq);
+                    .selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(removeReq);
 
                 if (ObjectUtils.isNotEmpty(askDtlDvo)) {
                     // 전송여부 체크
@@ -214,7 +214,7 @@ public class WsnaLogisticsInStorageAskService {
                 // 출고요청상세송신전문 데이터 조회
                 WsnaLogisticsInStorageAskDto.FindReq removeReq = this.converter.mapRemoveReqToFindReq(dto);
                 WsnaLogisticsInStorageAskDtlDvo askDtlDvo = this.mapper
-                    .selectRtngdAkDtlSendEtxtByRelNoAndRelSn(removeReq);
+                    .selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(removeReq);
 
                 if (ObjectUtils.isNotEmpty(askDtlDvo)) {
                     // 전송여부 체크
