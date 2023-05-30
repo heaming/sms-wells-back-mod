@@ -14,7 +14,12 @@ import com.kyowon.sms.wells.web.service.stock.converter.WsnaLogisticsOutStorageA
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaLogisticsOutStorageAskDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDvo;
+import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1005.request.LogisticsOutOfStorageCancelReqIvo;
+import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1005.response.LogisticsOutOfStorageCancelResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsOutStorageAskMapper;
+import com.sds.sflex.common.common.service.EaiInterfaceService;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
@@ -37,7 +42,11 @@ public class WsnaLogisticsOutStorageAskService {
 
     private final WsnaLogisticsOutStorageAskConverter converter;
 
+    private final EaiInterfaceService interfaceService;
+
     private static final String YN_Y = "Y";
+
+    private static final String RESULT_CODE_F = "F";
 
     private static final String LGST_OSTR_CD = "ORWE";
 
@@ -50,6 +59,9 @@ public class WsnaLogisticsOutStorageAskService {
     private static final String SAP_PLNT_CD = "2108";
     // 프라파주창고(Wells)
     private static final String SAP_SAVE_LCT_CD = "21082082";
+
+    // 출고요청취소 URI
+    private static final String KLS_REMOVE_DATA = "/C/BD/EAI_CBDO1005/req";
 
     /**
      * 출고요청품목 생성
@@ -96,7 +108,7 @@ public class WsnaLogisticsOutStorageAskService {
      * @return 품목출고요청송신전문 데이터 정보
      */
     @Transactional
-    private WsnaLogisticsOutStorageAskDvo insertItmOstrAkSendEtxt(WsnaLogisticsOutStorageAskDto.SaveReq dto) {
+    public WsnaLogisticsOutStorageAskDvo insertItmOstrAkSendEtxt(WsnaLogisticsOutStorageAskDto.SaveReq dto) {
         WsnaLogisticsOutStorageAskDvo dvo = this.converter.mapSaveReqToWsnaLogisticsOutStorageAskDvo(dto);
 
         // 물류출고요청번호 생성
@@ -121,7 +133,7 @@ public class WsnaLogisticsOutStorageAskService {
      * @return 데이터 생성 건수
      */
     @Transactional
-    private int insertOstrAkDtlSendEtxts(
+    public int insertOstrAkDtlSendEtxts(
         WsnaLogisticsOutStorageAskDvo askDvo, List<WsnaLogisticsOutStorageAskDto.SaveReq> dtos
     ) {
 
@@ -208,7 +220,13 @@ public class WsnaLogisticsOutStorageAskService {
                     String trsYn = askDtlDvo.getTrsYn();
                     // 물류에서 이미 전송이 완료된 경우 취소 API 호출
                     if (YN_Y.equals(trsYn)) {
-                        // TODO: 물류 취소 API 호출 및 Exception 처리 추가.
+                        // 물류 취소 API 호출
+                        LogisticsOutOfStorageCancelResIvo resIvo = this.cancelLogisticsOutOfStorage(askDtlDvo);
+                        // Exception 처리, TODO: resultCode 값 확인 후 로직 수정 필요
+                        if (ObjectUtils.isNotEmpty(resIvo) && RESULT_CODE_F.equals(resIvo.getResultCode())) {
+                            // 이미 물류출고 처리되어 삭제할 수 없습니다.
+                            throw new BizException("MSG_ALT_ALRDY_LGST_PROC_CANT_DEL");
+                        }
                     }
 
                     // 데이터 삭제처리
@@ -235,6 +253,30 @@ public class WsnaLogisticsOutStorageAskService {
         }
 
         return cnt;
+    }
+
+    /**
+     * 물류 출고요청 취소 API 호출
+     * @param askDtlDvo (필수) 출고요청상세송신전문 데이터
+     * @return
+     */
+    private LogisticsOutOfStorageCancelResIvo cancelLogisticsOutOfStorage(
+        WsnaLogisticsOutStorageAskDtlDvo askDtlDvo
+    ) {
+
+        // 사용자 세션
+        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+
+        LogisticsOutOfStorageCancelReqIvo req = new LogisticsOutOfStorageCancelReqIvo();
+        req.setSapPlntCd(askDtlDvo.getSapPlntCd());
+        req.setOstrAkNo(askDtlDvo.getLgstOstrAkNo());
+        req.setOstrAkSn(askDtlDvo.getOstrAkSn());
+        // 세션정보 활용
+        req.setAkCanUsrId(session.getUserId());
+        req.setAkCanDeptId(session.getDepartmentId());
+
+        return this.interfaceService
+            .post(KLS_REMOVE_DATA, req, LogisticsOutOfStorageCancelResIvo.class);
     }
 
     /**
