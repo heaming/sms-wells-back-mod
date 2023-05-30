@@ -55,19 +55,6 @@ public class WsnaLogisticsInStorageAskService {
     private static final String EAI_CBD01006 = "/C/BD/EAI_CBDO1006/req";
 
     /**
-     * 출고번호, 출고일련번호에 대한 전송여부 조회
-     * @param dto   (필수) 반품 출고정보
-     * @return 전송여부
-     */
-    public WsnaLogisticsInStorageAskDto.FindRes getTransferYn(@Valid
-    WsnaLogisticsInStorageAskDto.FindReq dto) {
-        // 반품요청상세송신전문 조회
-        WsnaLogisticsInStorageAskDtlDvo dvo = this.mapper.selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(dto);
-
-        return this.converter.mapWsnaLogisticsInStorageAskDtlDvoToFindRes(dvo);
-    }
-
-    /**
      * 입고요청품목 생성
      * @param dtos  (필수) 반품입고품목 리스트
      * @return 반품입고요청 데이터 생성 건수
@@ -174,7 +161,7 @@ public class WsnaLogisticsInStorageAskService {
         if (CollectionUtils.isNotEmpty(dtos)) {
             for (WsnaLogisticsInStorageAskDto.SaveReq dto : dtos) {
                 // 상품반품요청송신전문 데이터 조회
-                WsnaLogisticsInStorageAskDto.FindReq removeReq = this.converter.mapSaveReqToFindReq(dto);
+                WsnaLogisticsInStorageAskDto.RemoveReq removeReq = this.converter.mapSaveReqToRemoveReq(dto);
                 WsnaLogisticsInStorageAskDtlDvo askDtlDvo = this.mapper
                     .selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(removeReq);
 
@@ -212,9 +199,8 @@ public class WsnaLogisticsInStorageAskService {
         if (CollectionUtils.isNotEmpty(dtos)) {
             for (WsnaLogisticsInStorageAskDto.RemoveReq dto : dtos) {
                 // 출고요청상세송신전문 데이터 조회
-                WsnaLogisticsInStorageAskDto.FindReq removeReq = this.converter.mapRemoveReqToFindReq(dto);
                 WsnaLogisticsInStorageAskDtlDvo askDtlDvo = this.mapper
-                    .selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(removeReq);
+                    .selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(dto);
 
                 if (ObjectUtils.isNotEmpty(askDtlDvo)) {
                     // 전송여부 체크

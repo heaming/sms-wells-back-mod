@@ -20,24 +20,6 @@ import lombok.Builder;
 public class WsnaLogisticsInStorageAskDto {
 
     @Builder
-    @ApiModel("WsnaLogisticsInStoreAskDto-FindReq")
-    public record FindReq(
-        // 출고번호 (OSTR_NO)
-        @NotBlank
-        String ostrNo,
-        // 출고일련번호 (OSTR_SN)
-        @Positive
-        int ostrSn
-    ) {}
-
-    @Builder
-    @ApiModel("WsnaLogisticsInStoreAskDto-FindRes")
-    public record FindRes(
-        // 전송여부 (TRS_YN)
-        String trsYn
-    ) {}
-
-    @Builder
     @ApiModel("WsnaLogisticsInStoreAskDto-SaveReq")
     public record SaveReq(
         // 출고요청번호 (OSTR_AK_NO)
@@ -55,7 +37,7 @@ public class WsnaLogisticsInStorageAskDto {
         // 출고요청일자 (OSTR_AK_RGST_DT)
         @NotBlank
         @ValidDate
-        String ortrAkRgstDt,
+        String ostrAkRgstDt,
 
         // 입고희망일자 (STR_HOP_DT)
         @ValidDate
@@ -142,7 +124,7 @@ public class WsnaLogisticsInStorageAskDto {
         // 출고요청일자 (OSTR_AK_RGST_DT)
         @NotBlank
         @ValidDate
-        String ortrAkRgstDt,
+        String ostrAkRgstDt,
 
         // 입고희망일자 (STR_HOP_DT)
         @ValidDate

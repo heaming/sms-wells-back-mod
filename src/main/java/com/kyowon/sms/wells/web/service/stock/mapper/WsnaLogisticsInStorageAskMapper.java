@@ -10,7 +10,7 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDvo;
 public interface WsnaLogisticsInStorageAskMapper {
 
     WsnaLogisticsInStorageAskDtlDvo selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(
-        WsnaLogisticsInStorageAskDto.FindReq dto
+        WsnaLogisticsInStorageAskDto.RemoveReq dto
     );
 
     WsnaLogisticsInStorageAskDvo selectPdRtngdAkSendEtxtByRtngdAkNo(String rtngdAkNo);

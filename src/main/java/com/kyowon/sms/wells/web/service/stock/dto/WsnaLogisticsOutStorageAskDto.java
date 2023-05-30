@@ -40,9 +40,9 @@ public class WsnaLogisticsOutStorageAskDto {
         @ValidDate
         String ostrAkRgstDt,
 
-        // 출고희망일자 (OSTR_HOP_DT)
+        // 입고희망일자 (STR_HOP_DT)
         @ValidDate
-        String ostrHopDt,
+        String strHopDt,
 
         // 입출고요청구분코드 (IOST_AK_DV_CD)
         @NotBlank
@@ -328,9 +328,9 @@ public class WsnaLogisticsOutStorageAskDto {
         @ValidDate
         String ostrAkRgstDt,
 
-        // 출고희망일자 (OSTR_HOP_DT)
+        // 입고희망일자 (STR_HOP_DT)
         @ValidDate
-        String ostrHopDt,
+        String strHopDt,
 
         // 입출고요청구분코드 (IOST_AK_DV_CD)
         @NotBlank

@@ -13,14 +13,10 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDvo;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface WsnaLogisticsInStorageAskConverter {
 
-    WsnaLogisticsInStorageAskDto.FindRes mapWsnaLogisticsInStorageAskDtlDvoToFindRes(
-        WsnaLogisticsInStorageAskDtlDvo dvo
-    );
-
     @Mapping(source = "strHopDt", target = "strDueDt")
     @Mapping(source = "ostrAkNo", target = "rtngdAkNo")
     @Mapping(source = "ostrAkRgstDt", target = "strAkRgstDt")
-    @Mapping(source = "wareMngtPrtnrNo", target = "ichrMngtPrtnrNo")
+    @Mapping(source = "wareMngtPrtnrNo", target = "ichrPrtnrNo")
     WsnaLogisticsInStorageAskDvo mapSaveReqToWsnaLogisticsInStorageAskDvo(WsnaLogisticsInStorageAskDto.SaveReq dto);
 
     @Mapping(source = "ostrAkQty", target = "strAkQty")
@@ -28,10 +24,11 @@ public interface WsnaLogisticsInStorageAskConverter {
         List<WsnaLogisticsInStorageAskDto.SaveReq> dtos
     );
 
-    WsnaLogisticsInStorageAskDto.FindReq mapSaveReqToFindReq(WsnaLogisticsInStorageAskDto.SaveReq dto);
+    @Mapping(source = "ostrAkNo", target = "ostrNo")
+    @Mapping(source = "ostrAkSn", target = "ostrSn")
+    WsnaLogisticsInStorageAskDto.RemoveReq mapSaveReqToRemoveReq(WsnaLogisticsInStorageAskDto.SaveReq dto);
 
-    WsnaLogisticsInStorageAskDto.FindReq mapRemoveReqToFindReq(WsnaLogisticsInStorageAskDto.RemoveReq dto);
-
+    @Mapping(source = "ostrAkQty", target = "strAkQty")
     WsnaLogisticsInStorageAskDtlDvo mapSaveReqToWsnaLogisticsInStorageAskDtlDvo(
         WsnaLogisticsInStorageAskDto.SaveReq dto
     );
