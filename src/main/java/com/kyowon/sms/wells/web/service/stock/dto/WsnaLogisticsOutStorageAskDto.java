@@ -104,6 +104,18 @@ public class WsnaLogisticsOutStorageAskDto {
         // 서비스센터명 (SV_CNR_NM)
         String svCnrNm,
 
+        // 서비스센터담당파트너명 (SV_CNR_ICHR_PRTNR_NM)
+        String svCnrIchrPrtnrNm,
+
+        // 서비스센터전화번호암호화 (SV_CNR_LK_TNO_ENCR)
+        String svCnrLkTnoEncr,
+
+        // 서비스센터주소 (SV_CNR_ADR)
+        String svCnrAdr,
+
+        // 배차유형코드 (OVIV_TP_CD)
+        String ovivTpCd,
+
         // 비고내용 (RMK_CN)
         String rmkCn
     ) {}
