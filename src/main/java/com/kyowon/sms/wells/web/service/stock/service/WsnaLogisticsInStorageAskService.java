@@ -162,10 +162,10 @@ public class WsnaLogisticsInStorageAskService {
             for (WsnaLogisticsInStorageAskDto.SaveReq dto : dtos) {
                 // 상품반품요청송신전문 데이터 조회
                 WsnaLogisticsInStorageAskDto.RemoveReq removeReq = this.converter.mapSaveReqToRemoveReq(dto);
-                // 데이터가 존재하지 않을 경우, 데이터가 없습니다. 메시지 출력
+                // 데이터가 존재하지 않을 경우, 데이터가 존재하지 않습니다. 메시지 출력
                 WsnaLogisticsInStorageAskDtlDvo askDtlDvo = this.mapper
                     .selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(removeReq)
-                    .orElseThrow(() -> new BizException("MSG_TXT_NO_DATA_FOUND"));
+                    .orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
 
                 // 전송여부 체크
                 String trsYn = askDtlDvo.getTrsYn();
@@ -198,10 +198,10 @@ public class WsnaLogisticsInStorageAskService {
 
         if (CollectionUtils.isNotEmpty(dtos)) {
             for (WsnaLogisticsInStorageAskDto.RemoveReq dto : dtos) {
-                // 출고요청상세송신전문 데이터 조회, 데이터가 존재하지 않을 경우, 데이터가 없습니다. 메시지 출력
+                // 출고요청상세송신전문 데이터 조회, 데이터가 존재하지 않을 경우, 데이터가 존재하지 않습니다. 메시지 출력
                 WsnaLogisticsInStorageAskDtlDvo askDtlDvo = this.mapper
                     .selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(dto)
-                    .orElseThrow(() -> new BizException("MSG_TXT_NO_DATA_FOUND"));
+                    .orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
 
                 // 전송여부 체크
                 String trsYn = askDtlDvo.getTrsYn();
