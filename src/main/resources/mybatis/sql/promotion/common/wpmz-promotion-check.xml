@@ -2,32 +2,82 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.promotion.common.mapper.WpmzPromotionCheckMapper">
     <select id="selectProductPriceDetailInfo" resultType="com.kyowon.sms.wells.web.promotion.common.dvo.WpmzPromotionPriceDetailDvo">
-       SELECT PD_CD
-            , SV_PD_CD
-            , STPL_PRD_CD
-            , PD_PRC_CNDT_CHRC_VAL01
-            , PD_PRC_CNDT_CHRC_VAL02
-            , PD_PRC_CNDT_CHRC_VAL03
-            , PD_PRC_CNDT_CHRC_VAL04
-            , PD_PRC_CNDT_CHRC_VAL05
-            , PD_PRC_CNDT_CHRC_VAL06
-            , PD_PRC_CNDT_CHRC_VAL07
-            , PD_PRC_CNDT_CHRC_VAL08
-            , PD_PRC_CNDT_CHRC_VAL09
-            , PD_PRC_CNDT_CHRC_VAL10
-            , PD_PRC_CNDT_CHRC_VAL11
-            , PD_PRC_CNDT_CHRC_VAL12
-            , PD_PRC_CNDT_CHRC_VAL13
-            , PD_PRC_CNDT_CHRC_VAL14
-            , PD_PRC_CNDT_CHRC_VAL15
-            , PD_PRC_CNDT_CHRC_VAL16
-            , PD_PRC_CNDT_CHRC_VAL17
-            , PD_PRC_CNDT_CHRC_VAL18
-            , PD_PRC_CNDT_CHRC_VAL19
-            , PD_PRC_CNDT_CHRC_VAL20
+       SELECT T1.PD_PRC_FNL_DTL_ID
+       		, T1.PD_CD
+            , T1.SV_PD_CD
+            , T2.SV_PD_TP_CD AS SV_TP_CD
+            , T1.STPL_PRD_CD
+            , T1.PD_PRC_CNDT_CHRC_VAL01
+            , T1.PD_PRC_CNDT_CHRC_VAL02
+            , T1.PD_PRC_CNDT_CHRC_VAL03
+            , T1.PD_PRC_CNDT_CHRC_VAL04
+            , T1.PD_PRC_CNDT_CHRC_VAL05
+            , T1.PD_PRC_CNDT_CHRC_VAL06
+            , T1.PD_PRC_CNDT_CHRC_VAL07
+            , T1.PD_PRC_CNDT_CHRC_VAL08
+            , T1.PD_PRC_CNDT_CHRC_VAL09
+            , T1.PD_PRC_CNDT_CHRC_VAL10
+            , T1.PD_PRC_CNDT_CHRC_VAL11
+            , T1.PD_PRC_CNDT_CHRC_VAL12
+            , T1.PD_PRC_CNDT_CHRC_VAL13
+            , T1.PD_PRC_CNDT_CHRC_VAL14
+            , T1.PD_PRC_CNDT_CHRC_VAL15
+            , T1.PD_PRC_CNDT_CHRC_VAL16
+            , T1.PD_PRC_CNDT_CHRC_VAL17
+            , T1.PD_PRC_CNDT_CHRC_VAL18
+            , T1.PD_PRC_CNDT_CHRC_VAL19
+            , T1.PD_PRC_CNDT_CHRC_VAL20
+            , T3.PD_PRP_VAL01
+			, T3.PD_PRP_VAL02
+			, T3.PD_PRP_VAL03
+			, T3.PD_PRP_VAL04
+			, T3.PD_PRP_VAL05
+			, T3.PD_PRP_VAL06
+			, T3.PD_PRP_VAL07
+			, T3.PD_PRP_VAL08
+			, T3.PD_PRP_VAL09
+			, T3.PD_PRP_VAL10
+			, T3.PD_PRP_VAL11
+			, T3.PD_PRP_VAL12
+			, T3.PD_PRP_VAL13
+			, T3.PD_PRP_VAL14
+			, T3.PD_PRP_VAL15
+			, T3.PD_PRP_VAL16
+			, T3.PD_PRP_VAL17
+			, T3.PD_PRP_VAL18
+			, T3.PD_PRP_VAL19
+			, T3.PD_PRP_VAL20
+			, T3.PD_PRP_VAL21
+			, T3.PD_PRP_VAL22
+			, T3.PD_PRP_VAL23
+			, T3.PD_PRP_VAL24
+			, T3.PD_PRP_VAL25
+			, T3.PD_PRP_VAL26
+			, T3.PD_PRP_VAL27
+			, T3.PD_PRP_VAL28
+			, T3.PD_PRP_VAL29
+			, T3.PD_PRP_VAL30
+			, T3.PD_PRP_VAL31
+			, T3.PD_PRP_VAL32
+			, T3.PD_PRP_VAL33
+			, T3.PD_PRP_VAL34
+			, T3.PD_PRP_VAL35
+			, T3.PD_PRP_VAL36
+			, T3.PD_PRP_VAL37
+			, T3.PD_PRP_VAL38
+			, T3.PD_PRP_VAL39
+			, T3.PD_PRP_VAL40
          FROM TB_PDBS_PD_PRC_FNL_DTL T1
-        WHERE PD_PRC_FNL_DTL_ID = #{pdPrcDtlCd}
-          AND DTA_DL_YN = 'N'
+         LEFT OUTER JOIN TB_PDBS_PD_BAS T2
+           ON T2.PD_CD = T1.SV_PD_CD
+          AND T2.PD_TP_CD = 'S'
+          AND T2.DTA_DL_YN = 'N'
+    	 LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T3
+           ON T3.PD_CD = T2.PD_CD
+          AND T3.PD_EXTS_PRP_GRP_CD = 'SCHD'	/* SCHD : 일정관리 */
+          AND T3.DTA_DL_YN = 'N'
+        WHERE T1.PD_PRC_FNL_DTL_ID = #{pdPrcDtlCd}
+          AND T1.DTA_DL_YN = 'N'
           AND EXISTS (SELECT 1
                         FROM (SELECT PD_PRC_FNL_DTL_ID
                                    , VER_SN
@@ -41,11 +91,12 @@
     </select>
 
     <select id="selectProductPriceMetaInfo" resultType="com.kyowon.sms.wells.web.promotion.common.dvo.WpmzPromotionPriceDetailDvo">
-        SELECT MAX(CASE WHEN COL_NM = 'RENTAL_DSC_DV_CD' THEN COL_ID END) AS RENTAL_DSC_DV_CD
-             , MAX(CASE WHEN COL_NM = 'RENTAL_DSC_TP_CD' THEN COL_ID END) AS RENTAL_DSC_TP_CD
+        SELECT MAX(CASE WHEN COL_NM = 'RENTAL_DSC_DV_CD' THEN COL_ID END)   AS RENTAL_DSC_DV_CD     /* 렌탈할인구분코드 */
+             , MAX(CASE WHEN COL_NM = 'RENTAL_DSC_TP_CD' THEN COL_ID END)   AS RENTAL_DSC_TP_CD     /* 렌탈할인유형코드 */
+             , MAX(CASE WHEN COL_NM = 'SV_VST_PRD_CD' THEN COL_ID END)      AS SV_VST_PRD_CD		/* 방문주기 */
+             , MAX(CASE WHEN COL_NM = 'PCSV_PRD_CD' THEN COL_ID END)        AS PCSV_PRD_CD		    /* 택배주기 */
           FROM TB_PDBS_PD_PRP_META_BAS M1
          WHERE M1.DTA_DL_YN = 'N'
            AND M1.USE_YN = 'Y'
-         GROUP BY 1
     </select>
 </mapper>

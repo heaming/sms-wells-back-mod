@@ -12,8 +12,13 @@ import lombok.ToString;
 @Setter
 @ToString
 public class WpmzPromotionOutputDvo {
+    /* 기본항목 */
     private String pmotCd;              /* 프로모션코드      */
     private String pmotCndtFvrRelId;    /* 프로모션조건혜택관계ID */
+    private String pdPrcDtlCd;          /* 상품가격상세코드 */
+    private String rmkCn;               /* 비고내용 */
+
+    /* 혜택항목 */
     private String dscMcnt;             /* 할인개월         */
     private String dscFxam;             /* 할인금액         */
     private String freeMcnt;            /* 무료개월         */
@@ -26,7 +31,6 @@ public class WpmzPromotionOutputDvo {
     private String fgptChoGrpCd;        /* 사은품선택그룹 */
     private String fgptChoCd;           /* 사은품선택 */
     private String prmDupPrmitYn;       /* 선납중복허용여부 */
-    private String pdPrcDtlCd;          /* 상품가격상세코드 */
     private List<ZpmzPromotionFreeGiftDvo> pmotFreeGifts;  /* 사은품목록 */
 
 
