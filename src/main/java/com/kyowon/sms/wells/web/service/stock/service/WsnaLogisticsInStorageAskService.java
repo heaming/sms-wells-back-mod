@@ -162,28 +162,28 @@ public class WsnaLogisticsInStorageAskService {
             for (WsnaLogisticsInStorageAskDto.SaveReq dto : dtos) {
                 // 상품반품요청송신전문 데이터 조회
                 WsnaLogisticsInStorageAskDto.RemoveReq removeReq = this.converter.mapSaveReqToRemoveReq(dto);
+                // 데이터가 존재하지 않을 경우, 데이터가 없습니다. 메시지 출력
                 WsnaLogisticsInStorageAskDtlDvo askDtlDvo = this.mapper
-                    .selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(removeReq);
+                    .selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(removeReq)
+                    .orElseThrow(() -> new BizException("MSG_TXT_NO_DATA_FOUND"));
 
-                if (ObjectUtils.isNotEmpty(askDtlDvo)) {
-                    // 전송여부 체크
-                    String trsYn = askDtlDvo.getTrsYn();
-                    // 물류에서 이미 전송이 완료된 경우 메시지 처리
-                    if (YN_Y.equals(trsYn)) {
-                        // 이미 물류입고 처리되어 변경할 수 없습니다.
-                        throw new BizException("MSG_ALT_ALRDY_LGST_STR_CANT_CHNG");
-                    }
-
-                    WsnaLogisticsInStorageAskDtlDvo updateDvo = this.converter
-                        .mapSaveReqToWsnaLogisticsInStorageAskDtlDvo(dto);
-                    // PK 셋팅
-                    updateDvo.setSapPlntCd(askDtlDvo.getSapPlntCd());
-                    updateDvo.setLgstStrAkNo(askDtlDvo.getLgstStrAkNo());
-                    updateDvo.setStrAkSn(askDtlDvo.getStrAkSn());
-
-                    // 반품요청상세송신전문 데이터 변경
-                    count += this.mapper.updateRtngdAkDtlSendEtxt(updateDvo);
+                // 전송여부 체크
+                String trsYn = askDtlDvo.getTrsYn();
+                // 물류에서 이미 전송이 완료된 경우 메시지 처리
+                if (YN_Y.equals(trsYn)) {
+                    // 이미 물류입고 처리되어 변경할 수 없습니다.
+                    throw new BizException("MSG_ALT_ALRDY_LGST_STR_CANT_CHNG");
                 }
+
+                WsnaLogisticsInStorageAskDtlDvo updateDvo = this.converter
+                    .mapSaveReqToWsnaLogisticsInStorageAskDtlDvo(dto);
+                // PK 셋팅
+                updateDvo.setSapPlntCd(askDtlDvo.getSapPlntCd());
+                updateDvo.setLgstStrAkNo(askDtlDvo.getLgstStrAkNo());
+                updateDvo.setStrAkSn(askDtlDvo.getStrAkSn());
+
+                // 반품요청상세송신전문 데이터 변경
+                count += this.mapper.updateRtngdAkDtlSendEtxt(updateDvo);
             }
         }
 
@@ -198,28 +198,27 @@ public class WsnaLogisticsInStorageAskService {
 
         if (CollectionUtils.isNotEmpty(dtos)) {
             for (WsnaLogisticsInStorageAskDto.RemoveReq dto : dtos) {
-                // 출고요청상세송신전문 데이터 조회
+                // 출고요청상세송신전문 데이터 조회, 데이터가 존재하지 않을 경우, 데이터가 없습니다. 메시지 출력
                 WsnaLogisticsInStorageAskDtlDvo askDtlDvo = this.mapper
-                    .selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(dto);
+                    .selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(dto)
+                    .orElseThrow(() -> new BizException("MSG_TXT_NO_DATA_FOUND"));
 
-                if (ObjectUtils.isNotEmpty(askDtlDvo)) {
-                    // 전송여부 체크
-                    String trsYn = askDtlDvo.getTrsYn();
-                    // 물류에서 이미 전송이 완료된 경우 취소 API 호출
-                    if (YN_Y.equals(trsYn)) {
-                        // 물류 취소 API 호출
-                        LogisticsInStorageCancelResIvo resIvo = this.cancelLogisticsInStorage(askDtlDvo);
-                        // Exception 처리, TODO: resultCode 값 확인 후 로직 수정 필요
-                        if (ObjectUtils.isNotEmpty(resIvo) && RESULT_CODE_F.equals(resIvo.getResultCode())) {
-                            // 이미 물류입고 처리되어 삭제할 수 없습니다.
-                            throw new BizException("MSG_ALT_ALRDY_LGST_STR_CANT_DEL");
-                        }
+                // 전송여부 체크
+                String trsYn = askDtlDvo.getTrsYn();
+                // 물류에서 이미 전송이 완료된 경우 취소 API 호출
+                if (YN_Y.equals(trsYn)) {
+                    // 물류 취소 API 호출
+                    LogisticsInStorageCancelResIvo resIvo = this.cancelLogisticsInStorage(askDtlDvo);
+                    // Exception 처리, TODO: resultCode 값 확인 후 로직 수정 필요
+                    if (ObjectUtils.isNotEmpty(resIvo) && RESULT_CODE_F.equals(resIvo.getResultCode())) {
+                        // 이미 물류입고 처리되어 삭제할 수 없습니다.
+                        throw new BizException("MSG_ALT_ALRDY_LGST_STR_CANT_DEL");
                     }
-
-                    // 데이터 삭제처리
-                    askDtlDvo.setDtaDlYn(YN_Y);
-                    count += this.mapper.updateRtngdAkDtlSendEtxtForRemove(askDtlDvo);
                 }
+
+                // 데이터 삭제처리
+                askDtlDvo.setDtaDlYn(YN_Y);
+                count += this.mapper.updateRtngdAkDtlSendEtxtForRemove(askDtlDvo);
             }
 
             // 출고요청번호 필터링

@@ -13,9 +13,10 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDvo;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface WsnaLogisticsInStorageAskConverter {
 
-    @Mapping(source = "strHopDt", target = "strDueDt")
     @Mapping(source = "ostrAkNo", target = "rtngdAkNo")
+    @Mapping(source = "ostrAkTpCd", target = "lgstStrTpCd")
     @Mapping(source = "ostrAkRgstDt", target = "strAkRgstDt")
+    @Mapping(source = "strHopDt", target = "strDueDt")
     @Mapping(source = "wareMngtPrtnrNo", target = "ichrPrtnrNo")
     WsnaLogisticsInStorageAskDvo mapSaveReqToWsnaLogisticsInStorageAskDvo(WsnaLogisticsInStorageAskDto.SaveReq dto);
 

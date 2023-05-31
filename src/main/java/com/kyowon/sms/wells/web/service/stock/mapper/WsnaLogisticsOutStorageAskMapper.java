@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
+import java.util.Optional;
+
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaLogisticsOutStorageAskDto;
@@ -17,7 +19,7 @@ public interface WsnaLogisticsOutStorageAskMapper {
 
     int insertOstrAkDtlSendEtxt(WsnaLogisticsOutStorageAskDtlDvo dvo);
 
-    WsnaLogisticsOutStorageAskDtlDvo selectOstrAkDtlSendEtxtByOstrAkNoAndOstrAkSn(
+    Optional<WsnaLogisticsOutStorageAskDtlDvo> selectOstrAkDtlSendEtxtByOstrAkNoAndOstrAkSn(
         WsnaLogisticsOutStorageAskDto.RemoveReq dto
     );
 
