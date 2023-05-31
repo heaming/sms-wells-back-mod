@@ -121,8 +121,8 @@ public class WpmzPromotionCheckService {
             if (priceIndex > -1) {
                 WpmzPromotionPriceDetailDvo priceDetailDvo = mapper.selectProductPriceDetailInfo(inputAtc.getVarbBasVal());
                 if (priceDetailDvo != null) {
-                    // 1.1. 상품가격조건특성값에서 렌탈할인구분코드, 렌탈할인유형코드 추출 후 적용
-                    setRentalDscValue(priceDetailDvo);
+                    // 1.1. 상품/가격속성값에서 항목 추출 후 적용 (렌탈할인구분코드, 렌탈할인유형코드, 방문주기, 택배주기)
+                    setArticlesInProductProps(priceDetailDvo);
 
                     // 1.2. 기준상품코드 / 기준상품분류코드
                     if (StringUtils.isNotBlank(Objects.toString(priceDetailDvo.getPdCd(), ""))) {
@@ -150,17 +150,46 @@ public class WpmzPromotionCheckService {
                         if (dvoOpt.isEmpty()) addClsfInputDvos.add(new ZpmzPromotionAtcDvo(PmPromotionConst.SYS_CMPP_NM_STPL_PRD_CD, priceDetailDvo.getStplPrdCd()));
                         else dvoOpt.get().setVarbBasVal(priceDetailDvo.getStplPrdCd());
                     }
-                    // 1.5. 렌탈할인구분코드
+                    // 1.5. 서비스유형코드
+                    if (StringUtils.isNotBlank(Objects.toString(priceDetailDvo.getSvTpCd(), ""))) {
+                        Optional<ZpmzPromotionAtcDvo> dvoOpt = inputDvos.stream().filter(item -> StringUtils.equals(item.getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_SERVICE_TYPE_CD)).findAny();
+                        if (dvoOpt.isEmpty()) addClsfInputDvos.add(new ZpmzPromotionAtcDvo(PmPromotionConst.SYS_CMPP_NM_SERVICE_TYPE_CD, priceDetailDvo.getSvTpCd()));
+                        else dvoOpt.get().setVarbBasVal(priceDetailDvo.getSvTpCd());
+                    }
+                    // 1.6. 렌탈할인구분코드
                     if (StringUtils.isNotBlank(Objects.toString(priceDetailDvo.getRentalDscDvCd(), ""))) {
                         Optional<ZpmzPromotionAtcDvo> dvoOpt = inputDvos.stream().filter(item -> StringUtils.equals(item.getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_RENTAL_DSC_DV_CD)).findAny();
                         if (dvoOpt.isEmpty()) addClsfInputDvos.add(new ZpmzPromotionAtcDvo(PmPromotionConst.SYS_CMPP_NM_RENTAL_DSC_DV_CD, priceDetailDvo.getRentalDscDvCd()));
                         else dvoOpt.get().setVarbBasVal(priceDetailDvo.getRentalDscDvCd());
                     }
-                    // 1.6. 렌탈할인유형코드
+                    // 1.7. 렌탈할인유형코드
                     if (StringUtils.isNotBlank(Objects.toString(priceDetailDvo.getRentalDscTpCd(), ""))) {
                         Optional<ZpmzPromotionAtcDvo> dvoOpt = inputDvos.stream().filter(item -> StringUtils.equals(item.getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_RENTAL_DSC_TP_CD)).findAny();
                         if (dvoOpt.isEmpty()) addClsfInputDvos.add(new ZpmzPromotionAtcDvo(PmPromotionConst.SYS_CMPP_NM_RENTAL_DSC_TP_CD, priceDetailDvo.getRentalDscTpCd()));
                         else dvoOpt.get().setVarbBasVal(priceDetailDvo.getRentalDscTpCd());
+                    }
+                    // 1.8. 방문주기
+                    if (StringUtils.isNotBlank(Objects.toString(priceDetailDvo.getSvVstPrdCd(), ""))) {
+                        Optional<ZpmzPromotionAtcDvo> dvoOpt = inputDvos.stream().filter(item -> StringUtils.equals(item.getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_SERVICE_VISIT_PERIOD_CD)).findAny();
+                        if (dvoOpt.isEmpty()) addClsfInputDvos.add(new ZpmzPromotionAtcDvo(PmPromotionConst.SYS_CMPP_NM_SERVICE_VISIT_PERIOD_CD, priceDetailDvo.getSvVstPrdCd()));
+                        else dvoOpt.get().setVarbBasVal(priceDetailDvo.getSvVstPrdCd());
+                    }
+                    // 1.9. 택배주기
+                    if (StringUtils.isNotBlank(Objects.toString(priceDetailDvo.getPcsvPrdCd(), ""))) {
+                        Optional<ZpmzPromotionAtcDvo> dvoOpt = inputDvos.stream().filter(item -> StringUtils.equals(item.getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_PARCEL_SERVICE_PERIOD_CD)).findAny();
+                        if (dvoOpt.isEmpty()) addClsfInputDvos.add(new ZpmzPromotionAtcDvo(PmPromotionConst.SYS_CMPP_NM_PARCEL_SERVICE_PERIOD_CD, priceDetailDvo.getPcsvPrdCd()));
+                        else dvoOpt.get().setVarbBasVal(priceDetailDvo.getPcsvPrdCd());
+                    }
+                    // 1.10. BS주기
+                    String svBfsvcPrdCd = Objects.toString(priceDetailDvo.getSvVstPrdCd(), "");
+                    if (StringUtils.equals(Objects.toString(priceDetailDvo.getSvTpCd(), ""), PmPromotionConst.SERVICE_TYPE_CODE_PARCEL_1)
+                        || StringUtils.equals(Objects.toString(priceDetailDvo.getSvTpCd(), ""), PmPromotionConst.SERVICE_TYPE_CODE_PARCEL_2)) {
+                        svBfsvcPrdCd = Objects.toString(priceDetailDvo.getPcsvPrdCd(), "");
+                    }
+                    if (StringUtils.isNotBlank(svBfsvcPrdCd)) {
+                        Optional<ZpmzPromotionAtcDvo> dvoOpt = inputDvos.stream().filter(item -> StringUtils.equals(item.getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_BEFORE_SERVICE_PERIOD_CD)).findAny();
+                        if (dvoOpt.isEmpty()) addClsfInputDvos.add(new ZpmzPromotionAtcDvo(PmPromotionConst.SYS_CMPP_NM_BEFORE_SERVICE_PERIOD_CD, svBfsvcPrdCd));
+                        else dvoOpt.get().setVarbBasVal(svBfsvcPrdCd);
                     }
                 }
             }
@@ -180,7 +209,7 @@ public class WpmzPromotionCheckService {
         return addClsfInputDvos;
     }
 
-    private void setRentalDscValue(WpmzPromotionPriceDetailDvo priceDetailDvo) throws NoSuchFieldException, IllegalAccessException {
+    private void setArticlesInProductProps(WpmzPromotionPriceDetailDvo priceDetailDvo) throws NoSuchFieldException, IllegalAccessException {
         // 상품가격조건특성 메타 조회
         WpmzPromotionPriceDetailDvo metaDvo = mapper.selectProductPriceMetaInfo();
 
@@ -193,6 +222,16 @@ public class WpmzPromotionCheckService {
         Field rentalDscTpCdField = priceDetailDvo.getClass().getDeclaredField(JdbcUtils.convertUnderscoreNameToPropertyName(metaDvo.getRentalDscTpCd()));
         rentalDscTpCdField.setAccessible(true);
         priceDetailDvo.setRentalDscTpCd(Objects.toString(rentalDscTpCdField.get(priceDetailDvo), ""));
+
+        // 서비스상품속성값에서 방문주기 추출
+        Field svVstPrdCdField = priceDetailDvo.getClass().getDeclaredField(JdbcUtils.convertUnderscoreNameToPropertyName(metaDvo.getSvVstPrdCd()));
+        svVstPrdCdField.setAccessible(true);
+        priceDetailDvo.setSvVstPrdCd(Objects.toString(svVstPrdCdField.get(priceDetailDvo), ""));
+
+        // 서비스상품속성값에서 택배주기 추출
+        Field pcsvPrdCdField = priceDetailDvo.getClass().getDeclaredField(JdbcUtils.convertUnderscoreNameToPropertyName(metaDvo.getPcsvPrdCd()));
+        pcsvPrdCdField.setAccessible(true);
+        priceDetailDvo.setPcsvPrdCd(Objects.toString(pcsvPrdCdField.get(priceDetailDvo), ""));
     }
 
     private List<WpmzPromotionOutputDvo> convertAppliedPromotionsToFinalResults(List<ZpmzPromotionInfoDvo> appliedPromotions) {
@@ -203,9 +242,10 @@ public class WpmzPromotionCheckService {
 
                 WpmzPromotionOutputDvo resultDvo = new WpmzPromotionOutputDvo();
 
-                /* 1. 프로모션코드 / 프로모션조건혜택관계ID */
+                /* 1. 프로모션코드 / 프로모션조건혜택관계ID / 비고 */
                 resultDvo.setPmotCd(infoDvo.getPmotCd());
                 resultDvo.setPmotCndtFvrRelId(infoDvo.getPmotCndtFvrRelId());
+                resultDvo.setRmkCn(infoDvo.getRmkCn());
 
                 /* 2. 프로모션 혜택정리 */
                 if (infoDvo.getPmotDtlFvrs() != null) {
