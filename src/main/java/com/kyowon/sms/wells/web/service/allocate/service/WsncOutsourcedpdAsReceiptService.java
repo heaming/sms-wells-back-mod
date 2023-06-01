@@ -101,7 +101,7 @@ public class WsncOutsourcedpdAsReceiptService {
 
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("cnrNm", dto.cnrNm());
-        paramMap.put("cnrTno", dto.cnrTno());
+        paramMap.put("svCnrTno", dto.svCnrTno());
 
         KakaoSendReqDvo kakaoSendReqDvo = KakaoSendReqDvo.withTemplateCode()
             .templateCode("wells17952")

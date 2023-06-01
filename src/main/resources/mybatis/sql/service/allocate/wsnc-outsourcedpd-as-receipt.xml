@@ -80,6 +80,9 @@
           FROM TB_SVPD_OUTS_SV_CNR_IZ
          WHERE 1=1
            AND DTA_DL_YN = 'N'
+         <if test='@MybatisUtils@isNotEmpty(cnrNm)'>
+           AND SV_CNR_NM LIKE '%'||#{cnrNm}||'%'
+         </if>
          ORDER BY SV_CNR_NM
     </select>
 

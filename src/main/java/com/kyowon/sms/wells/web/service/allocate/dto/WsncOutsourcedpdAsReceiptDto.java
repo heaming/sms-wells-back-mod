@@ -44,7 +44,7 @@ public class WsncOutsourcedpdAsReceiptDto {
     @ApiModel(value = "WsncOutsourcedpdAsReceiptDto-BiztalkReq")
     public record BiztalkReq(
         String cnrNm, /* as센터명 */
-        String cnrTno, /* as센터연락처 */
+        String svCnrTno, /* as센터연락처 */
         @NotBlank
         String cstTno /* 고객전화번호 */
     ) {}
