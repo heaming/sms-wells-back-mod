@@ -1,0 +1,527 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemStockItemizationMapper">
+    <select id="selectCountItmPdCdInfo" resultType="integer">
+        SELECT COUNT(*) AS CNT
+          FROM TB_SVST_CST_SV_ITM_STOC_IZ
+         WHERE ITM_PD_CD = #{itmPdCd}
+    </select>
+
+    <select id="selectItmPdCdInformation" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationDvo">
+        SELECT WARE_NO                /* 창고번호 */
+             , ITM_PD_CD              /* 품목상품코드 */
+             , ITM_CD                 /* 품목코드 */
+             , PITM_STOC_A_GD_QTY     /* 시점재고A등급수량 */
+             , PITM_STOC_E_GD_QTY     /* 시점재고E등급수량 */
+             , PITM_STOC_R_GD_QTY     /* 시점재고R등급수량 */
+             , MMT_STOC_A_GD_QTY      /* 이동재고A등급수량 */
+             , MMT_STOC_E_GD_QTY      /* 이동재고E등급수량 */
+             , MMT_STOC_R_GD_QTY      /* 이동재고R등급수량 */
+             , SFT_STOC_A_GD_QTY      /* 안전재고A등급수량 */
+             , SFT_STOC_E_GD_QTY      /* 안전재고E등급수량 */
+             , SFT_STOC_R_GD_QTY      /* 안전재고R등급수량 */
+             , STR_EXP_A_GD_QTY       /* 입고예정A등급수량 */
+             , STR_EXP_E_GD_QTY       /* 입고예정E등급수량 */
+             , STR_EXP_R_GD_QTY       /* 입고예정R등급수량 */
+             , FRE_EXPN_STOC_A_GD_QTY /* 무료체험재고A등급수량 */
+             , FRE_EXPN_STOC_E_GD_QTY /* 무료체험재고E등급수량 */
+             , FRE_EXPN_STOC_R_GD_QTY /* 무료체험재고R등급수량 */
+             , SFT_STOC_B_GD_QTY      /* 안전재고B등급수량 */
+             , PITM_STOC_B_GD_QTY     /* 시점재고B등급수량 */
+             , STR_EXP_B_GD_QTY       /* 입고예정B등급수량 */
+             , MMT_STOC_B_GD_QTY      /* 이동재고B등급수량 */
+             , FRE_EXPN_STOC_B_GD_QTY /* 무료체험재고B등급수량 */
+             , OSTR_STP_YN            /* 출고중지여부 */
+             , OSTR_STP_RSON_CD       /* 출고중지사유코드 */
+             , OSTR_STP_STRTDT        /* 출고중지시작일자 */
+             , OSTR_STP_EXDT          /* 출고중지만기일자 */
+             , FNL_STR_DT             /* 최종입고일자 */
+             , FNL_OSTR_DT            /* 최종출고일자 */
+             , DTA_DL_YN              /* 데이터삭제여부 */
+             , FST_RGST_DTM           /* 최초등록일시 */
+             , FST_RGST_USR_ID        /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID        /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID       /* 최초등록부서ID */
+             , FNL_MDFC_DTM           /* 최종수정일시 */
+             , FNL_MDFC_USR_ID        /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID        /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID       /* 최종수정부서ID */
+          FROM TB_SVST_CST_SV_ITM_STOC_IZ /* 고객서비스품목재고내역 */
+         WHERE 1 = 1
+           AND WARE_NO                = #{wareNo}               /* 창고번호 */
+           AND ITM_PD_CD              = #{itmPdCd}              /* 품목상품코드 */
+    </select>
+
+    <update id="updatePurchaseAStore">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_A_GD_QTY = #{pitmStocAGdQty}
+             , STR_EXP_A_GD_QTY = #{strExpAGdQty}
+             , FNL_STR_DT = #{fnlStrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updatePurchaseBStore">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_B_GD_QTY = #{pitmStocBGdQty}
+             , STR_EXP_B_GD_QTY = #{strExpBGdQty}
+             , FNL_STR_DT = #{fnlStrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updatePitmStocAGd">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_A_GD_QTY = #{pitmStocAGdQty}
+             , FNL_OSTR_DT = #{fnlOstrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updatePitmStocEGd">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_E_GD_QTY = #{pitmStocEGdQty}
+             , FNL_OSTR_DT = #{fnlOstrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateNormalStoreAQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_A_GD_QTY = #{pitmStocAGdQty}
+             , FNL_STR_DT = #{fnlstrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateNormalStoreBQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_B_GD_QTY = #{pitmStocBGdQty}
+             , FNL_STR_DT = #{fnlstrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateNormalStoreEQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_E_GD_QTY = #{pitmStocEGdQty}
+             , FNL_STR_DT = #{fnlstrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateNormalStoreRQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_R_GD_QTY = #{pitmStocRGdQty}
+             , FNL_STR_DT = #{fnlstrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateOtsdRtngdAGdStr">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_A_GD_QTY = #{pitmStocAGdQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateOtsdRtngdBGdStr">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_B_GD_QTY = #{pitmStocBGdQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateOtsdRtngdEGdStr">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_E_GD_QTY = #{pitmStocEGdQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateOtsdRtngdRGdStr">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_R_GD_QTY = #{pitmStocRGdQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+
+    <update id="updateInsiOtsdAGdOstr">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_A_GD_QTY = #{pitmStocAGdQty}
+             , FNL_OSTR_DT = #{fnlOstrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateInsiOtsdBGdOstr">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_B_GD_QTY = #{pitmStocBGdQty}
+             , FNL_OSTR_DT = #{fnlOstrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateInsiOtsdEGdOstr">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_E_GD_QTY = #{pitmStocEGdQty}
+             , FNL_OSTR_DT = #{fnlOstrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateInsiOtsdRGdOstr">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_E_GD_QTY = #{pitmStocEGdQty}
+             , FNL_OSTR_DT = #{fnlOstrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <insert id="insertAGdSvstCstSvItmStocIz">
+        INSERT INTO TB_SVST_CST_SV_ITM_STOC_IZ (  /* 고객서비스품목재고내역 */
+              WARE_NO                /* 창고번호 */
+            , ITM_PD_CD              /* 품목상품코드 */
+            , PITM_STOC_A_GD_QTY     /* 시점재고A등급수량 */
+            , OSTR_STP_YN            /*출고중지여부*/
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{wareNo}
+            , #{itmPdCd}
+            , #{pitmStocAGdQty}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertBGdSvstCstSvItmStocIz">
+        INSERT INTO TB_SVST_CST_SV_ITM_STOC_IZ (  /* 고객서비스품목재고내역 */
+              WARE_NO                /* 창고번호 */
+            , ITM_PD_CD              /* 품목상품코드 */
+            , PITM_STOC_B_GD_QTY     /* 시점재고B등급수량 */
+            , OSTR_STP_YN            /*출고중지여부*/
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{wareNo}
+            , #{itmPdCd}
+            , #{pitmStocBGdQty}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertEGdSvstCstSvItmStocIz">
+        INSERT INTO TB_SVST_CST_SV_ITM_STOC_IZ (  /* 고객서비스품목재고내역 */
+              WARE_NO                /* 창고번호 */
+            , ITM_PD_CD              /* 품목상품코드 */
+            , PITM_STOC_E_GD_QTY     /* 시점재고E등급수량 */
+            , OSTR_STP_YN            /*출고중지여부*/
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{wareNo}
+            , #{itmPdCd}
+            , #{pitmStocEGdQty}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertRGdSvstCstSvItmStocIz">
+        INSERT INTO TB_SVST_CST_SV_ITM_STOC_IZ (  /* 고객서비스품목재고내역 */
+              WARE_NO                /* 창고번호 */
+            , ITM_PD_CD              /* 품목상품코드 */
+            , PITM_STOC_R_GD_QTY     /* 시점재고R등급수량 */
+            , OSTR_STP_YN            /*출고중지여부*/
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{wareNo}
+            , #{itmPdCd}
+            , #{pitmStocRGdQty}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updatePurchaseAGdStore">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_A_GD_QTY = #{pitmStocAGdQty}
+             , STR_EXP_A_GD_QTY = #{strExpAGdQty}
+             , FNL_STR_DT = #{fnlStrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updatePurchaseBGdStore">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_B_GD_QTY = #{pitmStocBGdQty}
+             , STR_EXP_B_GD_QTY = #{strExpBGdQty}
+             , FNL_STR_DT = #{fnlStrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateInsiStoreAGdQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_A_GD_QTY = #{pitmStocAGdQty}
+             , FNL_STR_DT = #{fnlStrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateInsiStoreBGdQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_B_GD_QTY = #{pitmStocBGdQty}
+             , FNL_STR_DT = #{fnlStrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateInsiStoreEGdQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_E_GD_QTY = #{pitmStocEGdQty}
+             , FNL_STR_DT = #{fnlStrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateInsiStoreRGdQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_R_GD_QTY = #{pitmStocRGdQty}
+             , FNL_STR_DT = #{fnlStrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateOtsdStrAGdQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_A_GD_QTY = #{pitmStocAGdQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateOtsdStrBGdQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_B_GD_QTY = #{pitmStocBGdQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateOtsdStrEGdQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_E_GD_QTY = #{pitmStocEGdQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateOtsdStrRGdQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_R_GD_QTY = #{pitmStocRGdQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateInsiOstrAGdQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_A_GD_QTY = #{pitmStocAGdQty}
+             , FNL_OSTR_DT = #{fnlOstrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateInsiOstrBGdQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_B_GD_QTY = #{pitmStocBGdQty}
+             , FNL_OSTR_DT = #{fnlOstrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateInsiOstrEGdQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_E_GD_QTY = #{pitmStocEGdQty}
+             , FNL_OSTR_DT = #{fnlOstrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateInsiOstrRGdQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET PITM_STOC_R_GD_QTY = #{pitmStocRGdQty}
+             , FNL_OSTR_DT = #{fnlOstrDt}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateMovementAGdStock">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET MMT_STOC_A_GD_QTY = #{mmtStocAGdQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateMovementBGdStock">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET MMT_STOC_B_GD_QTY = #{mmtStocBGdQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateMovementEGdStock">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET MMT_STOC_E_GD_QTY = #{mmtStocEGdQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateMovementRGdStock">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET MMT_STOC_R_GD_QTY = #{mmtStocRGdQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateMovementAGdStockQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET MMT_STOC_A_GD_QTY = #{mmtStocAGdQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateMovementBGdStockQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET MMT_STOC_B_GD_QTY = #{mmtStocBGdQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateMovementEGdStockQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET MMT_STOC_E_GD_QTY = #{mmtStocEGdQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <update id="updateMovementRGdStockQty">
+        UPDATE TB_SVST_CST_SV_ITM_STOC_IZ
+           SET MMT_STOC_R_GD_QTY = #{mmtStocRGdQty}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE WARE_NO = #{wareNo}
+           AND ITM_PD_CD = #{itmPdCd}
+    </update>
+
+    <insert id ="insertMovementAGdQty">
+        INSERT INTO TB_SVST_CST_SV_ITM_STOC_IZ (  /* 고객서비스품목재고내역 */
+              WARE_NO                /* 창고번호 */
+            , ITM_PD_CD              /* 품목상품코드 */
+            , MMT_STOC_A_GD_QTY     /* 이동재고A등급수량 */
+            , OSTR_STP_YN            /*출고중지여부*/
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{wareNo}
+            , #{itmPdCd}
+            , #{mmtStocAGdQty}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id ="insertMovementBGdQty">
+        INSERT INTO TB_SVST_CST_SV_ITM_STOC_IZ (  /* 고객서비스품목재고내역 */
+              WARE_NO                /* 창고번호 */
+            , ITM_PD_CD              /* 품목상품코드 */
+            , MMT_STOC_B_GD_QTY     /* 이동재고B등급수량 */
+            , OSTR_STP_YN            /*출고중지여부*/
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{wareNo}
+            , #{itmPdCd}
+            , #{mmtStocBGdQty}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id ="insertMovementEGdQty">
+        INSERT INTO TB_SVST_CST_SV_ITM_STOC_IZ (  /* 고객서비스품목재고내역 */
+              WARE_NO                /* 창고번호 */
+            , ITM_PD_CD              /* 품목상품코드 */
+            , MMT_STOC_E_GD_QTY     /* 이동재고E등급수량 */
+            , OSTR_STP_YN            /*출고중지여부*/
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{wareNo}
+            , #{itmPdCd}
+            , #{mmtStocEGdQty}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id ="insertMovementRGdQty">
+        INSERT INTO TB_SVST_CST_SV_ITM_STOC_IZ (  /* 고객서비스품목재고내역 */
+              WARE_NO                /* 창고번호 */
+            , ITM_PD_CD              /* 품목상품코드 */
+            , MMT_STOC_R_GD_QTY     /* 이동재고R등급수량 */
+            , OSTR_STP_YN            /*출고중지여부*/
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{wareNo}
+            , #{itmPdCd}
+            , #{mmtStocRGdQty}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</mapper>
