@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaItemStockItemizationDto;
+import com.kyowon.sms.wells.web.service.stock.dto.WsnaMonthlyItemStocksDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemStockItemizationMapper;
 import com.sds.sflex.system.config.exception.BizException;
@@ -30,6 +31,7 @@ import java.util.logging.SimpleFormatter;
 public class WsnaItemStockItemizationService {
 
     private final WsnaItemStockItemizationMapper mapper;
+    private final WsnaMonthlyItemStocksService monthlyItemService;
 
     /**
      * @param dto :[{procsYm : 처리년월 , procsDt : 처리일자, wareDv : 창고구분 , wareNo : 창고번호 , wareMngtPrtnrNo : 창고파트너번호
@@ -46,6 +48,18 @@ public class WsnaItemStockItemizationService {
         int strExpGdQty = 0; /*입고예정등급수량*/
         String sampleDate = "";
         String endOstrDate = "";
+
+        dvo.setDspsYrmn(dto.procsYm());
+        dvo.setDspsDt(dto.procsDt());
+        dvo.setWareDv(dto.wareDv());
+        dvo.setWareNo(dto.wareNo());
+        dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
+        dvo.setStdlTyp(dto.iostTp());
+        dvo.setWorkDiv(dto.workDiv());
+        dvo.setItmPdCd(dto.itmPdCd());
+        dvo.setMngtUnit(dto.mngtUnit());
+        dvo.setItemGd(dto.itemGd());
+        dvo.setQty(dto.qty());
 
         /*입력된 품목상품코드 정보로 COUNT 조회 처리*/
         int chkValue = mapper.selectCountItmPdCdInfo(dto);
@@ -115,8 +129,6 @@ public class WsnaItemStockItemizationService {
                     dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
                     dvo.setStrExpAGdQty(String.valueOf(strExpGdQty));
                     dvo.setFnlStrDt(sampleDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
 
                     processCount += mapper.updatePurchaseAStore(dvo);
 
@@ -133,8 +145,6 @@ public class WsnaItemStockItemizationService {
                     dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
                     dvo.setStrExpBGdQty(String.valueOf(strExpGdQty));
                     dvo.setFnlStrDt(sampleDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
 
                     processCount += mapper.updatePurchaseBStore(dvo);
 
@@ -153,8 +163,6 @@ public class WsnaItemStockItemizationService {
 
                     dvo.setPitmStocAGdQty(String.valueOf(cmpOnQty));
                     dvo.setFnlOstrDt(String.valueOf(fnlOstrDt));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
                     processCount += mapper.updatePitmStocAGd(dvo);
 
                 } else if ("117".equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
@@ -164,8 +172,6 @@ public class WsnaItemStockItemizationService {
 
                     dvo.setPitmStocEGdQty(String.valueOf(cmpOnQty));
                     dvo.setFnlOstrDt(String.valueOf(fnlOstrDt));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
                     processCount += mapper.updatePitmStocEGd(dvo);
 
                 }
@@ -194,8 +200,7 @@ public class WsnaItemStockItemizationService {
                     pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                     dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
                     dvo.setFnlStrDt(sampleDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
+
                     processCount += mapper.updateNormalStoreAQty(dvo);
 
                 } else if (List.of("121", "122", "123", "161").contains(dto.iostTp()) && "B".equals(dto.itemGd())) {
@@ -207,8 +212,7 @@ public class WsnaItemStockItemizationService {
                     pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                     dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
                     dvo.setFnlStrDt(sampleDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
+
                     processCount += mapper.updateNormalStoreBQty(dvo);
 
                 } else if (List.of("121", "122", "123", "161").contains(dto.iostTp()) && "E".equals(dto.itemGd())) {
@@ -220,8 +224,7 @@ public class WsnaItemStockItemizationService {
                     pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                     dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
                     dvo.setFnlStrDt(sampleDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
+
                     processCount += mapper.updateNormalStoreEQty(dvo);
 
                 } else if (List.of("121", "122", "123", "161").contains(dto.iostTp()) && "R".equals(dto.itemGd())) {
@@ -233,8 +236,7 @@ public class WsnaItemStockItemizationService {
                     pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                     dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
                     dvo.setFnlStrDt(sampleDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
+
                     processCount += mapper.updateNormalStoreRQty(dvo);
 
                 }
@@ -258,30 +260,23 @@ public class WsnaItemStockItemizationService {
                 if (List.of("162", "181").contains(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) + Integer.parseInt(dto.qty());
                     dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
 
                     processCount += mapper.updateOtsdRtngdAGdStr(dvo);
 
                 } else if (List.of("162", "181").contains(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) + Integer.parseInt(dto.qty());
                     dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
+
                     processCount += mapper.updateOtsdRtngdBGdStr(dvo);
 
                 } else if (List.of("162", "181").contains(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocEGdQty()) + Integer.parseInt(dto.qty());
                     dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
 
                     processCount += mapper.updateOtsdRtngdEGdStr(dvo);
                 } else if (List.of("162", "181").contains(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocRGdQty()) + Integer.parseInt(dto.qty());
                     dvo.setPitmStocRGdQty(String.valueOf(pitmStocGdQty));
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
 
                     processCount += mapper.updateOtsdRtngdRGdStr(dvo);
                 }
@@ -322,8 +317,6 @@ public class WsnaItemStockItemizationService {
                     pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                     dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
                     dvo.setFnlOstrDt(endOstrDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
 
                     processCount += mapper.updateInsiOtsdAGdOstr(dvo);
 
@@ -338,8 +331,6 @@ public class WsnaItemStockItemizationService {
                     pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                     dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
                     dvo.setFnlOstrDt(endOstrDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
 
                     processCount += mapper.updateInsiOtsdBGdOstr(dvo);
 
@@ -354,8 +345,6 @@ public class WsnaItemStockItemizationService {
                     pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                     dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
                     dvo.setFnlOstrDt(endOstrDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
 
                     processCount += mapper.updateInsiOtsdEGdOstr(dvo);
 
@@ -370,47 +359,44 @@ public class WsnaItemStockItemizationService {
                     pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                     dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
                     dvo.setFnlOstrDt(endOstrDate);
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
 
                     processCount += mapper.updateInsiOtsdRGdOstr(dvo);
 
                 }
+
                 //TODO : 월별품목재고내역 관리 서비스(W-SV-S-0086)의 등록 메소드를(saveMcbyItmStocIzRgsts)를 호출한다. (개발완료시 반영예정)
+                WsnaMonthlyItemStocksDto.SaveReq monthlyDto = setMonthlyItemStockDtoSaveReq(dvo);
+                processCount += monthlyItemService.saveMonthlyStock(monthlyDto);
+
             }
         } else if (chkValue == 0) {
             if (StringUtils.startsWith(dto.workDiv(), "A")) {
                 /*작업유형이 등록 (V_WCOM_WRK_GB = 'A')이고 입출고유형이 기타입고(117), 외부 반품입고(162) 인경우 */
                 if (List.of("117", "162").contains(dto.iostTp()) && "A".equals(dto.itemGd())) {
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setPitmStocAGdQty(dto.qty());
 
                     processCount += mapper.insertAGdSvstCstSvItmStocIz(dvo);
 
                 } else if (List.of("117", "162").contains(dto.iostTp()) && "B".equals(dto.itemGd())) {
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setPitmStocBGdQty(dto.qty());
 
                     processCount += mapper.insertBGdSvstCstSvItmStocIz(dvo);
 
                 } else if (List.of("117", "162").contains(dto.iostTp()) && "E".equals(dto.itemGd())) {
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setPitmStocEGdQty(dto.qty());
 
                     processCount += mapper.insertEGdSvstCstSvItmStocIz(dvo);
 
                 } else if (List.of("117", "162").contains(dto.iostTp()) && "R".equals(dto.itemGd())) {
-                    dvo.setWareNo(dto.wareNo());
-                    dvo.setItmPdCd(dto.itmPdCd());
                     dvo.setPitmStocRGdQty(dto.qty());
 
                     processCount += mapper.insertRGdSvstCstSvItmStocIz(dvo);
                 }
 
                 //TODO : 월별품목재고내역 관리 서비스(W-SV-S-0086)의 등록 메소드를(saveMcbyItmStocIzRgsts)를 호출 (개발완료시 반영예정)
+
+                WsnaMonthlyItemStocksDto.SaveReq monthlyDto = setMonthlyItemStockDtoSaveReq(dvo);
+                processCount += monthlyItemService.saveMonthlyStock(monthlyDto);
             }
 
         }
@@ -435,6 +421,18 @@ public class WsnaItemStockItemizationService {
         int strExpGdQty = 0; /*입고예정등급수량*/
         String sampleDate = "";
         String endOstrDate = "";
+
+        dvo.setDspsYrmn(dto.procsYm());
+        dvo.setDspsDt(dto.procsDt());
+        dvo.setWareDv(dto.wareDv());
+        dvo.setWareNo(dto.wareNo());
+        dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
+        dvo.setStdlTyp(dto.iostTp());
+        dvo.setWorkDiv(dto.workDiv());
+        dvo.setItmPdCd(dto.itmPdCd());
+        dvo.setMngtUnit(dto.mngtUnit());
+        dvo.setItemGd(dto.itemGd());
+        dvo.setQty(dto.qty());
 
         WsnaItemStockItemizationDvo varbDvo = mapper.selectItmPdCdInformation(dto);
 
@@ -472,7 +470,6 @@ public class WsnaItemStockItemizationService {
             endOstrDate = dateFormat.format(fnlOstrDt);
             log.info("WsnaItemStockItemizationDvo STEP05 -> ", endOstrDate);
         }
-
         /*작업구분이 입력(D)일때 */
         if (StringUtils.startsWith(dto.workDiv(), "D")) {
             /*===============================================================================
@@ -500,8 +497,6 @@ public class WsnaItemStockItemizationService {
                 dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
                 dvo.setStrExpAGdQty(String.valueOf(strExpGdQty));
                 dvo.setFnlStrDt(sampleDate);
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
 
                 processCount += mapper.updatePurchaseAGdStore(dvo);
 
@@ -517,8 +512,6 @@ public class WsnaItemStockItemizationService {
                 dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
                 dvo.setStrExpBGdQty(String.valueOf(strExpGdQty));
                 dvo.setFnlStrDt(sampleDate);
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
 
                 processCount += mapper.updatePurchaseBGdStore(dvo);
 
@@ -547,8 +540,6 @@ public class WsnaItemStockItemizationService {
                 pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
                 dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
                 dvo.setFnlStrDt(sampleDate);
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
 
                 processCount += mapper.updateInsiStoreAGdQty(dvo);
 
@@ -562,8 +553,6 @@ public class WsnaItemStockItemizationService {
                 pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
                 dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
                 dvo.setFnlStrDt(sampleDate);
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
 
                 processCount += mapper.updateInsiStoreBGdQty(dvo);
 
@@ -577,8 +566,6 @@ public class WsnaItemStockItemizationService {
                 pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
                 dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
                 dvo.setFnlStrDt(sampleDate);
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
 
                 processCount += mapper.updateInsiStoreEGdQty(dvo);
 
@@ -591,8 +578,6 @@ public class WsnaItemStockItemizationService {
                 pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
                 dvo.setPitmStocRGdQty(String.valueOf(pitmStocGdQty));
                 dvo.setFnlStrDt(sampleDate);
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
 
                 processCount += mapper.updateInsiStoreRGdQty(dvo);
 
@@ -603,8 +588,6 @@ public class WsnaItemStockItemizationService {
                 pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocAGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
 
                 processCount += mapper.updateOtsdStrAGdQty(dvo);
 
@@ -613,8 +596,6 @@ public class WsnaItemStockItemizationService {
                 pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocBGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
 
                 processCount += mapper.updateOtsdStrBGdQty(dvo);
 
@@ -623,8 +604,6 @@ public class WsnaItemStockItemizationService {
                 pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocEGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
 
                 processCount += mapper.updateOtsdStrEGdQty(dvo);
             } else if (List.of("162", "181").contains(dto.iostTp()) && "R".equals(dto.itemGd())) {
@@ -632,8 +611,6 @@ public class WsnaItemStockItemizationService {
                 pitmStocGdQty = Integer.parseInt(varbDvo.getPitmStocRGdQty()) - Integer.parseInt(dto.qty());
 
                 dvo.setPitmStocRGdQty(String.valueOf(pitmStocGdQty));
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
 
                 processCount += mapper.updateOtsdStrRGdQty(dvo);
             }
@@ -664,8 +641,6 @@ public class WsnaItemStockItemizationService {
 
                 dvo.setPitmStocAGdQty(String.valueOf(pitmStocGdQty));
                 dvo.setFnlOstrDt(endOstrDate);
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
 
                 processCount += mapper.updateInsiOstrAGdQty(dvo);
 
@@ -681,8 +656,6 @@ public class WsnaItemStockItemizationService {
 
                 dvo.setPitmStocBGdQty(String.valueOf(pitmStocGdQty));
                 dvo.setFnlOstrDt(endOstrDate);
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
 
                 processCount += mapper.updateInsiOstrBGdQty(dvo);
 
@@ -698,8 +671,6 @@ public class WsnaItemStockItemizationService {
 
                 dvo.setPitmStocEGdQty(String.valueOf(pitmStocGdQty));
                 dvo.setFnlOstrDt(endOstrDate);
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
 
                 processCount += mapper.updateInsiOstrEGdQty(dvo);
 
@@ -715,14 +686,14 @@ public class WsnaItemStockItemizationService {
 
                 dvo.setPitmStocRGdQty(String.valueOf(pitmStocGdQty));
                 dvo.setFnlOstrDt(endOstrDate);
-                dvo.setWareNo(dto.wareNo());
-                dvo.setItmPdCd(dto.itmPdCd());
 
                 processCount += mapper.updateInsiOstrRGdQty(dvo);
 
             }
 
             // TODO: 2023-03-10 월별품목재고내역 관리 서비스(W-SV-S-0086)의 월별품목재고내역 삭제 메소드를(saveMcbyItmStocIzDls) (개발진행 후 반영예정)
+            WsnaMonthlyItemStocksDto.SaveReq monthlyDto = setMonthlyItemStockDtoSaveReq(dvo);
+            processCount += monthlyItemService.removeMonthlyStock(monthlyDto);
         }
 
         return processCount;
@@ -891,5 +862,24 @@ public class WsnaItemStockItemizationService {
 
         return processCount;
 
+    }
+
+    protected WsnaMonthlyItemStocksDto.SaveReq setMonthlyItemStockDtoSaveReq(
+        WsnaItemStockItemizationDvo vo
+    ) {
+        WsnaMonthlyItemStocksDto.SaveReq reqDto = new WsnaMonthlyItemStocksDto.SaveReq(
+            vo.getDspsYrmn(),
+            vo.getDspsDt(),
+            vo.getWareDv(),
+            vo.getWareNo(),
+            vo.getWareMngtPrtnrNo(),
+            vo.getStdlTyp(),
+            vo.getWorkDiv(),
+            vo.getItmPdCd(),
+            vo.getMngtUnit(),
+            vo.getItemGd(),
+            vo.getQty()
+        );
+        return reqDto;
     }
 }
