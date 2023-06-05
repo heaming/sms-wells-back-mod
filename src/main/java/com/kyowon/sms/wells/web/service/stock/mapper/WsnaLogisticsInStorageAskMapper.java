@@ -11,7 +11,7 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDvo;
 @Mapper
 public interface WsnaLogisticsInStorageAskMapper {
 
-    Optional<WsnaLogisticsInStorageAskDtlDvo> selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(
+    Optional<WsnaLogisticsInStorageAskDtlDvo> selectRtngdAkDtlSendEtxtByOstrNoAndOstrSn(
         WsnaLogisticsInStorageAskDto.RemoveReq dto
     );
 
@@ -27,7 +27,7 @@ public interface WsnaLogisticsInStorageAskMapper {
 
     int updateRtngdAkDtlSendEtxtForRemove(WsnaLogisticsInStorageAskDtlDvo dvo);
 
-    Integer selectRtngdAkDtlSendEtxtCount(String ostrAkNo);
+    Integer selectRtngdAkDtlSendEtxtCount(String ostrNo);
 
     int updatePdRtngdAkSendEtxtForRemove(WsnaLogisticsInStorageAskDvo dvo);
 

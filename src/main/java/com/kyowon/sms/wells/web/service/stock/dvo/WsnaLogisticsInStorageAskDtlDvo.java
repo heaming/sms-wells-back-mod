@@ -5,7 +5,7 @@ import lombok.Setter;
 
 /**
  * <pre>
- * W-SV-S-0089 물류 반품요청 인터페이스 데이터 생성 (반품요청상세송신전문)
+ * W-SV-S-0089 물류 반품요청 인터페이스 데이터 생성 (TB_IFIN_RTNGD_AK_DTL_SEND_ETXT-반품요청상세송신전문)
  * </pre>
  *
  * @author SaeRomI.Kim

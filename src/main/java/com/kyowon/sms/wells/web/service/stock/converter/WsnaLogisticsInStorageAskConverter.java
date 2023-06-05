@@ -14,13 +14,14 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDvo;
 public interface WsnaLogisticsInStorageAskConverter {
 
     @Mapping(source = "ostrAkNo", target = "rtngdAkNo")
-    @Mapping(source = "ostrAkTpCd", target = "lgstStrTpCd")
     @Mapping(source = "ostrAkRgstDt", target = "strAkRgstDt")
     @Mapping(source = "strHopDt", target = "strDueDt")
     @Mapping(source = "wareMngtPrtnrNo", target = "ichrPrtnrNo")
     WsnaLogisticsInStorageAskDvo mapSaveReqToWsnaLogisticsInStorageAskDvo(WsnaLogisticsInStorageAskDto.SaveReq dto);
 
+    @Mapping(source = "ostrAkSn", target = "strAkSn")
     @Mapping(source = "ostrAkQty", target = "strAkQty")
+    @Mapping(source = "itmGdCd", target = "lgstItmGdCd")
     List<WsnaLogisticsInStorageAskDtlDvo> mapAllSaveReqToWsnaLogisticsInStorageAskDtlDvo(
         List<WsnaLogisticsInStorageAskDto.SaveReq> dtos
     );
@@ -29,7 +30,9 @@ public interface WsnaLogisticsInStorageAskConverter {
     @Mapping(source = "ostrAkSn", target = "ostrSn")
     WsnaLogisticsInStorageAskDto.RemoveReq mapSaveReqToRemoveReq(WsnaLogisticsInStorageAskDto.SaveReq dto);
 
+    @Mapping(source = "ostrAkSn", target = "strAkSn")
     @Mapping(source = "ostrAkQty", target = "strAkQty")
+    @Mapping(source = "itmGdCd", target = "lgstItmGdCd")
     WsnaLogisticsInStorageAskDtlDvo mapSaveReqToWsnaLogisticsInStorageAskDtlDvo(
         WsnaLogisticsInStorageAskDto.SaveReq dto
     );

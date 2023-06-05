@@ -16,15 +16,15 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsInStorageAskMapper">
 
-    <select id="selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDtlDvo">
+    <select id="selectRtngdAkDtlSendEtxtByOstrNoAndOstrSn" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDtlDvo">
         SELECT SAP_PLNT_CD      /* SAP플랜트코드 */
              , LGST_STR_AK_NO   /* 물류입고요청번호 */
              , STR_AK_SN        /* 입고요청일련번호 */
              , TRS_YN           /* 전송여부 */
           FROM TB_IFIN_RTNGD_AK_DTL_SEND_ETXT   /* 반품요청상세송신전문 */
-         WHERE REL_NO    = #{ostrAkNo}   /* 출고요청번호 */
-           AND REL_SN    = #{ostrAkSn}   /* 출고요청일련번호 */
-           AND DTA_DL_YN = 'N'           /* 유효한 데이터 */
+         WHERE DTA_DL_YN = 'N'           /* 유효한 데이터 */
+           AND REL_NO    = #{ostrNo}   /* 출고요청번호 */
+           AND REL_SN    = #{ostrSn}   /* 출고요청일련번호 */
            AND ROWNUM    = 1
     </select>
 
@@ -33,17 +33,17 @@
              , LGST_STR_AK_NO   /* 물류출고요청번호 */
              , RTNGD_AK_NO      /* 반품요청번호 */
           FROM TB_IFIN_PD_RTNGD_AK_SEND_ETXT   /* 상품반품요청송신전문 */
-         WHERE RTNGD_AK_NO = #{rtngdAkNo}   /* 반품요청번호 */
-           AND DTA_DL_YN  = 'N'            /* 유효한 데이터 */
-           AND ROWNUM     = 1
+         WHERE DTA_DL_YN   = 'N'            /* 유효한 데이터 */
+           AND RTNGD_AK_NO = #{rtngdAkNo}   /* 반품요청번호 */
+           AND ROWNUM      = 1
     </select>
 
     <select id="selectNewLgstStrAkNo" resultType="java.lang.String">
-        SELECT #{lgstStrCd} || TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_IFIN_PD_RTNGD_AK_SEND_ETXT$LGST_STR_AK_NO.NEXTVAL, 6, '0') AS LGST_STR_AK_NO
+        SELECT #{lgstStrCd} || TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_IFIN_PD_RTNGD_AK_SEND_ETXT$LGST_STR_AK_NO.NEXTVAL, 4, '0') AS LGST_STR_AK_NO
           FROM DUAL
     </select>
 
-    <insert id="insertPdRtngdAkSendEtxt" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDvo">
+    <insert id="insertPdRtngdAkSendEtxt">
         INSERT INTO TB_IFIN_PD_RTNGD_AK_SEND_ETXT   /* 상품반품요청송신전문 */
              (
                SAP_PLNT_CD       /* SAP플랜트코드 */
@@ -59,7 +59,7 @@
              , TRS_YN            /* 전송여부 */
              , TRS_DTM           /* 전송일시 */
              , DTA_DL_YN         /* 데이터삭제여부 */
-               <include refid="COMMON.insertSystemField" />
+        <include refid="COMMON.insertSystemField" />
              )
         VALUES
              (
@@ -76,12 +76,26 @@
              , #{trsYn}
              , #{trsDtm}
              , #{dtaDlYn}
-               <include refid="COMMON.insertSystemFieldValue" />
+        <include refid="COMMON.insertSystemFieldValue" />
              )
     </insert>
 
-    <insert id="insertRtngdAkDtlSendEtxt" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDtlDvo">
-        INSERT INTO TB_IFIN_RTNGD_AK_DTL_SEND_ETXT   /* 반품요청상세송신전문 */
+    <insert id="insertRtngdAkDtlSendEtxt">
+         MERGE INTO TB_IFIN_RTNGD_AK_DTL_SEND_ETXT TB_TGT   /* 반품요청상세송신전문 */
+         USING
+             (
+               SELECT #{relNo} AS REL_NO   /* 관계번호 */
+                    , #{relSn} AS REL_SN   /* 관계일련번호 */
+                 FROM DUAL
+             ) TB_SRC
+            ON
+             (
+                   TB_TGT.REL_NO    = TB_SRC.REL_NO
+               AND TB_TGT.REL_SN    = TB_SRC.REL_SN
+               AND TB_TGT.DTA_DL_YN = 'N'
+             )
+          WHEN NOT MATCHED THEN
+        INSERT
              (
                SAP_PLNT_CD            /* SAP플랜트코드 */
              , LGST_STR_AK_NO         /* 물류입고요청번호 */
@@ -114,7 +128,7 @@
              , TRS_YN                 /* 전송여부 */
              , TRS_DTM                /* 전송일시 */
              , DTA_DL_YN              /* 데이터삭제여부 */
-               <include refid="COMMON.insertSystemField" />
+        <include refid="COMMON.insertSystemField" />
              )
         VALUES
              (
@@ -152,11 +166,11 @@
              , #{trsYn}
              , #{trsDtm}
              , #{dtaDlYn}
-               <include refid="COMMON.insertSystemFieldValue" />
+        <include refid="COMMON.insertSystemFieldValue" />
              )
     </insert>
 
-    <update id="updateRtngdAkDtlSendEtxt" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDtlDvo">
+    <update id="updateRtngdAkDtlSendEtxt">
         UPDATE TB_IFIN_RTNGD_AK_DTL_SEND_ETXT   /* 반품요청상세송신전문 */
            SET SAP_IOST_TP_CD       = #{sapIostTpCd}        /* SAP입출고유형코드 */
              , ITM_PD_CD            = #{itmPdCd}            /* 품목상품코드 */
@@ -181,18 +195,18 @@
              , MNFT_DT              = #{mnftDt}             /* 제조일자 */
              , BACT_PROCS_QTY       = #{bactProcsQty}       /* 후행처리수량 */
              , RMK_CN               = #{rmkCn}              /* 비고내용 */
-               <include refid="COMMON.updateSystemField"/>
-         WHERE SAP_PLNT_CD    = #{sapPlntCd}     /* SAP플랜트코드 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE TRS_YN         = 'N'              /* 전송여부가 N일 경우만 */
+           AND DTA_DL_YN      = 'N'              /* 유효한 데이터 */
+           AND SAP_PLNT_CD    = #{sapPlntCd}     /* SAP플랜트코드 */
            AND LGST_STR_AK_NO = #{lgstStrAkNo}   /* 물류입고요청번호 */
            AND STR_AK_SN      = #{strAkSn}       /* 입고요청일련번호 */
-           AND TRS_YN         = 'N'              /* 전송여부가 N일 경우만 */
-           AND DTA_DL_YN      = 'N'              /* 유효한 데이터 */
     </update>
 
-    <update id="updateRtngdAkDtlSendEtxtForRemove" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDtlDvo">
+    <update id="updateRtngdAkDtlSendEtxtForRemove">
         UPDATE TB_IFIN_RTNGD_AK_DTL_SEND_ETXT   /* 반품요청상세송신전문 */
            SET DTA_DL_YN = #{dtaDlYn}   /* 데이터삭제여부 */
-               <include refid="COMMON.updateSystemField"/>
+        <include refid="COMMON.updateSystemField"/>
          WHERE SAP_PLNT_CD    = #{sapPlntCd}     /* SAP플랜트코드 */
            AND LGST_STR_AK_NO = #{lgstStrAkNo}   /* 물류입고요청번호 */
            AND STR_AK_SN      = #{strAkSn}       /* 입고요청일련번호 */
@@ -201,15 +215,15 @@
     <select id="selectRtngdAkDtlSendEtxtCount" resultType="java.lang.Integer">
         SELECT 1
           FROM TB_IFIN_RTNGD_AK_DTL_SEND_ETXT   /* 반품요청상세송신전문 */
-         WHERE REL_NO    = #{ostrAkNo}   /* 출고요청번호 */
-           AND DTA_DL_YN = 'N'           /* 유효한 데이터 */
+         WHERE DTA_DL_YN = 'N'         /* 유효한 데이터 */
+           AND REL_NO    = #{ostrNo}   /* 출고요청번호 */
            AND ROWNUM    = 1
     </select>
 
-    <update id="updatePdRtngdAkSendEtxtForRemove" parameterType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDvo">
+    <update id="updatePdRtngdAkSendEtxtForRemove">
         UPDATE TB_IFIN_PD_RTNGD_AK_SEND_ETXT   /* 상품반품요청송신전문 */
            SET DTA_DL_YN = #{dtaDlYn}   /* 데이터삭제여부 */
-               <include refid="COMMON.updateSystemField"/>
+        <include refid="COMMON.updateSystemField"/>
          WHERE SAP_PLNT_CD    = #{sapPlntCd}     /* SAP플랜트코드 */
            AND LGST_STR_AK_NO = #{lgstStrAkNo}   /* 물류입고요청번호 */
     </update>
