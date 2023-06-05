@@ -70,6 +70,10 @@ public class WpmzPromotionCheckDto {
      * SearchRes - 조회 결과 DTO
      * @param pmotCd
      * @param pmotCndtFvrRelId
+     * @param pdPrcDtlCd
+     * @param rmkCn
+     * @param pmotApyGrpCd
+     * @param pmotApyOptCd
      * @param dscMcnt
      * @param dscFxam
      * @param freeMcnt
@@ -82,13 +86,19 @@ public class WpmzPromotionCheckDto {
      * @param fgptChoGrpCd
      * @param fgptChoCd
      * @param prmDupPrmitYn
-     * @param pdPrcDtlCd
+     * @param pmotNapdPsbYn
+     * @param pmotRstrOjCd
+     * @param pmotRstrQty
      * @param pmotFreeGifts
      */
     @ApiModel(value = "WpmzPromotionCheckDto-SearchRes")
     public record SearchRes(
         String pmotCd,              /* 프로모션코드      */
         String pmotCndtFvrRelId,    /* 프로모션조건혜택관계ID */
+        String pdPrcDtlCd,          /* 상품가격상세코드 */
+        String rmkCn,               /* 비고내용 */
+        String pmotApyGrpCd,        /* 프로모션적용그룹 */
+        String pmotApyOptCd,        /* 프로모션적용옵션 */
         String dscMcnt,             /* 할인개월         */
         String dscFxam,             /* 할인금액         */
         String freeMcnt,            /* 무료개월         */
@@ -101,7 +111,9 @@ public class WpmzPromotionCheckDto {
         String fgptChoGrpCd,        /* 사은품선택그룹 */
         String fgptChoCd,           /* 사은품선택 */
         String prmDupPrmitYn,       /* 선납중복허용여부 */
-        String pdPrcDtlCd,          /* 상품가격상세코드 */
+        String pmotNapdPsbYn,       /* 프로모션미적용가능여부 */
+        String pmotRstrOjCd,        /* 프로모션제약대상 */
+        String pmotRstrQty,         /* 프로모션제약수량 */
         List<ZpmzPromotionApplyDto.FreeGift> pmotFreeGifts  /* 사은품목록 */
     ) {}
 }

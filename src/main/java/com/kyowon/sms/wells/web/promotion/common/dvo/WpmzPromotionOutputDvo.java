@@ -17,6 +17,8 @@ public class WpmzPromotionOutputDvo {
     private String pmotCndtFvrRelId;    /* 프로모션조건혜택관계ID */
     private String pdPrcDtlCd;          /* 상품가격상세코드 */
     private String rmkCn;               /* 비고내용 */
+    private String pmotApyGrpCd;        /* 프로모션적용그룹 */
+    private String pmotApyOptCd;        /* 프로모션적용옵션 */
 
     /* 혜택항목 */
     private String dscMcnt;             /* 할인개월         */
@@ -31,6 +33,9 @@ public class WpmzPromotionOutputDvo {
     private String fgptChoGrpCd;        /* 사은품선택그룹 */
     private String fgptChoCd;           /* 사은품선택 */
     private String prmDupPrmitYn;       /* 선납중복허용여부 */
+    private String pmotNapdPsbYn;       /* 프로모션미적용가능여부 */
+    private String pmotRstrOjCd;        /* 프로모션제약대상 */
+    private String pmotRstrQty;         /* 프로모션제약수량 */
     private List<ZpmzPromotionFreeGiftDvo> pmotFreeGifts;  /* 사은품목록 */
 
 
