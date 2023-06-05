@@ -35,6 +35,8 @@ public class PmPromotionConst {
     public static final String SYS_CMPP_NM_FREE_GIFT_CHOICE = "fgptChoCd";          // (시스템항목명) 사은품선택
     public static final String SYS_CMPP_NM_FREE_GIFT = "fgptCd";                    // (시스템항목명) 사은품상품코드
     public static final String SYS_CMPP_NM_FREE_GIFT_QUANTITY = "fgptQty";          // (시스템항목명) 사은품수량
+    public static final String SYS_CMPP_NM_APPLY_GROUP_CODE = "pmotApyGrpCd";       // (시스템항목명) 프로모션적용그룹
+    public static final String SYS_CMPP_NM_APPLY_OPTION_CODE = "pmotApyOptCd";      // (시스템항목명) 프로모션적용옵션
 
     /* 프로모션할인유형코드 */
     public static final String DISCOUNT_TYPE_CODE_PRICE = "01";             // 가격할인

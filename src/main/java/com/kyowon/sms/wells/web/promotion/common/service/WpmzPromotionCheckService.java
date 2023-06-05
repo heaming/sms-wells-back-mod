@@ -3,15 +3,12 @@ package com.kyowon.sms.wells.web.promotion.common.service;
 import java.lang.reflect.Field;
 import java.util.*;
 
+import com.kyowon.sms.common.web.promotion.common.dvo.*;
 import com.sds.sflex.system.config.validation.BizAssert;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.common.web.promotion.common.dvo.ZpmzPromotionAtcDvo;
-import com.kyowon.sms.common.web.promotion.common.dvo.ZpmzPromotionDtlFvrDvo;
-import com.kyowon.sms.common.web.promotion.common.dvo.ZpmzPromotionFreeGiftDvo;
-import com.kyowon.sms.common.web.promotion.common.dvo.ZpmzPromotionInfoDvo;
 import com.kyowon.sms.common.web.promotion.common.mapper.ZpmzPromotionApplyMapper;
 import com.kyowon.sms.common.web.promotion.common.service.ZpmzPromotionApplyService;
 import com.kyowon.sms.wells.web.promotion.common.converter.WpmzPromotionCheckConverter;
@@ -99,10 +96,10 @@ public class WpmzPromotionCheckService {
         List<ZpmzPromotionInfoDvo> appliedPromotions = applyService.getPromotionsByConditions(inputDvos);
 
         /* 4. 우선순위 고려한 프로모션 추출 */
-        // TODO 업무 협의후 로직 추가 예정
+        List<ZpmzPromotionInfoDvo> priorityRankedPromotions = applyService.getPromotionsByPriorityRank(appliedPromotions);
 
         /* 5. 프로모션 혜택 결과 정리 후 리턴 */
-        return convertAppliedPromotionsToFinalResults(appliedPromotions);
+        return convertAppliedPromotionsToFinalResults(priorityRankedPromotions);
     }
 
     /**
@@ -234,7 +231,7 @@ public class WpmzPromotionCheckService {
         priceDetailDvo.setPcsvPrdCd(Objects.toString(pcsvPrdCdField.get(priceDetailDvo), ""));
     }
 
-    private List<WpmzPromotionOutputDvo> convertAppliedPromotionsToFinalResults(List<ZpmzPromotionInfoDvo> appliedPromotions) {
+    private List<WpmzPromotionOutputDvo> convertAppliedPromotionsToFinalResults(List<ZpmzPromotionInfoDvo> appliedPromotions) throws NoSuchFieldException, IllegalAccessException {
 
         List<WpmzPromotionOutputDvo> finalResults = new ArrayList<>();
         if (!appliedPromotions.isEmpty()) {
@@ -249,6 +246,14 @@ public class WpmzPromotionCheckService {
 
                 /* 2. 프로모션 혜택정리 */
                 if (infoDvo.getPmotDtlFvrs() != null) {
+
+                    // WpmzPromotionOutputDvo 변수명 목록 추출
+                    Field[] fields = resultDvo.getClass().getDeclaredFields();
+                    List<String> outputNames = Arrays.stream(fields).map(field -> {
+                        field.setAccessible(true);
+                        return field.getName();
+                    }).toList();
+
                     for (ZpmzPromotionDtlFvrDvo fvrDvo : infoDvo.getPmotDtlFvrs()) {
                         // 2.0. 혜택 상세항목이 아닌 경우 continue (Leaf Node만 체크)
                         if (StringUtils.isEmpty(Objects.toString(fvrDvo.getSysCmppNm(), ""))) continue;
@@ -303,21 +308,36 @@ public class WpmzPromotionCheckService {
                         else if (StringUtils.equals(fvrDvo.getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_PREPAY_DUP_PERMIT_YN)) {
                             resultDvo.setPrmDupPrmitYn(fvrDvo.getVarbBasVal());
                         }
-                        // 2.7. 사은품선택그룹
-                        else if (StringUtils.equals(fvrDvo.getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_FREE_GIFT_CHOICE_GROUP)) {
-                            resultDvo.setFgptChoGrpCd(fvrDvo.getVarbBasVal());
-                        }
-                        // 2.8. 사은품선택
-                        else if (StringUtils.equals(fvrDvo.getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_FREE_GIFT_CHOICE)) {
-                            resultDvo.setFgptChoCd(fvrDvo.getVarbBasVal());
-                        }
-                        // 2.9. 사은품정보
+                        // 2.7. 사은품정보
                         else if (StringUtils.equals(fvrDvo.getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_FREE_GIFT)) {
                             if (resultDvo.getPmotFreeGifts() == null) {
                                 resultDvo.setPmotFreeGifts(new ArrayList<>());
                             }
                             resultDvo.getPmotFreeGifts().add(new ZpmzPromotionFreeGiftDvo(fvrDvo.getVarbBasVal(), getFavorValue(infoDvo.getPmotDtlFvrs(), fvrDvo, PmPromotionConst.SYS_CMPP_NM_FREE_GIFT_QUANTITY)));
                         }
+                        // 2.8. 기타 (단순변환항목)
+                        else {
+                            boolean isExistSimpleOutputAtcs = outputNames.contains(fvrDvo.getSysCmppNm());
+                            if (isExistSimpleOutputAtcs && StringUtils.isNotEmpty(Objects.toString(fvrDvo.getVarbBasVal(), ""))) {
+                                Field field = resultDvo.getClass().getDeclaredField(fvrDvo.getSysCmppNm());
+                                field.setAccessible(true);
+                                field.set(resultDvo, fvrDvo.getVarbBasVal());
+                            }
+                        }
+                    }
+                }
+
+                /* 3. 프로모션 적용그룹/옵션 정보 */
+                if (infoDvo.getPmotDtlCndts() != null) {
+                    // 3.1. 프로모션 적용그룹 설정
+                    Optional<ZpmzPromotionDtlCndtDvo> applyGroupOptional = infoDvo.getPmotDtlCndts().stream().filter((cndtDvo) -> StringUtils.equals(((ZpmzPromotionDtlCndtDvo)cndtDvo).getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_APPLY_GROUP_CODE)).findAny();
+                    if (applyGroupOptional.isPresent() && StringUtils.isNotEmpty(applyGroupOptional.get().getVarbBasVal())) {
+                        resultDvo.setPmotApyGrpCd(applyGroupOptional.get().getVarbBasVal());
+                    }
+                    // 3.2. 프로모션 적용옵션 설정
+                    Optional<ZpmzPromotionDtlCndtDvo> applyOptOptional = infoDvo.getPmotDtlCndts().stream().filter((cndtDvo) -> StringUtils.equals(((ZpmzPromotionDtlCndtDvo)cndtDvo).getSysCmppNm(), PmPromotionConst.SYS_CMPP_NM_APPLY_OPTION_CODE)).findAny();
+                    if (applyOptOptional.isPresent() && StringUtils.isNotEmpty(applyOptOptional.get().getVarbBasVal())) {
+                        resultDvo.setPmotApyOptCd(applyOptOptional.get().getVarbBasVal());
                     }
                 }
                 finalResults.add(resultDvo);
