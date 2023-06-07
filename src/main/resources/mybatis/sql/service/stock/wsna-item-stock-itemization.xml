@@ -4,6 +4,7 @@
         SELECT COUNT(*) AS CNT
           FROM TB_SVST_CST_SV_ITM_STOC_IZ
          WHERE ITM_PD_CD = #{itmPdCd}
+           AND WARE_NO = #{wareNo}
     </select>
 
     <select id="selectItmPdCdInformation" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationDvo">
