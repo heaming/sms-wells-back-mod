@@ -548,38 +548,38 @@
                                        AND C.CHNL_APY_DV_VAL = #{gbCd} /* 채널적용구분값 */
                                        AND ROWNUM = 1) B
                              WHERE A.BASE_Y || A.BASE_MM || A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
-                               --AND FN_SVPD_LDTM_TOT_01(#{prtnrNo}, A.BASE_Y || A.BASE_MM || A.BASE_D) + 6 + GET_WRK_TOTAL_TIME_ETC(#EMP_ID#, CO160_YR || CO160_MTH || CO160_DAY) > 67
-                               AND FN_SVPD_LDTM_TOT_01(#{prtnrNo}, A.BASE_Y || A.BASE_MM || A.BASE_D) + 6
-                                 + (SELECT SUM(SUM_T) / 10 AS V_WRK_TOTAL_TIME
-                                      FROM (
-                                            SELECT SUM(FN_SVPD_MMT_AV_LDTM_01((SELECT MAX(NEW_ADR_ZIP) FROM TB_GBCO_ADR_BAS WHERE RNADR = AC211.IST_ADR),AC211.PD_CD, AC211.SV_BIZ_DCLSF_CD, AC221.VST_CNFMDT)) AS SUM_T
-                                              FROM TB_SVPD_CST_SVAS_IST_ASN_IZ /*LC_ALLOCATE_AC221TB*/ AC221 /*고객서비스AS설치배정내역*/
-                                                 , TB_SVPD_CST_SVAS_IST_OJ_IZ  /*LC_ALLOCATE_AC211TB*/ AC211 /*고객서비스AS설치대상내역*/
-                                             WHERE AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
-                                               AND AC221.ICHR_PRTNR_NO = #{prtnrNo}
-                                               AND AC221.VST_CNFMDT = #{selDate}
-                                               AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
-                                               AND AC221.VST_CNFM_HH <![CDATA[>=]]> '010000'
-                                               AND AC221.VST_CNFM_HH <![CDATA[<=]]> '030000'
-                                             UNION ALL
-                                            SELECT SUM(FN_SVPD_MMT_AV_LDTM_01((SELECT MAX(ADR.NEW_ADR_ZIP)
-                                                                                 FROM TB_SSCT_CNTR_ADRPC_BAS ADRPC
-                                                                                 INNER JOIN TB_GBCO_ADR_BAS ADR
-                                                                                   ON ADRPC.ADR_ID = ADR.ADR_ID
-                                                                                WHERE ADR.ADR_ID = AC251.ADR_ID),AC251.PDCT_PD_CD, AC251.SV_BIZ_DCLSF_CD, AC261.VST_DUEDT)) AS SUM_T
-                                              FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*LC_ALLOCATE_AC261TB*/ AC261
-                                                 , TB_SVPD_CST_SV_BFSVC_OJ_IZ  /*LC_ALLOCATE_AC251TB*/ AC251 /*고객서비스BS대상내역*/
-                                             WHERE AC261.CST_SV_ASN_NO = AC251.CST_SV_ASN_NO
-                                               AND AC261.CNFM_PSIC_PRTNR_NO =  #{prtnrNo}
-                                               AND AC261.VST_DUEDT = #{selDate}
-                                               AND AC261.VST_PRGS_STAT_CD IN ('00', '10')
-                                               AND AC261.VST_EXP_HH <![CDATA[>=]]> '010000'
-                                               AND AC261.VST_EXP_HH <![CDATA[<=]]> '030000'
-                                             UNION ALL
-                                            SELECT 0
-                                              FROM DUAL
-                                           )) > 67
-
+                               --@TODO 승인 후 주석 제거
+                               --AND FN_SVPD_LDTM_TOT_01(#{prtnrNo}, A.BASE_Y || A.BASE_MM || A.BASE_D) + 6
+                               --  + (SELECT SUM(SUM_T) / 10 AS V_WRK_TOTAL_TIME
+                               --       FROM (
+                               --             SELECT SUM(FN_SVPD_MMT_AV_LDTM_01((SELECT MAX(NEW_ADR_ZIP) FROM TB_GBCO_ADR_BAS WHERE RNADR = AC211.IST_ADR),AC211.PD_CD, AC211.SV_BIZ_DCLSF_CD, AC221.VST_CNFMDT)) AS SUM_T
+                               --               FROM TB_SVPD_CST_SVAS_IST_ASN_IZ /*LC_ALLOCATE_AC221TB*/ AC221 /*고객서비스AS설치배정내역*/
+                               --                  , TB_SVPD_CST_SVAS_IST_OJ_IZ  /*LC_ALLOCATE_AC211TB*/ AC211 /*고객서비스AS설치대상내역*/
+                               --              WHERE AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
+                               --                AND AC221.ICHR_PRTNR_NO = {prtnrNo}
+                               --                AND AC221.VST_CNFMDT = {selDate}
+                               --                AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
+                               --                AND AC221.VST_CNFM_HH <![CDATA[>=]]> '010000'
+                               --                AND AC221.VST_CNFM_HH <![CDATA[<=]]> '030000'
+                               --              UNION ALL
+                               --             SELECT SUM(FN_SVPD_MMT_AV_LDTM_01((SELECT MAX(ADR.NEW_ADR_ZIP)
+                               --                                                  FROM TB_SSCT_CNTR_ADRPC_BAS ADRPC
+                               --                                                  INNER JOIN TB_GBCO_ADR_BAS ADR
+                               --                                                    ON ADRPC.ADR_ID = ADR.ADR_ID
+                               --                                                 WHERE ADR.ADR_ID = AC251.ADR_ID),AC251.PDCT_PD_CD, AC251.SV_BIZ_DCLSF_CD, AC261.VST_DUEDT)) AS SUM_T
+                               --               FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*LC_ALLOCATE_AC261TB*/ AC261
+                               --                  , TB_SVPD_CST_SV_BFSVC_OJ_IZ  /*LC_ALLOCATE_AC251TB*/ AC251 /*고객서비스BS대상내역*/
+                               --              WHERE AC261.CST_SV_ASN_NO = AC251.CST_SV_ASN_NO
+                               --                AND AC261.CNFM_PSIC_PRTNR_NO =  {prtnrNo}
+                               --                AND AC261.VST_DUEDT = {selDate}
+                               --                AND AC261.VST_PRGS_STAT_CD IN ('00', '10')
+                               --                AND AC261.VST_EXP_HH <![CDATA[>=]]> '010000'
+                               --                AND AC261.VST_EXP_HH <![CDATA[<=]]> '030000'
+                               --              UNION ALL
+                               --             SELECT 0
+                               --               FROM DUAL
+                               --            )) > 67
+--
                             UNION ALL
                         </if>
                     </if>
@@ -1368,6 +1368,9 @@
            AND ROWNUM = 1
     </select>
 
+    <select id="selectTimeAssign_v2_step0" resultType="java.lang.String">
+      SELECT FN_SVPD_LOCARA_PRTNR_01(TRIM(#{zip}), #{kiwiItemCd}, #{wrkTypDtl}, #{selDate}) FROM DUAL
+    </select>
     <select id="selectTimeAssign_v2_step1" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableTimAssStep1Dvo">
         -- selectTimeAssign_v2_step1
         SELECT T3.RPB_LOCARA_CD /*책임지역코드*/
@@ -1403,7 +1406,7 @@
                      WHEN T3.WK_GRP_CD = '10' AND P.ASN_BLC_YN = 'Y' THEN 'N'
                      ELSE T3.UDSN_USE_YN
                 END) AS UDSN_USE_YN /*미지정사용여부*/
-             , FN_SVPD_WRK_CT_TOT_01(TRIM(#{zip}), #{selDate}, #{wrkTypDtl}, '', '', T4.HMNRSC_EMPNO) AS T_WRK_CNT /*전체 작업 건수 합*/
+             , FN_SVPD_WRK_CT_TOT_01(#{selDate}, #{wrkTypDtl}) AS T_WRK_CNT /*전체 작업 건수 합*/
              , #{selDate} AS SEL_DATE
              , VST_DOW_VAL AS VST_DOW_VAL_CD
              , #{wrkTypDtl} AS WRK_TYP_DTL
@@ -1423,14 +1426,14 @@
           INNER JOIN TB_SVPD_RPB_LOCARA_PSIC_IZ T3 /*책임지역별담당자내역*/
             ON T3.RPB_LOCARA_CD = T2.RPB_LOCARA_CD
            AND #{selDate} BETWEEN T3.APY_STRTDT AND T3.APY_ENDDT /*적용기간*/
-           <if test='@MybatisUtils@equals(dataGb, ""2"")'>
+           <if test='@MybatisUtils@equals(dataGb, "2")'>
            AND WK_GRP_CD = (CASE WHEN #{vstGb} IN ('10', '11', '12') THEN '10'
                                  WHEN #{vstGb} = '13' THEN '20'
                                  WHEN #{vstGb} = '20' THEN '50'
                                  ELSE FN_SVPD_WRK_GRP_01(#{kiwiItemCd}, #{wrkTypDtl}, #{selDate})
                             END)
            </if>
-           <if test='!@MybatisUtils@equals(dataGb, ""2"")'>
+           <if test='!@MybatisUtils@equals(dataGb, "2")'>
            AND WK_GRP_CD = FN_SVPD_WRK_GRP_01(#{kiwiItemCd}, #{wrkTypDtl}, #{selDate})
            </if>
          INNER JOIN TB_OGBS_MM_PRTNR_IZ T4
@@ -1471,29 +1474,33 @@
            <choose>
            <when test='gbCd == "I"'>
            /*2021.04.30 최정문파트장님 요청 BS이관기록이 있을경우 담당자 본인 배정 */
-           AND T4.HMNRSC_EMPNO = (SELECT CASE WHEN (ASN_TF_DV_CD IS NOT NULL AND ASN_TF_DV_CD != '411') THEN CNFM_PSIC_PRTNR_NO /*확정담당자파트너번호*/
-                                              ELSE FN_SVPD_LOCARA_PRTNR_BS_01(TRIM(#{zip}), #{kiwiItemCd}, #{wrkTypDtl}, #{selDate}, #{vstGb}) END
-                                    FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*고객서비스BS배정내역*/
-                                   WHERE CST_SV_ASN_NO = #{cstSvAsnNo})
+           --@TODO 승인 후 주석 제거
+           --AND T4.HMNRSC_EMPNO = (SELECT CASE WHEN (ASN_TF_DV_CD IS NOT NULL AND ASN_TF_DV_CD != '411') THEN CNFM_PSIC_PRTNR_NO /*확정담당자파트너번호*/
+           --                                   ELSE FN_SVPD_LOCARA_PRTNR_BS_01(TRIM({zip}), {kiwiItemCd}, {wrkTypDtl}, {selDate}, {vstGb}) END
+           --                         FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*고객서비스BS배정내역*/
+           --                        WHERE CST_SV_ASN_NO = {cstSvAsnNo})
            </when>
            <otherwise>
-           AND T4.HMNRSC_EMPNO = FN_SVPD_LOCARA_PRTNR_BS_01(TRIM(#{zip}), #{kiwiItemCd}, #{wrkTypDtl}, #{selDate}, #{vstGb})
+           --@TODO 승인 후 주석 제거
+           --AND T4.HMNRSC_EMPNO = FN_SVPD_LOCARA_PRTNR_BS_01(TRIM({zip}), {kiwiItemCd}, {wrkTypDtl}, {selDate}, {vstGb})
            </otherwise>
            </choose>
            </if>
            <if test='!@MybatisUtils@equals(dataGb, "2")'>
            <choose>
            <when test='gbCd == "I"'>
-           AND T4.HMNRSC_EMPNO = FN_SVPD_LOCARA_PRTNR_OWR_01(TRIM(#{zip}), #{kiwiItemCd}, #{wrkTypDtl}, #{selDate})
+           --@TODO 승인 후 주석 제거
+           --AND T4.HMNRSC_EMPNO = FN_SVPD_LOCARA_PRTNR_OWR_01(TRIM({zip}), {kiwiItemCd}, {wrkTypDtl}, {selDate})
            </when>
            <when test='gbCd == "C"'>
-           AND T4.HMNRSC_EMPNO = (CASE WHEN #{selDate} = TO_CHAR(SYSDATE, 'YYYYMMDD')
-                                       THEN FN_SVPD_LOCARA_PRTNR_OWR_01(TRIM(#{zip}), #{kiwiItemCd}, #{wrkTypDtl}, #{selDate})
-                                       ELSE FN_SVPD_LOCARA_PRTNR_01(TRIM(#{zip}), #{kiwiItemCd}, #{wrkTypDtl}, #{selDate})
-                                  END)
+           --@TODO 승인 후 주석 제거
+           --AND T4.HMNRSC_EMPNO = (CASE WHEN {selDate} = TO_CHAR(SYSDATE, 'YYYYMMDD')
+           --                            THEN FN_SVPD_LOCARA_PRTNR_OWR_01(TRIM({zip}), {kiwiItemCd}, {wrkTypDtl}, {selDate})
+           --                            ELSE FN_SVPD_LOCARA_PRTNR_01(TRIM({zip}), {kiwiItemCd}, {wrkTypDtl}, {selDate})
+           --                       END)
            </when>
            <otherwise>
-           AND T4.HMNRSC_EMPNO = FN_SVPD_LOCARA_PRTNR_01(TRIM(#{zip}), #{kiwiItemCd}, #{wrkTypDtl}, #{selDate})
+           AND T4.HMNRSC_EMPNO = #{prtnrNo}
            </otherwise>
            </choose>
            </if>
@@ -1607,7 +1614,7 @@
                                         END) AS AC152_LOCAL_DEG
                                   FROM TB_SVPD_RPB_LOCARA_BAS /*엔지니어지역등급기준내역*/ /*LC_ALLOCATE_AC152TB*/ /*책임지역별 배정듭급*/ T
                                  WHERE T.RPB_LOCARA_CD = #{rpbLocaraCd}
-                                   AND T.WK_GRP_CD = #{wkGrpCd})                   AC152
+                                   AND T.WK_GRP_CD = #{wkGrpCd}) AC152
                              , TB_SVPD_EGER_LOCARA_GD_BASE_IZ /*LC_ALLOCATE_AC151TB*/ AC151 /*일별,엔지니어별 지역 등급 기준 세팅*/
                          WHERE AC152.AC152_LOCAL_DEG = AC151.ASN_GD_CD
                            AND #{selDate} BETWEEN AC151.APY_STRTDT AND AC151.APY_ENDDT

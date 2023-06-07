@@ -74,7 +74,9 @@ public interface WsncTimeTableMapper {
     String selectConvertItemcode(String saleCd);
     String selectKiwiItemcode(String saleCd);
 
-    List<WsncTimeTableTimAssStep1Dvo> selectTimeAssign_v2_step1(String gbCd, String selDate, String zip, String dataGb, String cntrNo, String inGb, String wrkTypDtl, String kiwiItemCd);
+    String selectTimeAssign_v2_step0(String zip, String kiwiItemCd, String wrkTypDtl, String selDate);
+
+    List<WsncTimeTableTimAssStep1Dvo> selectTimeAssign_v2_step1(String gbCd, String selDate, String zip, String dataGb, String cntrNo, String inGb, String wrkTypDtl, String kiwiItemCd, String prtnrNo);
     List<WsncTimeTableTimAssStep2Dvo> selectTimeAssign_v2_step2(WsncTimeTableTimAssStep1Dvo dvo);
     List<WsncTimeTableTimAssStep3Dvo> selectTimeAssign_v2_step3(WsncTimeTableTimAssStep1Dvo dvo);
 

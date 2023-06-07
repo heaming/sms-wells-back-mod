@@ -48,6 +48,15 @@ public class WsncTimeTableController {
     public SearchRes getTimeTable(
         SearchReq req
     ) {
+        log.debug("----------------------------------- 타임테이블 일정 조회 -----------------------------------------");
+        log.debug("baseYm: {}", req.baseYm());
+        log.debug("prtnrNo:  {}", req.prtnrNo());
+        log.debug("prevTag:  {}", req.prevTag());
+        log.debug("dataGb:  {}", req.dataGb());
+        log.debug("dataStus:  {}", req.dataStus());
+        log.debug("cntrNo:  {}", req.cntrNo());
+        log.debug("saleCd:  {}", req.saleCd());
+        log.debug("wrkTypDtl:  {}", req.wrkTypDtl());
         return service.getTimeTable(req);
     }
 
