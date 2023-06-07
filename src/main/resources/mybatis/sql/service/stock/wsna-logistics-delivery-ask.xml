@@ -203,23 +203,23 @@
         <include refid="COMMON.insertSystemFieldValue" />
           FROM
              (
-               SELECT DISTINCT SAP_PLNT_CD   /* SAP플랜트코드 */
-                    , LGST_OSTR_AK_NO        /* 물류출고요청번호 */
-                    , OSTR_AK_SN             /* 출고요청일련번호 */
-                    , LLORNO                 /* 주문번호 */
-                    , LLPRTP                 /* 서비스업무중분류코드 */
-                    , LLAPTP                 /* 신청유형코드 */
-                    , LLAPOC                 /* 신청조직구분코드 */
-                    , LLAPOR                 /* 신청조직ID */
-                    , LLAPPC                 /* 신청파트너번호 */
-                    , LLAPPN                 /* 신청자명 */
-                    , LLORDT                 /* 주문신청완료일자 */
-                    , LLSHCS                 /* 배송코스값 */
-                    , LLRCOR                 /* 배송지코스값 */
-                    , LLIFNO                 /* 전문전송번호 */
-                    , LLINDT                 /* 등록일자 */
-                    , IN_NO                  /* 창고관리파트너조직유형코드 */
-                    , OUT_NO                 /* 조직유형코드 */
+               SELECT DISTINCT SAP_PLNT_CD     /* SAP플랜트코드 */
+                    , LGST_OSTR_AK_NO          /* 물류출고요청번호 */
+                    , OSTR_AK_SN               /* 출고요청일련번호 */
+                    , LLORNO                   /* 주문번호 */
+                    , LLPRTP                   /* 서비스업무중분류코드 */
+                    , LLAPTP                   /* 신청유형코드 */
+                    , LLAPOC                   /* 신청조직구분코드 */
+                    , LLAPOR                   /* 신청조직ID */
+                    , TRIM(LLAPPC) AS LLAPPC   /* 신청파트너번호 */
+                    , LLAPPN                   /* 신청자명 */
+                    , LLORDT                   /* 주문신청완료일자 */
+                    , LLSHCS                   /* 배송코스값 */
+                    , TRIM(LLRCOR) AS LLRCOR   /* 배송지코스값 */
+                    , LLIFNO                   /* 전문전송번호 */
+                    , LLINDT                   /* 등록일자 */
+                    , IN_NO                    /* 창고관리파트너조직유형코드 */
+                    , OUT_NO                   /* 조직유형코드 */
                  FROM TB_IFIN_KSS_QOM_ASN_SEND_TEMP
                 WHERE LLORDT = TO_CHAR(SYSDATE, 'YYYYMMDD')
                   AND LLIFNO = ( SELECT MAX(LLIFNO)
@@ -228,10 +228,10 @@
              ) T1
           LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T2   /* 파트너기본 */
             ON T2.OG_TP_CD = T1.IN_NO
-           AND T2.PRTNR_NO = TRIM(T1.LLAPPC)   /* 데이터타입이 CHAR이므로 TRIM() 사용 */
+           AND T2.PRTNR_NO = T1.LLAPPC
           LEFT OUTER JOIN TB_OGBS_BLD_BAS T3   /* 빌딩기본 */
             ON T3.OG_TP_CD = T1.OUT_NO
-           AND T3.BLD_CD   = TRIM(T1.LLRCOR)   /* 데이터타입이 CHAR이므로 TRIM() 사용 */
+           AND T3.BLD_CD   = T1.LLRCOR
     </insert>
 
     <insert id="insertKssQomAsnItmTemp">
