@@ -63,7 +63,6 @@ public class WsncTimeTableService {
         /*Test*/
 
         String prevTag = StringUtil.null2str(req.prevTag());
-        log.debug("prevTag:{}", prevTag);
 
         WsncTimeTableDvo result = null;
         switch (prevTag) {
@@ -117,7 +116,7 @@ public class WsncTimeTableService {
         //        String P_SEQ = request.getParameter("P_SEQ");
         String dataStus = req.dataStus();
         String wrkTypDtl = req.wrkTypDtl();
-        String P_USER_ID = req.prtnrNo(); // P_USER_ID
+        String prtnrNo = req.prtnrNo(); // P_USER_ID
         //String returnurl = request.getParameter("returnUrl");
         String gbCd = StringUtil.isEmpty(req.gbCd()) ? "K" : req.gbCd();
 
@@ -160,13 +159,6 @@ public class WsncTimeTableService {
         }
 
         farmYN = mapper.selectFarmYn(dataGb, saleCd);
-
-        log.debug("cntrNo:{}", cntrNo);
-        log.debug("saleCd:{}", saleCd);
-        log.debug("selDate:{}", selDate);
-        log.debug("dataGb:{}", dataGb);
-        log.debug("gbCd:{}", gbCd);
-        log.debug("framYn:{}", farmYN);
 
         String lcst09 = null;
         if (StringUtil.null2str(farmYN).equals("Y")) {
@@ -224,13 +216,14 @@ public class WsncTimeTableService {
 
         }
 
-        List<WsncTimeTableTimAssStep1Dvo> step1 = mapper
-            .selectTimeAssign_v2_step1(gbCd, selDate, zip, dataGb, cntrNo, inGb, wrkTypDtl, kiwiItemCd); // 책임지역 담당자 찾기
+        List<WsncTimeTableTimAssStep1Dvo> step1 = mapper.selectTimeAssign_v2_step1(gbCd, selDate, zip, dataGb, cntrNo, inGb, wrkTypDtl, kiwiItemCd,
+            StringUtil.nvl2(mapper.selectTimeAssign_v2_step0(zip, saleCd, wrkTypDtl, selDate), prtnrNo)
+        ); // 책임지역 담당자 찾기
         List<WsncTimeTableTimAssStep2Dvo> step2 = mapper.selectTimeAssign_v2_step2(step1.get(0)); // 담당자 정보 표시 (왼쪽)
         List<WsncTimeTableTimAssStep3Dvo> step3 = mapper.selectTimeAssign_v2_step3(step1.get(0)); // 시간표시
 
         List<WsncTimeTableDisableDaysDvo> diabledays = mapper.selectDiableDays(
-            addGb, selDate, "", zip, saleCd, "", dataGb, contDt, gbCd, wrkTypDtl, P_USER_ID,
+            addGb, selDate, "", zip, saleCd, "", dataGb, contDt, gbCd, wrkTypDtl, prtnrNo,
             step1.get(0).getRpbLocaraCd(), P_LCWGUB, P_LCETC3, step1.get(0).getVstDowValCd()
         );
         String offdays = mapper.selectOffDays(selDate);
@@ -253,7 +246,7 @@ public class WsncTimeTableService {
         result.setDataStus(dataStus);
         result.setWrkTypDtl(wrkTypDtl);
         result.setGdsCd(req.gdsCd());
-        result.setEmpId(P_USER_ID);
+        result.setEmpId(prtnrNo);
         result.setDiabledays(diabledays);
         result.setPajongDay(pajongDay);
         result.setLcst09(lcst09);
