@@ -7,7 +7,7 @@ import lombok.Setter;
 
 /**
  * <pre>
- * W-SV-S-0088 물류 출고요청 데이터 생성 (출고요청상세송신전문)
+ * W-SV-S-0088 물류 출고요청 데이터 생성 (TB_IFIN_OSTR_AK_DTL_SEND_ETXT-출고요청상세송신전문)
  * </pre>
  *
  * @author SaeRomI.Kim

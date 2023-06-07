@@ -61,14 +61,16 @@ public class WsnaLogisticsInStorageAskService {
      * @return 반품입고요청 데이터 생성 건수
      */
     @Transactional
-    public WsnaLogisticsInStorageAskDto.SaveRes createInStorageAsks(@Valid
-    List<WsnaLogisticsInStorageAskDto.SaveReq> dtos
+    public WsnaLogisticsInStorageAskDto.SaveRes createInStorageAsks(
+        @Valid
+        @NotEmpty
+        List<WsnaLogisticsInStorageAskDto.SaveReq> dtos
     ) {
 
         // TB_IFIN_PD_RTNGD_AK_SEND_ETXT - 상품반품요청송신전문 데이터 생성 건수
         int akCnt = 0;
         // TB_IFIN_RTNGD_AK_DTL_SEND_ETXT - 반품요청상세송신전문 데이터 생성 건수
-        int akDlCnt = 0;
+        int akDtlCnt = 0;
 
         // 출고요청번호 distinct, 출고요청품목으로 데이터를 받기 때문에 출고요청번호(Master) 기준으로 데이터를 필터링 하기 위함.
         List<String> ostrAkNos = dtos.stream().map(WsnaLogisticsInStorageAskDto.SaveReq::ostrAkNo).distinct()
@@ -89,13 +91,11 @@ public class WsnaLogisticsInStorageAskService {
             }
             // 반품요청상세송신전문 데이터 생성
             if (ObjectUtils.isNotEmpty(askDvo)) {
-                akDlCnt += this.insertRtngdAkDtlSendEtxt(askDvo, itms);
+                akDtlCnt += this.insertRtngdAkDtlSendEtxt(askDvo, itms);
             }
         }
 
-        WsnaLogisticsInStorageAskDto.SaveRes res = new WsnaLogisticsInStorageAskDto.SaveRes(akCnt, akDlCnt);
-
-        return res;
+        return new WsnaLogisticsInStorageAskDto.SaveRes(akCnt, akDtlCnt);
 
     }
 
@@ -113,7 +113,6 @@ public class WsnaLogisticsInStorageAskService {
         String lgstStrAkNo = this.mapper.selectNewLgstStrAkNo(LGST_STR_CD);
         dvo.setLgstStrAkNo(lgstStrAkNo);
 
-        // SAP 코드
         dvo.setSapPlntCd(SnServiceConst.SAP_PLNT_CD);
         dvo.setSapCoCd(SnServiceConst.SAP_CO_CD);
         dvo.setSapSaveLctCd(SnServiceConst.SAP_SAVE_LCT_CD);
@@ -124,6 +123,7 @@ public class WsnaLogisticsInStorageAskService {
     }
 
     /**
+        // SAP 코드
      * 반품요청상세송신전문 데이터 생성
      * @param askDvo    (필수) 반품출고요청송신전문 데이터
      * @param dtos      (필수) 반품요청상세송신전문 데이터 리스트
@@ -161,8 +161,11 @@ public class WsnaLogisticsInStorageAskService {
      * @throws 물류 입고가 완료된 경우 BizExcpeiton 처리
      */
     @Transactional
-    public int editInStorageAsks(@Valid
-    List<WsnaLogisticsInStorageAskDto.SaveReq> dtos) {
+    public int editInStorageAsks(
+        @Valid
+        @NotEmpty
+        List<WsnaLogisticsInStorageAskDto.SaveReq> dtos
+    ) {
 
         int count = 0;
 
@@ -197,13 +200,16 @@ public class WsnaLogisticsInStorageAskService {
     }
 
     @Transactional
-    public WsnaLogisticsInStorageAskDto.SaveRes removeInStorageAsks(@Valid
-    List<WsnaLogisticsInStorageAskDto.RemoveReq> dtos) {
+    public WsnaLogisticsInStorageAskDto.SaveRes removeInStorageAsks(
+        @Valid
+        @NotEmpty
+        List<WsnaLogisticsInStorageAskDto.RemoveReq> dtos
+    ) {
 
         // TB_IFIN_PD_RTNGD_AK_SEND_ETXT - 상품반품요청송신전문 데이터 삭제 건수
         int akCnt = 0;
         // TB_IFIN_RTNGD_AK_DTL_SEND_ETXT - 반품요청상세송신전문 데이터 삭제 건수
-        int akDlCnt = 0;
+        int akDtlCnt = 0;
 
         for (WsnaLogisticsInStorageAskDto.RemoveReq dto : dtos) {
             // 출고요청상세송신전문 데이터 조회, 데이터가 존재하지 않을 경우, 데이터가 존재하지 않습니다. 메시지 출력
@@ -226,7 +232,7 @@ public class WsnaLogisticsInStorageAskService {
 
             // 데이터 삭제처리
             askDtlDvo.setDtaDlYn(YN_Y);
-            akDlCnt += this.mapper.updateRtngdAkDtlSendEtxtForRemove(askDtlDvo);
+            akDtlCnt += this.mapper.updateRtngdAkDtlSendEtxtForRemove(askDtlDvo);
         }
 
         // 출고요청번호 필터링
@@ -245,9 +251,7 @@ public class WsnaLogisticsInStorageAskService {
             }
         }
 
-        WsnaLogisticsInStorageAskDto.SaveRes res = new WsnaLogisticsInStorageAskDto.SaveRes(akCnt, akDlCnt);
-
-        return res;
+        return new WsnaLogisticsInStorageAskDto.SaveRes(akCnt, akDtlCnt);
 
     }
 

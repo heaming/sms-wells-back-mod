@@ -18,7 +18,6 @@ import lombok.Builder;
  */
 
 public class WsnaLogisticsOutStorageAskDto {
-
     @Builder
     @ApiModel("WsnaLogisticsOutStorageAskDto-SaveReq")
     public record SaveReq(
@@ -117,12 +116,31 @@ public class WsnaLogisticsOutStorageAskDto {
         String ovivTpCd,
 
         // 비고내용 (RMK_CN)
-        String rmkCn
+        String rmkCn,
+
+        // 입고대상창고번호 (STR_OJ_WARE_NO)
+        String strOjWareNo,
+
+        // 입고대상 창고의 상세구분코드 (WARE_DTL_DV_CD)
+        String wareDtlDvCd,
+
+        // 입고대상창고명 (WARE_NM)
+        String wareNm
     ) {}
 
     @Builder
-    @ApiModel("WsnaLogisticsOutStorageAskDto-SaveQomReq")
-    public record SaveQomReq(
+    @ApiModel("WsnaLogisticsOutStorageAskDto-SaveRes")
+    public record SaveRes(
+        // TB_IFIN_ITM_OSTR_AK_SEND_ETXT - 품목출고요청송신전문 데이터 저장 건수
+        int akCnt,
+
+        // TB_IFIN_OSTR_AK_DTL_SEND_ETXT - 출고요청상세송신전문 데이터 저장 건수
+        int akDtlCnt
+    ) {}
+
+    @Builder
+    @ApiModel("WsnaLogisticsOutStorageAskDto-CreateQomReq")
+    public record CreateQomReq(
 
         // 출고요청번호 (OSTR_AK_NO)
         @NotBlank
@@ -193,118 +211,54 @@ public class WsnaLogisticsOutStorageAskDto {
         // 서비스센터명 (SV_CNR_NM)
         String svCnrNm,
 
+        // 서비스센터담당파트너명 (SV_CNR_ICHR_PRTNR_NM)
+        String svCnrIchrPrtnrNm,
+
+        // 서비스센터전화번호암호화 (SV_CNR_LK_TNO_ENCR)
+        String svCnrLkTnoEncr,
+
+        // 서비스센터주소 (SV_CNR_ADR)
+        String svCnrAdr,
+
+        // 배차유형코드 (OVIV_TP_CD)
+        String ovivTpCd,
+
         // 비고내용 (RMK_CN)
         String rmkCn,
 
-        // 주문번호 (LLORNO)
-        @NotBlank
-        String llorno,
+        // 입고대상창고번호 (STR_OJ_WARE_NO)
+        String strOjWareNo,
 
-        // 순번 (LLORSQ)
+        // 입고대상 창고의 상세구분코드 (WARE_DTL_DV_CD)
+        String wareDtlDvCd,
+
+        // 입고대상창고명 (WARE_NM)
+        String wareNm,
+
+        // 차수 (TCNT)
         @Positive
-        int llorsq,
+        int tcnt
 
-        // 업무구분 (LLPRTP)
-        @NotBlank
-        String llprtp,
+    ) {}
 
-        // 신청유형 (LLAPTP)
-        @NotBlank
-        String llaptp,
+    @Builder
+    @ApiModel("WsnaLogisticsOutStorageAskDto-CreateQomRes")
+    public record CreateQomRes(
 
-        // 신청조직구분 (LLAPOC)
-        String llapoc,
+        // TB_IFIN_ITM_OSTR_AK_SEND_ETXT - 품목출고요청송신전문 데이터 생성 건수
+        int akCnt,
 
-        // 신청조직명 (LLAPOCNM)
-        String llapocnm,
+        // TB_IFIN_OSTR_AK_DTL_SEND_ETXT - 출고요청상세송신전문 데이터 생성 건수
+        int akDtlCnt,
 
-        // 신청소속 (LLAPOR)
-        String llapor,
+        // TB_IFIN_SPP_BAS_SEND_ETXT - 배송기본송신전문 데이터 생성 건수
+        int basCnt,
 
-        // 신청소속명 (LLAPORNM)
-        String llapornm,
+        // TB_IFIN_SPP_PD_SEND_ETXT - 배송상품송신전문 데이터 생성 건수
+        int pdCnt,
 
-        // 신청자코드 (LLAPPC)
-        String llappc,
-
-        // 신청자성명 (LLAPPN)
-        String llappn,
-
-        // 주문완료일 (LLORDT)
-        @ValidDate
-        String llordt,
-
-        // 배송코드 (LLSHCS)
-        String llshcs,
-
-        // 배송지코드 (LLRCOR)
-        String llrcor,
-
-        // 배송지명 (LLRCORNM)
-        String llrcornm,
-
-        // I/F전송번호 (LLIFNO)
-        String llifno,
-
-        // 등록일 (LLINDT)
-        @ValidDate
-        String llindt,
-
-        // KSS수신완료 (LLKSTR)
-        String llsktr,
-
-        // 송신자용필드 (LLSDFL)
-        String llsdfl,
-
-        // 전송대상여부 (LLKSSU)
-        String llkssu,
-
-        // 자재코드 (LLMTCD)
-        String llmtcd,
-
-        // 자재명 (LLMTNM)
-        String llmtnm,
-
-        // 자재수량 (LLMTQT)
-        @Positive
-        Integer llmtqt,
-
-        // 출고번호 (LLOTNO)
-        String llotno,
-
-        // 출고일자 (LLOTDT)
-        @ValidDate
-        String llotdt,
-
-        // 박스퍼센트 (LLPERC)
-        Integer llperc,
-
-        // 상품코드 (LLPRCD)
-        String llprcd,
-
-        // 상품명 (LLPRNM)
-        String llprnm,
-
-        // 상품수량 (LLPRQT)
-        @Positive
-        Integer llprqt,
-
-        // 주문상태코드 (LLORST)
-        String llorst,
-
-        // 주문상태일자 (LLORSD)
-        @ValidDate
-        String llorsd,
-
-        // SAP전송일자 (LLSPDT)
-        String llspdt,
-
-        // SAP결과 (LLSPRT)
-        String llsprt,
-
-        // 상품구분 (LLPRDV)
-        String llprdv
-
+        // TB_IFIN_SPP_MAT_SEND_ETXT - 배송자재송신전문 데이터 생성 건수
+        int matCnt
     ) {}
 
     @Builder
@@ -375,16 +329,20 @@ public class WsnaLogisticsOutStorageAskDto {
         String ostrOjWareNo,
 
         // 고객번호 (CST_NO)
+        @NotBlank
         String cstNo,
 
         // 고객명 (CST_NM)
+        @NotBlank
         String cstNm,
 
         // 계약번호 (CNTR_NO)
+        @NotBlank
         String cntrNo,
 
         // 계약일련번호 (CNTR_SN)
-        Integer cntrSn,
+        @Positive
+        int cntrSn,
 
         // 계약바코드번호 (CNTR_BC_NO)
         String cntrBcNo,
@@ -398,12 +356,29 @@ public class WsnaLogisticsOutStorageAskDto {
         // 서비스센터명 (SV_CNR_NM)
         String svCnrNm,
 
+        // 서비스센터담당파트너명 (SV_CNR_ICHR_PRTNR_NM)
+        String svCnrIchrPrtnrNm,
+
+        // 서비스센터전화번호암호화 (SV_CNR_LK_TNO_ENCR)
+        String svCnrLkTnoEncr,
+
+        // 서비스센터주소 (SV_CNR_ADR)
+        String svCnrAdr,
+
+        // 배차유형코드 (OVIV_TP_CD)
+        String ovivTpCd,
+
         // 비고내용 (RMK_CN)
         String rmkCn,
 
-        // 출고일자 (OSTR_DT)
-        @ValidDate
-        String ostrDtm,
+        // 입고대상창고번호 (STR_OJ_WARE_NO)
+        String strOjWareNo,
+
+        // 입고대상 창고의 상세구분코드 (WARE_DTL_DV_CD)
+        String wareDtlDvCd,
+
+        // 입고대상창고명 (WARE_NM)
+        String wareNm,
 
         // 배송송장번호 (SPP_IVC_NO)
         String sppIvcNo,
@@ -441,6 +416,19 @@ public class WsnaLogisticsOutStorageAskDto {
         // 포인트값 (P_VAL)
         Integer pVal
 
+    ) {}
+
+    @Builder
+    @ApiModel("WsnaLogisticsOutStorageAskDto-SaveSelfFilterRes")
+    public record SaveSelfFilterRes(
+        // TB_IFIN_ITM_OSTR_AK_SEND_ETXT - 품목출고요청송신전문 데이터 저장 건수
+        int akCnt,
+
+        // TB_IFIN_OSTR_AK_DTL_SEND_ETXT - 출고요청상세송신전문 데이터 저장 건수
+        int akDtlCnt,
+
+        // TB_IFIN_OSTR_AK_PCSV_SEND_ETXT - 출고요청택배송신전문 데이터 저장 건수
+        int pcsvCnt
     ) {}
 
     @Builder
