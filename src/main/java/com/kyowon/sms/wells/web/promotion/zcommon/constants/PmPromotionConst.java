@@ -16,9 +16,13 @@ public class PmPromotionConst {
     public static final String SYS_CMPP_NM_BASE_PD_CD = "basePdCd";                 // (시스템항목명) 기준상품코드
     public static final String SYS_CMPP_NM_BASE_PD_CLSF_CD = "basePdClsfCd";        // (시스템항목명) 기준상품분류코드
     public static final String SYS_CMPP_NM_SERVICE_PD_CD = "svPdCd";                // (시스템항목명) 서비스코드
+    public static final String SYS_CMPP_NM_SERVICE_TYPE_CD = "svTpCd";              // (시스템항목명) 서비스유형코드
     public static final String SYS_CMPP_NM_STPL_PRD_CD = "stplPrdCd";               // (시스템항목명) 약정주기코드
     public static final String SYS_CMPP_NM_RENTAL_DSC_DV_CD = "rentalDscDvCd";      // (시스템항목명) 렌탈할인구분코드
     public static final String SYS_CMPP_NM_RENTAL_DSC_TP_CD = "rentalDscTpCd";      // (시스템항목명) 렌탈할인유형코드
+    public static final String SYS_CMPP_NM_SERVICE_VISIT_PERIOD_CD = "svVstPrdCd";  // (시스템항목명) 방문주기
+    public static final String SYS_CMPP_NM_PARCEL_SERVICE_PERIOD_CD = "pcsvPrdCd";  // (시스템항목명) 택배주기
+    public static final String SYS_CMPP_NM_BEFORE_SERVICE_PERIOD_CD = "svBfsvcPrdCd"; // (시스템항목명) BS주기
     public static final String SYS_CMPP_NM_DISCOUNT_FIX_AMOUNT = "dscFxam";         // (시스템항목명) 할인금액
     public static final String SYS_CMPP_NM_DISCOUNT_MONTHS = "dscMcnt";             // (시스템항목명) 할인개월
     public static final String SYS_CMPP_NM_DISCOUNT_TYPE = "dscTpCd";               // (시스템항목명) 프로모션할인유형코드
@@ -31,6 +35,8 @@ public class PmPromotionConst {
     public static final String SYS_CMPP_NM_FREE_GIFT_CHOICE = "fgptChoCd";          // (시스템항목명) 사은품선택
     public static final String SYS_CMPP_NM_FREE_GIFT = "fgptCd";                    // (시스템항목명) 사은품상품코드
     public static final String SYS_CMPP_NM_FREE_GIFT_QUANTITY = "fgptQty";          // (시스템항목명) 사은품수량
+    public static final String SYS_CMPP_NM_APPLY_GROUP_CODE = "pmotApyGrpCd";       // (시스템항목명) 프로모션적용그룹
+    public static final String SYS_CMPP_NM_APPLY_OPTION_CODE = "pmotApyOptCd";      // (시스템항목명) 프로모션적용옵션
 
     /* 프로모션할인유형코드 */
     public static final String DISCOUNT_TYPE_CODE_PRICE = "01";             // 가격할인
@@ -42,4 +48,8 @@ public class PmPromotionConst {
     public static final String FEE_UNIT_CODE_COUNT = "01";                  // 건수
     public static final String FEE_UNIT_CODE_POINT = "02";                  // 포인트
     public static final String FEE_UNIT_CODE_AMOUNT = "03";                 // 금액
+
+    /* 서비스유형코드 */
+    public static final String SERVICE_TYPE_CODE_PARCEL_1 = "7";            // 택배1
+    public static final String SERVICE_TYPE_CODE_PARCEL_2 = "8";            // 택배2
 }

@@ -934,7 +934,7 @@
             , #{wareMngtPrtnrNo}
             , #{pitmStocAGdQty}
             , #{prchsStrQty}
-            , #{dtaDlYn}
+            , 'N'
             <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -956,7 +956,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocAGdQty}
                 , #{prchsStrBGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -978,7 +978,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocAGdQty}
                 , #{nomStrAGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1000,7 +1000,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocBGdQty}
                 , #{nomStrBGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1022,7 +1022,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocEGdQty}
                 , #{nomStrEGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1044,7 +1044,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocRGdQty}
                 , #{nomStrRGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1066,7 +1066,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocAGdQty}
                 , #{qomAsnStrAGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1088,7 +1088,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocBGdQty}
                 , #{qomAsnStrBGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1110,7 +1110,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocEGdQty}
                 , #{qomAsnStrEGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1132,7 +1132,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocRGdQty}
                 , #{qomAsnStrRGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1154,7 +1154,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocAGdQty}
                 , #{qomMmtStrAGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1176,7 +1176,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocBGdQty}
                 , #{qomMmtStrBGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1198,7 +1198,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocEGdQty}
                 , #{qomMmtStrEGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1220,7 +1220,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocRGdQty}
                 , #{qomMmtStrRGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1242,7 +1242,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocAGdQty}
                 , #{rtngdStrInsiAGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1264,7 +1264,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocBGdQty}
                 , #{rtngdStrInsiBGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1286,7 +1286,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocEGdQty}
                 , #{rtngdStrInsiEGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1308,7 +1308,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocRGdQty}
                 , #{rtngdStrInsiRGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1330,7 +1330,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocAGdQty}
                 , #{etcStrAGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1352,7 +1352,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocEGdQty}
                 , #{etcStrEGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1374,7 +1374,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocAGdQty}
                 , #{rtngdStrOtsdAGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1396,7 +1396,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocBGdQty}
                 , #{rtngdStrOtsdBGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1418,7 +1418,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocEGdQty}
                 , #{rtngdStrOtsdEGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1440,7 +1440,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocRGdQty}
                 , #{rtngdStrOtsdRGdQty}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1462,7 +1462,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocAGdQty}
                 , #{etcStrAGdQty1}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1484,7 +1484,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocBGdQty}
                 , #{etcStrBGdQty1}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1506,7 +1506,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocEGdQty}
                 , #{etcStrEGdQty1}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1528,7 +1528,7 @@
                 , #{wareMngtPrtnrNo}
                 , #{pitmStocRGdQty}
                 , #{etcStrRGdQty1}
-                , #{dtaDlYn}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
 
     </insert>
@@ -1708,6 +1708,7 @@
                 , BTD_STOC_A_GD_QTY         /*기초재고A등급수량*/
                 , PITM_STOC_A_GD_QTY        /* 시점재고A등급수량 */
                 , MMT_STOC_A_GD_QTY         /* 이동재고A등급수량 */
+                , DTA_DL_YN                 /* 데이터삭제여부 */
                 <include refid="COMMON.insertSystemField" />)
             VALUES (
                   #{baseYm}
@@ -1717,6 +1718,7 @@
                 , #{BtdStocAGdQty}
                 , #{PitmStocAGdQty}
                 , #{MmtStocAGdQty}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
 
@@ -1729,6 +1731,7 @@
                 , BTD_STOC_E_GD_QTY         /*기초재고E등급수량*/
                 , PITM_STOC_E_GD_QTY        /* 시점재고E등급수량 */
                 , MMT_STOC_E_GD_QTY         /* 이동재고E등급수량 */
+                , DTA_DL_YN                 /* 데이터삭제여부 */
                 <include refid="COMMON.insertSystemField" />)
             VALUES (
                   #{baseYm}
@@ -1738,6 +1741,7 @@
                 , #{BtdStocEGdQty}
                 , #{PitmStocEGdQty}
                 , #{MmtStocEGdQty}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
 
@@ -1750,6 +1754,7 @@
                 , BTD_STOC_R_GD_QTY         /*기초재고R등급수량*/
                 , PITM_STOC_R_GD_QTY        /* 시점재고R등급수량 */
                 , MMT_STOC_R_GD_QTY         /* 이동재고R등급수량 */
+                , DTA_DL_YN                 /* 데이터삭제여부 */
                 <include refid="COMMON.insertSystemField" />)
             VALUES (
                   #{baseYm}
@@ -1759,6 +1764,7 @@
                 , #{BtdStocRGdQty}
                 , #{PitmStocRGdQty}
                 , #{MmtStocRGdQty}
+                , 'N'
                 <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
 

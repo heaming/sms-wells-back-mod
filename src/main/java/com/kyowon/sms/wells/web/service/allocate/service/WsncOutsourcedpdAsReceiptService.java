@@ -35,10 +35,15 @@ public class WsncOutsourcedpdAsReceiptService {
      * @return 조회결과
      */
     public PagingResult<SearchReceiptIzRes> getOutsourcedpdAsReceiptIzs(SearchReceiptIzReq dto, PageInfo pageInfo) {
+        PagingResult<WsncOutsourcedpdAsReceiptDvo> dvo = new PagingResult<WsncOutsourcedpdAsReceiptDvo>();
 
-        PagingResult<SearchReceiptIzRes> pagingResult = converter.mapWsncAsTransferDvoToSearchReceiptIzRes(
-            mapper.selectOutsourcedpdAsReceiptIzs(dto, pageInfo)
-        );
+        if ("W".equals(dto.device())) {
+            dvo = mapper.selectOutsourcedpdAsReceiptIzs(dto, pageInfo);
+        } else if ("M".equals(dto.device())) {
+            dvo = mapper.selectMobileOutsourcedpdAsReceiptIzs(dto, pageInfo);
+        }
+
+        PagingResult<SearchReceiptIzRes> pagingResult = converter.mapWsncAsTransferDvoToSearchReceiptIzRes(dvo);
         pagingResult.setPageInfo(pageInfo);
         return pagingResult;
     }
@@ -101,7 +106,7 @@ public class WsncOutsourcedpdAsReceiptService {
 
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("cnrNm", dto.cnrNm());
-        paramMap.put("cnrTno", dto.cnrTno());
+        paramMap.put("svCnrTno", dto.svCnrTno());
 
         KakaoSendReqDvo kakaoSendReqDvo = KakaoSendReqDvo.withTemplateCode()
             .templateCode("wells17952")

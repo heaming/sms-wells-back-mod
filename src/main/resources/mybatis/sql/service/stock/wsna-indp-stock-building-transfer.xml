@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaIndpStockBuildingTransferMapper">
+    <update id="updateCarriedOverAddressUseYn">
+        MERGE INTO
+            ( SELECT WARE_NO
+                   , BLD_CD
+                   , ADR_USE_YN
+              FROM TB_SVST_MCBY_WARE_IZ
+              WHERE APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+            ) M1
+        USING
+            ( SELECT WARE_NO
+                   , BLD_CD
+                   , ADR_USE_YN
+                FROM TB_SVST_MCBY_WARE_IZ
+               WHERE APY_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+                 AND ADR_USE_YN = 'Y'
+            ) M2
+           ON (M1.WARE_NO = M2.WARE_NO)
+         WHEN MATCHED THEN
+       UPDATE SET M1.BLD_CD = M2.BLD_CD
+                , M1.ADR_USE_YN = M2.ADR_USE_YN
+                <include refid="COMMON.updateSystemField" />
+    </update>
+</mapper>

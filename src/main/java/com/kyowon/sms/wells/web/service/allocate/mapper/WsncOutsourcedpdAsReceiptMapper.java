@@ -21,6 +21,10 @@ public interface WsncOutsourcedpdAsReceiptMapper {
 
     List<WsncOutsourcedpdAsReceiptDvo> selectOutsourcedpdAsReceiptIzs(SearchReceiptIzReq dto);
 
+    PagingResult<WsncOutsourcedpdAsReceiptDvo> selectMobileOutsourcedpdAsReceiptIzs(
+        SearchReceiptIzReq dto, PageInfo pageInfo
+    );
+
     int deleteOutsourcedpdAsReceiptIz(RemoveReceiptIzReq dto);
 
     int insertOutsourcedpdAsReceiptIz(WsncOutsourcedpdAsReceiptDvo dvo);

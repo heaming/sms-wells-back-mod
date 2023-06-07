@@ -13,7 +13,8 @@ public class WsncOutsourcedpdAsReceiptDto {
     @ApiModel(value = "WsncOutsourcedpdAsReceiptDto-SearchReceiptIzReq")
     public record SearchReceiptIzReq(
         String cnrNm, /* as센터명 */
-        String pdNm /* 제품명 */
+        String pdNm, /* 제품명 */
+        String device /* 접속화면 */
     ) {}
 
     @ApiModel(value = "WsncOutsourcedpdAsReceiptDto-SearchReceiptIzRes")
@@ -44,7 +45,7 @@ public class WsncOutsourcedpdAsReceiptDto {
     @ApiModel(value = "WsncOutsourcedpdAsReceiptDto-BiztalkReq")
     public record BiztalkReq(
         String cnrNm, /* as센터명 */
-        String cnrTno, /* as센터연락처 */
+        String svCnrTno, /* as센터연락처 */
         @NotBlank
         String cstTno /* 고객전화번호 */
     ) {}
