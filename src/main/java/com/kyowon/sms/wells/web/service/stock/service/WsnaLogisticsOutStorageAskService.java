@@ -161,7 +161,7 @@ public class WsnaLogisticsOutStorageAskService {
      * 출고요청품목 수정
      * @param dtos  (필수) 출고요청품목 데이터 리스트
      * @return 데이터 수정 건수
-     * @throws 물류 출고가 완료된 경우 BizExcpeiton 처리
+     * @throws 물류 처리가 완료된 경우 BizExcpeiton 처리
      */
     @Transactional
     public int editOutOfStorageAsks(
@@ -206,6 +206,7 @@ public class WsnaLogisticsOutStorageAskService {
      * 출고요청품목 삭제
      * @param dtos  (필수) 출고요청품목 데이터 리스트
      * @return 데이터 삭제 건수
+     * @throws 물류 처리가 완료된 경우 BizExcpeiton 처리
      */
     @Transactional
     public WsnaLogisticsOutStorageAskDto.SaveRes removeOutOfStorageAsks(
@@ -366,6 +367,7 @@ public class WsnaLogisticsOutStorageAskService {
      * 자가필터/건식상품 출고요청품목 수정
      * @param dtos  (필수) 자가필터/건식상품 출고요청품목 데이터 리스트
      * @return 데이터 수정 건수
+     * @throws 물류 처리가 완료된 경우 BizExcpeiton 처리
      */
     @Transactional
     public WsnaLogisticsOutStorageAskDto.SaveSelfFilterRes editSelfFilterOutOfStorageAsks(
@@ -421,6 +423,7 @@ public class WsnaLogisticsOutStorageAskService {
      * 자가필터/건식상품 출고요청품목 삭제
      * @param dtos  (필수) 자가필터/건식상품 출고요청품목 데이터 리스트
      * @return 데이터 삭제 건수
+     * @throws 물류 처리가 완료된 경우 BizExcpeiton 처리
      */
     @Transactional
     public WsnaLogisticsOutStorageAskDto.SaveSelfFilterRes removeSelfFilterOutOfStorageAsks(
