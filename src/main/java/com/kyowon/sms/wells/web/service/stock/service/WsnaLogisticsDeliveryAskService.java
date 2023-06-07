@@ -43,17 +43,17 @@ public class WsnaLogisticsDeliveryAskService {
         List<WsnaLogisticsDeliveryAskDto.CreateReq> dtos
     ) {
 
-        // TB_IFIN_SPP_BAS_SEND_ETXT - 배송기본송신전문 데이터 생성 (주문번호 제외)
-        int basCnt = this.mapper.insertSppBasSendEtxt(dtos);
-
-        // 파트너번호별 주문번호 조회
-        List<WsnaLogisticsDeliveryAskBssDvo> bssDvos = this.mapper.selectSppBasSendEtxtLlornos();
-
-        // 주문번호 업데이트
-        this.mapper.updateSppBasSendEtxtLlornos(bssDvos);
-
         // TB_IFIN_KSS_QOM_ASN_SEND_TEMP - KSS물량배정송신전문 데이터 생성
         this.mapper.insertKssQomAsnSendTemp(dtos);
+
+        // 파트너번호별 주문번호 조회
+        List<WsnaLogisticsDeliveryAskBssDvo> bssDvos = this.mapper.selectKssQomAsnSendTempLlornos();
+
+        // 주문번호 업데이트
+        this.mapper.updateKssQomAsnSendTempLlornos(bssDvos);
+
+        // TB_IFIN_SPP_BAS_SEND_ETXT - 배송기본송신전문 데이터 생성
+        int basCnt = this.mapper.insertSppBasSendEtxt();
 
         // 차수
         int tcnt = dtos.get(0).tcnt();

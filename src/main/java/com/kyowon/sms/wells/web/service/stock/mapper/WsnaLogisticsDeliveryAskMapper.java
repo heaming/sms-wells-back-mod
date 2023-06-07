@@ -19,13 +19,13 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsDeliveryAskBssDvo
 @Mapper
 public interface WsnaLogisticsDeliveryAskMapper {
 
-    int insertSppBasSendEtxt(List<WsnaLogisticsDeliveryAskDto.CreateReq> dtos);
-
-    List<WsnaLogisticsDeliveryAskBssDvo> selectSppBasSendEtxtLlornos();
-
-    int updateSppBasSendEtxtLlornos(List<WsnaLogisticsDeliveryAskBssDvo> dvos);
-
     int insertKssQomAsnSendTemp(List<WsnaLogisticsDeliveryAskDto.CreateReq> dtos);
+
+    List<WsnaLogisticsDeliveryAskBssDvo> selectKssQomAsnSendTempLlornos();
+
+    int updateKssQomAsnSendTempLlornos(List<WsnaLogisticsDeliveryAskBssDvo> dvos);
+
+    int insertSppBasSendEtxt();
 
     int insertKssQomAsnItmTemp(int tcnt);
 
