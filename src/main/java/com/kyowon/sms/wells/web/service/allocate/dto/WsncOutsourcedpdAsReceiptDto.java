@@ -13,7 +13,8 @@ public class WsncOutsourcedpdAsReceiptDto {
     @ApiModel(value = "WsncOutsourcedpdAsReceiptDto-SearchReceiptIzReq")
     public record SearchReceiptIzReq(
         String cnrNm, /* as센터명 */
-        String pdNm /* 제품명 */
+        String pdNm, /* 제품명 */
+        String device /* 접속화면 */
     ) {}
 
     @ApiModel(value = "WsncOutsourcedpdAsReceiptDto-SearchReceiptIzRes")
