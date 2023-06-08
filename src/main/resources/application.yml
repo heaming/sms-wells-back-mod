@@ -101,8 +101,8 @@ spring:
             enabled: always
     redis:
         database: 1
-        sentinelHost: 10.1.219.59
-        sentinelPort: 5100
+        sentinelHost: 10.1.199.5,10.1.199.37,10.1.199.38
+        sentinelPort: 5100,5100,5100
         password: 'OtLKsonzcHIHGAbpOico781K'
         lettuce:
             pool:
