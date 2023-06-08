@@ -4,10 +4,10 @@ import java.util.Optional;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaLogisticsOutStorageAskDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskPcsvDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskReqDvo;
 
 /**
  * <pre>
@@ -30,7 +30,7 @@ public interface WsnaLogisticsOutStorageAskMapper {
     int insertOstrAkDtlSendEtxt(WsnaLogisticsOutStorageAskDtlDvo dvo);
 
     Optional<WsnaLogisticsOutStorageAskDtlDvo> selectOstrAkDtlSendEtxtByOstrAkNoAndOstrAkSn(
-        WsnaLogisticsOutStorageAskDto.RemoveReq dto
+        WsnaLogisticsOutStorageAskReqDvo dvo
     );
 
     int updateOstrAkDtlSendEtxt(WsnaLogisticsOutStorageAskDtlDvo dvo);
@@ -44,7 +44,7 @@ public interface WsnaLogisticsOutStorageAskMapper {
     int insertOstrAkPcsvSendEtxt(WsnaLogisticsOutStorageAskPcsvDvo dvo);
 
     Optional<WsnaLogisticsOutStorageAskPcsvDvo> selectOstrAkPcsvSendEtxtByOstrAkNoAndOstrAkSn(
-        WsnaLogisticsOutStorageAskDto.RemoveReq dto
+        WsnaLogisticsOutStorageAskReqDvo dvo
     );
 
     int updateOstrAkPcsvSendEtxt(WsnaLogisticsOutStorageAskPcsvDvo dvo);

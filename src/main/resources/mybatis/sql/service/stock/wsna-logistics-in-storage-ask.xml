@@ -16,15 +16,15 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsInStorageAskMapper">
 
-    <select id="selectRtngdAkDtlSendEtxtByOstrNoAndOstrSn" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDtlDvo">
+    <select id="selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDtlDvo">
         SELECT SAP_PLNT_CD      /* SAP플랜트코드 */
              , LGST_STR_AK_NO   /* 물류입고요청번호 */
              , STR_AK_SN        /* 입고요청일련번호 */
              , TRS_YN           /* 전송여부 */
           FROM TB_IFIN_RTNGD_AK_DTL_SEND_ETXT   /* 반품요청상세송신전문 */
-         WHERE DTA_DL_YN = 'N'         /* 유효한 데이터 */
-           AND REL_NO    = #{ostrNo}   /* 출고요청번호 */
-           AND REL_SN    = #{ostrSn}   /* 출고요청일련번호 */
+         WHERE DTA_DL_YN = 'N'           /* 유효한 데이터 */
+           AND REL_NO    = #{ostrAkNo}   /* 출고요청번호 */
+           AND REL_SN    = #{ostrAkSn}   /* 출고요청일련번호 */
            AND ROWNUM    = 1
     </select>
 

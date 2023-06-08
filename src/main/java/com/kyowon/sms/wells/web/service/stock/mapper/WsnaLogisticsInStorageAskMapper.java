@@ -4,9 +4,9 @@ import java.util.Optional;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaLogisticsInStorageAskDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDtlDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskReqDvo;
 
 /**
  * <pre>
@@ -20,8 +20,8 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDvo;
 @Mapper
 public interface WsnaLogisticsInStorageAskMapper {
 
-    Optional<WsnaLogisticsInStorageAskDtlDvo> selectRtngdAkDtlSendEtxtByOstrNoAndOstrSn(
-        WsnaLogisticsInStorageAskDto.RemoveReq dto
+    Optional<WsnaLogisticsInStorageAskDtlDvo> selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn(
+        WsnaLogisticsInStorageAskReqDvo dvo
     );
 
     WsnaLogisticsInStorageAskDvo selectPdRtngdAkSendEtxtByRtngdAkNo(String rtngdAkNo);

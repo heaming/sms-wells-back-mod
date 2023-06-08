@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaLogisticsDeliveryAskDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsDeliveryAskBssDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsDeliveryAskReqDvo;
 
 /**
  * <pre>
@@ -19,7 +19,7 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsDeliveryAskBssDvo
 @Mapper
 public interface WsnaLogisticsDeliveryAskMapper {
 
-    int insertKssQomAsnSendTemp(List<WsnaLogisticsDeliveryAskDto.CreateReq> dtos);
+    int insertKssQomAsnSendTemp(List<WsnaLogisticsDeliveryAskReqDvo> dtos);
 
     List<WsnaLogisticsDeliveryAskBssDvo> selectKssQomAsnSendTempLlornos();
 

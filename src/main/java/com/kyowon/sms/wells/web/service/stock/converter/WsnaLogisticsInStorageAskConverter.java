@@ -6,9 +6,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaLogisticsInStorageAskDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDtlDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskReqDvo;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface WsnaLogisticsInStorageAskConverter {
@@ -17,23 +17,21 @@ public interface WsnaLogisticsInStorageAskConverter {
     @Mapping(source = "ostrAkRgstDt", target = "strAkRgstDt")
     @Mapping(source = "strHopDt", target = "strDueDt")
     @Mapping(source = "wareMngtPrtnrNo", target = "ichrPrtnrNo")
-    WsnaLogisticsInStorageAskDvo mapSaveReqToWsnaLogisticsInStorageAskDvo(WsnaLogisticsInStorageAskDto.SaveReq dto);
-
-    @Mapping(source = "ostrAkSn", target = "strAkSn")
-    @Mapping(source = "ostrAkQty", target = "strAkQty")
-    @Mapping(source = "itmGdCd", target = "lgstItmGdCd")
-    List<WsnaLogisticsInStorageAskDtlDvo> mapAllSaveReqToWsnaLogisticsInStorageAskDtlDvo(
-        List<WsnaLogisticsInStorageAskDto.SaveReq> dtos
+    WsnaLogisticsInStorageAskDvo mapWsnaLogisticsInStorageAskReqDvoToWsnaLogisticsInStorageAskDvo(
+        WsnaLogisticsInStorageAskReqDvo dvo
     );
 
-    @Mapping(source = "ostrAkNo", target = "ostrNo")
-    @Mapping(source = "ostrAkSn", target = "ostrSn")
-    WsnaLogisticsInStorageAskDto.RemoveReq mapSaveReqToRemoveReq(WsnaLogisticsInStorageAskDto.SaveReq dto);
+    @Mapping(source = "ostrAkSn", target = "strAkSn")
+    @Mapping(source = "ostrAkQty", target = "strAkQty")
+    @Mapping(source = "itmGdCd", target = "lgstItmGdCd")
+    List<WsnaLogisticsInStorageAskDtlDvo> mapAllWsnaLogisticsInStorageAskReqDvoToWsnaLogisticsInStorageAskDtlDvo(
+        List<WsnaLogisticsInStorageAskReqDvo> dvos
+    );
 
     @Mapping(source = "ostrAkSn", target = "strAkSn")
     @Mapping(source = "ostrAkQty", target = "strAkQty")
     @Mapping(source = "itmGdCd", target = "lgstItmGdCd")
-    WsnaLogisticsInStorageAskDtlDvo mapSaveReqToWsnaLogisticsInStorageAskDtlDvo(
-        WsnaLogisticsInStorageAskDto.SaveReq dto
+    WsnaLogisticsInStorageAskDtlDvo mapWsnaLogisticsInStorageAskReqDvoToWsnaLogisticsInStorageAskDtlDvo(
+        WsnaLogisticsInStorageAskReqDvo dvo
     );
 }
