@@ -22,7 +22,7 @@
              , STR_AK_SN        /* 입고요청일련번호 */
              , TRS_YN           /* 전송여부 */
           FROM TB_IFIN_RTNGD_AK_DTL_SEND_ETXT   /* 반품요청상세송신전문 */
-         WHERE DTA_DL_YN = 'N'           /* 유효한 데이터 */
+         WHERE DTA_DL_YN = 'N'         /* 유효한 데이터 */
            AND REL_NO    = #{ostrNo}   /* 출고요청번호 */
            AND REL_SN    = #{ostrSn}   /* 출고요청일련번호 */
            AND ROWNUM    = 1
