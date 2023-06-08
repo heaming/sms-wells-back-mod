@@ -310,7 +310,7 @@
                     , FLOOR( D1.LLPRQT / D2.SVPD_BOX_QTY ) AS LLPRQT       /* 상품수량 */
                     , D1.LLORST                                            /* 주문상태코드 */
                     , D1.LLORSD                                            /* 주문상태일자 */
-                    , CASE WHEN D2.SVPD_PD_CD LIKE '42%'
+                    , CASE WHEN D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '42%'
                             AND D2.SVPD_ITEM_KND = '5' THEN '06'
                             ELSE '07'
                       END                                  AS LLPRDV     /* 작업구분 */
@@ -337,8 +337,8 @@
                 INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) D2   /* 상품 */
                    ON D1.LLPRCD = D2.SVPD_PD_CD
                 WHERE D2.SVPD_BOX_QTY > 0
-                  AND D2.SVPD_PD_CD NOT IN ('49240251020', '49240251030', '49240251040', '49241251020', '49241251030'
-                                          , '49241251040', '49372000000', '49373000000', '43105111050', '43105111060')
+                  AND D2.SVPD_PD_CD NOT IN ('WM07105777', 'WM07105778', 'WM07105779', 'WM07105783', 'WM07105784'
+                                          , 'WM07105785', 'WM07105936', 'WM07105937', 'WM07104797', 'WM07104798')
                 UNION ALL
                SELECT D1.SAP_PLNT_CD                                  /* SAP플랜트코드 */
                     , D1.LGST_OSTR_AK_NO                              /* 출고요청번호 */
@@ -349,15 +349,15 @@
                     , MOD(D1.LLPRQT, D2.SVPD_BOX_QTY) AS LLPRQT       /* 상품수량 */
                     , D1.LLORST                                       /* 주문상태코드 */
                     , D1.LLORSD                                       /* 주문상태일자 */
-                    , CASE WHEN D2.SVPD_PD_CD IN ('44030812010', '44010812010') THEN '11'
-                           WHEN D2.SVPD_PD_CD LIKE '42%'
-                            AND D2.SVPD_ITEM_KND = '5'                          THEN '08'
-                           WHEN (    D2.SVPD_PD_CD LIKE '41%'
-                                  OR D2.SVPD_PD_CD LIKE '43%'
-                                  OR D2.SVPD_PD_CD LIKE '44%'
-                                  OR D2.SVPD_PD_CD LIKE '4921%'
-                                  OR D2.SVPD_PD_CD LIKE '4922%' )
-                            AND D2.SVPD_ITEM_KND = '5'                          THEN '09'
+                    , CASE WHEN D2.SVPD_PD_CD IN ('WM07105072', 'WM07105126') THEN '11'
+                           WHEN D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '42%'
+                            AND D2.SVPD_ITEM_KND = '5'                        THEN '08'
+                           WHEN (    D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '41%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '43%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '44%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '4921%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '4922%' )
+                            AND D2.SVPD_ITEM_KND = '5'                        THEN '09'
                            ELSE '10'
                       END                             AS LLPRDV       /* 작업구분 */
                     , D2.SVPD_BOX_QTY                 AS BOX_QTY      /* 박스수량 */
@@ -383,8 +383,8 @@
                 INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) D2   /* 상품 */
                    ON D1.LLPRCD = D2.SVPD_PD_CD
                 WHERE D2.SVPD_BOX_QTY > 0
-                  AND D2.SVPD_PD_CD NOT IN ('49240251020', '49240251030', '49240251040', '49241251020', '49241251030'
-                                          , '49241251040', '49372000000', '49373000000', '43105111050', '43105111060')
+                  AND D2.SVPD_PD_CD NOT IN ('WM07105777', 'WM07105778', 'WM07105779', 'WM07105783', 'WM07105784'
+                                          , 'WM07105785', 'WM07105936', 'WM07105937', 'WM07104797', 'WM07104798')
                 UNION ALL
                SELECT D1.SAP_PLNT_CD                     /* SAP플랜트코드 */
                     , D1.LGST_OSTR_AK_NO                 /* 출고요청번호 */
@@ -395,15 +395,17 @@
                     , D1.LLPRQT                          /* 상품수량 */
                     , D1.LLORST                          /* 주문상태코드 */
                     , D1.LLORSD                          /* 주문상태일자 */
-                    , CASE WHEN D2.SVPD_PD_CD LIKE '42%'
+                    , CASE WHEN D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '42%'
                             AND D2.SVPD_ITEM_KND = '5' THEN '08'
-                           WHEN (    D2.SVPD_PD_CD LIKE '41%'
-                                  OR D2.SVPD_PD_CD LIKE '43%'
-                                  OR D2.SVPD_PD_CD LIKE '44%'
-                                  OR D2.SVPD_PD_CD LIKE '4921%'
-                                  OR D2.SVPD_PD_CD LIKE '4922%'
-                                  OR D2.SVPD_PD_CD LIKE '49378%'
-                                  OR D2.SVPD_PD_CD LIKE '49350%' )
+                           WHEN D2.SVPD_PD_CD = 'WM07105922'
+                            AND D2.SVPD_ITEM_KND = '5' THEN '10'
+                           WHEN (    D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '41%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '43%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '44%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '4921%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '4922%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '49378%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '49350%' )
                             AND D2.SVPD_ITEM_KND = '5' THEN '09'
                            ELSE '10'
                       END                AS LLPRDV       /* 작업구분 */
@@ -430,8 +432,8 @@
                 INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) D2   /* 상품 */
                    ON D1.LLPRCD = D2.SVPD_PD_CD
                 WHERE D2.SVPD_BOX_QTY = 0
-                  AND D2.SVPD_PD_CD NOT IN ('49240251020', '49240251030', '49240251040', '49241251020', '49241251030'
-                                          , '49241251040', '49372000000', '49373000000', '43105111050', '43105111060')
+                  AND D2.SVPD_PD_CD NOT IN ('WM07105777', 'WM07105778', 'WM07105779', 'WM07105783', 'WM07105784'
+                                          , 'WM07105785', 'WM07105936', 'WM07105937', 'WM07104797', 'WM07104798')
                 UNION ALL
                SELECT D1.SAP_PLNT_CD                     /* SAP플랜트코드 */
                     , D1.LGST_OSTR_AK_NO                 /* 출고요청번호 */
@@ -465,8 +467,8 @@
                     ) D1
                 INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) D2   /* 상품 */
                    ON D1.LLPRCD = D2.SVPD_PD_CD
-                WHERE D2.SVPD_PD_CD IN ('49240251020', '49240251030', '49240251040', '49241251020', '49241251030'
-                                      , '49241251040', '49372000000', '49373000000', '43105111050', '43105111060')
+                WHERE D2.SVPD_PD_CD IN ('WM07105777', 'WM07105778', 'WM07105779', 'WM07105783', 'WM07105784'
+                                      , 'WM07105785', 'WM07105936', 'WM07105937', 'WM07104797', 'WM07104798')
 
              ) T1
          WHERE T1.LLPRQT > 0   /* 상품수량이 0보다 큰 것 */
