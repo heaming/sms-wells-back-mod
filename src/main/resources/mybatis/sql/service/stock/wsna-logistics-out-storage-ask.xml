@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---
+ ****************************************************************************************************
+ * 프로그램 개요
+ ****************************************************************************************************
+ 1. 모듈 : SNA (재고관리)
+ 2. 프로그램 ID : W-SV-S-0088 AS 물류 출고요청 인터페이스 데이터 생성
+ 3. 작성자 : SaeRomI.Kim
+ 4. 작성일 : 2023.05.25
+ ****************************************************************************************************
+ * 프로그램 설명
+ ****************************************************************************************************
+ - 물류 출고요청 인터페이스 (물류센터에 출고요청 하기 위한 인터페이스)
+ ****************************************************************************************************
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsOutStorageAskMapper">
+
+    <select id="selectItmOstrAkSendEtxtByOstrAkNo" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDvo">
+        SELECT SAP_PLNT_CD       /* SAP플랜트코드 */
+             , LGST_OSTR_AK_NO   /* 물류출고요청번호 */
+             , OSTR_AK_NO        /* 출고요청번호 */
+          FROM TB_IFIN_ITM_OSTR_AK_SEND_ETXT   /* 품목출고요청송신전문 */
+         WHERE DTA_DL_YN  = 'N'           /* 유효한 데이터 */
+           AND OSTR_AK_NO = #{ostrAkNo}   /* 출고요청번호 */
+           AND ROWNUM     = 1
+    </select>
+
+    <select id="selectNewLgstOstrAkNo" resultType="java.lang.String">
+        SELECT #{lgstOstrCd} || TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_IFIN_ITM_OSTR_AK_SEND_ETXT$LGST_OSTR_AK_NO.NEXTVAL, 4, '0') AS LGST_OSTR_AK_NO
+          FROM DUAL
+    </select>
+
+    <insert id="insertItmOstrAkSendEtxt">
+        INSERT INTO TB_IFIN_ITM_OSTR_AK_SEND_ETXT   /* 품목출고요청송신전문 */
+             (
+               SAP_PLNT_CD           /* SAP플랜트코드 */
+             , LGST_OSTR_AK_NO       /* 물류출고요청번호 */
+             , SAP_CO_CD             /* SAP회사코드 */
+             , SAP_SAVE_LCT_CD       /* SAP저장위치코드 */
+             , OSTR_AK_NO            /* 출고요청번호 */
+             , OSTR_WARE_NO          /* 출고창고번호 */
+             , OSTR_RQDT             /* 출고요청일자 */
+             , OSTR_HOP_DT           /* 출고희망일자 */
+             , IOST_AK_DV_CD         /* 입출고요청구분코드 */
+             , ICHR_PRTNR_NO         /* 담당파트너번호 */
+             , ICHR_PRTNR_OG_TP_CD   /* 담당파트너조직유형코드 */
+             , TRS_YN                /* 전송여부 */
+             , TRS_DTM               /* 전송일시 */
+             , DTA_DL_YN             /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />
+             )
+        VALUES
+             (
+               #{sapPlntCd}
+             , #{lgstOstrAkNo}
+             , #{sapCoCd}
+             , #{sapSaveLctCd}
+             , #{ostrAkNo}
+             , #{ostrWareNo}
+             , #{ostrRqdt}
+             , #{ostrHopDt}
+             , #{iostAkDvCd}
+             , #{ichrPrtnrNo}
+             , #{ichrPrtnrOgTpCd}
+             , #{trsYn}
+             , #{trsDtm}
+             , #{dtaDlYn}
+        <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+
+    <insert id="insertOstrAkDtlSendEtxt">
+         MERGE INTO TB_IFIN_OSTR_AK_DTL_SEND_ETXT TB_TGT   /* 출고요청상세송신전문 */
+         USING
+             (
+               SELECT #{relNo} AS REL_NO   /* 관계번호 */
+                    , #{relSn} AS REL_SN   /* 관계일련번호 */
+                 FROM DUAL
+             ) TB_SRC
+            ON
+             (
+                   TB_TGT.REL_NO    = TB_SRC.REL_NO
+               AND TB_TGT.REL_SN    = TB_SRC.REL_SN
+               AND TB_TGT.DTA_DL_YN = 'N'
+             )
+          WHEN NOT MATCHED THEN
+        INSERT
+             (
+               SAP_PLNT_CD            /* SAP플랜트코드 */
+             , LGST_OSTR_AK_NO        /* 물류출고요청번호 */
+             , OSTR_AK_SN             /* 출고요청일련번호 */
+             , MPAC_SN                /* 합포장일련번호 */
+             , REL_NO                 /* 관계번호 */
+             , REL_SN                 /* 관계일련번호 */
+             , SAP_IOST_TP_CD         /* SAP입출고유형코드 */
+             , LGST_SPP_MTHD_CD       /* 물류배송방식코드 */
+             , LGST_WK_MTHD_CD        /* 물류작업방식코드 */
+             , MDLV_PRTNR_NO          /* 배달파트너번호 */
+             , ITM_PD_CD              /* 품목상품코드 */
+             , OSTR_AK_QTY            /* 출고요청수량 */
+             , LGST_ITM_GD_CD         /* 물류품목등급코드 */
+             , CST_NO                 /* 고객번호 */
+             , CST_NM                 /* 고객명 */
+             , CNTR_NO                /* 계약번호 */
+             , CNTR_SN                /* 계약일련번호 */
+             , SV_CNR_CD              /* 서비스센터코드 */
+             , SV_CNR_NM              /* 서비스센터명 */
+             , SV_CNR_ICHR_PRTNR_NM   /* 서비스센터담당파트너명 */
+             , SV_CNR_LK_TNO_ENCR     /* 서비스센터연계전화번호암호화 */
+             , SV_CNR_ADR             /* 서비스센터주소 */
+             , OVIV_TP_CD             /* 배차유형코드 */
+             , HSMTRL_CLSF_CD         /* 학습지분류코드 */
+             , HSMTRL_CLSF_NM         /* 학습지분류명 */
+             , BACT_PROCS_QTY         /* 후행처리수량 */
+             , RMK_CN                 /* 비고내용 */
+             , TRS_YN                 /* 전송여부 */
+             , TRS_DTM                /* 전송일시 */
+             , DTA_DL_YN              /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES
+             (
+               #{sapPlntCd}
+             , #{lgstOstrAkNo}
+             , ( SELECT NVL(MAX(OSTR_AK_SN), 0) + 1
+                   FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT
+                  WHERE SAP_PLNT_CD     = #{sapPlntCd}
+                    AND LGST_OSTR_AK_NO = #{lgstOstrAkNo} )
+             , #{mpacSn}
+             , #{relNo}
+             , #{relSn}
+             , #{sapIostTpCd}
+             , #{lgstSppMthdCd}
+             , #{lgstWkMthdCd}
+             , #{mdlvPrtnrNo}
+             , #{itmPdCd}
+             , #{ostrAkQty}
+             , #{lgstItmGdCd}
+             , #{cstNo}
+             , #{cstNm}
+             , #{cntrNo}
+             , #{cntrSn}
+             , #{svCnrCd}
+             , #{svCnrNm}
+             , #{svCnrIchrPrtnrNm}
+             , #{svCnrLkTnoEncr}
+             , #{svCnrAdr}
+             , #{ovivTpCd}
+             , #{hsmtrlClsfCd}
+             , #{hsmtrlClsfNm}
+             , #{bactProcsQty}
+             , #{rmkCn}
+             , #{trsYn}
+             , #{trsDtm}
+             , #{dtaDlYn}
+        <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+
+    <select id="selectOstrAkDtlSendEtxtByOstrAkNoAndOstrAkSn" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskDtlDvo">
+        SELECT SAP_PLNT_CD       /* SAP플랜트코드 */
+             , LGST_OSTR_AK_NO   /* 물류출고요청번호 */
+             , OSTR_AK_SN        /* 출고요청일련번호 */
+             , TRS_YN            /* 전송여부 */
+          FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT   /* 출고요청상세송신전문 */
+         WHERE DTA_DL_YN = 'N'           /* 유효한 데이터 */
+           AND REL_NO    = #{ostrAkNo}   /* 출고요청번호 */
+           AND REL_SN    = #{ostrAkSn}   /* 출고요청일련번호 */
+           AND ROWNUM    = 1
+    </select>
+
+    <update id="updateOstrAkDtlSendEtxt">
+        UPDATE TB_IFIN_OSTR_AK_DTL_SEND_ETXT   /* 출고요청상세송신전문 */
+           SET MPAC_SN              = #{mpacSn}             /* 합포장일련번호 */
+             , SAP_IOST_TP_CD       = #{sapIostTpCd}        /* SAP입출고유형코드 */
+             , LGST_SPP_MTHD_CD     = #{lgstSppMthdCd}      /* 물류배송방식코드 */
+             , LGST_WK_MTHD_CD      = #{lgstWkMthdCd}       /* 물류작업방식코드 */
+             , MDLV_PRTNR_NO        = #{mdlvPrtnrNo}        /* 배달파트너번호 */
+             , ITM_PD_CD            = #{itmPdCd}            /* 품목상품코드 */
+             , OSTR_AK_QTY          = #{ostrAkQty}          /* 출고요청수량 */
+             , LGST_ITM_GD_CD       = #{lgstItmGdCd}        /* 물류품목등급코드 */
+             , CST_NO               = #{cstNo}              /* 고객번호 */
+             , CST_NM               = #{cstNm}              /* 고객명 */
+             , CNTR_NO              = #{cntrNo}             /* 계약번호 */
+             , CNTR_SN              = #{cntrSn}             /* 계약일련번호 */
+             , SV_CNR_CD            = #{svCnrCd}            /* 서비스센터코드 */
+             , SV_CNR_NM            = #{svCnrNm}            /* 서비스센터명 */
+             , SV_CNR_ICHR_PRTNR_NM = #{svCnrIchrPrtnrNm}   /* 서비스센터담당파트너명 */
+             , SV_CNR_LK_TNO_ENCR   = #{svCnrLkTnoEncr}     /* 서비스센터연계전화번호암호화 */
+             , SV_CNR_ADR           = #{svCnrAdr}           /* 서비스센터주소 */
+             , OVIV_TP_CD           = #{ovivTpCd}           /* 배차유형코드 */
+             , HSMTRL_CLSF_CD       = #{hsmtrlClsfCd}       /* 학습지분류코드 */
+             , HSMTRL_CLSF_NM       = #{hsmtrlClsfNm}       /* 학습지분류명 */
+             , BACT_PROCS_QTY       = #{bactProcsQty}       /* 후행처리수량 */
+             , RMK_CN               = #{rmkCn}              /* 비고내용 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE TRS_YN          = 'N'               /* 전송여부가 N일 경우만 */
+           AND DTA_DL_YN       = 'N'               /* 유효한 데이터 */
+           AND SAP_PLNT_CD     = #{sapPlntCd}      /* SAP플랜트코드 */
+           AND LGST_OSTR_AK_NO = #{lgstOstrAkNo}   /* 물류출고요청번호 */
+           AND OSTR_AK_SN      = #{ostrAkSn}       /* 출고요청일련번호 */
+    </update>
+
+    <update id="updateOstrAkDtlSendEtxtForRemove">
+        UPDATE TB_IFIN_OSTR_AK_DTL_SEND_ETXT   /* 출고요청상세송신전문 */
+           SET DTA_DL_YN = #{dtaDlYn}   /* 데이터삭제여부 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE SAP_PLNT_CD     = #{sapPlntCd}      /* SAP플랜트코드 */
+           AND LGST_OSTR_AK_NO = #{lgstOstrAkNo}   /* 물류출고요청번호 */
+           AND OSTR_AK_SN      = #{ostrAkSn}       /* 출고요청일련번호 */
+    </update>
+
+    <select id="selectOstrAkDtlSendEtxtCount" resultType="java.lang.Integer">
+        SELECT 1
+          FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT   /* 출고요청상세송신전문 */
+         WHERE DTA_DL_YN = 'N'           /* 유효한 데이터 */
+           AND REL_NO    = #{ostrAkNo}   /* 출고요청번호 */
+           AND ROWNUM    = 1
+    </select>
+
+    <update id="updateItmOstrAkSendEtxtForRemove">
+        UPDATE TB_IFIN_ITM_OSTR_AK_SEND_ETXT   /* 품목출고요청송신전문 */
+           SET DTA_DL_YN = #{dtaDlYn}   /* 데이터삭제여부 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE SAP_PLNT_CD     = #{sapPlntCd}      /* SAP플랜트코드 */
+           AND LGST_OSTR_AK_NO = #{lgstOstrAkNo}   /* 물류출고요청번호 */
+    </update>
+
+    <insert id="insertOstrAkPcsvSendEtxt">
+         MERGE INTO TB_IFIN_OSTR_AK_PCSV_SEND_ETXT TB_TGT   /* 출고요청택배송신전문 */
+         USING
+             (
+               SELECT #{sapPlntCd} AS SAP_PLNT_CD   /* SAP플랜트코드 */
+                    , #{ostrAkNo}  AS OSTR_AK_NO    /* 출고요청번호 */
+                    , #{ostrAkSn}  AS OSTR_AK_SN    /* 출고요청일련번호 */
+                 FROM DUAL
+             ) TB_SRC
+            ON
+             (
+                   TB_TGT.SAP_PLNT_CD = TB_SRC.SAP_PLNT_CD
+               AND TB_TGT.OSTR_AK_NO  = TB_SRC.OSTR_AK_NO
+               AND TB_TGT.OSTR_AK_SN  = TB_SRC.OSTR_AK_SN
+               AND TB_TGT.DTA_DL_YN   = 'N'
+             )
+          WHEN NOT MATCHED THEN
+        INSERT
+             (
+               SAP_PLNT_CD             /* SAP플랜트코드 */
+             , OSTR_AK_NO              /* 출고요청번호 */
+             , OSTR_AK_SN              /* 출고요청일련번호 */
+             , LGST_WK_MTHD_CD         /* 물류작업방식코드 */
+             , OSTR_NO                 /* 출고번호 */
+             , OSTR_SN                 /* 출고일련번호 */
+             , OSTR_DT                 /* 출고일자 */
+             , SPP_IVC_NO              /* 배송송장번호 */
+             , PD_BC_NO                /* 상품바코드번호 */
+             , CST_NO                  /* 고객번호 */
+             , CST_NM                  /* 고객명 */
+             , ADRS_LK_TNO_ENCR        /* 수취인연계전화번호암호화 */
+             , ADRS_LK_CRAL_TNO_ENCR   /* 수취인연계휴대전화번호암호화 */
+             , ZIP                     /* 우편번호 */
+             , BAS_ADR                 /* 기본주소 */
+             , DTL_ADR                 /* 상세주소 */
+             , LTN_ADR                 /* 지번주소 */
+             , PD_CN                   /* 상품내용 */
+             , CNTR_NO                 /* 계약번호 */
+             , CNTR_SN                 /* 계약일련번호 */
+             , CNTR_BC_NO              /* 계약바코드번호 */
+             , CNTRT_NM                /* 계약자명 */
+             , PRTNR_KNM               /* 파트너한글명 */
+             , BOX_QTY                 /* 박스수량 */
+             , P_VAL                   /* 포인트값 */
+             , RMK_CN                  /* 비고내용 */
+             , TRS_YN                  /* 전송여부 */
+             , TRS_DTM                 /* 전송일시 */
+             , MPAC_SN                 /* 합포장일련번호 */
+             , DTA_DL_YN               /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES
+             (
+               #{sapPlntCd}
+             , #{ostrAkNo}
+             , #{ostrAkSn}
+             , #{lgstWkMthdCd}
+             , #{ostrNo}
+             , #{ostrSn}
+             , #{ostrDt}
+             , #{sppIvcNo}
+             , #{pdBcNo}
+             , #{cstNo}
+             , #{cstNm}
+             , #{adrLkTnoEncr}
+             , #{adrsLkCralTnoEncr}
+             , #{zip}
+             , #{basAdr}
+             , #{dtlAdr}
+             , #{ltnAdr}
+             , #{pdCn}
+             , #{cntrNo}
+             , #{cntrSn}
+             , #{cntrBcNo}
+             , #{cntrtNm}
+             , #{prtnrKnm}
+             , #{boxQty}
+             , #{pVal}
+             , #{rmkCn}
+             , #{trsYn}
+             , #{trsDtm}
+             , #{mpacSn}
+             , #{dtaDlYn}
+        <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+
+    <select id="selectOstrAkPcsvSendEtxtByOstrAkNoAndOstrAkSn" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageAskPcsvDvo">
+        SELECT D2.SAP_PLNT_CD   /* SAP플랜트코드 */
+             , D2.OSTR_AK_NO    /* 출고요청번호 */
+             , D2.OSTR_AK_SN    /* 출고요청일련번호 */
+             , D2.TRS_YN        /* 전송여부 */
+          FROM TB_IFIN_OSTR_AK_DTL_SEND_ETXT D1   /* 출고요청상세송신전문 */
+         INNER JOIN TB_IFIN_OSTR_AK_PCSV_SEND_ETXT D2   /* 출고요청택배송신전문 */
+            ON D1.SAP_PLNT_CD     = D2.SAP_PLNT_CD
+           AND D1.LGST_OSTR_AK_NO = D2.OSTR_AK_NO
+           AND D1.OSTR_AK_SN      = D2.OSTR_AK_SN
+         WHERE D1.DTA_DL_YN = 'N'           /* 유효한 데이터 */
+           AND D2.DTA_DL_YN = 'N'
+           AND D1.REL_NO    = #{ostrAkNo}   /* 출고요청번호 */
+           AND D1.REL_SN    = #{ostrAkSn}   /* 출고요청일련번호 */
+           AND ROWNUM       = 1
+    </select>
+
+     <update id="updateOstrAkPcsvSendEtxt">
+        UPDATE TB_IFIN_OSTR_AK_PCSV_SEND_ETXT   /* 출고요청택배송신전문 */
+           SET LGST_WK_MTHD_CD       = #{lgstWkMthdCd}        /* 물류작업방식코드 */
+             , CST_NO                = #{cstNo}               /* 고객번호 */
+             , CST_NM                = #{cstNm}               /* 고객명 */
+             , ADRS_LK_TNO_ENCR      = #{adrsLkTnoEncr}       /* 수취인연계전화번호암호화 */
+             , ADRS_LK_CRAL_TNO_ENCR = #{adrsLkCralTnoEncr}   /* 수취인연계휴대전화번호암호화 */
+             , ZIP                   = #{zip}                 /* 우편번호 */
+             , BAS_ADR               = #{basAdr}              /* 기본주소 */
+             , DTL_ADR               = #{dtlAdr}              /* 상세주소 */
+             , LTN_ADR               = #{ltnAdr}              /* 상품내용 */
+             , CNTR_NO               = #{cntrNo}              /* 계약번호 */
+             , CNTR_SN               = #{cntrSn}              /* 계약일련번호 */
+             , CNTR_BC_NO            = #{cntrBcNo}            /* 계약바코드번호 */
+             , CNTRT_NM              = #{cntrtNm}             /* 계약자명 */
+             , PRTNR_KNM             = #{prtnrKnm}            /* 파트너한글명 */
+             , BOX_QTY               = #{boxQty}              /* 박스수량 */
+             , P_VAL                 = #{pVal}                /* 포인트값 */
+             , RMK_CN                = #{rmkCn}               /* 비고내용 */
+             , MPAC_SN               = #{mpacSn}              /* 합포장일련번호 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE TRS_YN      = 'N'            /* 전송여부가 N일 경우만 */
+           AND DTA_DL_YN   = 'N'            /* 유효한 데이터 */
+           AND SAP_PLNT_CD = #{sapPlntCd}   /* SAP플랜트코드 */
+           AND OSTR_AK_NO  = #{ostrAkNo}    /* 출고요청번호 */
+           AND OSTR_AK_SN  = #{ostrAkSn}    /* 출고요청일련번호 */
+    </update>
+
+    <update id="updateOstrAkPcsvSendEtxtForRemove">
+        UPDATE TB_IFIN_OSTR_AK_PCSV_SEND_ETXT   /* 출고요청택배송신전문 */
+           SET DTA_DL_YN = #{dtaDlYn}   /* 데이터삭제여부 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE SAP_PLNT_CD = #{sapPlntCd}   /* SAP플랜트코드 */
+           AND OSTR_AK_NO  = #{ostrAkNo}    /* 출고요청번호 */
+           AND OSTR_AK_SN  = #{ostrAkSn}    /* 출고요청일련번호 */
+    </update>
+
+</mapper>

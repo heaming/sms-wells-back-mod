@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---
+ ****************************************************************************************************
+ * 프로그램 개요
+ ****************************************************************************************************
+ 1. 모듈 : SNA (재고관리)
+ 2. 프로그램 ID : W-SV-S-0089 AS 물류 반품요청 인터페이스 데이터 생성
+ 3. 작성자 : SaeRomI.Kim
+ 4. 작성일 : 2023.05.30
+ ****************************************************************************************************
+ * 프로그램 설명
+ ****************************************************************************************************
+ - 물류 반품요청 인터페이스 (물류센터에 반품 입고요청 하기 위한 인터페이스)
+ ****************************************************************************************************
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsInStorageAskMapper">
+
+    <select id="selectRtngdAkDtlSendEtxtByOstrAkNoAndOstrAkSn" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDtlDvo">
+        SELECT SAP_PLNT_CD      /* SAP플랜트코드 */
+             , LGST_STR_AK_NO   /* 물류입고요청번호 */
+             , STR_AK_SN        /* 입고요청일련번호 */
+             , TRS_YN           /* 전송여부 */
+          FROM TB_IFIN_RTNGD_AK_DTL_SEND_ETXT   /* 반품요청상세송신전문 */
+         WHERE DTA_DL_YN = 'N'           /* 유효한 데이터 */
+           AND REL_NO    = #{ostrAkNo}   /* 출고요청번호 */
+           AND REL_SN    = #{ostrAkSn}   /* 출고요청일련번호 */
+           AND ROWNUM    = 1
+    </select>
+
+    <select id="selectPdRtngdAkSendEtxtByRtngdAkNo" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsInStorageAskDvo">
+        SELECT SAP_PLNT_CD      /* SAP플랜트코드 */
+             , LGST_STR_AK_NO   /* 물류출고요청번호 */
+             , RTNGD_AK_NO      /* 반품요청번호 */
+          FROM TB_IFIN_PD_RTNGD_AK_SEND_ETXT   /* 상품반품요청송신전문 */
+         WHERE DTA_DL_YN   = 'N'            /* 유효한 데이터 */
+           AND RTNGD_AK_NO = #{rtngdAkNo}   /* 반품요청번호 */
+           AND ROWNUM      = 1
+    </select>
+
+    <select id="selectNewLgstStrAkNo" resultType="java.lang.String">
+        SELECT #{lgstStrCd} || TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_IFIN_PD_RTNGD_AK_SEND_ETXT$LGST_STR_AK_NO.NEXTVAL, 4, '0') AS LGST_STR_AK_NO
+          FROM DUAL
+    </select>
+
+    <insert id="insertPdRtngdAkSendEtxt">
+        INSERT INTO TB_IFIN_PD_RTNGD_AK_SEND_ETXT   /* 상품반품요청송신전문 */
+             (
+               SAP_PLNT_CD       /* SAP플랜트코드 */
+             , LGST_STR_AK_NO    /* 물류입고요청번호 */
+             , SAP_CO_CD         /* SAP회사코드 */
+             , SAP_SAVE_LCT_CD   /* SAP저장위치코드 */
+             , RTNGD_AK_NO       /* 반품요청번호 */
+             , LGST_STR_TP_CD    /* 물류입고유형코드 */
+             , STR_AK_RGST_DT    /* 입고요청등록일자 */
+             , STR_DUEDT         /* 입고예정일자 */
+             , IOST_AK_DV_CD     /* 입출고요청구분코드 */
+             , ICHR_PRTNR_NO     /* 담당파트너번호 */
+             , TRS_YN            /* 전송여부 */
+             , TRS_DTM           /* 전송일시 */
+             , DTA_DL_YN         /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />
+             )
+        VALUES
+             (
+               #{sapPlntCd}
+             , #{lgstStrAkNo}
+             , #{sapCoCd}
+             , #{sapSaveLctCd}
+             , #{rtngdAkNo}
+             , #{lgstStrTpCd}
+             , #{strAkRgstDt}
+             , #{strDuedt}
+             , #{iostAkDvCd}
+             , #{ichrPrtnrNo}
+             , #{trsYn}
+             , #{trsDtm}
+             , #{dtaDlYn}
+        <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+
+    <insert id="insertRtngdAkDtlSendEtxt">
+         MERGE INTO TB_IFIN_RTNGD_AK_DTL_SEND_ETXT TB_TGT   /* 반품요청상세송신전문 */
+         USING
+             (
+               SELECT #{relNo} AS REL_NO   /* 관계번호 */
+                    , #{relSn} AS REL_SN   /* 관계일련번호 */
+                 FROM DUAL
+             ) TB_SRC
+            ON
+             (
+                   TB_TGT.REL_NO    = TB_SRC.REL_NO
+               AND TB_TGT.REL_SN    = TB_SRC.REL_SN
+               AND TB_TGT.DTA_DL_YN = 'N'
+             )
+          WHEN NOT MATCHED THEN
+        INSERT
+             (
+               SAP_PLNT_CD            /* SAP플랜트코드 */
+             , LGST_STR_AK_NO         /* 물류입고요청번호 */
+             , STR_AK_SN              /* 입고요청일련번호 */
+             , REL_NO                 /* 관계번호 */
+             , REL_SN                 /* 관계일련번호 */
+             , SAP_IOST_TP_CD         /* SAP입출고유형코드 */
+             , ITM_PD_CD              /* 품목상품코드 */
+             , STR_AK_QTY             /* 입고요청수량 */
+             , LGST_ITM_GD_CD         /* 물류품목등급코드 */
+             , CST_NO                 /* 고객번호 */
+             , CST_NM                 /* 고객명 */
+             , CNTR_NO                /* 계약번호 */
+             , CNTR_SN                /* 계약일련번호 */
+             , SV_CNR_CD              /* 서비스센터코드 */
+             , SV_CNR_NM              /* 서비스센터명 */
+             , OSTR_SAP_PLNT_CD       /* 출고SAP플랜트코드 */
+             , OSTR_SAP_SAVE_LCT_CD   /* 출고SAP저장위치코드 */
+             , DLPNR_CD               /* 거래처코드 */
+             , LGST_SPP_MTHD_CD       /* 물류배송방식코드 */
+             , MDLV_PRTNR_NO          /* 배달파트너번호 */
+             , PAE_CN                 /* 판쇄내용 */
+             , CLN_IVC_NO             /* 회수송장번호 */
+             , BC_NO                  /* 바코드번호 */
+             , DLPNR_BC_NO            /* 거래처바코드번호 */
+             , CRCL_TMLM_DT           /* 유통기한일자 */
+             , MNFT_DT                /* 제조일자 */
+             , BACT_PROCS_QTY         /* 후행처리수량 */
+             , RMK_CN                 /* 비고내용 */
+             , TRS_YN                 /* 전송여부 */
+             , TRS_DTM                /* 전송일시 */
+             , DTA_DL_YN              /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />
+             )
+        VALUES
+             (
+               #{sapPlntCd}
+             , #{lgstStrAkNo}
+             , ( SELECT NVL(MAX(STR_AK_SN), 0) + 1
+                   FROM TB_IFIN_RTNGD_AK_DTL_SEND_ETXT
+                  WHERE SAP_PLNT_CD    = #{sapPlntCd}
+                    AND LGST_STR_AK_NO = #{lgstStrAkNo} )
+             , #{relNo}
+             , #{relSn}
+             , #{sapIostTpCd}
+             , #{itmPdCd}
+             , #{strAkQty}
+             , #{lgstItmGdCd}
+             , #{cstNo}
+             , #{cstNm}
+             , #{cntrNo}
+             , #{cntrSn}
+             , #{svCnrCd}
+             , #{svCnrNm}
+             , #{ostrSapPlntCd}
+             , #{ostrSapSaveLctCd}
+             , #{dlpnrCd}
+             , #{lgstSppMthdCd}
+             , #{mdlvPrtnrNo}
+             , #{paeCn}
+             , #{clnIvcNo}
+             , #{bcNo}
+             , #{dlpnrBcNo}
+             , #{crclTmlmDt}
+             , #{mnftDt}
+             , #{bactProcsQty}
+             , #{rmkCn}
+             , #{trsYn}
+             , #{trsDtm}
+             , #{dtaDlYn}
+        <include refid="COMMON.insertSystemFieldValue" />
+             )
+    </insert>
+
+    <update id="updateRtngdAkDtlSendEtxt">
+        UPDATE TB_IFIN_RTNGD_AK_DTL_SEND_ETXT   /* 반품요청상세송신전문 */
+           SET SAP_IOST_TP_CD       = #{sapIostTpCd}        /* SAP입출고유형코드 */
+             , ITM_PD_CD            = #{itmPdCd}            /* 품목상품코드 */
+             , STR_AK_QTY           = #{strAkQty}           /* 입고요청수량 */
+             , LGST_ITM_GD_CD       = #{lgstItmGdCd}        /* 물류품목등급코드 */
+             , CST_NO               = #{cstNo}              /* 고객번호 */
+             , CST_NM               = #{cstNm}              /* 고객명 */
+             , CNTR_NO              = #{cntrNo}             /* 계약번호 */
+             , CNTR_SN              = #{cntrSn}             /* 계약일련번호 */
+             , SV_CNR_CD            = #{svCnrCd}            /* 서비스센터코드 */
+             , SV_CNR_NM            = #{svCnrNm}            /* 서비스센터명 */
+             , OSTR_SAP_PLNT_CD     = #{ostrSapPlntCd}      /* 출고SAP플랜트코드 */
+             , OSTR_SAP_SAVE_LCT_CD = #{ostrSapSaveLctCd}   /* 출고SAP저장위치코드 */
+             , DLPNR_CD             = #{dlpnrCd}            /* 거래처코드 */
+             , LGST_SPP_MTHD_CD     = #{lgstSppMthdCd}      /* 물류배송방식코드 */
+             , MDLV_PRTNR_NO        = #{mdlvPrtnrNo}        /* 배달파트너번호 */
+             , PAE_CN               = #{paeCn}              /* 판쇄내용 */
+             , CLN_IVC_NO           = #{clnIvcNo}           /* 회수송장번호 */
+             , BC_NO                = #{bcNo}               /* 바코드번호 */
+             , DLPNR_BC_NO          = #{dlpnrBcNo}          /* 거래처바코드번호 */
+             , CRCL_TMLM_DT         = #{crclTmlmDt}         /* 유통기한일자 */
+             , MNFT_DT              = #{mnftDt}             /* 제조일자 */
+             , BACT_PROCS_QTY       = #{bactProcsQty}       /* 후행처리수량 */
+             , RMK_CN               = #{rmkCn}              /* 비고내용 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE TRS_YN         = 'N'              /* 전송여부가 N일 경우만 */
+           AND DTA_DL_YN      = 'N'              /* 유효한 데이터 */
+           AND SAP_PLNT_CD    = #{sapPlntCd}     /* SAP플랜트코드 */
+           AND LGST_STR_AK_NO = #{lgstStrAkNo}   /* 물류입고요청번호 */
+           AND STR_AK_SN      = #{strAkSn}       /* 입고요청일련번호 */
+    </update>
+
+    <update id="updateRtngdAkDtlSendEtxtForRemove">
+        UPDATE TB_IFIN_RTNGD_AK_DTL_SEND_ETXT   /* 반품요청상세송신전문 */
+           SET DTA_DL_YN = #{dtaDlYn}   /* 데이터삭제여부 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE SAP_PLNT_CD    = #{sapPlntCd}     /* SAP플랜트코드 */
+           AND LGST_STR_AK_NO = #{lgstStrAkNo}   /* 물류입고요청번호 */
+           AND STR_AK_SN      = #{strAkSn}       /* 입고요청일련번호 */
+    </update>
+
+    <select id="selectRtngdAkDtlSendEtxtCount" resultType="java.lang.Integer">
+        SELECT 1
+          FROM TB_IFIN_RTNGD_AK_DTL_SEND_ETXT   /* 반품요청상세송신전문 */
+         WHERE DTA_DL_YN = 'N'         /* 유효한 데이터 */
+           AND REL_NO    = #{ostrNo}   /* 출고요청번호 */
+           AND ROWNUM    = 1
+    </select>
+
+    <update id="updatePdRtngdAkSendEtxtForRemove">
+        UPDATE TB_IFIN_PD_RTNGD_AK_SEND_ETXT   /* 상품반품요청송신전문 */
+           SET DTA_DL_YN = #{dtaDlYn}   /* 데이터삭제여부 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE SAP_PLNT_CD    = #{sapPlntCd}     /* SAP플랜트코드 */
+           AND LGST_STR_AK_NO = #{lgstStrAkNo}   /* 물류입고요청번호 */
+    </update>
+
+</mapper>

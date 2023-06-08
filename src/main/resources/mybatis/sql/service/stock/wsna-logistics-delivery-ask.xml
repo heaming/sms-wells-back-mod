@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---
+ ****************************************************************************************************
+ * 프로그램 개요
+ ****************************************************************************************************
+ 1. 모듈 : SNA (재고관리)
+ 2. 프로그램 ID : W-SV-S-0091 AS 물류배송요청 서비스 (HQ 생성로직)
+ 3. 작성자 : SaeRomI.Kim
+ 4. 작성일 : 2023.05.31
+ ****************************************************************************************************
+ * 프로그램 설명
+ ****************************************************************************************************
+ - 물류 출고요청 인터페이스 (물류센터에 출고요청 하기 위한 인터페이스)
+ ****************************************************************************************************
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsDeliveryAskMapper">
+
+    <insert id="insertKssQomAsnSendTemp">
+        INSERT INTO TB_IFIN_KSS_QOM_ASN_SEND_TEMP   /* KSS물량배정송신전문 */
+             (
+               SAP_PLNT_CD       /* SAP플랜트코드 */
+             , LGST_OSTR_AK_NO   /* 출고요청번호 */
+             , OSTR_AK_SN        /* 출고요청일련번호 */
+             , LLPRTP            /* 서비스업무중분류코드 */
+             , LLAPTP            /* 신청유형코드 */
+             , LLAPOC            /* 신청조직구분코드 */
+             , LLAPOR            /* 신청조직ID */
+             , LLAPPC            /* 신청파트너번호 */
+             , LLAPPN            /* 신청자명 */
+             , LLORDT            /* 주문신청완료일자 */
+             , LLSHCS            /* 배송코스값 */
+             , LLRCOR            /* 배송지코스값 */
+             , LLIFNO            /* 전문전송번호 */
+             , LLINDT            /* 등록일자 */
+             , LLORSQ            /* 주문일련번호 */
+             , LLPRCD            /* 상품코드 */
+             , LLPRNM            /* 상품명 */
+             , LLPRQT            /* 상품수량 */
+             , LLORST            /* 주문상태코드 */
+             , LLORSD            /* 주문상태일자 */
+             , LLSPDT            /* SAP전송일자 */
+             , LLSPRT            /* SAP결과코드값 */
+             , LLPRDV            /* 작업구분 */
+        <include refid="COMMON.insertSystemField" />
+             )
+        SELECT T1.SAP_PLNT_CD                                               /* SAP플랜트코드 */
+             , T1.LGST_OSTR_AK_NO                                           /* 물류출고요청번호 */
+             , T1.OSTR_AK_SN                                                /* 출고요청일련번호 */
+             , '06'                                             AS LLPRTP   /* 업무구분 */
+             , CASE WHEN T1.WARE_DTL_DV_CD = '30' THEN '02'   /* 조직신청 */
+                    ELSE '01'                                 /* 사업자신청 */
+               END                                              AS LLAPTP   /* 신청유형 */
+             , '04'                                             AS LLAPOC   /* 신청조직구분 */
+             , NVL(T2.OG_CD, ' ')                               AS LLAPOR   /* 신청소속 */
+             , T1.WARE_MNGT_PRTNR_NO                            AS LLAPPC   /* 신청자코드 */
+             , T2.PRTNR_KNM                                     AS LLAPPN   /* 신청자성명 */
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')                     AS LLORDT   /* 주문완료일 */
+             , LPAD(NVL(T1.DIDY_DV_CD, '01'), 2, '0')           AS LLSHCS   /* 배송코드 */
+             , T1.BLD_CD                                        AS LLRCOR   /* 배송지코드 */
+             , ( SELECT NVL( MAX(LLIFNO) + 1, TO_CHAR(SYSDATE, 'YYYYMMDD') || '000000001')
+                   FROM TB_IFIN_KSS_QOM_ASN_SEND_TEMP
+                  WHERE LLORDT = TO_CHAR(SYSDATE, 'YYYYMMDD') ) AS LLIFNO   /* I/F전송번호 */
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')                     AS LLINDT   /* 등록일 */
+             , 0                                                AS LLORSQ   /* 주문일련번호 */
+             , T3.SVPD_PD_CD                                    AS LLPRCD   /* 상품코드 */
+             , T3.SVPD_NM_ABBR1                                 AS LLPRNM   /* 상품명 */
+             , T1.OSTR_AK_QTY                                   AS LLPRQT   /* 상품수량 */
+             , '01'                                             AS LLORST   /* 주문상태코드 - 01:주문완료, 02:주문취소, 03:주문확정, 04:출고완료 */
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')                     AS LLORSD   /* 주문상태일자 */
+             , 0                                                AS LLSPDT   /* SAP전송일자 */
+             , ' '                                              AS LLSPRT   /* SAP결과 */
+             , ' '                                              AS LLPRDV   /* 작업구분 */
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM
+             (
+               SELECT D3.SAP_PLNT_CD                                   /* SAP플랜트코드 */
+                    , D3.LGST_OSTR_AK_NO                               /* 물류출고요청번호 */
+                    , D3.OSTR_AK_SN                                    /* 출고요청일련번호 */
+                    , D2.WARE_DTL_DV_CD                                /* 창고상세구분코드 */
+                    , D2.OG_TP_CD        AS WARE_MNGT_PRTNR_OG_TP_CD   /* 창고관리파트너조직유형코드 */
+                    , D2.WARE_MNGT_PRTNR_NO                            /* 창고관리파트너번호 */
+                    , D2.DIDY_DV_CD                                    /* 직배구분코드 */
+                    , CASE WHEN D2.ADR_USE_YN = 'Y' THEN NVL(D2.BLD_CD, D2.WARE_MNGT_PRTNR_NO)
+                           ELSE NVL(D4.BLD_CD, D5.BLD_CD)
+                      END                AS BLD_CD                     /* 빌딩코드 */
+                    , D2.APY_YM                                        /* 적용년월 */
+                    , D1.ITM_PD_CD                                     /* 품목상품코드 */
+                    , D1.OSTR_AK_QTY                                   /* 출고요청수량 */
+                 FROM TB_SVST_ITM_OSTR_AK_IZ D1               /* 품목출고요청내역 */
+                INNER JOIN TB_SVST_MCBY_WARE_IZ D2            /* 월별창고내역(입고) */
+                   ON D2.APY_YM      = SUBSTR(D1.OSTR_AK_RGST_DT, 1, 6)
+                  AND D2.WARE_NO     = D1.STR_OJ_WARE_NO
+                INNER JOIN TB_IFIN_OSTR_AK_DTL_SEND_ETXT D3   /* 출고요청상세송신전문 */
+                   ON D3.REL_NO = D1.OSTR_AK_NO
+                  AND D3.REL_SN = D1.OSTR_AK_SN
+                 LEFT OUTER JOIN TB_OGBS_MM_OG_IZ D4          /* 월조직내역 */
+                   ON D4.BASE_YM   = D2.APY_YM
+                  AND D4.OG_ID     = D2.OG_ID
+                  AND D4.OG_TP_CD  = D2.OG_TP_CD
+                INNER JOIN TB_OGBS_OG_BAS D5                  /* 조직기본 */
+                   ON D5.OG_ID     = D2.OG_ID
+                  AND D5.OG_TP_CD  = D2.OG_TP_CD
+                WHERE D1.OSTR_AK_TP_CD = '360'          /* 물량배정 */
+                  AND D1.DTA_DL_YN     = 'N'
+                  AND D2.DTA_DL_YN     = 'N'
+                  AND D2.WARE_USE_YN   = 'Y'            /* 사용중인 창고 */
+                  AND D3.DTA_DL_YN     = 'N'
+                  AND D4.DTA_DL_YN     = 'N'
+                  AND D5.DTA_DL_YN     = 'N'
+                  AND D1.OSTR_AK_WARE_DV_CD LIKE '3%'   /* 입고대상창고 */
+                  AND D1.OSTR_OJ_WARE_DV_CD LIKE '1%'   /* 출고대상창고 */
+                  AND D1.OSTR_AK_NO   IN
+                                         <foreach collection="dtos" item="item" open="(" close=")" separator=",">
+                                             #{item.ostrAkNo}
+                                         </foreach>
+             ) T1
+       INNER JOIN TB_OGBS_MM_PRTNR_IZ T2        /* 월파트너내역 */
+          ON T2.BASE_YM   = T1.APY_YM
+         AND T2.OG_TP_CD  = T1.WARE_MNGT_PRTNR_OG_TP_CD
+         AND T2.PRTNR_NO  = T1.WARE_MNGT_PRTNR_NO
+       INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T3   /* 상품 */
+          ON T1.ITM_PD_CD = T3.SVPD_PD_CD
+    </insert>
+
+    <select id="selectKssQomAsnSendTempLlornos" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsDeliveryAskBssDvo">
+        SELECT LLAPPC                                                                                                    /* 신청자코드 */
+             , TO_CHAR(SYSDATE, 'YYYYMMDD') || 'W' || LPAD(SQ_IFIN_SPP_MAT_SEND_ETXT$LLORNO.NEXTVAL, 6, '0') AS LLORNO   /* 주문번호 */
+          FROM
+             (
+               SELECT DISTINCT LLAPPC
+                 FROM TB_IFIN_KSS_QOM_ASN_SEND_TEMP   /* KSS물량배정송신전문 */
+                WHERE LLORNO IS NULL
+             ) T1
+    </select>
+
+    <update id="updateKssQomAsnSendTempLlornos">
+        <foreach collection="dvos" item="item" open="DECLARE BEGIN" close="; END;" separator=";">
+            UPDATE TB_IFIN_KSS_QOM_ASN_SEND_TEMP   /* KSS물량배정송신전문 */
+               SET LLORNO = #{item.llorno}   /* 주문번호 */
+            <include refid="COMMON.updateSystemField"/>
+             WHERE LLORNO IS NULL
+               AND LLAPPC = #{item.llappc}   /* 신청자코드 */
+        </foreach>
+    </update>
+
+    <insert id="insertSppBasSendEtxt">
+        INSERT INTO TB_IFIN_SPP_BAS_SEND_ETXT   /* 배송기본송신전문 */
+             (
+               SAP_PLNT_CD   /* SAP플랜트코드 */
+             , OSTR_AK_NO    /* 출고요청번호 */
+             , LLORNO        /* 주문번호 */
+             , LLPRTP        /* 업무구분 */
+             , LLAPTP        /* 신청유형 */
+             , LLAPOC        /* 신청조직구분 */
+             , LLAPOCNM      /* 신청조직명 */
+             , LLAPOR        /* 신청소속 */
+             , LLAPORNM      /* 신청소속명 */
+             , LLAPPC        /* 신청자코드 */
+             , LLAPPN        /* 신청자성명 */
+             , LLORDT        /* 주문완료일 */
+             , LLSHCS        /* 배송코스 */
+             , LLRCOR        /* 배송지코드 */
+             , LLRCORNM      /* 배송지명 */
+             , LLIFNO        /* I/F전송번호 */
+             , LLINDT        /* 등록일 */
+             , LLKSTR        /* KSS수신완료 */
+             , LLSDFL        /* 송신자용필드 */
+             , LLKSSU        /* 전송대상여부 */
+             , TRS_YN        /* 전송여부 */
+             , DTA_DL_YN     /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />
+             )
+        SELECT T1.SAP_PLNT_CD                                       /* SAP플랜트코드 */
+             , T1.LGST_OSTR_AK_NO                   AS OSTR_AK_NO   /* 출고요청번호 */
+             , T1.LLORNO                                            /* 주문번호 */
+             , T1.LLPRTP                                            /* 업무구분 */
+             , T1.LLAPTP                                            /* 신청유형 */
+             , T1.LLAPOC                                            /* 신청조직구분 */
+             , ' '                                  AS LLAPOCNM     /* 신청조직명 */
+             , T1.LLAPOR                                            /* 신청소속 */
+             , NVL(T2.OG_NM, ' ')                   AS LLAPORNM     /* 신청소속명 */
+             , T1.LLAPPC                                            /* 신청자코드 */
+             , T1.LLAPPN                                            /* 신청자성명 */
+             , T1.LLORDT                                            /* 주문완료일 */
+             , T1.LLSHCS                                            /* 배송코스 */
+             , 'W' || LPAD(TRIM(T1.LLRCOR), 7, '0') AS LLRCOR       /* 배송지코드 */
+             , NVL(NVL(T1.BLD_NM, T3.BLD_NM), ' ')  AS LLRCORNM     /* 배송지명 */
+             , T1.LLIFNO                                            /* I/F전송번호 */
+             , T1.LLINDT                                            /* 등록일 */
+             , ' '                                  AS LLKSTR       /* KSS수신완료 */
+             , ' '                                  AS LLSDFL       /* 송신자용필드 */
+             , ' '                                  AS LLKSSU       /* 전송대상여부 */
+             , 'N'                                  AS TRS_YN       /* 전송여부 */
+             , 'N'                                  AS DTA_DL_YN    /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM
+             (
+               SELECT DISTINCT D1.SAP_PLNT_CD                       /* SAP플랜트코드 */
+                    , D1.LGST_OSTR_AK_NO                            /* 물류출고요청번호 */
+                    , D1.OSTR_AK_SN                                 /* 출고요청일련번호 */
+                    , D1.LLORNO                                     /* 주문번호 */
+                    , D1.LLPRTP                                     /* 서비스업무중분류코드 */
+                    , D1.LLAPTP                                     /* 신청유형코드 */
+                    , D1.LLAPOC                                     /* 신청조직구분코드 */
+                    , D1.LLAPOR                                     /* 신청조직ID */
+                    , TRIM(D1.LLAPPC) AS LLAPPC                     /* 신청파트너번호 */
+                    , D1.LLAPPN                                     /* 신청자명 */
+                    , D1.LLORDT                                     /* 주문신청완료일자 */
+                    , D1.LLSHCS                                     /* 배송코스값 */
+                    , TRIM(D1.LLRCOR) AS LLRCOR                     /* 배송지코스값 */
+                    , D1.LLIFNO                                     /* 전문전송번호 */
+                    , D1.LLINDT                                     /* 등록일자 */
+                    , CASE WHEN D4.ADR_USE_YN = 'N' THEN D5.BLD_NM
+                      END             AS BLD_NM                     /* 빌딩명 */
+                    , D4.OG_TP_CD     AS WARE_MNGT_PRTNR_OG_TP_CD   /* 창고관리파트너조직유형코드 */
+                    , CASE WHEN D4.ADR_USE_YN = 'Y' THEN D4.OG_TP_CD
+                           ELSE NVL(D5.OG_TP_CD, D6.OG_TP_CD)
+                      END                AS OG_TP_CD                /* 조직유형코드 */
+                    , D4.APY_YM                                     /* 적용년월 */
+                 FROM TB_IFIN_KSS_QOM_ASN_SEND_TEMP D1        /* KSS물량배정송신임시 */
+                INNER JOIN TB_IFIN_OSTR_AK_DTL_SEND_ETXT D2   /* 출고요청상세송신전문 */
+                   ON D2.SAP_PLNT_CD     = D1.SAP_PLNT_CD
+                  AND D2.LGST_OSTR_AK_NO = D1.LGST_OSTR_AK_NO
+                  AND D2.OSTR_AK_SN      = D1.OSTR_AK_SN
+                INNER JOIN TB_SVST_ITM_OSTR_AK_IZ D3          /* 품목출고요청내역 */
+                   ON D3.OSTR_AK_NO = D2.REL_NO
+                  AND D3.OSTR_AK_SN = D2.REL_SN
+                INNER JOIN TB_SVST_MCBY_WARE_IZ D4            /* 월별창고내역(입고) */
+                   ON D4.APY_YM      = SUBSTR(D3.OSTR_AK_RGST_DT, 1, 6)
+                  AND D4.WARE_NO     = D3.STR_OJ_WARE_NO
+                 LEFT OUTER JOIN TB_OGBS_MM_OG_IZ D5          /* 월조직내역 */
+                   ON D5.BASE_YM   = D4.APY_YM
+                  AND D5.OG_ID     = D4.OG_ID
+                  AND D5.OG_TP_CD  = D4.OG_TP_CD
+                INNER JOIN TB_OGBS_OG_BAS D6                  /* 조직기본 */
+                   ON D6.OG_ID     = D4.OG_ID
+                  AND D6.OG_TP_CD  = D4.OG_TP_CD
+                WHERE D2.DTA_DL_YN   = 'N'
+                  AND D3.DTA_DL_YN   = 'N'
+                  AND D4.DTA_DL_YN   = 'N'
+                  AND D4.WARE_USE_YN = 'Y'
+                  AND D5.DTA_DL_YN   = 'N'
+                  AND D6.DTA_DL_YN   = 'N'
+                  AND D1.LLORDT      = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                  AND D1.LLIFNO      = ( SELECT MAX(LLIFNO)
+                                           FROM TB_IFIN_KSS_QOM_ASN_SEND_TEMP
+                                          WHERE LLORDT = TO_CHAR(SYSDATE, 'YYYYMMDD') )
+             ) T1
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T2   /* 월파트너내역 */
+            ON T2.BASE_YM   = T1.APY_YM
+           AND T2.OG_TP_CD  = T1.WARE_MNGT_PRTNR_OG_TP_CD
+           AND T2.PRTNR_NO  = T1.LLAPPC
+          LEFT OUTER JOIN TB_OGBS_BLD_BAS T3       /* 빌딩기본 */
+            ON T3.OG_TP_CD = T1.OG_TP_CD
+           AND T3.BLD_CD   = T1.LLRCOR
+    </insert>
+
+    <insert id="insertKssQomAsnItmTemp">
+        INSERT INTO TB_IFIN_KSS_QOM_ASN_ITM_TEMP   /* KSS물량배정품목임시 */
+             (
+               SAP_PLNT_CD       /* SAP플랜트코드 */
+             , LGST_OSTR_AK_NO   /* 물류출고요청번호 */
+             , OSTR_AK_SN        /* 출고요청일련번호 */
+             , LLORNO            /* 주문번호 */
+             , LLORSQ            /* 주문일련번호 */
+             , LLPRCD            /* 상품코드 */
+             , LLPRNM            /* 상품명 */
+             , LLPRQT            /* 상품수량 */
+             , LLORST            /* 주문상태코드 */
+             , LLORSD            /* 주문상태일자 */
+             , LLSPDT            /* SAP전송일자 */
+             , LLSPRT            /* SAP전송결과코드값 */
+             , LLPRDV            /* 작업구분 */
+             , FILTER_BOX_QTY    /* 필터박스수량 */
+             , LLPERC            /* 박스퍼센트 */
+        <include refid="COMMON.insertSystemField" />
+             )
+        SELECT T1.SAP_PLNT_CD                                                                                         /* SAP플랜트코드 */
+             , T1.LGST_OSTR_AK_NO                                                                                     /* 물류출고요청번호 */
+             , T1.OSTR_AK_SN                                                                                          /* 출고요청일련번호 */
+             , T1.LLORNO                                                                                              /* 주문번호 */
+             , ROW_NUMBER() OVER(PARTITION BY T1.LLORNO ORDER BY T1.LLPRCD, T1.LLPRDV, T1.LLPRQT) AS LLORSQ           /* 순번 */
+             , T1.LLPRCD                                                                                              /* 상품코드 */
+             , T1.LLPRNM                                                                                              /* 상품명 */
+             , T1.LLPRQT                                                                                              /* 상품수량 */
+             , T1.LLORST                                                                                              /* 주문상태코드 */
+             , T1.LLORSD                                                                                              /* 주문상태일자 */
+             , 0                                                                                  AS LLSPDT           /* SAP전송일자 */
+             , ' '                                                                                AS LLSPRT           /* SAP전송결과코드값 */
+             , CASE WHEN #{tcnt} <![CDATA[<>]]> 1
+                     AND T1.LLPRDV IN ('09', '10') THEN '12'
+                    ELSE T1.LLPRDV
+               END                                                                                AS LLPRDV           /* 작업구분, 06: 정수기필터 BOX, 07: 기타 BOX, 08: 정수기필터 낱개, 09: 기타 필터 낱개, 10: 부자 */
+             , T1.BOX_QTY                                                                         AS FILTER_BOX_QTY   /* 필터박스수량 */
+             , CASE WHEN T1.PICK_QTY > 0
+                     AND T1.LLPRDV = '08' THEN CEIL( T1.LLPRQT * 100 / T1.PICK_QTY )
+                    WHEN T1.PICK_QTY > 0  THEN FLOOR( T1.LLPRQT * 100 / T1.PICK_QTY )
+                    ELSE 0
+               END                                                                                AS LLPERC           /* 박스퍼센트 */
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM
+             (
+               SELECT D1.SAP_PLNT_CD                                       /* SAP플랜트코드 */
+                    , D1.LGST_OSTR_AK_NO                                   /* 물류출고요청번호 */
+                    , D1.OSTR_AK_SN                                        /* 출고요청일련번호 */
+                    , D1.LLORNO                                            /* 주문번호 */
+                    , D1.LLPRCD                                            /* 상품코드 */
+                    , D1.LLPRNM                                            /* 상품명 */
+                    , FLOOR( D1.LLPRQT / D2.SVPD_BOX_QTY ) AS LLPRQT       /* 상품수량 */
+                    , D1.LLORST                                            /* 주문상태코드 */
+                    , D1.LLORSD                                            /* 주문상태일자 */
+                    , CASE WHEN D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '42%'
+                            AND D2.SVPD_ITEM_KND = '5' THEN '06'
+                            ELSE '07'
+                      END                                  AS LLPRDV     /* 작업구분 */
+                    , D2.SVPD_BOX_QTY                      AS BOX_QTY    /* 박스수량 */
+                    , D2.SVPD_PICK_QTY                     AS PICK_QTY   /* 박스피킹수량 */
+                 FROM
+                    (
+                      SELECT SAP_PLNT_CD              /* SAP플랜트코드 */
+                           , LGST_OSTR_AK_NO          /* 물류출고요청번호 */
+                           , OSTR_AK_SN               /* 출고요청일련번호 */
+                           , LLORNO                   /* 주문번호 */
+                           , TRIM(LLPRCD) AS LLPRCD   /* 상품코드 */
+                           , LLPRNM                   /* 상품명 */
+                           , LLORST                   /* 주문상태코드 */
+                           , LLORSD                   /* 주문상태일자 */
+                           , SUM(LLPRQT)  AS LLPRQT   /* 상품수량 합계 */
+                        FROM TB_IFIN_KSS_QOM_ASN_SEND_TEMP   /* KSS물량배정송신전문 */
+                       WHERE LLORDT    = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                         AND LLIFNO    = ( SELECT MAX(LLIFNO)
+                                             FROM TB_IFIN_KSS_QOM_ASN_SEND_TEMP
+                                            WHERE LLORDT = TO_CHAR(SYSDATE, 'YYYYMMDD') )
+                       GROUP BY SAP_PLNT_CD, LGST_OSTR_AK_NO, OSTR_AK_SN, LLORNO, LLPRCD, LLPRNM, LLORST, LLORSD
+                    ) D1
+                INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) D2   /* 상품 */
+                   ON D1.LLPRCD = D2.SVPD_PD_CD
+                WHERE D2.SVPD_BOX_QTY > 0
+                  AND D2.SVPD_PD_CD NOT IN ('WM07105777', 'WM07105778', 'WM07105779', 'WM07105783', 'WM07105784'
+                                          , 'WM07105785', 'WM07105936', 'WM07105937', 'WM07104797', 'WM07104798')
+                UNION ALL
+               SELECT D1.SAP_PLNT_CD                                  /* SAP플랜트코드 */
+                    , D1.LGST_OSTR_AK_NO                              /* 출고요청번호 */
+                    , D1.OSTR_AK_SN                                   /* 출고요청일련번호 */
+                    , D1.LLORNO                                       /* 주문번호 */
+                    , D1.LLPRCD                                       /* 상품코드 */
+                    , D1.LLPRNM                                       /* 상품명 */
+                    , MOD(D1.LLPRQT, D2.SVPD_BOX_QTY) AS LLPRQT       /* 상품수량 */
+                    , D1.LLORST                                       /* 주문상태코드 */
+                    , D1.LLORSD                                       /* 주문상태일자 */
+                    , CASE WHEN D2.SVPD_PD_CD IN ('WM07105072', 'WM07105126') THEN '11'
+                           WHEN D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '42%'
+                            AND D2.SVPD_ITEM_KND = '5'                        THEN '08'
+                           WHEN (    D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '41%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '43%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '44%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '4921%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '4922%' )
+                            AND D2.SVPD_ITEM_KND = '5'                        THEN '09'
+                           ELSE '10'
+                      END                             AS LLPRDV       /* 작업구분 */
+                    , D2.SVPD_BOX_QTY                 AS BOX_QTY      /* 박스수량 */
+                    , D2.SVPD_PICK_QTY                AS PICK_QTY     /* 박스피킹수량 */
+                 FROM
+                    (
+                      SELECT SAP_PLNT_CD              /* SAP플랜트코드 */
+                           , LGST_OSTR_AK_NO          /* 물류출고요청번호 */
+                           , OSTR_AK_SN               /* 출고요청일련번호 */
+                           , LLORNO                   /* 주문번호 */
+                           , TRIM(LLPRCD) AS LLPRCD   /* 상품코드 */
+                           , LLPRNM                   /* 상품명 */
+                           , LLORST                   /* 주문상태코드 */
+                           , LLORSD                   /* 주문상태일자 */
+                           , SUM(LLPRQT)  AS LLPRQT   /* 상품수량 합계 */
+                        FROM TB_IFIN_KSS_QOM_ASN_SEND_TEMP   /* KSS물량배정송신전문 */
+                       WHERE LLORDT    = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                         AND LLIFNO    = ( SELECT MAX(LLIFNO)
+                                             FROM TB_IFIN_KSS_QOM_ASN_SEND_TEMP
+                                            WHERE LLORDT = TO_CHAR(SYSDATE, 'YYYYMMDD') )
+                       GROUP BY SAP_PLNT_CD, LGST_OSTR_AK_NO, OSTR_AK_SN, LLORNO, LLPRCD, LLPRNM, LLORST, LLORSD
+                    ) D1
+                INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) D2   /* 상품 */
+                   ON D1.LLPRCD = D2.SVPD_PD_CD
+                WHERE D2.SVPD_BOX_QTY > 0
+                  AND D2.SVPD_PD_CD NOT IN ('WM07105777', 'WM07105778', 'WM07105779', 'WM07105783', 'WM07105784'
+                                          , 'WM07105785', 'WM07105936', 'WM07105937', 'WM07104797', 'WM07104798')
+                UNION ALL
+               SELECT D1.SAP_PLNT_CD                     /* SAP플랜트코드 */
+                    , D1.LGST_OSTR_AK_NO                 /* 출고요청번호 */
+                    , D1.OSTR_AK_SN                      /* 출고요청일련번호 */
+                    , D1.LLORNO                          /* 주문번호 */
+                    , D1.LLPRCD                          /* 상품코드 */
+                    , D1.LLPRNM                          /* 상품명 */
+                    , D1.LLPRQT                          /* 상품수량 */
+                    , D1.LLORST                          /* 주문상태코드 */
+                    , D1.LLORSD                          /* 주문상태일자 */
+                    , CASE WHEN D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '42%'
+                            AND D2.SVPD_ITEM_KND = '5' THEN '08'
+                           WHEN D2.SVPD_PD_CD = 'WM07105922'
+                            AND D2.SVPD_ITEM_KND = '5' THEN '10'
+                           WHEN (    D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '41%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '43%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '44%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '4921%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '4922%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '49378%'
+                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '49350%' )
+                            AND D2.SVPD_ITEM_KND = '5' THEN '09'
+                           ELSE '10'
+                      END                AS LLPRDV       /* 작업구분 */
+                    , D2.SVPD_BOX_QTY    AS BOX_QTY      /* 박스수량 */
+                    , D2.SVPD_PICK_QTY   AS PICK_QTY     /* 박스피킹수량 */
+                 FROM
+                    (
+                      SELECT SAP_PLNT_CD              /* SAP플랜트코드 */
+                           , LGST_OSTR_AK_NO          /* 물류출고요청번호 */
+                           , OSTR_AK_SN               /* 출고요청일련번호 */
+                           , LLORNO                   /* 주문번호 */
+                           , TRIM(LLPRCD) AS LLPRCD   /* 상품코드 */
+                           , LLPRNM                   /* 상품명 */
+                           , LLORST                   /* 주문상태코드 */
+                           , LLORSD                   /* 주문상태일자 */
+                           , SUM(LLPRQT)  AS LLPRQT   /* 상품수량 합계 */
+                        FROM TB_IFIN_KSS_QOM_ASN_SEND_TEMP   /* KSS물량배정송신전문 */
+                       WHERE LLORDT    = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                         AND LLIFNO    = ( SELECT MAX(LLIFNO)
+                                             FROM TB_IFIN_KSS_QOM_ASN_SEND_TEMP
+                                            WHERE LLORDT = TO_CHAR(SYSDATE, 'YYYYMMDD') )
+                       GROUP BY SAP_PLNT_CD, LGST_OSTR_AK_NO, OSTR_AK_SN, LLORNO, LLPRCD, LLPRNM, LLORST, LLORSD
+                    ) D1
+                INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) D2   /* 상품 */
+                   ON D1.LLPRCD = D2.SVPD_PD_CD
+                WHERE D2.SVPD_BOX_QTY = 0
+                  AND D2.SVPD_PD_CD NOT IN ('WM07105777', 'WM07105778', 'WM07105779', 'WM07105783', 'WM07105784'
+                                          , 'WM07105785', 'WM07105936', 'WM07105937', 'WM07104797', 'WM07104798')
+                UNION ALL
+               SELECT D1.SAP_PLNT_CD                     /* SAP플랜트코드 */
+                    , D1.LGST_OSTR_AK_NO                 /* 출고요청번호 */
+                    , D1.OSTR_AK_SN                      /* 출고요청일련번호 */
+                    , D1.LLORNO                          /* 주문번호 */
+                    , D1.LLPRCD                          /* 상품코드 */
+                    , D1.LLPRNM                          /* 상품명 */
+                    , D1.LLPRQT                          /* 상품수량 */
+                    , D1.LLORST                          /* 주문상태코드 */
+                    , D1.LLORSD                          /* 주문상태일자 */
+                    , '11'               AS LLPRDV       /* 작업구분 */
+                    , D2.SVPD_BOX_QTY    AS BOX_QTY      /* 박스수량 */
+                    , D2.SVPD_PICK_QTY   AS PICK_QTY     /* 박스피킹수량 */
+                 FROM
+                    (
+                      SELECT SAP_PLNT_CD              /* SAP플랜트코드 */
+                           , LGST_OSTR_AK_NO          /* 물류출고요청번호 */
+                           , OSTR_AK_SN               /* 출고요청일련번호 */
+                           , LLORNO                   /* 주문번호 */
+                           , TRIM(LLPRCD) AS LLPRCD   /* 상품코드 */
+                           , LLPRNM                   /* 상품명 */
+                           , LLORST                   /* 주문상태코드 */
+                           , LLORSD                   /* 주문상태일자 */
+                           , SUM(LLPRQT)  AS LLPRQT   /* 상품수량 합계 */
+                        FROM TB_IFIN_KSS_QOM_ASN_SEND_TEMP   /* KSS물량배정송신전문 */
+                       WHERE LLORDT    = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                         AND LLIFNO    = ( SELECT MAX(LLIFNO)
+                                             FROM TB_IFIN_KSS_QOM_ASN_SEND_TEMP
+                                            WHERE LLORDT = TO_CHAR(SYSDATE, 'YYYYMMDD') )
+                       GROUP BY SAP_PLNT_CD, LGST_OSTR_AK_NO, OSTR_AK_SN, LLORNO, LLPRCD, LLPRNM, LLORST, LLORSD
+                    ) D1
+                INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) D2   /* 상품 */
+                   ON D1.LLPRCD = D2.SVPD_PD_CD
+                WHERE D2.SVPD_PD_CD IN ('WM07105777', 'WM07105778', 'WM07105779', 'WM07105783', 'WM07105784'
+                                      , 'WM07105785', 'WM07105936', 'WM07105937', 'WM07104797', 'WM07104798')
+
+             ) T1
+         WHERE T1.LLPRQT > 0   /* 상품수량이 0보다 큰 것 */
+    </insert>
+
+    <insert id="insertSppPdSendEtxt">
+        INSERT INTO TB_IFIN_SPP_PD_SEND_ETXT   /* 배송상품송신전문 */
+             (
+               SAP_PLNT_CD   /* SAP플랜트코드 */
+             , OSTR_AK_NO    /* 출고요청번호 */
+             , OSTR_AK_SN    /* 출고요청일련번호 */
+             , LLORNO        /* 주문번호 */
+             , LLORSQ        /* 순번 */
+             , LLPRCD        /* 상품코드 */
+             , LLPRNM        /* 상품명 */
+             , LLPRQT        /* 상품수량 */
+             , LLORST        /* 주문상태코드 */
+             , LLORSD        /* 주문상태일자 */
+             , LLSPDT        /* SAP전송일자 */
+             , LLSPRT        /* SAP결과 */
+             , LLPRDV        /* 상품구분 */
+             , TRS_YN        /* 전송여부 */
+             , DTA_DL_YN     /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />
+             )
+        SELECT D2.SAP_PLNT_CD                     /* SAP플랜트코드 */
+             , D2.LGST_OSTR_AK_NO AS OSTR_AK_NO   /* 출고요청번호 */
+             , D2.OSTR_AK_SN                      /* 출고요청일련번호 */
+             , D2.LLORNO                          /* 주문번호 */
+             , D2.LLORSQ                          /* 순번 */
+             , D2.LLPRCD                          /* 상품코드 */
+             , D2.LLPRNM                          /* 상품명 */
+             , D2.FILTER_BOX_QTY  AS LLPRQT       /* 상품수량 */
+             , D2.LLORST                          /* 주문상태코드 */
+             , D2.LLORSD                          /* 주문상태일자 */
+             , D2.LLSPDT                          /* SAP전송일자 */
+             , D2.LLSPRT                          /* SAP결과 */
+             , D2.LLPRDV                          /* 상품구분 */
+             , 'N'                AS TRS_YN       /* 전송여부 */
+             , 'N'                AS DTA_DL_YN    /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_IFIN_SPP_BAS_SEND_ETXT D1           /* 배송기본송신전문 */
+         INNER JOIN TB_IFIN_KSS_QOM_ASN_ITM_TEMP D2   /* KSS물량배정품목임시 */
+            ON D2.SAP_PLNT_CD     = D1.SAP_PLNT_CD
+           AND D2.LGST_OSTR_AK_NO = D1.OSTR_AK_NO
+           AND D2.LLORNO          = D1.LLORNO
+         WHERE D1.DTA_DL_YN = 'N'
+           AND D1.LLIFNO    = ( SELECT MAX(LLIFNO)
+                                  FROM TB_IFIN_SPP_BAS_SEND_ETXT
+                                 WHERE DTA_DL_YN = 'N' )
+    </insert>
+
+    <insert id="insertSppMatSendEtxt">
+        INSERT INTO TB_IFIN_SPP_MAT_SEND_ETXT   /* 배송자재송신전문 */
+             (
+               SAP_PLNT_CD   /* SAP플랜트코드 */
+             , OSTR_AK_NO    /* 출고요청번호 */
+             , OSTR_AK_SN    /* 출고요청일련번호 */
+             , LLORNO        /* 주문번호 */
+             , LLORSQ        /* 순번 */
+             , LLMTCD        /* 자재코드 */
+             , LLMTNM        /* 자재명 */
+             , LLMTQT        /* 자재수량 */
+             , LLOTNO        /* 출고번호 */
+             , LLOTDT        /* 출고일자 */
+             , LLKSSU        /* 전송대상여부 */
+             , LLPERC        /* 박스퍼센트 */
+             , TRS_YN        /* 전송여부 */
+             , DTA_DL_YN     /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />
+             )
+        SELECT D2.SAP_PLNT_CD                             /* SAP플랜트코드 */
+             , D2.LGST_OSTR_AK_NO         AS OSTR_AK_NO   /* 출고요청번호 */
+             , D2.OSTR_AK_SN                              /* 출고요청일련번호 */
+             , D2.LLORNO                                  /* 주문번호 */
+             , D2.LLORSQ                                  /* 순번 */
+             , D2.LLPRCD                  AS LLMTCD       /* 자재코드 */
+             , SUBSTRB(D2.LLPRNM, 1, 200) AS LLMTNM       /* 자재명 */
+             , D2.LLPRQT                  AS LLMTQT       /* 자재수량 */
+             , ' '                        AS LLOTNO       /* 출고번호 */
+             , 0                          AS LLOTDT       /* 출고일자 */
+             , ' '                        AS LLKSSU       /* 전송대상여부 */
+             , D2.LLPERC                                  /* 박스퍼센트 */
+             , 'N'                        AS TRS_YN       /* 전송여부 */
+             , 'N'                        AS DTA_DL_YN    /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_IFIN_SPP_BAS_SEND_ETXT D1           /* 배송기본송신전문 */
+         INNER JOIN TB_IFIN_KSS_QOM_ASN_ITM_TEMP D2   /* KSS물량배정품목임시 */
+            ON D2.SAP_PLNT_CD     = D1.SAP_PLNT_CD
+           AND D2.LGST_OSTR_AK_NO = D1.OSTR_AK_NO
+           AND D2.LLORNO          = D1.LLORNO
+         WHERE D1.DTA_DL_YN = 'N'
+           AND D1.LLIFNO    = ( SELECT MAX(LLIFNO)
+                                  FROM TB_IFIN_SPP_BAS_SEND_ETXT
+                                 WHERE DTA_DL_YN = 'N' )
+    </insert>
+
+</mapper>
