@@ -4,6 +4,7 @@ import com.kyowon.sms.wells.web.service.allocate.converter.WsncTimeTableConverte
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto.*;
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncTimeTableMapper;
+import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.exception.BizException;
 
@@ -11,9 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -40,9 +39,7 @@ public class WsncTimeTableService {
      * @param req : 조회파라메터
      * @return 조회결과
      */
-    public SearchRes getTimeTable(
-        SearchReq req
-    ) {
+    public SearchRes getTimeTable(SearchReq req) {
 
         /*Test*/
         /*SearchReq req = new SearchReq(
@@ -85,8 +82,8 @@ public class WsncTimeTableService {
                 // nosession_bsnext_timeAssign.do
                 result = noSessionBsTimeAssign(req);
                 break;
-            case "timeAssign":
-                // nosession_bsnext_timeAssign.do
+            case "timeAssign": // 타임테이블 조회(판매) - W-SV-U-0062M01
+            case "timeAssignPost": // Wells홈페이지, K멤버스 타임테이블
                 result = timeAssign(req);
                 break;
         }
@@ -102,164 +99,276 @@ public class WsncTimeTableService {
     }
 
     /**
-    * @see "timeAssign.do"
+    * @see "timeAssign.do > getTimeAssign_v2"
+    * @see "timeAssign.do > getTimeAssign_post_v2"
     * */
     protected WsncTimeTableDvo timeAssign(SearchReq req) {
 
-        List<WsncTimeTableIlsibulDvo> abledays = null;
-
-        String cntrNo = req.cntrNo(); // W20222324935
-
-        String P_IN_GB = req.inGb();
-        String dataGb = req.dataGb();//P_WRK_GB
-        String P_WRK_DT = req.wrkDt();
-        //        String P_SEQ = request.getParameter("P_SEQ");
-        String dataStus = req.dataStus();
-        String wrkTypDtl = req.wrkTypDtl();
-        String prtnrNo = req.prtnrNo(); // P_USER_ID
-        //String returnurl = request.getParameter("returnUrl");
-        String gbCd = StringUtil.isEmpty(req.gbCd()) ? "K" : req.gbCd();
-
-        String inGb = "3";
-        String zip = "";
-        String contDt = "";
-        String farmYN = "N";
-        String LCPKAG = "";
-        String LCPKAG_KIWI = "";
-        String addGb = "";
-        String kiwiItemCd = "";
-        String pajongDay = "";
-        String LCST09 = "";
-        String P_LCWGUB = "";
-        String P_LCETC3 = "";
-        String saleCd = req.saleCd(); // P_GDS_CD
-        String selDate = req.selDate();
-
-        String time = "";
-        String bf_time = "";
-
-        //        String P_MK_CO = request.getParameter("P_MK_CO");
-        //        String DATA_GB = request.getParameter("P_WRK_GB");
-
-        Calendar cal = Calendar.getInstance();
-        SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
-        String curDateTimeString = format.format(cal.getTime());
-        if (dataGb.equals("4")) {
-            cal.add(Calendar.DATE, 1); // 하루 일자를 더한다.
-        }
-
-        if (dataStus.equals("1") && selDate.equals(P_WRK_DT)) {
-            cal.add(Calendar.DATE, 5);
-            selDate = format.format(cal.getTime());
-        }
-
-        if (selDate == null || selDate.equals("")) {
-            cal.add(Calendar.DATE, 5);
-            selDate = format.format(cal.getTime());
-        }
-
-        farmYN = mapper.selectFarmYn(dataGb, saleCd);
-
-        String lcst09 = null;
-        if (StringUtil.null2str(farmYN).equals("Y")) {
-
-            WsncTimeTablePackageDvo pakageInfo = mapper.selectPackage("", saleCd);
-            lcst09 = pakageInfo.getLcst09();
-
-            String pdCd = mapper.selectPackageKiwi(saleCd);
-
-            // @TODO 하드코딩 이해욱 이사님께 문의 필요
-            if (saleCd.equals("WM05106364") || saleCd.equals("WM05106365") || saleCd.equals("WM05106366")
-                || saleCd.equals("WM05106367") || saleCd.equals("WM05106368") || saleCd.equals("WM05106369")
-                || saleCd.equals("WM05106370") || saleCd.equals("WM05106371")) {
-
-                abledays = this.mapper
-                    .selectMojongDaysIlsibul(lcst09, selDate.substring(0, 6), saleCd, dataGb, pdCd, cntrNo);
-
-                boolean chk_add_40days = false;
-
-                for (int i = 0; i < abledays.size(); i++) {
-                    if (abledays.get(i).getAblDays().equals(
-                        selDate.substring(0, 4) + "-" + Integer.valueOf(selDate.substring(4, 6)) + "-"
-                            + Integer.valueOf(selDate.substring(6, 8))
-                    )) {
-                        chk_add_40days = true;
-                        pajongDay = abledays.get(i).getPajongDay();
-                        break;
-                    }
-
-                }
-                if (!chk_add_40days) {
-                    selDate = abledays.get(0).getW3th();
-                    pajongDay = abledays.get(0).getPajongDay();
-                }
-
-            } else {
-                abledays = mapper.selectMojongDays(saleCd);
-            }
-
-        }
-
-        WsncTimeTableCustDetailDvo custDetail = mapper.selectCustDetail(cntrNo);
-
-        zip = custDetail.getZip();
-        contDt = custDetail.getCntrDt();
-        P_LCWGUB = custDetail.getCopnDvCd();
-        P_LCETC3 = custDetail.getSellDscDvCd();
-
-        addGb = mapper.selectConvertItemcode(saleCd);
-        kiwiItemCd = mapper.selectKiwiItemcode(saleCd);
-
-        //홈케어 상품일 경우 , KIWI 상품코드로 변경
-        if (addGb.equals("2")) {
-            saleCd = custDetail.getSaleCd();
-
-        }
-
-        List<WsncTimeTableTimAssStep1Dvo> step1 = mapper.selectTimeAssign_v2_step1(gbCd, selDate, zip, dataGb, cntrNo, inGb, wrkTypDtl, kiwiItemCd,
-            StringUtil.nvl2(mapper.selectTimeAssign_v2_step0(zip, saleCd, wrkTypDtl, selDate), prtnrNo)
-        ); // 책임지역 담당자 찾기
-        List<WsncTimeTableTimAssStep2Dvo> step2 = mapper.selectTimeAssign_v2_step2(step1.get(0)); // 담당자 정보 표시 (왼쪽)
-        List<WsncTimeTableTimAssStep3Dvo> step3 = mapper.selectTimeAssign_v2_step3(step1.get(0)); // 시간표시
-
-        List<WsncTimeTableDisableDaysDvo> diabledays = mapper.selectDiableDays(
-            addGb, selDate, "", zip, saleCd, "", dataGb, contDt, gbCd, wrkTypDtl, prtnrNo,
-            step1.get(0).getRpbLocaraCd(), P_LCWGUB, P_LCETC3, step1.get(0).getVstDowValCd()
-        );
-        String offdays = mapper.selectOffDays(selDate);
-
-        //---------------------------------------------------------//
+        log.debug("----------------------------------- 타임테이블 조회(판매) -----------------------------------------");
+        //http://10.6.9.53:8083/KIWI-W/timeAssign.do?GB_CD=P&DATA_GB=1&P_GDS_CD=4415&SEL_DATE=20181211&SEL_TIME=&ZIPNO1=052&ZIPNO2=40&returnUrl=https%3A%2F%2Fwww.kwmembers.com
+        //http://10.6.9.53:8083/KIWI-W/timeAssign.do?GB_CD=P&DATA_GB=1&P_GDS_CD=4415&SEL_DATE=20181211&SEL_TIME=&ZIPNO1=052&ZIPNO2=40&returnUrl=https%3A%2F%2Fwww.kwmembers.com
+        //http://10.6.9.53:8083/KIWI-W/timeAssign.do?GB_CD=P&DATA_GB=1&P_GDS_CD=4415&SEL_DATE=20181211&SEL_TIME=&ZIPNO1=052&ZIPNO2=40&returnUrl=https%3A%2F%2Fwww.kwmembers.com
+        log.debug("baseYm: {}", req.baseYm());
+        log.debug("prtnrNo:  {}", req.prtnrNo());
+        log.debug("prevTag:  {}", req.prevTag());
+        log.debug("svBizHclsfCd:  {}", req.svBizHclsfCd());
+        log.debug("dataStus:  {}", req.dataStus()); // 1신규,2수정,3삭제
+        log.debug("cntrNo:  {}", req.cntrNo());
+        log.debug("svBizDclsfCd:  {}", req.svBizDclsfCd());
+        log.debug("sellDate:  {}", req.sellDate());
+        log.debug("basePdCd:  {}", req.basePdCd());
 
         WsncTimeTableDvo result = new WsncTimeTableDvo();
-        result.getSmPmNt().clear();
-        result.setOffDays(offdays);
-        result.setTimAssStep2(step2); // left_info
-        result.setTimAssStep3(step3); // list1
-        result.setAbledays(abledays);
-        result.setZip(zip);
-        result.setCurDateTimeString(curDateTimeString);
-        result.setSelDate(selDate);
-        result.setGbCd(gbCd);
-        result.setCntrNo(cntrNo);
-        result.setInGb(inGb);
-        result.setWrkDt(dataGb);
-        result.setDataStus(dataStus);
-        result.setWrkTypDtl(wrkTypDtl);
-        result.setGdsCd(req.gdsCd());
-        result.setEmpId(prtnrNo);
-        result.setDiabledays(diabledays);
-        result.setPajongDay(pajongDay);
-        result.setLcst09(lcst09);
+        List<WsncTimeTableSidingDaysDvo> ableDays = null;
+        List<WsncTimeTableTimAssStep1Dvo> step1 = null;
+        List<WsncTimeTableTimAssStep2Dvo> step2 = null;
+        List<WsncTimeTableTimAssStep3Dvo> step3 = null;
+        try {
 
-        for (int i = 0; i < step3.size(); i++) {
-            WsncTimeTableSmPmNtDvo smPmNtDvo = new WsncTimeTableSmPmNtDvo();
-            time = step3.get(i).getTm();
-            smPmNtDvo.setTime(time.substring(0, 2) + ":" + time.substring(2, 4));
-            smPmNtDvo.setCnt(step3.get(i).getWrkCnt());
-            smPmNtDvo.setAblYn(step3.get(i).getWrkChk2());
-            result.getSmPmNt().add(smPmNtDvo);
+            // ---------------------------------------------------------
+            // W      : 웰스
+            // K      : kss
+            // C      : cubic
+            // P      : k member
+            // I || E : 엔지니어
+            // M      : 매니저
+            String gbCd = StringUtil.isEmpty(req.gbCd()) ? "K" : req.gbCd();
+            // ---------------------------------------------------------
+            String cntrNo = req.cntrNo(); // W20222324935
+
+            //String inGb = gbCd.equals("W") ? "4" : gbCd.equals("P") ? "5" : "4";
+            String inGb = req.inGb(); //bypass
+            String dataGb = req.svBizHclsfCd(); //P_WRK_GB
+            String wrkDt = req.wrkDt(); // P_WRK_DT
+            String seq = req.seq(); // P_SEQ
+            // ---------------------------------------------------------
+            // 1: 신규
+            // 2: 수정
+            // 3: 삭제
+            String dataStus = req.dataStus();
+            // ---------------------------------------------------------
+            // 1110 fix
+            String svBizDclsfCd = req.svBizDclsfCd(); // P_WRK_TYP_DTL
+            // ---------------------------------------------------------
+            String userId = req.userId();
+            String returnurl = req.returnUrl();
+
+            String newAdrZip = req.newAdrZip();
+            String sellDate = StringUtil.isEmpty(req.sellDate()) ? DateUtil.getNowDayString() : req.sellDate();
+
+            // ---------------------------------------------------------
+            // 1:설치
+            // 2:B/S
+            // 3:A/S
+            // 4:홈케어
+            // ---------------------------------------------------------
+            // 1 or 3 으로만 들어옴
+            // sv_dv_cd
+            // ---------------------------------------------------------
+            String svBizHclsfCd = req.svBizHclsfCd();
+
+            String sidingCd = req.sidingCd(); // P_MOJONG_CD
+
+            String basePdCd = req.basePdCd(); // P_GDS_CD
+            String empId = req.prtnrNo(); // P_USER_ID
+            String contDt = "";
+            String farmYN = "N";
+            String lcpkag = "";
+
+            // ---------------------------------------------------------
+            // SV_BIZ_HCLSF_CD
+            // 1: 설치
+            // 2: B/S
+            // 3: A/S
+            // 4: 홈케어
+            // 6: 반품처리
+            // 7: 정보변경
+            // 9: 삭제
+            String addGb = "";
+            // ---------------------------------------------------------
+
+            String ojPdCd = "";
+            String sowDay = ""; // PAJONG_DAY
+            String Lcst09 = "";
+            String lcwgub = "";
+            String lcetc3 = "";
+            String time = "";
+            String bf_time = "";
+            //String P_MK_CO = request.getParameter("P_MK_CO");
+
+            if (dataGb.equals("4")) {
+                sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 1);// 하루 일자를 더한다.
+            }
+
+            if (dataGb.equals("1") && sellDate.equals(wrkDt)) {
+                sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 1);// 하루 일자를 더한다.
+            }
+
+            //            if (gbCd.equals("C") || gbCd.equals("W")) {
+            //                sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 1);
+            //            }
+            //            if (dataStus.equals("1") && sellDate.equals(wrkDt)) {
+            //                sellDate = DateUtil.addDays(sellDate, 5);
+            //            }
+
+            if (sellDate == null || sellDate.equals("")) {
+                sellDate = DateUtil.addDays(sellDate, 5);
+            }
+
+            // 2019.05.07(화) Wells 홈페이지 요청: KSS 는 웰스팜 관련 타임테이블 화면 생성전에 LD3000P 생성,
+            // Wells 홈페이지는 화면 생성 전에 고객채번만 한다는 차이점이 있어서 따로 모종코드를 받아야 한다.
+            if (StringUtil.isNotEmpty(sidingCd) && !sidingCd.equals("999")) {
+                basePdCd = sidingCd;
+            }
+
+            //
+            farmYN = mapper.selectFarmYn(basePdCd);
+
+            String lcst09 = null;
+            if (farmYN.equals("Y")) {
+
+                WsncTimeTablePackageDvo packageInfo = mapper.selectPackage(sidingCd, basePdCd);
+                lcpkag = packageInfo.getLcpkag(); // = 기준상품코드
+                lcst09 = packageInfo.getLcst09();
+
+                lcpkag = mapper.selectOjPdCd(lcpkag);
+
+                // @TODO 하드코딩 이해욱 이사님께 문의 필요
+                // WM05106364: 건강샐러드&주스 일시불 패키지 WIDE
+                // WM05106365: 건강샐러드&주스 일시불 패키지 SLIM
+                // WM05106366: 우리아이 채소식단 일시불 패키지 WIDE
+                // WM05106367: 우리아이 채소식단 일시불 패키지 SLIM
+                // WM05106368: 건강 밥상 일시불 패키지 WIDE
+                // WM05106369: 건강 밥상 일시불 패키지 SLIM
+                // WM05106370: 항암건강 일시불 패키지 WIDE
+                // WM05106371: 항암건강 일시불 패키지 SLIM
+                if (basePdCd.equals("WM05106364") || basePdCd.equals("WM05106365") || basePdCd.equals("WM05106366")
+                    || basePdCd.equals("WM05106367") || basePdCd.equals("WM05106368") || basePdCd.equals("WM05106369")
+                    || basePdCd.equals("WM05106370") || basePdCd.equals("WM05106371")) {
+
+                    // getMojongDays_ilsibul
+                    ableDays = this.mapper
+                        .selectSidingDaysSpay(lcst09, sellDate.substring(0, 6), basePdCd, svBizHclsfCd, lcpkag, cntrNo);
+
+                    boolean chk_add_40days = false;
+
+                    for (int i = 0; i < ableDays.size(); i++) {
+                        if (ableDays.get(i).getAblDays().equals(DateUtil.formatDate(sellDate, "-"))) {
+                            chk_add_40days = true;
+                            sowDay = ableDays.get(i).getSowDay();
+                            break;
+                        }
+
+                    }
+                    if (!chk_add_40days) {
+                        sellDate = ableDays.get(0).getW3th();
+                        sowDay = ableDays.get(0).getSowDay();
+                    }
+                    // 일반모종 타임테이블
+                } else {
+                    ableDays = mapper.selectSidingDays(basePdCd);
+                }
+
+            }
+
+            WsncTimeTableCustDetailDvo custDetail = mapper.selectCustDetail(cntrNo);
+
+            addGb = mapper.selectAddGb(basePdCd);
+            ojPdCd = mapper.selectKiwiItemCode(basePdCd);//고재상품
+
+            //홈케어 상품일 경우 , KIWI 상품코드로 변경
+            if (addGb.equals("2") && custDetail != null) {
+                basePdCd = custDetail.getSaleCd();
+            }
+
+            newAdrZip = custDetail.getZip();
+            contDt = custDetail.getCntrDt();
+            lcwgub = custDetail.getCopnDvCd();
+            lcetc3 = custDetail.getSellDscDvCd();
+
+            // Cubig CC 홈케어 조회용 타임테이블 http://ccwells.kyowon.co.kr/obm/obm0800/obm0800.jsp
+            // KSS접수와 동일하게 하기위해 (백현아 K 요청)
+            // Cubig CC DATA_GB 변경할수 없음.
+            // 상품코드로 접수구분과 DATA_GB 변경
+            if (addGb.equals("2") && gbCd.equals("C") && svBizHclsfCd.equals("1")
+                && (StringUtil.isEmpty(returnurl))) {
+                gbCd = "W";
+                svBizHclsfCd = "4";
+                returnurl = "http://ccwells.kyowon.co.kr/obm/obm0800/obm0800.jsp";
+            }
+
+            log.debug("======================================================================");
+            log.debug("newAdrZip: " + newAdrZip);
+            log.debug("kiwiItemCd: " + ojPdCd);
+            log.debug("svBizDclsfCd: " + svBizDclsfCd);
+            log.debug("sellDate: " + sellDate);
+            log.debug("prtnrNo: " + empId);
+            log.debug("======================================================================");
+            empId = StringUtil
+                .nvl2(mapper.selectTimeAssign_v2_step0(newAdrZip, ojPdCd, svBizDclsfCd, sellDate), empId);
+
+            //엔지니어 조회
+            step1 = mapper.selectTimeAssignStep1(
+                gbCd, sellDate, newAdrZip, svBizHclsfCd, cntrNo, inGb, svBizDclsfCd, ojPdCd, empId
+            ); // 책임지역 담당자 찾기
+                                                                                                                                      // 담당자 정보 표시 (왼쪽)
+            step2 = mapper.selectTimeAssignStep2(step1.get(0));
+            // 시간표시
+            step3 = mapper.selectTimeAssignStep3(step1.get(0));
+
+            List<WsncTimeTableDisableDaysDvo> diabledays = mapper.selectDiableDays(
+                addGb, // addGb
+                sellDate, // sellDate
+                "", // exYn
+                newAdrZip, // newAdrZip
+                basePdCd, // basePdCd
+                "", // gdsCdList
+                svBizHclsfCd, // svBizHclsfCd
+                DateUtil.getNowDayString(), // contDt
+                gbCd, // gbCd
+                svBizDclsfCd, // svBizDclsfCd
+                empId, // prtnrNo
+                step1.get(0).getRpbLocaraCd(), // localGb
+                lcwgub, // lcwgub
+                lcetc3, // lcetc3
+                step1.get(0).getVstDowValCd() // vstDowValCd
+            );
+            String offdays = mapper.selectOffDays(sellDate, newAdrZip);
+
+            //---------------------------------------------------------//
+
+            result.getSmPmNt().clear();
+            result.setOffDays(offdays);
+            result.setTimAssStep2(step2); // left_info
+            result.setTimAssStep3(step3); // list1
+            result.setAbleDays(ableDays);
+            result.setZip(newAdrZip);
+            result.setCurDateTimeString(DateUtil.getNowDayString());
+            result.setSelDate(sellDate);
+            result.setGbCd(gbCd);
+            result.setCntrNo(cntrNo);
+            result.setInGb(inGb);
+            result.setWrkDt(svBizHclsfCd);
+            result.setDataStus(dataStus);
+            result.setWrkTypDtl(svBizDclsfCd);
+            result.setGdsCd(basePdCd);
+            result.setEmpId(empId);
+            result.setDiableDays(diabledays);
+            result.setPajongDay(sowDay);
+            result.setLcst09(lcst09);
+
+            for (int i = 0; i < step3.size(); i++) {
+                WsncTimeTableSmPmNtDvo smPmNtDvo = new WsncTimeTableSmPmNtDvo();
+                time = step3.get(i).getTm();
+                smPmNtDvo.setTime(time.substring(0, 2) + ":" + time.substring(2, 4));
+                smPmNtDvo.setCnt(step3.get(i).getWrkCnt());
+                smPmNtDvo.setAblYn(step3.get(i).getWrkChk2());
+                result.getSmPmNt().add(smPmNtDvo);
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-
         return result;
     }
 
@@ -289,8 +398,8 @@ public class WsncTimeTableService {
 
         String cntrNo = req.cntrNo(); // W20222324935
         String gbCd = req.gbCd(); // M (C, K, M, P, W)
-        String selDate = req.selDate(); // 20230512
-        String wrkTypDtl = req.wrkTypDtl(); // 3110
+        String selDate = req.sellDate(); // 20230512
+        String wrkTypDtl = req.svBizDclsfCd(); // 3110
         String prtnrNo = req.prtnrNo(); // 1251831
 
         WsncTimeTableCustDetailDvo custDetail = mapper.selectCustDetail(cntrNo);
@@ -298,43 +407,43 @@ public class WsncTimeTableService {
             throw new BizException("MSG_ALT_NO_DATA");
         }
 
-        String zip = StringUtil.isNotEmpty(req.zipno()) ? req.zipno() : custDetail.getZip(); // 12249
+        String zip = StringUtil.isNotEmpty(req.newAdrZip()) ? req.newAdrZip() : custDetail.getZip(); // 12249
         String contDt = custDetail.getCntrDt(); // 20220308
         String pdCd = custDetail.getPdCd(); // WM02100828
 
-        String saleCd = StringUtil.isEmpty(req.saleCd()) ? custDetail.getSaleCd() : req.saleCd(); // WP02110409, WP05160110
+        String basePdCd = StringUtil.isEmpty(req.basePdCd()) ? custDetail.getSaleCd() : req.basePdCd(); // WP02110409, WP05160110
 
         String addGb = mapper.selectItemcode(cntrNo);
 
-        String dataGb = gbCd.equals("M") ? "3" : req.dataGb();
+        String dataGb = gbCd.equals("M") ? "3" : req.svBizHclsfCd();
 
         String empId = "";
         if (StringUtil.isNotEmpty(dataGb) && dataGb.equals("3")) {
-            empId = mapper.selectLocalEmpinfo(zip, wrkTypDtl, selDate, saleCd);
+            empId = mapper.selectLocalEmpinfo(zip, wrkTypDtl, selDate, basePdCd);
         } else {
             empId = prtnrNo;
         }
 
         log.debug("cntrNo:{}", cntrNo);
         log.debug("gbCd:{}", gbCd);
-        log.debug("selDate:{}", selDate);
-        log.debug("wrkTypDtl:{}", wrkTypDtl);
+        log.debug("sellDate:{}", selDate);
+        log.debug("svBizDclsfCd:{}", wrkTypDtl);
         log.debug("prtnrNo:{}", prtnrNo);
 
-        String framYn = mapper.selectFarmYn(dataGb, saleCd);
+        String framYn = mapper.selectFarmYn(basePdCd);
 
         if (StringUtil.null2str(framYn).equals("Y")) {
-            result.setList1(mapper.selectMojongDaysKiwim(saleCd));
-            result.setOrdcnt(mapper.selectMonthSchedule(prtnrNo));
+            result.setList(mapper.selectSidingDaysKiwim(basePdCd));
+            result.setOrdCnt(mapper.selectMonthSchedule(prtnrNo));
         }
 
-        result.setDiabledays(
+        result.setDiableDays(
             mapper.selectDiableDays(
                 addGb,
                 selDate,
                 "Y",
                 zip,
-                saleCd,
+                basePdCd,
                 "",
                 dataGb,
                 contDt,
@@ -354,7 +463,7 @@ public class WsncTimeTableService {
         result.setDataGb(dataGb);
         result.setCntrNo(cntrNo);
         result.setSelDate(selDate);
-        result.setSaleCd(saleCd);
+        result.setSaleCd(basePdCd);
 
         return result;
     }

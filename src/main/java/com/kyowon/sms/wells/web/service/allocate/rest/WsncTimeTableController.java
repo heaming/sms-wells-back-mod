@@ -32,31 +32,22 @@ public class WsncTimeTableController {
         @ApiImplicitParam(name = "baseYm,", value = "기준월", paramType = "query"),
         @ApiImplicitParam(name = "prevTag,", value = "조회구분", paramType = "query"),
         @ApiImplicitParam(name = "gbCd,", value = "", paramType = "query"),
-        @ApiImplicitParam(name = "dataGb,", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "svBizHclsfCd,", value = "", paramType = "query"),
         @ApiImplicitParam(name = "prtnrNo,", value = "파트너번호", paramType = "query"),
-        @ApiImplicitParam(name = "selDate,", value = "방문예정일자", paramType = "query"),
+        @ApiImplicitParam(name = "sellDate,", value = "방문예정일자", paramType = "query"),
         @ApiImplicitParam(name = "saleCd,", value = "상품코드", paramType = "query"),
         @ApiImplicitParam(name = "ordDt,", value = "", paramType = "query"),
         @ApiImplicitParam(name = "ordSeq,", value = "", paramType = "query"),
-        @ApiImplicitParam(name = "wrkTypDtl,", value = "작업구분", paramType = "query"),
+        @ApiImplicitParam(name = "svBizDclsfCd,", value = "작업구분", paramType = "query"),
         @ApiImplicitParam(name = "zipno,", value = "우편번호코드", paramType = "query"),
         @ApiImplicitParam(name = "cntrCd,", value = "", paramType = "query"),
         @ApiImplicitParam(name = "cntrNo,", value = "제품코드", paramType = "query"),
-        @ApiImplicitParam(name = "mojongCd", value = "모종코드", paramType = "query"),
+        @ApiImplicitParam(name = "sidingCd", value = "모종코드", paramType = "query"),
     })
     @GetMapping
     public SearchRes getTimeTable(
         SearchReq req
     ) {
-        log.debug("----------------------------------- 타임테이블 일정 조회 -----------------------------------------");
-        log.debug("baseYm: {}", req.baseYm());
-        log.debug("prtnrNo:  {}", req.prtnrNo());
-        log.debug("prevTag:  {}", req.prevTag());
-        log.debug("dataGb:  {}", req.dataGb());
-        log.debug("dataStus:  {}", req.dataStus());
-        log.debug("cntrNo:  {}", req.cntrNo());
-        log.debug("saleCd:  {}", req.saleCd());
-        log.debug("wrkTypDtl:  {}", req.wrkTypDtl());
         return service.getTimeTable(req);
     }
 

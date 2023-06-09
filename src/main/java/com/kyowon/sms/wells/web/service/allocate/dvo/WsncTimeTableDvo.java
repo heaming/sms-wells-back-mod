@@ -38,11 +38,11 @@ public class WsncTimeTableDvo {
     String pajongDay;
     String lcst09;
 
-    List<WsncTimeTableMojongDaysDvo> list1;
-    List<WsncTimeTableMonthScheduleDvo> ordcnt;
-    List<WsncTimeTableDisableDaysDvo> diabledays;
+    List<WsncTimeTableSidingDaysDvo> list;
+    List<WsncTimeTableMonthScheduleDvo> ordCnt;
+    List<WsncTimeTableDisableDaysDvo> diableDays;
     List<WsncTimeTableTimAssStep3Dvo> timAssStep3;
     List<WsncTimeTableTimAssStep2Dvo> timAssStep2;
-    List<WsncTimeTableIlsibulDvo> abledays;
+    List<WsncTimeTableSidingDaysDvo> ableDays;
     List<WsncTimeTableSmPmNtDvo> SmPmNt = new ArrayList<WsncTimeTableSmPmNtDvo>();
 }

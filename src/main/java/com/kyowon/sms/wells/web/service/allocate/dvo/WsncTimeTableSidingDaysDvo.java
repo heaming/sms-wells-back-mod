@@ -5,10 +5,12 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class WsncTimeTableMojongDaysDvo {
+public class WsncTimeTableSidingDaysDvo {
     String title;
     String sumCnt;
     String st;
     String ed;
     String w3th;
+    String ablDays;
+    String sowDay; // PA
 }
