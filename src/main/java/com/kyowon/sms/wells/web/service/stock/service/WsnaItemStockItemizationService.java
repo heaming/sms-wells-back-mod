@@ -1,21 +1,22 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Service;
+
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaItemStockItemizationDto;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMonthlyItemStocksDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemStockItemizationMapper;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
-import org.apache.commons.lang.StringUtils;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.logging.SimpleFormatter;
 
 /**
  * <pre>
@@ -71,34 +72,47 @@ public class WsnaItemStockItemizationService {
 
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
             /*처리일자*/
-            Date procsDt = new Date(dateFormat.parse(dto.procsDt()).getTime());
+            Date procsDate = new Date(dateFormat.parse(dto.procsDt()).getTime());
             /*최종입고일자*/
-            Date fnlStrDt = new Date(dateFormat.parse(varbDvo.getFnlStrDt()).getTime());
-            /*최종출고일자*/
-            Date fnlOstrDt = new Date(dateFormat.parse(varbDvo.getFnlOstrDt()).getTime());
+            String fnlStrDt = varbDvo.getFnlStrDt();
+            Date fnlStrDate = null;
+            if (StringUtils.isNotEmpty(fnlStrDt)) {
+                fnlStrDate = new Date(dateFormat.parse(fnlStrDt).getTime());
+            } else {
+                fnlStrDate = procsDate;
+            }
 
-            log.info("처리일자 -------->", procsDt);
-            log.info("최종입고일자 -------->", fnlStrDt);
-            log.info("최종출고일자 -------->", fnlOstrDt);
-            int fnlStrDtcompare = fnlStrDt.compareTo(procsDt);
-            int fnlOstrDtCompare = fnlOstrDt.compareTo(procsDt);
+            /*최종출고일자*/
+            String fnlOstrDt = varbDvo.getFnlOstrDt();
+            Date fnlOstrDate = null;
+            if (StringUtils.isNotEmpty(fnlOstrDt)) {
+                fnlOstrDate = new Date(dateFormat.parse(fnlOstrDt).getTime());
+            } else {
+                fnlOstrDate = procsDate;
+            }
+
+            log.info("처리일자 -------->", procsDate);
+            log.info("최종입고일자 -------->", fnlStrDate);
+            log.info("최종출고일자 -------->", fnlOstrDate);
+            int fnlStrDtcompare = fnlStrDate.compareTo(procsDate);
+            int fnlOstrDtCompare = fnlOstrDate.compareTo(procsDate);
 
             log.info("WsnaItemStockItemizationDvo STEP01 -> ", fnlStrDtcompare);
             log.info("WsnaItemStockItemizationDvo STEP01 -> ", fnlOstrDtCompare);
             /*최종입고일자 : 기존일자보다 최근일자이면 최근일자(수불일자)를 최종입고일자로 설정 */
             if (fnlStrDtcompare > 0) {
-                sampleDate = dateFormat.format(procsDt);
+                sampleDate = dateFormat.format(procsDate);
                 log.info("WsnaItemStockItemizationDvo STEP02 -> ", sampleDate);
-            } else if (fnlStrDtcompare < 0) {
-                sampleDate = dateFormat.format(fnlStrDt);
+            } else {
+                sampleDate = dateFormat.format(fnlStrDate);
                 log.info("WsnaItemStockItemizationDvo STEP03 -> ", sampleDate);
             }
             /*최종출고일자 : 기존일자보다 최근일자이면 최근일자(수불일자)를 최종출고일자로 설정*/
             if (fnlOstrDtCompare > 0) {
-                endOstrDate = dateFormat.format(procsDt);
+                endOstrDate = dateFormat.format(procsDate);
 
                 log.info("WsnaItemStockItemizationDvo STEP04 -> ", endOstrDate);
-            } else if (fnlOstrDtCompare < 0) {
+            } else {
                 endOstrDate = dateFormat.format(fnlOstrDt);
                 log.info("WsnaItemStockItemizationDvo STEP05 -> ", endOstrDate);
             }
@@ -439,35 +453,48 @@ public class WsnaItemStockItemizationService {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 
         /*처리일자*/
-        Date procsDt = new Date(dateFormat.parse(dto.procsDt()).getTime());
+        Date procsDate = new Date(dateFormat.parse(dto.procsDt()).getTime());
         /*최종입고일자*/
-        Date fnlStrDt = new Date(dateFormat.parse(varbDvo.getFnlStrDt()).getTime());
-        /*최종출고일자*/
-        Date fnlOstrDt = new Date(dateFormat.parse(varbDvo.getFnlOstrDt()).getTime());
+        String fnlStrDt = varbDvo.getFnlStrDt();
+        Date fnlStrDate = null;
+        if (StringUtils.isNotEmpty(fnlStrDt)) {
+            fnlStrDate = new Date(dateFormat.parse(fnlStrDt).getTime());
+        } else {
+            fnlStrDate = procsDate;
+        }
 
-        log.info("처리일자 -------->", procsDt);
-        log.info("최종입고일자 -------->", fnlStrDt);
-        log.info("최종출고일자 -------->", fnlOstrDt);
-        int fnlStrDtcompare = fnlStrDt.compareTo(procsDt);
-        int fnlOstrDtCompare = fnlOstrDt.compareTo(procsDt);
+        /*최종출고일자*/
+        String fnlOstrDt = varbDvo.getFnlOstrDt();
+        Date fnlOstrDate = null;
+        if (StringUtils.isNotEmpty(fnlOstrDt)) {
+            fnlOstrDate = new Date(dateFormat.parse(fnlOstrDt).getTime());
+        } else {
+            fnlOstrDate = procsDate;
+        }
+
+        log.info("처리일자 -------->", procsDate);
+        log.info("최종입고일자 -------->", fnlStrDate);
+        log.info("최종출고일자 -------->", fnlOstrDate);
+        int fnlStrDtcompare = fnlStrDate.compareTo(procsDate);
+        int fnlOstrDtCompare = fnlOstrDate.compareTo(procsDate);
 
         log.info("WsnaItemStockItemizationDvo STEP01 -> ", fnlStrDtcompare);
         log.info("WsnaItemStockItemizationDvo STEP01 -> ", fnlOstrDtCompare);
         /*최종입고일자 : 기존일자보다 최근일자이면 최근일자(수불일자)를 최종입고일자로 설정 */
         if (fnlStrDtcompare > 0) {
-            sampleDate = dateFormat.format(procsDt);
+            sampleDate = dateFormat.format(procsDate);
             log.info("WsnaItemStockItemizationDvo STEP02 -> ", sampleDate);
-        } else if (fnlStrDtcompare < 0) {
-            sampleDate = dateFormat.format(fnlStrDt);
+        } else {
+            sampleDate = dateFormat.format(fnlStrDate);
             log.info("WsnaItemStockItemizationDvo STEP03 -> ", sampleDate);
         }
         /*최종출고일자 : 기존일자보다 최근일자이면 최근일자(수불일자)를 최종출고일자로 설정*/
         if (fnlOstrDtCompare > 0) {
-            endOstrDate = dateFormat.format(procsDt);
+            endOstrDate = dateFormat.format(procsDate);
 
             log.info("WsnaItemStockItemizationDvo STEP04 -> ", endOstrDate);
-        } else if (fnlOstrDtCompare < 0) {
-            endOstrDate = dateFormat.format(fnlOstrDt);
+        } else {
+            endOstrDate = dateFormat.format(fnlOstrDate);
             log.info("WsnaItemStockItemizationDvo STEP05 -> ", endOstrDate);
         }
         /*작업구분이 입력(D)일때 */
