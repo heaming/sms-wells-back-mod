@@ -50,6 +50,8 @@ public class SnServiceConst {
     public static final String STOC_CTR_OSTR = "281";
     // 외부출고(기타)(292)
     public static final String STOC_ACINSP_OSTR = "292";
+    // 이동입고(991)
+    public static final String MMT_STR = "991";
 
     /**
      * SAP 관련 코드
