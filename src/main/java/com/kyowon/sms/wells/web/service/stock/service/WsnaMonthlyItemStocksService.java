@@ -43,7 +43,7 @@ public class WsnaMonthlyItemStocksService {
         int strPitmStocBGdQty = 0; //시점재고B등급수량
         int strPitmStocEGdQty = 0; //시점재고E등급수량
         int strPitmStocRGdQty = 0; //시점재고R등급수량
-        String strBaseYm = StringUtils.substring(dto.procsDt(), 0, 5);
+        String strBaseYm = StringUtils.substring(dto.procsDt(), 0, 6);
         dvo.setWareNo(dto.wareNo());
         dvo.setItmPdCd(dto.itmPdCd());
         dvo.setBaseYm(strBaseYm);

@@ -125,7 +125,7 @@
              , DTA_DL_YN                 /* 데이터삭제여부 */
           FROM TB_SVST_MCITM_STOC_IZ /* 월별품목재고내역 */
          WHERE 1 = 1
-           AND BASE_YM = #{baseYm}                  /* 기준년월 */
+           AND BASE_YM = #{procsYm}                  /* 기준년월 */
            AND WARE_NO = #{wareNo}                  /* 창고번호 */
            AND ITM_PD_CD = #{itmPdCd}                    /* 상품코드 */
     </select>
