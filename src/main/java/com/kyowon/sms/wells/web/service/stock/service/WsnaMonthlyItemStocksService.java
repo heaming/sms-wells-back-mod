@@ -1037,53 +1037,56 @@ public class WsnaMonthlyItemStocksService {
 
                 }
 
-                Date cmprDateFrom = new Date(dateFormat.parse(dto.procsDt().substring(0, 6)).getTime());
-                Date cmprDateTo = new Date(dateFormat.parse(dto.procsYm()).getTime());
-                int result = cmprDateFrom.compareTo(cmprDateTo);
+                int dtoProcsDt = Integer.parseInt(dto.procsDt().substring(0, 6));
+                int dtoProcsYm = Integer.parseInt(dto.procsYm());
+                //            Date cmprDateFrom = new Date(dateFormat.parse(dto.procsDt().substring(0, 6)).getTime());
+                //            Date cmprDateTo = new Date(dateFormat.parse(dto.procsYm()).getTime());
+                //            int result = cmprDateFrom.compareTo(cmprDateTo);
 
-                if (result < 0) {
+                if (dtoProcsDt < dtoProcsYm) {
 
                     month = StringUtils.substring(dto.procsDt(), 4, 2);
                     log.info("MM dateCheck ----->", month);
+
+                    WsnaMonthlyItemStocksDvo CmprDvo = new WsnaMonthlyItemStocksDvo();
+
+                    if ("A".equals(dto.itemGd())) {
+                        CmprDvo = mapper.selectPitmMmtStocAQty(dto);
+                        dvo.setPitmStocAGdQty(CmprDvo.getPitmStocAGdQty());
+                        dvo.setMmtStocAGdQty(CmprDvo.getMmtStocAGdQty());
+                    } else if ("B".equals(dto.itemGd())) {
+                        CmprDvo = mapper.selectPitmMmtStocBQty(dto);
+                        dvo.setPitmStocBGdQty(CmprDvo.getPitmStocBGdQty());
+                        dvo.setMmtStocBGdQty(CmprDvo.getMmtStocBGdQty());
+                    } else if ("E".equals(dto.itemGd())) {
+                        CmprDvo = mapper.selectPitmMmtStocEQty(dto);
+                        dvo.setPitmStocEGdQty(CmprDvo.getPitmStocEGdQty());
+                        dvo.setMmtStocEGdQty(CmprDvo.getMmtStocEGdQty());
+                    } else if ("R".equals(dto.itemGd())) {
+                        CmprDvo = mapper.selectPitmMmtStocRQty(dto);
+                        dvo.setPitmStocRGdQty(CmprDvo.getPitmStocRGdQty());
+                        dvo.setMmtStocRGdQty(CmprDvo.getMmtStocRGdQty());
+                    }
+
+                    String cmpApldYm = StringUtils.substring(dto.procsDt(), 0, 6);
+
+                    /*수불월의 다음월 산출*/
+                    int nextMonth = Integer.parseInt(month) + 1;
+                    log.info("II -------> 다음월 산출 데이터", nextMonth);
+                    String strCmpApldYm = null;
+
+                    if (nextMonth == 13) {
+                        strCmpApldYm = Integer.parseInt(StringUtils.substring(cmpApldYm, 0, 4)) + 1 + "01";
+                        dvo.setBaseYm(strCmpApldYm);
+                    } else {
+                        strCmpApldYm = StringUtils.substring(cmpApldYm, 0, 4) + String.format("%02d", nextMonth);
+                        dvo.setBaseYm(strCmpApldYm);
+                    }
+
+                    /*TODO : 월별 재고이월 호출(V_CMP_APLD_YM,V_WCOM_STCK_CD,V_WCOM_ITEM_CD,V_WCOM_ITEM_DEG,V_WCOM_STCK_MGR,V_CMP_ON_QTY,V_CMP_BUFF_QTY,V_LOG_ID)
+                     *  개발완료 되면 붙일 예정*/
+                    saveMonthlyItemStocCrdovrs(converter.mapWsnaMcbyItmStocsDvoToCrdovrRes(dvo));
                 }
-                WsnaMonthlyItemStocksDvo CmprDvo = new WsnaMonthlyItemStocksDvo();
-
-                if ("A".equals(dto.itemGd())) {
-                    CmprDvo = mapper.selectPitmMmtStocAQty(dto);
-                    dvo.setPitmStocAGdQty(CmprDvo.getPitmStocAGdQty());
-                    dvo.setMmtStocAGdQty(CmprDvo.getMmtStocAGdQty());
-                } else if ("B".equals(dto.itemGd())) {
-                    CmprDvo = mapper.selectPitmMmtStocBQty(dto);
-                    dvo.setPitmStocBGdQty(CmprDvo.getPitmStocBGdQty());
-                    dvo.setMmtStocBGdQty(CmprDvo.getMmtStocBGdQty());
-                } else if ("E".equals(dto.itemGd())) {
-                    CmprDvo = mapper.selectPitmMmtStocEQty(dto);
-                    dvo.setPitmStocEGdQty(CmprDvo.getPitmStocEGdQty());
-                    dvo.setMmtStocEGdQty(CmprDvo.getMmtStocEGdQty());
-                } else if ("R".equals(dto.itemGd())) {
-                    CmprDvo = mapper.selectPitmMmtStocRQty(dto);
-                    dvo.setPitmStocRGdQty(CmprDvo.getPitmStocRGdQty());
-                    dvo.setMmtStocRGdQty(CmprDvo.getMmtStocRGdQty());
-                }
-
-                String cmpApldYm = StringUtils.substring(dto.procsDt(), 0, 5);
-
-                /*수불월의 다음월 산출*/
-                int nextMonth = Integer.parseInt(month) + 1;
-                log.info("II -------> 다음월 산출 데이터", nextMonth);
-                String strCmpApldYm = null;
-
-                if (nextMonth == 13) {
-                    strCmpApldYm = Integer.parseInt(StringUtils.substring(cmpApldYm, 0, 4)) + 1 + "01";
-                    dvo.setBaseYm(strCmpApldYm);
-                } else {
-                    strCmpApldYm = StringUtils.substring(cmpApldYm, 0, 4) + String.format("%02d", nextMonth);
-                    dvo.setBaseYm(strCmpApldYm);
-                }
-
-                /*TODO : 월별 재고이월 호출(V_CMP_APLD_YM,V_WCOM_STCK_CD,V_WCOM_ITEM_CD,V_WCOM_ITEM_DEG,V_WCOM_STCK_MGR,V_CMP_ON_QTY,V_CMP_BUFF_QTY,V_LOG_ID)
-                 *  개발완료 되면 붙일 예정*/
-                saveMonthlyItemStocCrdovrs(converter.mapWsnaMcbyItmStocsDvoToCrdovrRes(dvo));
             }
 
         } else {
@@ -1129,7 +1132,7 @@ public class WsnaMonthlyItemStocksService {
                 ===============================================================================*/
                 if (SnServiceConst.NOM_OSTR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocAGdQty(dto.qty());
                     dvo.setNomStrAGdQty(dto.qty());
@@ -1139,7 +1142,7 @@ public class WsnaMonthlyItemStocksService {
 
                 } else if (SnServiceConst.NOM_OSTR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocBGdQty(dto.qty());
                     dvo.setNomStrBGdQty(dto.qty());
@@ -1149,7 +1152,7 @@ public class WsnaMonthlyItemStocksService {
 
                 } else if (SnServiceConst.NOM_OSTR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocEGdQty(dto.qty());
                     dvo.setNomStrEGdQty(dto.qty());
@@ -1159,7 +1162,7 @@ public class WsnaMonthlyItemStocksService {
 
                 } else if (SnServiceConst.NOM_OSTR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocRGdQty(dto.qty());
                     dvo.setNomStrRGdQty(dto.qty());
@@ -1170,7 +1173,7 @@ public class WsnaMonthlyItemStocksService {
 
                 if (SnServiceConst.QOM_ASN.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocAGdQty(dto.qty());
                     dvo.setQomAsnStrAGdQty(dto.qty());
@@ -1180,7 +1183,7 @@ public class WsnaMonthlyItemStocksService {
 
                 } else if (SnServiceConst.QOM_ASN.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocBGdQty(dto.qty());
                     dvo.setQomAsnStrBGdQty(dto.qty());
@@ -1190,7 +1193,7 @@ public class WsnaMonthlyItemStocksService {
 
                 } else if (SnServiceConst.QOM_ASN.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocEGdQty(dto.qty());
                     dvo.setQomAsnStrEGdQty(dto.qty());
@@ -1200,7 +1203,7 @@ public class WsnaMonthlyItemStocksService {
 
                 } else if (SnServiceConst.QOM_ASN.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocRGdQty(dto.qty());
                     dvo.setQomAsnStrRGdQty(dto.qty());
@@ -1211,7 +1214,7 @@ public class WsnaMonthlyItemStocksService {
 
                 if (SnServiceConst.QOM_MMT.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocAGdQty(dto.qty());
                     dvo.setQomMmtStrAGdQty(dto.qty());
@@ -1221,7 +1224,7 @@ public class WsnaMonthlyItemStocksService {
 
                 } else if (SnServiceConst.QOM_MMT.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocBGdQty(dto.qty());
                     dvo.setQomMmtStrBGdQty(dto.qty());
@@ -1231,7 +1234,7 @@ public class WsnaMonthlyItemStocksService {
 
                 } else if (SnServiceConst.QOM_MMT.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocEGdQty(dto.qty());
                     dvo.setQomMmtStrEGdQty(dto.qty());
@@ -1241,7 +1244,7 @@ public class WsnaMonthlyItemStocksService {
 
                 } else if (SnServiceConst.QOM_MMT.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocRGdQty(dto.qty());
                     dvo.setQomMmtStrRGdQty(dto.qty());
@@ -1253,7 +1256,7 @@ public class WsnaMonthlyItemStocksService {
                 /*반품입고내부A등급수량*/
                 if (SnServiceConst.RTNGD_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocAGdQty(dto.qty());
                     dvo.setRtngdStrInsiAGdQty(dto.qty());
@@ -1263,7 +1266,7 @@ public class WsnaMonthlyItemStocksService {
 
                 } else if (SnServiceConst.RTNGD_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocBGdQty(dto.qty());
                     dvo.setRtngdStrInsiBGdQty(dto.qty());
@@ -1273,7 +1276,7 @@ public class WsnaMonthlyItemStocksService {
 
                 } else if (SnServiceConst.RTNGD_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocEGdQty(dto.qty());
                     dvo.setRtngdStrInsiEGdQty(dto.qty());
@@ -1283,7 +1286,7 @@ public class WsnaMonthlyItemStocksService {
 
                 } else if (SnServiceConst.RTNGD_STR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocRGdQty(dto.qty());
                     dvo.setRtngdStrInsiRGdQty(dto.qty());
@@ -1295,7 +1298,7 @@ public class WsnaMonthlyItemStocksService {
                 /*기타입고A등급수량*/
                 if (SnServiceConst.ETC_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocAGdQty(dto.qty());
                     dvo.setEtcStrAGdQty(dto.qty());
@@ -1305,7 +1308,7 @@ public class WsnaMonthlyItemStocksService {
                     /*기타입고E등급수량*/
                 } else if (SnServiceConst.ETC_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocEGdQty(dto.qty());
                     dvo.setEtcStrEGdQty(dto.qty());
@@ -1325,7 +1328,7 @@ public class WsnaMonthlyItemStocksService {
                 /*반품입고외부A등급수량*/
                 if (SnServiceConst.RTNGD_OTSD_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocAGdQty(dto.qty());
                     dvo.setRtngdStrOtsdAGdQty(dto.qty());
@@ -1336,7 +1339,7 @@ public class WsnaMonthlyItemStocksService {
                     /*반품입고외부B등급수량*/
                 } else if (SnServiceConst.RTNGD_OTSD_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocBGdQty(dto.qty());
                     dvo.setRtngdStrOtsdBGdQty(dto.qty());
@@ -1347,7 +1350,7 @@ public class WsnaMonthlyItemStocksService {
                     /*반품입고외부E등급수량*/
                 } else if (SnServiceConst.RTNGD_OTSD_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocEGdQty(dto.qty());
                     dvo.setRtngdStrOtsdEGdQty(dto.qty());
@@ -1357,7 +1360,7 @@ public class WsnaMonthlyItemStocksService {
                     /*반품입고외부R등급수량*/
                 } else if (SnServiceConst.RTNGD_OTSD_STR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocRGdQty(dto.qty());
                     dvo.setRtngdStrOtsdRGdQty(dto.qty());
@@ -1376,7 +1379,7 @@ public class WsnaMonthlyItemStocksService {
                 /*입출유형(181:재고조정입고)*/
                 if (SnServiceConst.STOC_CTR_STR.equals(dto.iostTp()) && "A".equals(dto.itemGd())) {
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocAGdQty(dto.qty());
                     dvo.setEtcStrAGdQty1(dto.qty());
@@ -1387,7 +1390,7 @@ public class WsnaMonthlyItemStocksService {
                 } else if (SnServiceConst.STOC_CTR_STR.equals(dto.iostTp()) && "B".equals(dto.itemGd())) {
 
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocBGdQty(dto.qty());
                     dvo.setEtcStrBGdQty1(dto.qty());
@@ -1398,7 +1401,7 @@ public class WsnaMonthlyItemStocksService {
                 } else if (SnServiceConst.STOC_CTR_STR.equals(dto.iostTp()) && "E".equals(dto.itemGd())) {
 
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocEGdQty(dto.qty());
                     dvo.setEtcStrEGdQty1(dto.qty());
@@ -1409,7 +1412,7 @@ public class WsnaMonthlyItemStocksService {
                 } else if (SnServiceConst.STOC_CTR_STR.equals(dto.iostTp()) && "R".equals(dto.itemGd())) {
 
                     dvo.setItmPdCd(dto.itmPdCd());
-                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 5));
+                    dvo.setBaseYm(StringUtils.substring(dto.procsDt(), 0, 6));
                     dvo.setWareMngtPrtnrNo(dto.wareMngtPrtnrNo());
                     dvo.setPitmStocRGdQty(dto.qty());
                     dvo.setEtcStrRGdQty1(dto.qty());
@@ -1427,46 +1430,46 @@ public class WsnaMonthlyItemStocksService {
 
                     month = StringUtils.substring(dto.procsDt(), 4, 2);
                     log.info("MM dateCheck ----->", month);
+
+                    WsnaMonthlyItemStocksDvo NewCmprDvo = new WsnaMonthlyItemStocksDvo();
+
+                    if ("A".equals(dto.itemGd())) {
+                        NewCmprDvo = mapper.selectPitmMmtStocAQty(dto);
+                        dvo.setPitmStocAGdQty(NewCmprDvo.getPitmStocAGdQty());
+                        dvo.setMmtStocAGdQty(NewCmprDvo.getMmtStocAGdQty());
+                    } else if ("B".equals(dto.itemGd())) {
+                        NewCmprDvo = mapper.selectPitmMmtStocBQty(dto);
+                        dvo.setPitmStocBGdQty(NewCmprDvo.getPitmStocBGdQty());
+                        dvo.setMmtStocBGdQty(NewCmprDvo.getMmtStocBGdQty());
+                    } else if ("E".equals(dto.itemGd())) {
+                        NewCmprDvo = mapper.selectPitmMmtStocEQty(dto);
+                        dvo.setPitmStocEGdQty(NewCmprDvo.getPitmStocEGdQty());
+                        dvo.setMmtStocEGdQty(NewCmprDvo.getMmtStocEGdQty());
+                    } else if ("R".equals(dto.itemGd())) {
+                        NewCmprDvo = mapper.selectPitmMmtStocRQty(dto);
+                        dvo.setPitmStocRGdQty(NewCmprDvo.getPitmStocRGdQty());
+                        dvo.setMmtStocRGdQty(NewCmprDvo.getMmtStocRGdQty());
+                    }
+
+                    String cmpApldYm = StringUtils.substring(dto.procsDt(), 0, 6);
+
+                    /*수불월의 다음월 산출*/
+                    int nextMonth = Integer.parseInt(month) + 1;
+                    log.info("II -------> 다음월 산출 데이터", nextMonth);
+                    String strCmpApldYm = null;
+
+                    if (nextMonth == 13) {
+                        strCmpApldYm = Integer.parseInt(StringUtils.substring(cmpApldYm, 0, 4)) + 1 + "01";
+                        dvo.setBaseYm(strCmpApldYm);
+                    } else {
+                        strCmpApldYm = StringUtils.substring(dto.procsYm(), 0, 4) + String.format("%02d", nextMonth);
+                        dvo.setBaseYm(strCmpApldYm);
+                    }
+
+                    /*TODO : 월별 재고이월 호출(V_CMP_APLD_YM,V_WCOM_STCK_CD,V_WCOM_ITEM_CD,V_WCOM_ITEM_DEG,V_WCOM_STCK_MGR,V_CMP_ON_QTY,V_CMP_BUFF_QTY,V_LOG_ID)
+                     *  개발완료 되면 붙일 예정*/
+                    saveMonthlyItemStocCrdovrs(converter.mapWsnaMcbyItmStocsDvoToCrdovrRes(dvo));
                 }
-                WsnaMonthlyItemStocksDvo NewCmprDvo = new WsnaMonthlyItemStocksDvo();
-
-                if ("A".equals(dto.itemGd())) {
-                    NewCmprDvo = mapper.selectPitmMmtStocAQty(dto);
-                    dvo.setPitmStocAGdQty(NewCmprDvo.getPitmStocAGdQty());
-                    dvo.setMmtStocAGdQty(NewCmprDvo.getMmtStocAGdQty());
-                } else if ("B".equals(dto.itemGd())) {
-                    NewCmprDvo = mapper.selectPitmMmtStocBQty(dto);
-                    dvo.setPitmStocBGdQty(NewCmprDvo.getPitmStocBGdQty());
-                    dvo.setMmtStocBGdQty(NewCmprDvo.getMmtStocBGdQty());
-                } else if ("E".equals(dto.itemGd())) {
-                    NewCmprDvo = mapper.selectPitmMmtStocEQty(dto);
-                    dvo.setPitmStocEGdQty(NewCmprDvo.getPitmStocEGdQty());
-                    dvo.setMmtStocEGdQty(NewCmprDvo.getMmtStocEGdQty());
-                } else if ("R".equals(dto.itemGd())) {
-                    NewCmprDvo = mapper.selectPitmMmtStocRQty(dto);
-                    dvo.setPitmStocRGdQty(NewCmprDvo.getPitmStocRGdQty());
-                    dvo.setMmtStocRGdQty(NewCmprDvo.getMmtStocRGdQty());
-                }
-
-                String cmpApldYm = StringUtils.substring(dto.procsDt(), 0, 5);
-
-                /*수불월의 다음월 산출*/
-                int nextMonth = Integer.parseInt(month) + 1;
-                log.info("II -------> 다음월 산출 데이터", nextMonth);
-                String strCmpApldYm = null;
-
-                if (nextMonth == 13) {
-                    strCmpApldYm = Integer.parseInt(StringUtils.substring(cmpApldYm, 0, 4)) + 1 + "01";
-                    dvo.setBaseYm(strCmpApldYm);
-                } else {
-                    strCmpApldYm = StringUtils.substring(dto.procsYm(), 0, 4) + String.format("%02d", nextMonth);
-                    dvo.setBaseYm(strCmpApldYm);
-                }
-
-                /*TODO : 월별 재고이월 호출(V_CMP_APLD_YM,V_WCOM_STCK_CD,V_WCOM_ITEM_CD,V_WCOM_ITEM_DEG,V_WCOM_STCK_MGR,V_CMP_ON_QTY,V_CMP_BUFF_QTY,V_LOG_ID)
-                 *  개발완료 되면 붙일 예정*/
-                saveMonthlyItemStocCrdovrs(converter.mapWsnaMcbyItmStocsDvoToCrdovrRes(dvo));
-
             }
 
         }
@@ -2326,53 +2329,57 @@ public class WsnaMonthlyItemStocksService {
                 processCount += mapper.updateStocAcinspOstrRGdQty(dvo);
 
             }
-            Date cmprDateFrom = new Date(dateFormat.parse(dto.procsDt().substring(0, 6)).getTime());
-            Date cmprDateTo = new Date(dateFormat.parse(dto.procsYm()).getTime());
-            int result = cmprDateFrom.compareTo(cmprDateTo);
 
-            if (result < 0) {
+            int dtoProcsDt = Integer.parseInt(dto.procsDt().substring(0, 6));
+            int dtoProcsYm = Integer.parseInt(dto.procsYm());
+            //            Date cmprDateFrom = new Date(dateFormat.parse(dto.procsDt().substring(0, 6)).getTime());
+            //            Date cmprDateTo = new Date(dateFormat.parse(dto.procsYm()).getTime());
+            //            int result = cmprDateFrom.compareTo(cmprDateTo);
+
+            if (dtoProcsDt < dtoProcsYm) {
 
                 month = StringUtils.substring(dto.procsDt(), 4, 2);
                 log.info("MM dateCheck ----->", month);
+
+                WsnaMonthlyItemStocksDvo CmprDvo = new WsnaMonthlyItemStocksDvo();
+
+                if ("A".equals(dto.itemGd())) {
+                    CmprDvo = mapper.selectPitmMmtStocAQty(dto);
+                    dvo.setPitmStocAGdQty(CmprDvo.getPitmStocAGdQty());
+                    dvo.setMmtStocAGdQty(CmprDvo.getMmtStocAGdQty());
+                } else if ("B".equals(dto.itemGd())) {
+                    CmprDvo = mapper.selectPitmMmtStocBQty(dto);
+                    dvo.setPitmStocBGdQty(CmprDvo.getPitmStocBGdQty());
+                    dvo.setMmtStocBGdQty(CmprDvo.getMmtStocBGdQty());
+                } else if ("E".equals(dto.itemGd())) {
+                    CmprDvo = mapper.selectPitmMmtStocEQty(dto);
+                    dvo.setPitmStocEGdQty(CmprDvo.getPitmStocEGdQty());
+                    dvo.setMmtStocEGdQty(CmprDvo.getMmtStocEGdQty());
+                } else if ("R".equals(dto.itemGd())) {
+                    CmprDvo = mapper.selectPitmMmtStocRQty(dto);
+                    dvo.setPitmStocRGdQty(CmprDvo.getPitmStocRGdQty());
+                    dvo.setMmtStocRGdQty(CmprDvo.getMmtStocRGdQty());
+                }
+
+                String cmpApldYm = StringUtils.substring(dto.procsDt(), 0, 5);
+
+                /*수불월의 다음월 산출*/
+                int nextMonth = Integer.parseInt(month) + 1;
+                log.info("II -------> 다음월 산출 데이터", nextMonth);
+                String strCmpApldYm = null;
+
+                if (nextMonth == 13) {
+                    strCmpApldYm = Integer.parseInt(StringUtils.substring(cmpApldYm, 0, 4)) + 1 + "01";
+                    dvo.setBaseYm(strCmpApldYm);
+                } else {
+                    strCmpApldYm = StringUtils.substring(cmpApldYm, 0, 4) + String.format("%02d", nextMonth);
+                    dvo.setBaseYm(strCmpApldYm);
+                }
+                //            SP_ST122TB_IWL(V_CMP_APLD_YM,V_WCOM_STCK_CD,V_WCOM_ITEM_CD,V_WCOM_ITEM_DEG,V_WCOM_STCK_MGR,V_CMP_ON_QTY,V_CMP_BUFF_QTY,V_LOG_ID)
+                /*TODO : 월별 재고이월 호출(V_CMP_APLD_YM,V_WCOM_STCK_CD,V_WCOM_ITEM_CD,V_WCOM_ITEM_DEG,V_WCOM_STCK_MGR,V_CMP_ON_QTY,V_CMP_BUFF_QTY,V_LOG_ID)
+                 *  개발완료 되면 붙일 예정*/
+                saveMonthlyItemStocCrdovrs(converter.mapWsnaMcbyItmStocsDvoToCrdovrRes(dvo));
             }
-            WsnaMonthlyItemStocksDvo CmprDvo = new WsnaMonthlyItemStocksDvo();
-
-            if ("A".equals(dto.itemGd())) {
-                CmprDvo = mapper.selectPitmMmtStocAQty(dto);
-                dvo.setPitmStocAGdQty(CmprDvo.getPitmStocAGdQty());
-                dvo.setMmtStocAGdQty(CmprDvo.getMmtStocAGdQty());
-            } else if ("B".equals(dto.itemGd())) {
-                CmprDvo = mapper.selectPitmMmtStocBQty(dto);
-                dvo.setPitmStocBGdQty(CmprDvo.getPitmStocBGdQty());
-                dvo.setMmtStocBGdQty(CmprDvo.getMmtStocBGdQty());
-            } else if ("E".equals(dto.itemGd())) {
-                CmprDvo = mapper.selectPitmMmtStocEQty(dto);
-                dvo.setPitmStocEGdQty(CmprDvo.getPitmStocEGdQty());
-                dvo.setMmtStocEGdQty(CmprDvo.getMmtStocEGdQty());
-            } else if ("R".equals(dto.itemGd())) {
-                CmprDvo = mapper.selectPitmMmtStocRQty(dto);
-                dvo.setPitmStocRGdQty(CmprDvo.getPitmStocRGdQty());
-                dvo.setMmtStocRGdQty(CmprDvo.getMmtStocRGdQty());
-            }
-
-            String cmpApldYm = StringUtils.substring(dto.procsDt(), 0, 5);
-
-            /*수불월의 다음월 산출*/
-            int nextMonth = Integer.parseInt(month) + 1;
-            log.info("II -------> 다음월 산출 데이터", nextMonth);
-            String strCmpApldYm = null;
-
-            if (nextMonth == 13) {
-                strCmpApldYm = Integer.parseInt(StringUtils.substring(cmpApldYm, 0, 4)) + 1 + "01";
-                dvo.setBaseYm(strCmpApldYm);
-            } else {
-                strCmpApldYm = StringUtils.substring(cmpApldYm, 0, 4) + String.format("%02d", nextMonth);
-                dvo.setBaseYm(strCmpApldYm);
-            }
-            //            SP_ST122TB_IWL(V_CMP_APLD_YM,V_WCOM_STCK_CD,V_WCOM_ITEM_CD,V_WCOM_ITEM_DEG,V_WCOM_STCK_MGR,V_CMP_ON_QTY,V_CMP_BUFF_QTY,V_LOG_ID)
-            /*TODO : 월별 재고이월 호출(V_CMP_APLD_YM,V_WCOM_STCK_CD,V_WCOM_ITEM_CD,V_WCOM_ITEM_DEG,V_WCOM_STCK_MGR,V_CMP_ON_QTY,V_CMP_BUFF_QTY,V_LOG_ID)
-             *  개발완료 되면 붙일 예정*/
-            saveMonthlyItemStocCrdovrs(converter.mapWsnaMcbyItmStocsDvoToCrdovrRes(dvo));
         }
 
         return processCount;
