@@ -84,9 +84,9 @@ public class WsnbMultipleTaskOrderDvo {
     String ichrOgTpCd; /*  */
     String rpbLocaraCd; /* V_AC142_LOCAL_GB */
     int expMat; /* V_FA001_CNT */
-    int sidingExpMat; /* V_FA001_P_CNT */
+    int sdingExpMat; /* V_FA001_P_CNT */
     int expMatSum; /* V_FA001_SUM_AMT */
-    String sppPlanSn; /* V_FA101_SEQ */
+    int sppPlanSn; /* V_FA101_SEQ */
     String vstDtChk; /* GET_PACKING_DAY(P_VST_DT_REQ) */
     String saleNm; /* GET_GOODS_NAME_SALE_CD(TRIM(V_SALE_CD)) */
     String pdSize; /* GET_ST101_SIZE */

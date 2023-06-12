@@ -72,7 +72,7 @@ public interface WsnbMultipleTaskOrderMapper {
     String selectItemGr(String newPdCd);
 
     /**/
-    int deleteSidingShipping(WsnbMultipleTaskOrderDvo dvo);
+    int deleteSdingShipping(WsnbMultipleTaskOrderDvo dvo);
 
     WsnbMultipleTaskOrderDvo selectNewAsnCstSvAsnNo(WsnbMultipleTaskOrderDvo dvo);
 
@@ -81,7 +81,21 @@ public interface WsnbMultipleTaskOrderMapper {
     int insertAsInstallationAssignHistByNewKey(WsnbMultipleTaskOrderDvo dvo);
 
     String selectVstDtChk(String vstRqDt);
-    //
-    //    int updateAsInstallationAssign(WsnbMultipleTaskOrderDvo dvo);
+
+    WsnbMultipleTaskOrderDvo selectSdingCount();
+
+    int selectSppPlanSn(WsnbMultipleTaskOrderDvo dvo);
+
+    String selectSaleNm(String newSaleCd);
+
+    int insertSdingPlan(WsnbMultipleTaskOrderDvo dvo);
+
+    String selectPdSize(String newSaleCd);
+
+    int insertSdingExpByAs(WsnbMultipleTaskOrderDvo dvo);
+
+    int updateAsInstallationAssign(String asnCstSvAsnNo);
+
+    int updateIstObjectKey(WsnbMultipleTaskOrderDvo dvo);
 
 }

@@ -786,7 +786,7 @@
            AND DTA_DL_YN = 'N'
            AND PD_CD = #{newPdCd}
     </select>
-    <update id="deleteSidingShipping">
+    <update id="deleteSdingShipping">
         UPDATE TB_SVPD_SDING_SPP_EXP_IZ
            SET DTA_DL_YN = 'Y'
               <include refid="COMMON.updateSystemField"/>
@@ -995,7 +995,249 @@
          WHERE W3TH = #{vstRqdt}
            AND ROWNUM = 1;
     </select>
-<!--    <update id="updateAsInstallationAssign">-->
-<!--        SELECT 1 FROM DUAL-->
-<!--    </update>-->
+    <select id="selectSdingCount" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo">
+        SELECT COUNT(1) AS EXP_MAT
+             , SUM((CASE WHEN (SELECT T4.PD_PRP_VAL01
+                                 FROM TB_PDBS_PD_BAS T1
+                                INNER JOIN TB_PDBS_PD_REL T2
+                                   ON T1.PD_CD = T2.OJ_PD_CD
+                                  AND T2.PD_REL_TP_CD = '05'
+                                  AND T2.DTA_DL_YN = 'N'
+                                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                                INNER JOIN TB_PDBS_PD_BAS T3
+                                   ON T2.BASE_PD_CD = T3.PD_CD
+                                  AND T3.DTA_DL_YN = 'N'
+                                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T4
+                                   ON T3.PD_CD 	= T4.PD_CD
+                                  AND T4.PD_EXTS_PRP_GRP_CD = 'PART'
+                                  AND T4.DTA_DL_YN = 'N'
+                                WHERE T1.DTA_DL_YN = 'N'
+                                  AND S1.SDING_PD_CD = T2.OJ_PD_CD) LIKE '6%' THEN 1 ELSE 0
+                     END)) AS SDING_EXP_MAT
+             , SUM(S1.RECAP_CS_AMT) AS EXP_MAT_SUM
+          FROM TB_SVPD_SDING_PRCHS_PROCS_TEMP S1
+    </select>
+    <select id="selectSppPlanSn" resultType="int">
+        SELECT LPAD(NVL((SELECT MAX(SPP_PLAN_SN) + 1
+                           FROM TB_SVPD_SDING_SPP_PLAN_IZ
+                          WHERE 1=1
+                            AND CNTR_NO = #{cntrNo}
+                            AND CNTR_SN = #{cntrSn}
+                            AND SPP_ORD_NO = (#{newSvBizHclsfCd} || #{newRcpdt} || #{newReq})
+                            AND SV_BIZ_DCLSF_CD = #{newSvBizDclsfCd}), '01'), 2, '0')    /*오류 방지를 위해 NULL 일 경우 01 입력해줌*/
+          FROM DUAL
+    </select>
+    <select id="selectSaleNm" resultType="String">
+        SELECT BAS1.PD_NM AS SALE_NM
+          FROM TB_PDBS_PD_BAS BAS
+         INNER JOIN TB_PDBS_PD_REL REL
+            ON BAS.PD_CD = REL.OJ_PD_CD
+           AND REL.PD_REL_TP_CD = '05'
+           AND REL.DTA_DL_YN = 'N'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+         INNER JOIN TB_PDBS_PD_BAS BAS1
+            ON REL.BASE_PD_CD = BAS1.PD_CD
+           AND BAS1.DTA_DL_YN = 'N'
+         WHERE BAS.DTA_DL_YN = 'N'
+           AND REL.OJ_PD_CD = #{newSaleCd}
+    </select>
+    <insert id="insertSdingPlan">
+        INSERT INTO TB_SVPD_SDING_SPP_PLAN_IZ
+             ( CNTR_NO
+             , CNTR_SN
+             , SV_BIZ_HCLSF_CD
+             , SV_BIZ_DCLSF_CD
+             , SPP_ORD_NO
+             , SPP_PLAN_SN
+             , SDING_PKG_PD_CD
+             , VST_DUEDT
+             , CAN_DT
+             , WK_CAN_RSON_CD
+             , WK_DT
+             , CST_SV_ASN_NO
+             , MNGR_DV_CD
+             , OG_TP_CD
+             , WK_PRTNR_NO
+             , REFRI_DV_CD
+             , RECAP_CS_AMT
+             , DP_EPTT_NM
+             , DP_DT
+             , ITM_IOST_DV_CD
+             , OSTR_DUEDT
+             , OSTR_CNFMDT
+             , DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+             )
+        VALUES
+             ( #{cntrNO}
+             , #{cntrSn}
+             , #{newSvBizHclsfCd}
+             , #{newSvBizDclsfCd}
+             , #{newSvBizHclsfCd} || #{newRcpdt} || #{newReq}
+             , #{sppPlanSn}
+             , #{newPdCd}
+             , #{vstRqdt}
+             , ''
+             , ''
+             , ''
+             , ''
+             , '2'
+             , (CASE WHEN #{saleNm} LIKE '새싹%' THEN (SELECT OG_TP_CD
+                                                        FROM TB_OGBS_MM_PRTNR_IZ
+                                                       WHERE BAES_YM   = TO_CHAR(SYSDATE, 'YYYYMM')
+                                                         AND PRTNR_NO  = '28714'
+                                                         AND DTA_DL_YN = 'N')
+                     WHEN #{expMat} = 0 OR (#{sidingExpMat} IS NOT NULL AND #{sidingExpMat} > 0) THEN #{ichrOgTpCd}
+               ) /*택배발송이라면 담당자를 최진아 사원의 조직유형으로 변경*/
+             , (CASE WHEN #{saleNm} LIKE '새싹%' THEN '28714'
+                     WHEN #{expMat} = 0 OR (#{sidingExpMat} IS NOT NULL AND #{sidingExpMat} > 0) THEN #{ichrPrtnrNo}
+               ) /*택배발송이라면 담당자를 최진아 사원으로 변경*/
+             , (CASE WHEN #{expMat} = 0 OR (#{expMatSum} IS NOT NULL AND #{expMatSum} = 0) THEN '1' ELSE '2' END)
+             , NVL(#{expMatSum}, 0)
+             , NVL(TRIM(#{payNm}), '')
+             , ''
+             , (CASE WHEN #{expMat} != 0 AND #{saleNm} LIKE '새싹%'
+                     THEN '2'    /*새싹재배기라면 택배발송*/
+                     WHEN #{expMat} = 0 OR (#{sidingExpMat} IS NOT NULL AND #{sidingExpMat} > 0) THEN '1'
+                     ELSE '2'
+                 END)
+              , #{vstDtChk}
+              , ''
+              <include refid="COMMON.insertSystemFieldValue"/>
+             )
+    </insert>
+    <select id="selectPdSize" resultType="String">
+        SELECT DISTINCT NVL(T2.PD_PRP_VAL03, 0) AS PD_SIZE
+          FROM TB_PDBS_PD_BAS T1
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+            ON T1.PD_CD 	= T2.PD_CD
+           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_REL T3
+            ON T1.PD_CD = T3.OJ_PD_CD
+           AND T3.PD_REL_TP_CD = '05'
+           AND T3.DTA_DL_YN = 'N'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+         WHERE T1.DTA_DL_YN = 'N'
+           AND (CASE WHEN LENGTH(#{newSaleCd}) <![CDATA[<=]]> 4 THEN TRIM(T3.BASE_PD_CD)
+                     ELSE TRIM(T1.PD_CD)
+                 END) = TRIM(#{newSaleCd})
+    </select>
+    <insert id="insertSdingExpByAs">
+        INSERT INTO TB_SVPD_SDING_SPP_EXP_IZ
+             ( CNTR_NO
+             , CNTR_SN
+             , SV_BIZ_HCLSF_CD
+             , SV_BIZ_DCLSF_CD
+             , SPP_ORD_NO
+             , SPP_PLAN_SN
+             , SDING_SN
+             , SDING_PD_CD
+             , SDING_QTY
+             , RECAP_CS_AMT
+             , SOW_DT
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>
+             )
+        SELECT CNTR_NO
+             , CNTR_SN
+             , SV_BIZ_HCLSF_CD
+             , SV_BIZ_DCLSF_CD
+             , SPP_ORD_NO
+             , SPP_PLAN_SN
+             , ROW_NUMBER() OVER(ORDER BY SOW_DT, SDING_PD_CD ASC) AS SDING_SN
+             , SDING_PD_CD
+             , NVL(SDING_QTY,0)
+             , NVL(RECAP_CS_AMT,0)
+             , SOW_DT
+             , DTA_DL_YN
+             , FST_RGST_DTM
+             , FST_RGST_USR_ID
+             , FST_RGST_PRG_ID
+             , FST_RGST_DEPT_ID
+             , FNL_MDFC_DTM
+             , FNL_MDFC_USR_ID
+             , FNL_MDFC_PRG_ID
+             , FNL_MDFC_DEPT_ID
+          FROM (/*모종 + 배양액*/
+               SELECT #{cntrNo} AS CNTR_NO
+                     , '00' AS CNTR_SN
+                     , #{newSvBizHclsfCd} AS SV_BIZ_HCLSF_CD
+                     , #{newSvBizDclsfCd} AS SV_BIZ_DCLSF_CD
+                     , #{newSvBizHclsfCd} || #{newRcpdt} || #{newReq} AS SPP_ORD_NO
+                     , #{sppPlanSn} AS SPP_PLAN_SN
+                     , '' AS SDING_SN
+                     , (SELECT (CASE WHEN #{pdSize} = 'FarmMini' AND PD_CD = 'WM07105747' THEN 'WM07105773'
+                                     WHEN #{pdSize} = 'FarmMini' AND PD_CD = 'WM07105748' THEN 'WM07105774'
+                                     WHEN T1.PD_CD IN ('WM07105703', 'WM07105704') THEN 'WM07105708'
+                                     WHEN T1.PD_CD = 'WM07105705' THEN 'WM07105709'
+                                     WHEN T1.PD_CD IN ('WM07105747', 'WM07105745') THEN 'WM07105751'
+                                     WHEN T1.PD_CD IN ('WM07105746', 'WM07105748') THEN 'WM07105752'
+                                     ELSE T1.PD_CD
+                                 END)
+                          FROM TB_PDBS_PD_BAS T1
+                         INNER JOIN TB_PDBS_PD_REL T2
+                            ON T1.PD_CD = T2.OJ_PD_CD
+                           AND T2.PD_REL_TP_CD = '05'
+                           AND T2.DTA_DL_YN = 'N'
+                           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                         WHERE T1.DTA_DL_YN = 'N'
+                           AND T2.BASE_PD_CD = S1.SDING_PD_CD
+                       ) AS SDING_PD_CD
+                     , S1.SDING_QTY AS SDING_QTY
+                     , S1.RECAP_CS_AMT AS RECAP_CS_AMT
+                     , (CASE WHEN (SELECT P2.PD_PRP_VAL19
+                                     FROM TB_PDBS_PD_BAS P1
+                                    INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P2
+                                       ON P1.PD_CD 	= P2.PD_CD
+                                      AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
+                                      AND P2.DTA_DL_YN = 'N'
+                                    INNER JOIN TB_PDBS_PD_REL P3
+                                       ON P1.PD_CD = P3.OJ_PD_CD
+                                      AND P3.PD_REL_TP_CD = '05'
+                                      AND P3.DTA_DL_YN = 'N'
+                                      AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                                    WHERE P1.DTA_DL_YN = 'N'
+                                      AND P3.BASE_PD_CD = S1.SDING_PD_CD
+                                  ) = '6' THEN ''
+                             ELSE TO_CHAR(TO_DATE(#{vstRqdt}) - (SELECT P2.PD_PRP_VAL01
+                                                                   FROM TB_PDBS_PD_BAS P1
+                                                                  INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P2
+                                                                     ON P1.PD_CD 	= P2.PD_CD
+                                                                    AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
+                                                                    AND P2.DTA_DL_YN = 'N'
+                                                                  INNER JOIN TB_PDBS_PD_REL P3
+                                                                     ON P1.PD_CD = P3.OJ_PD_CD
+                                                                    AND P3.PD_REL_TP_CD = '05'
+                                                                    AND P3.DTA_DL_YN = 'N'
+                                                                    AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                                                                  WHERE P1.DTA_DL_YN = 'N'
+                                                                    AND P3.BASE_PD_CD = S1.SDING_PD_CD), 'YYYYMMDD')
+                         END) AS SOW_DT
+                     , 'N' AS DTA_DL_YN
+                     , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') AS FST_RGST_DTM
+                     , #{session.userId} AS FST_RGST_USR_ID
+                     , #{session.pageId} AS FST_RGST_PRG_ID
+                     , #{session.ogId} AS FST_RGST_DEPT_ID
+                     , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
+                     , #{session.userId} AS FNL_MDFC_USR_ID
+                     , #{session.pageId} AS FNL_MDFC_PRG_ID
+                     , #{session.ogId} AS FNL_MDFC_DEPT_ID
+                  FROM TB_SVPD_SDING_PRCHS_PROCS_TEMP S1
+               )
+    </insert>
+    <update id="updateAsInstallationAssign">
+        UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ
+           SET SV_CNR_OG_ID = '71394'
+             , AC221_EMP_ID_ENG = '28714'
+              <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND CST_SV_ASN_NO = #{asnCstSvAsnNo}
+    </update>
+    <update id="updateIstObjectKey">
+        UPDATE TB_SVPD_CST_SVAS_IST_OJ_IZ
+           SET CST_SV_ASN_NO = (CASE WHEN #{mtrStatCd} = '3' THEN '' ELSE #{asnCstSvAsnNo})
+              <include refid="COMMON.updateSystemField"/>
+         WHERE AS_IST_OJ_NO = #{AS_IST_OJ_NO}
+    </update>
 </mapper>

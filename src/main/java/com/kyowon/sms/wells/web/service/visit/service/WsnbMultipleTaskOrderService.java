@@ -299,7 +299,7 @@ public class WsnbMultipleTaskOrderService {
                 /*모종 고객이라면 확정되지 않은 해당 방문 스케쥴의 모종 배송 스케쥴을 삭제한다.*/
                 if ("11".equals(itemGr)) {
                     /*확정되지 않은 배송오더의 예정 모종 삭제*/
-                    mapper.deleteSidingShipping(dvo);
+                    mapper.deleteSdingShipping(dvo);
                 }
             }
 
@@ -322,10 +322,55 @@ public class WsnbMultipleTaskOrderService {
                 if ("11".equals(itemGr)) {
                     String vstDtChk = mapper.selectVstDtChk(dvo.getVstRqdt());
                     BizAssert.notNull(vstDtChk, "MSG_ALT_CHK_VSTDT");
-                }
-                /* ---------진행중------ */
 
+                    /* ---------진행중------ */
+                    if (StringUtils.isEmpty(dvo.getPartList())) {
+                        dvo.setExpMat(0);
+                        dvo.setSdingExpMat(0);
+                        dvo.setExpMatSum(0);
+                    } else {
+                        /*파라미터로 받은 모종 정보가 있는지 확인한다*/
+                        /*파라미터를 임시테이블에 하나씩 넣는다.*/
+                        /*2020.01.17 유엔젤주 씨앗패키지 AS접수시 예외처리  */
+                        /* TODO : DB2테이블 확인필요 (INSERT INTO LC_FARM_FA001TB 까지 해야함.)*/
+
+                        /*예정 자재 건수 체크, 자재 중 모정 건수 체크, 전체 유상 비용 합*/
+                        WsnbMultipleTaskOrderDvo res6 = mapper.selectSdingCount();
+                        dvo.setExpMat(res6.getExpMat());
+                        dvo.setSdingExpMat(res6.getSdingExpMat());
+                        dvo.setExpMatSum(res6.getExpMatSum());
+                    }
+                    /*--씨앗 패키지 1월 2월 설치분 상품 코드 활력채패키지(123)으로 변경*/
+                    WsnbMultipleTaskOrderDvo res7 = mapper.selectPdCd(dvo);
+                    dvo.setNewPdCd(res7.getNewPdCd());
+                    dvo.setNewSaleCd(res7.getNewSaleCd());
+
+                    /* sppPlanSn 순번구하기 */
+                    dvo.setSppPlanSn(mapper.selectSppPlanSn(dvo));
+                    /* GET_GOODS_NAME_SALE_CD 값 받아놓기.*/
+                    dvo.setSaleNm(mapper.selectSaleNm(dvo.getNewSaleCd()));
+                    /*배송 스케쥴 테이블 인서트*/
+                    processCount += mapper.insertSdingPlan(dvo);
+
+                    if (dvo.getExpMat() == 0) { /*인터페이스 된 출고 예정 자재 건수가 0 이라면 */
+                        dvo.setPdSize(mapper.selectPdSize(dvo.getNewSaleCd()));
+                        /* 모종정보 인서트(TODO : DB2 테이블확인필요) */
+
+                    } else { /*구매/AS 고객이라면*/
+                        /* 모종정보 인서트 */
+                        processCount += mapper.insertSdingExpByAs(dvo);
+
+                        /*배양액만 배송이라면 담당자를 71394 생산관리팀 28714 최진아 사원으로 업데이트*/
+                        /*20.08.10 새싹시앗 패키지일 경우 택배배송*/
+                        if (dvo.getSdingExpMat() == 0 || (StringUtils.startsWith(dvo.getSaleNm(), "새싹")
+                            && !StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "1"))) {
+                            processCount += mapper.updateAsInstallationAssign(dvo.getAsnCstSvAsnNo());
+                        }
+                    }
+                }
             }
+            /*TB_SVPD_CST_SVAS_IST_OJ_IZ 배정 키 업데이트*/
+            processCount += mapper.updateIstObjectKey(dvo);
 
         }
 
