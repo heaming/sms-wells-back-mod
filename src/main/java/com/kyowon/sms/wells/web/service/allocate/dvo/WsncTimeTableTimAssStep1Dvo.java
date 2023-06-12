@@ -14,7 +14,7 @@ public class WsncTimeTableTimAssStep1Dvo {
     String hmnrscEmpno;
     String prtnrKnm;
     String inGb;
-    String gbCd;
+    String chnlDvCd;
     String satWrkYn;
     String dfYn;
     String dowDvCd;
@@ -23,10 +23,10 @@ public class WsncTimeTableTimAssStep1Dvo {
     String vstPos;
     String rstrCndtUseYn;
     String udsnUseYn;
-    String tWrkCnt;
-    String selDate;
+    String wrkCnt;
+    String sellDate;
     String vstDowValCd;
-    String wrkTypDtl;
-    String kiwiItemCd;
+    String svBizDclsfCd;
+    String pdctPdCd;
     String saleCdList;
 }

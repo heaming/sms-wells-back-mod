@@ -7,7 +7,6 @@ import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncTimeTableMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
-import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -108,13 +107,14 @@ public class WsncTimeTableService {
         List<WsncTimeTableTimAssStep1Dvo> step1 = null;
         List<WsncTimeTableTimAssStep2Dvo> step2 = null;
         List<WsncTimeTableTimAssStep3Dvo> step3 = null;
+
         try {
 
             String chnlDvCd = StringUtil.isEmpty(req.chnlDvCd()) ? "K" : req.chnlDvCd();
             String cntrNo = req.cntrNo(); // W20222324935
             String cntrSn = req.cntrSn(); // 1
             String inGb = req.inGb(); //bypass
-            String svDvCd = StringUtil.nvl(req.svDvCd(),""); // dataGb
+            String svDvCd = StringUtil.nvl(req.svDvCd(), ""); // dataGb
             String wrkDt = req.wrkDt(); // P_WRK_DT
             String seq = req.seq(); // P_SEQ
             String dataStatCd = req.dtaStatCd();
@@ -124,6 +124,7 @@ public class WsncTimeTableService {
             String returnurl = req.returnUrl();
 
             String newAdrZip = "";
+            String contDt = "";
             String sellDate = StringUtil.isEmpty(req.sellDate()) ? DateUtil.getNowDayString() : req.sellDate();
             String basePdCd = ""; // gdsCd
             String pdctPdCd = ""; // gdsCd
@@ -193,7 +194,6 @@ public class WsncTimeTableService {
             log.debug("M      : 매니저");
             log.debug("chnlDvCd(gbCd):  {}", chnlDvCd);
             log.debug("--------------------------------------------------");
-            //------------------------------------------------------
 
             WsncTimeTableCntrDvo cntrDvo = mapper.selectCntr(cntrNo, cntrSn);
             WsncTimeTableProductDvo ProductDvo = mapper.selectProduct(cntrDvo.getBasePdCd(), cntrDvo.getPdctPdCd());
@@ -218,7 +218,6 @@ public class WsncTimeTableService {
                 //lcpkag = mapper.selectOjPdCd(lcpkag);
                 //------------------------------------------------------
 
-                // @TODO 하드코딩 이해욱 이사님께 문의 필요
                 // WM05106364: 건강샐러드&주스 일시불 패키지 WIDE
                 // WM05106365: 건강샐러드&주스 일시불 패키지 SLIM
                 // WM05106366: 우리아이 채소식단 일시불 패키지 WIDE
@@ -234,7 +233,7 @@ public class WsncTimeTableService {
                     //------------------------------------------------------
                     // getMojongDays_ilsibul
                     ableDays = this.mapper
-                        .selectSidingDaysSpay(lcst09, sellDate.substring(0, 6), basePdCd, svDvCd, pdctPdCd, cntrNo);
+                        .selectSidingDaysSpay(lcst09, sellDate, basePdCd, svDvCd, pdctPdCd, cntrNo);
                     //------------------------------------------------------
 
                     boolean chk_add_40days = false;
@@ -275,7 +274,7 @@ public class WsncTimeTableService {
             // ---------------------------------------------------------
             addGb = mapper.selectAddGb(basePdCd);
             //------------------------------------------------------
-            //pdctPdCd = mapper.selectKiwiItemCode(basePdCd);//고재상품
+            //pdctPdCd = mapper.selectKiwiItemCode(basePdCd);
             //------------------------------------------------------
 
             //홈케어 상품일 경우 , KIWI 상품코드로 변경
@@ -283,10 +282,10 @@ public class WsncTimeTableService {
                 basePdCd = cntrDvo.getBasePdCd();
             }
 
-            //            newAdrZip = custDetail.getZip();
-            //            contDt = custDetail.getCntrDt();
-            //            lcwgub = custDetail.getCopnDvCd();
-            //            sellDscDbCd = custDetail.getSellDscDvCd();
+            newAdrZip = cntrDvo.getAdrZip();
+            contDt = cntrDvo.getCntrDt();
+            //lcwgub = cntrDvo.getCopnDvCd();
+            //sellDscDbCd = cntrDvo.getSellDscDvCd();
 
             // Cubig CC 홈케어 조회용 타임테이블 http://ccwells.kyowon.co.kr/obm/obm0800/obm0800.jsp
             // KSS접수와 동일하게 하기위해 (백현아 K 요청)
@@ -299,24 +298,26 @@ public class WsncTimeTableService {
                 returnurl = "http://ccwells.kyowon.co.kr/obm/obm0800/obm0800.jsp";
             }
 
-            String prtnrNo = "";
-            if(StringUtil.isEmpty(svDvCd)){
-                //<isEmpty property="DATA_GB">
-                //  AND AC021_EMP_ID = GET_LOCAL_EMP_ID3(TRIM(#ZIP_NO#), #KIWI_ITEM_CD#, #WRK_TYP_DTL#, #SEL_DATE#)
-                //</isEmpty>
-                prtnrNo = mapper.selectFnSvpdLocaraPrtnr01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate);
-            }
+            String prtnrNo01 = mapper.selectFnSvpdLocaraPrtnr01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate);
+            String prtnrNoBS01 = mapper.selectFnSvpdLocaraPrtnrBs01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate, "");
+            String prtnrNoOwr01 = mapper.selectFnSvpdLocaraPrtnrOwr01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate);
 
-            if(svDvCd.equals("2") && gbCd){
-
-            }
-
-
-            //엔지니어 조회
+            // 책임지역 담당자 찾기
             step1 = mapper.selectTimeAssignStep1(
-                chnlDvCd, sellDate, newAdrZip, svDvCd, cntrNo, inGb, svBizDclsfCd, pdctPdCd, empId
-            ); // 책임지역 담당자 찾기
-                                                                                                                                      // 담당자 정보 표시 (왼쪽)
+                chnlDvCd,
+                sellDate,
+                newAdrZip,
+                svDvCd,
+                cntrNo,
+                inGb,
+                svBizDclsfCd,
+                pdctPdCd,
+                prtnrNo01,
+                prtnrNoBS01,
+                prtnrNoOwr01,
+                ""
+            );
+            // 담당자 정보 표시 (왼쪽)
             step2 = mapper.selectTimeAssignStep2(step1.get(0));
             // 시간표시
             step3 = mapper.selectTimeAssignStep3(step1.get(0));
@@ -328,11 +329,11 @@ public class WsncTimeTableService {
                 newAdrZip, // newAdrZip
                 basePdCd, // basePdCd
                 "", // gdsCdList
-                svDvCd, // svBizHclsfCd
-                DateUtil.getNowDayString(), // contDt
+                svDvCd, // dataGb
+                contDt, // contDt
                 chnlDvCd, // gbCd
-                svBizDclsfCd, // svBizDclsfCd
-                empId, // prtnrNo
+                svBizDclsfCd, // wrkTypDtl
+                userId, // P_USER_ID
                 step1.get(0).getRpbLocaraCd(), // localGb
                 lcwgub, // lcwgub
                 sellDscDbCd, // lcetc3
@@ -344,23 +345,26 @@ public class WsncTimeTableService {
 
             result.getSmPmNt().clear();
             result.setOffDays(offdays);
-            result.setTimAssStep2(step2); // left_info
-            result.setTimAssStep3(step3); // list1
+            result.setTimAssStep2(step2);
+            result.setTimAssStep3(step3);
             result.setAbleDays(ableDays);
-            result.setZip(newAdrZip);
+            result.setNewAdrZip(newAdrZip);
             result.setCurDateTimeString(DateUtil.getNowDayString());
             result.setSelDate(sellDate);
             result.setChnlDvCd(chnlDvCd);
             result.setCntrNo(cntrNo);
-            result.setInGb(inGb);
-            result.setWrkDt(svDvCd);
-            result.setDtaStatCd(dataStatCd);
+            result.setCntrSn(cntrSn);
+            result.setInGb(inGb);//bypass
+            result.setWrkDt(wrkDt);
+            result.setDataStatCd(dataStatCd);
             result.setSvBizDclsfCd(svBizDclsfCd);
-            result.setGdsCd(basePdCd);
-            result.setEmpId(empId);
+            result.setBasePdCd(basePdCd);
+            result.setUserId(userId);
             result.setDiableDays(diabledays);
-            result.setPajongDay(sowDay);
+            result.setSowDay(sowDay);//pajong_day
             result.setLcst09(lcst09);
+            result.setReturnurl(returnurl);
+            result.setMkCo(mkCo);//bypass
 
             for (int i = 0; i < step3.size(); i++) {
                 WsncTimeTableSmPmNtDvo smPmNtDvo = new WsncTimeTableSmPmNtDvo();

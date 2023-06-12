@@ -17,26 +17,29 @@ public class WsncTimeTableSalesDvo {
     String dfYn;
     String phldYn;
     String rmkCn;
-    String zip;
+    String newAdrZip;
     String svBizDclsfCd; //wrkTypDtl
     String inGb;
     String chnlDvCd; //gbCd
     String svDvCd; //dataGb
     String cntrNo;
+    String cntrSn;
     String selDate;
     String ordDt;
     String ordSeq;
-    String empId;
+    String userId;
     String saleCd;
     String addGb;
     String offDays;
     String curDateTimeString;
     String wrkGb;
     String wrkDt;
-    String dtaStatCd; // =P_DATA_STUS
-    String gdsCd;
-    String pajongDay;
-    String lcst09;
+    String dataStatCd; // =P_DATA_STUS
+    String basePdCd;
+    String sowDay;
+    String lcst09; // 확인필요
+    String returnurl;
+    String mkCo;
 
     List<WsncTimeTableSidingDaysDvo> list;
     List<WsncTimeTableMonthScheduleDvo> ordCnt;

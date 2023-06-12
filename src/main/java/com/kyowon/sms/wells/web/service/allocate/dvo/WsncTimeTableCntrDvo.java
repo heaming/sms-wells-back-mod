@@ -18,4 +18,5 @@ public class WsncTimeTableCntrDvo {
     String pdctPdNm;
     String pdGrpCd;
     String pdGrpNm;
+    String cntrDt;
 }

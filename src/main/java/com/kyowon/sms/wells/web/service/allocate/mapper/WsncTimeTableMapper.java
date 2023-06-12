@@ -31,26 +31,28 @@ public interface WsncTimeTableMapper {
 
     //String selectItemcode(String cntrNo);
 
-    String selectLocalEmpinfo(String zip, String wrkTypDtl, String selDate, String saleCd);
+    //String selectLocalEmpinfo(String zip, String wrkTypDtl, String selDate, String saleCd);
 
     //String selectFarmYn(String basePdCd, String svDvCd);
 
     //WsncTimeTablePackageDvo selectPackage(String sidingCd, String baePdCd, String cntrNo);
     WsncTimeTableCntrDvo selectCntr(String cntrNo, String cntrSn);
+
     WsncTimeTableProductDvo selectProduct(String basePdCd, String pdctPdCd);
 
     //String selectOjPdCd(String saleCd);
 
-    List<WsncTimeTableSidingDaysDvo> selectSidingDaysKiwim(String saleCd);
+    //List<WsncTimeTableSidingDaysDvo> selectSidingDaysKiwim(String saleCd);
+
     List<WsncTimeTableSidingDaysDvo> selectSidingDays(String saleCd);//getMojongDays
 
-    List<WsncTimeTableMonthScheduleDvo> selectMonthSchedule(String prtnrNo);
+    //List<WsncTimeTableMonthScheduleDvo> selectMonthSchedule(String prtnrNo);
 
     List<WsncTimeTableDisableDaysDvo> selectDiableDays(
         String addGb,
         String selDate,
         String exYn,
-        String zip,
+        String newAdrZip,
         String gdsCd,
         String gdsCdList,
         String dataGb,
@@ -76,11 +78,32 @@ public interface WsncTimeTableMapper {
     String selectAddGb(String saleCd);
     //String selectKiwiItemCode(String saleCd);
 
-    String selectFnSvpdLocaraPrtnr01(String zip, String kiwiItemCd, String wrkTypDtl, String selDate);
+    String selectFnSvpdLocaraPrtnr01(String newAdrZip, String pdctPdCd, String svBizDclsfCd, String sellDate);
 
-    List<WsncTimeTableTimAssStep1Dvo> selectTimeAssignStep1(String gbCd, String selDate, String zip, String dataGb, String cntrNo, String inGb, String wrkTypDtl, String kiwiItemCd, String prtnrNo);
+    String selectFnSvpdLocaraPrtnrOwr01(String newAdrZip, String pdctPdCd, String svBizDclsfCd, String sellDate);
+
+    String selectFnSvpdLocaraPrtnrBs01(
+        String newAdrZip, String pdctPdCd, String svBizDclsfCd, String sellDate, String vstGb
+    );
+
+    List<WsncTimeTableTimAssStep1Dvo> selectTimeAssignStep1(
+        String chnlDvCd, // GB_CD
+        String sellDate,
+        String newAdrZip,
+        String svDvCd, // DATA_GB
+        String cntrNo,
+        String inGb, // IN_GB
+        String svBizDclsfCd, // WRK_TYP_DTL
+        String pdctPdCd, // KIWI_ITEM_CD
+        String prtnrNo01,
+        String prtnrNoBS01,
+        String prtnrNoOwr01,
+        String cstSvAsnNo
+    );
+
     List<WsncTimeTableTimAssStep2Dvo> selectTimeAssignStep2(WsncTimeTableTimAssStep1Dvo dvo);
+
     List<WsncTimeTableTimAssStep3Dvo> selectTimeAssignStep3(WsncTimeTableTimAssStep1Dvo dvo);
 
-    String selectOffDays(String selDate, String zip);
+    String selectOffDays(String selDate, String newAdrZip);
 }
