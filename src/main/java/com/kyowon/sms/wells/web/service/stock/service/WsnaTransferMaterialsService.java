@@ -43,6 +43,11 @@ public class WsnaTransferMaterialsService {
     // 메시지 서비스
     private final MessageResourceService messageService;
 
+    // 출고
+    private static final String GUBUN_OSTR = "O";
+    // 입고
+    private static final String GUBUN_STR = "I";
+
     /**
      * 물량이동 수불 데이터 처리
      * @param dvo   (필수) 물량이동 request dvo
@@ -167,7 +172,7 @@ public class WsnaTransferMaterialsService {
         this.mapper.insertItmStrIz(dvo);
 
         // 품목재고내역 등록 - 출고창고
-        WsnaItemStockItemizationDto.SaveReq ostrStockReq = this.convertStockItemizationCreateReq(dvo, "O");
+        WsnaItemStockItemizationDto.SaveReq ostrStockReq = this.convertStockItemizationCreateReq(dvo, GUBUN_OSTR);
         this.stockService.createStock(ostrStockReq);
 
         // 품목재고내역 이동 - 입고창고
@@ -175,7 +180,7 @@ public class WsnaTransferMaterialsService {
         this.stockService.saveStockMovement(strMoveReq);
 
         // 품목재고내역 등록 - 입고창고
-        WsnaItemStockItemizationDto.SaveReq strStockReq = this.convertStockItemizationCreateReq(dvo, "I");
+        WsnaItemStockItemizationDto.SaveReq strStockReq = this.convertStockItemizationCreateReq(dvo, GUBUN_STR);
         this.stockService.createStock(strStockReq);
 
         // 품목출고내역 입고처리
@@ -204,10 +209,10 @@ public class WsnaTransferMaterialsService {
 
         String procsYm = nowDay.substring(0, 6);
 
-        String wareDv = "O".equals(iostGb) ? dvo.getOstrWareDvCd() : dvo.getStrWareDvCd();
-        String wareNo = "O".equals(iostGb) ? dvo.getOstrOjWareNo() : dvo.getStrOjWareNo();
-        String wareMngtPrtnrNo = "O".equals(iostGb) ? dvo.getOstrPrtnrNo() : dvo.getStrPrtnrNo();
-        String iostTp = "O".equals(iostGb) ? dvo.getOstrTpCd() : dvo.getStrTpCd();
+        String wareDv = GUBUN_OSTR.equals(iostGb) ? dvo.getOstrWareDvCd() : dvo.getStrWareDvCd();
+        String wareNo = GUBUN_OSTR.equals(iostGb) ? dvo.getOstrOjWareNo() : dvo.getStrOjWareNo();
+        String wareMngtPrtnrNo = GUBUN_OSTR.equals(iostGb) ? dvo.getOstrPrtnrNo() : dvo.getStrPrtnrNo();
+        String iostTp = GUBUN_OSTR.equals(iostGb) ? dvo.getOstrTpCd() : dvo.getStrTpCd();
 
         String workDiv = dvo.getItmGdCd();
         String itmPdCd = dvo.getItmPdCd();
@@ -267,7 +272,7 @@ public class WsnaTransferMaterialsService {
         List<WsnaTransferMaterialsStrDvo> strDvos = this.mapper.selectItmStrIz(dvo);
         if (CollectionUtils.isNotEmpty(strDvos)) {
             // 출고요청번호 채번, 물량이동
-            String newOstrAkNo = this.mapper.selectNewOstrAkNo("320");
+            String newOstrAkNo = this.mapper.selectNewOstrAkNo(SnServiceConst.OSTR_AK_TP_CD_QOM_MMT);
             // 품목출고번호 채번, 물량이동
             String newItmOstrNo = this.mapper.selectNewItmOstrNo(SnServiceConst.QOM_MMT_OSTR);
             // 품목입고번호 채번, 물량이동
@@ -285,7 +290,7 @@ public class WsnaTransferMaterialsService {
 
                 ostrAkDvo.setOstrAkNo(newOstrAkNo);
                 ostrAkDvo.setOstrAkSn(newOstrAkSn);
-                ostrAkDvo.setOstrAkTpCd("320");
+                ostrAkDvo.setOstrAkTpCd(SnServiceConst.OSTR_AK_TP_CD_QOM_MMT);
                 ostrAkDvo.setStrQty(strDvo.getStrQty());
                 ostrAkDvo.setItmKndCd(strDvo.getItmKndCd());
                 ostrAkDvo.setItmPdCd(strDvo.getItmPdCd());
@@ -346,7 +351,7 @@ public class WsnaTransferMaterialsService {
         List<WsnaTransferMaterialsStrDvo> strDvos = this.mapper.selectItmStrIz(dvo);
         if (CollectionUtils.isNotEmpty(strDvos)) {
             // 출고요청번호 채번, 정상출고
-            String newOstrAkNo = this.mapper.selectNewOstrAkNo("310");
+            String newOstrAkNo = this.mapper.selectNewOstrAkNo(SnServiceConst.OSTR_AK_TP_CD_NOM_OSTR);
             // 품목출고번호 채번, 정상출고
             String newItmOstrNo = this.mapper.selectNewItmOstrNo(SnServiceConst.NOM_OSTR);
             // 품목입고번호 채번, 정상입고
@@ -402,7 +407,7 @@ public class WsnaTransferMaterialsService {
 
         WsnaTransferMaterialsOstrAkDvo ostrAkDvo = new WsnaTransferMaterialsOstrAkDvo();
 
-        ostrAkDvo.setOstrAkTpCd("310");
+        ostrAkDvo.setOstrAkTpCd(SnServiceConst.OSTR_AK_TP_CD_NOM_OSTR);
 
         ostrAkDvo.setStrOjWareNo(dataDvo.getStrOjWareNo());
         ostrAkDvo.setOstrAkWareDvCd(dataDvo.getStrWareDvCd());

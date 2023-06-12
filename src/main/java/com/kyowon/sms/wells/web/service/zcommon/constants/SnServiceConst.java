@@ -54,6 +54,14 @@ public class SnServiceConst {
     public static final String MMT_STR = "991";
 
     /**
+     * OSTR_AK_TP_CD (출고요청유형코드)
+     */
+    // 정상출고(310)
+    public static final String OSTR_AK_TP_CD_NOM_OSTR = "310";
+    // 물량이동(320)
+    public static final String OSTR_AK_TP_CD_QOM_MMT = "320";
+
+    /**
      * SAP 관련 코드
      */
     // (주)교원프라퍼티
