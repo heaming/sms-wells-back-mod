@@ -98,10 +98,6 @@ public class WsncTimeTableService {
     public WsncTimeTableSalesDto.findRes getTmeAssignSales(WsncTimeTableSalesDto.findReq req) {
 
         log.debug("----------------------------------- 타임테이블 조회(판매) -----------------------------------------");
-        //http://10.6.9.53:8083/KIWI-W/timeAssign.do?GB_CD=P&DATA_GB=1&P_GDS_CD=4415&SEL_DATE=20181211&SEL_TIME=&ZIPNO1=052&ZIPNO2=40&returnUrl=https%3A%2F%2Fwww.kwmembers.com
-        //http://10.6.9.53:8083/KIWI-W/timeAssign.do?GB_CD=P&DATA_GB=1&P_GDS_CD=4415&SEL_DATE=20181211&SEL_TIME=&ZIPNO1=052&ZIPNO2=40&returnUrl=https%3A%2F%2Fwww.kwmembers.com
-        //http://10.6.9.53:8083/KIWI-W/timeAssign.do?GB_CD=P&DATA_GB=1&P_GDS_CD=4415&SEL_DATE=20181211&SEL_TIME=&ZIPNO1=052&ZIPNO2=40&returnUrl=https%3A%2F%2Fwww.kwmembers.com
-
         WsncTimeTableSalesDvo result = new WsncTimeTableSalesDvo();
         List<WsncTimeTableSidingDaysDvo> ableDays = null;
         List<WsncTimeTableTimAssStep1Dvo> step1 = null;
@@ -117,7 +113,7 @@ public class WsncTimeTableService {
             String svDvCd = StringUtil.nvl(req.svDvCd(), ""); // dataGb
             String wrkDt = req.wrkDt(); // P_WRK_DT
             String seq = req.seq(); // P_SEQ
-            String dataStatCd = req.dtaStatCd();
+            String dataStatCd = req.dataStatCd(); //DATA_STUS
             String svBizDclsfCd = req.svBizDclsfCd(); // wrkTypDtl
             // ---------------------------------------------------------
             String userId = req.userId();
@@ -317,6 +313,20 @@ public class WsncTimeTableService {
                 prtnrNoOwr01,
                 ""
             );
+
+            log.debug("chnlDvCd: {}", chnlDvCd);
+            log.debug("sellDate: {}", sellDate);
+            log.debug("newAdrZip: {}", newAdrZip);
+            log.debug("svDvCd: {}", svDvCd);
+            log.debug("cntrNo: {}", cntrNo);
+            log.debug("inGb: {}", inGb);
+            log.debug("svBizDclsfCd: {}", svBizDclsfCd);
+            log.debug("pdctPdCd: {}", pdctPdCd);
+            log.debug("prtnrNo01: {}", prtnrNo01);
+            log.debug("prtnrNoBS01: {}", prtnrNoBS01);
+            log.debug("prtnrNoOwr01: {}", prtnrNoOwr01);
+
+
             // 담당자 정보 표시 (왼쪽)
             step2 = mapper.selectTimeAssignStep2(step1.get(0));
             // 시간표시
@@ -365,6 +375,7 @@ public class WsncTimeTableService {
             result.setLcst09(lcst09);
             result.setReturnurl(returnurl);
             result.setMkCo(mkCo);//bypass
+            result.setSeq(seq);
 
             for (int i = 0; i < step3.size(); i++) {
                 WsncTimeTableSmPmNtDvo smPmNtDvo = new WsncTimeTableSmPmNtDvo();

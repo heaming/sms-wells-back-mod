@@ -124,7 +124,9 @@
             ON S1.PDCT_PD_CD = P3.PD_CD
            AND P3.PD_EXTS_PRP_GRP_CD = 'PART'
          WHERE C2.CNTR_NO = #{cntrNo}
+           <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
            AND C2.CNTR_SN = #{cntrSn}
+           </if>
     </select>
 
     <select id="selectProduct" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableProductDvo">
@@ -1529,6 +1531,7 @@
                                                                  AND #{sellDate} BETWEEN PIC.APY_STRTDT AND PIC.APY_ENDDT))
 
            <if test='@MybatisUtils@isEmpty(svDvCd)'>
+            -- svDvCd is null
            AND T4.HMNRSC_EMPNO = #{prtnrNo01}
            </if>
 
@@ -1536,39 +1539,46 @@
              <if test='!@MybatisUtils@equals(svDvCd, "2")'>
                <if test='@MybatisUtils@isNotEmpty(chnlDvCd)'>
                  <if test='@MybatisUtils@equals(chnlDvCd, "I")'>
-           AND T4.HMNRSC_EMPNO = #{prtnrNoOwr01}
+                 -- svDvCd!=2, chnlDvCd = I
+                 AND T4.HMNRSC_EMPNO = #{prtnrNoOwr01}
                  </if>
                  <if test='!@MybatisUtils@equals(chnlDvCd, "I")'>
                    <if test='@MybatisUtils@equals(chnlDvCd, "C")'>
-           AND T4.HMNRSC_EMPNO = (CASE WHEN {selDate} = TO_CHAR(SYSDATE, 'YYYYMMDD')
-                                       THEN #{prtnrNoOwr01}
-                                       ELSE #{prtnrNo01}
-                                  END)
+                   -- svDvCd!=2, chnlDvCd = C
+                   AND T4.HMNRSC_EMPNO = (CASE WHEN #{sellDate} = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                                               THEN #{prtnrNoOwr01}
+                                               ELSE #{prtnrNo01}
+                                          END)
                    </if>
                    <if test='!@MybatisUtils@equals(chnlDvCd, "C")'>
-           AND T4.HMNRSC_EMPNO = #{prtnrNo01}
+                   -- svDvCd!=2, chnlDvCd != C
+                   AND T4.HMNRSC_EMPNO = #{prtnrNo01}
                    </if>
                  </if>
                </if>
                <if test='@MybatisUtils@isEmpty(chnlDvCd)'>
-           AND T4.HMNRSC_EMPNO = #{prtnrNo01}
+               -- svDvCd!=2, chnlDvCd is null
+               AND T4.HMNRSC_EMPNO = #{prtnrNo01}
                </if>
              </if>
-             <if test='!@MybatisUtils@equals(svDvCd, "2")'>
+             <if test='@MybatisUtils@equals(svDvCd, "2")'>
                <if test='@MybatisUtils@isNotEmpty(chnlDvCd)'>
                  <if test='@MybatisUtils@equals(chnlDvCd, "I")'>
-           /*2021.04.30 최정문파트장님 요청 BS이관기록이 있을경우 담당자 본인 배정 */
-           AND T4.HMNRSC_EMPNO = (SELECT CASE WHEN (ASN_TF_DV_CD IS NOT NULL AND ASN_TF_DV_CD != '411') THEN CNFM_PSIC_PRTNR_NO /*확정담당자파트너번호*/
-                                             ELSE #{prtnrNoBS01} END
-                                   FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*고객서비스BS배정내역*/
-                                  WHERE CST_SV_ASN_NO = #{cstSvAsnNo})
+                 -- svDvCd=2, chnlDvCd = I
+                 /*2021.04.30 최정문파트장님 요청 BS이관기록이 있을경우 담당자 본인 배정 */
+                 AND T4.HMNRSC_EMPNO = (SELECT CASE WHEN (ASN_TF_DV_CD IS NOT NULL AND ASN_TF_DV_CD != '411') THEN CNFM_PSIC_PRTNR_NO /*확정담당자파트너번호*/
+                                                   ELSE #{prtnrNoBS01} END
+                                         FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*고객서비스BS배정내역*/
+                                        WHERE CST_SV_ASN_NO = #{cstSvAsnNo})
                  </if>
                  <if test='!@MybatisUtils@equals(chnlDvCd, "I")'>
-           AND T4.HMNRSC_EMPNO = #{prtnrNoBS01}
+                 -- svDvCd=2, chnlDvCd != I
+                 AND T4.HMNRSC_EMPNO = #{prtnrNoBS01}
                  </if>
                </if>
                <if test='@MybatisUtils@isEmpty(chnlDvCd)'>
-           AND T4.HMNRSC_EMPNO = #{prtnrNoBS01}
+               -- svDvCd=2, chnlDvCd is null
+               AND T4.HMNRSC_EMPNO = #{prtnrNoBS01}
                </if>
              </if>
            </if>

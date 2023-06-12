@@ -37,10 +37,10 @@ public class WsncTimeTableController {
         @ApiImplicitParam(name = "dataStatCd", value = "", paramType = "query"), // P_DATA_STUS
         @ApiImplicitParam(name = "svBizDclsfCd", value = "", paramType = "query"), // P_WRK_TYP_DTL
         @ApiImplicitParam(name = "emeId", value = "", paramType = "query"), // P_USER_ID
-        @ApiImplicitParam(name = "returnurl", value = "", paramType = "query"), // returnurl
         @ApiImplicitParam(name = "basePdCd", value = "", paramType = "query"), // P_GDS_CD
         @ApiImplicitParam(name = "sellDate", value = "", paramType = "query"), // P_SELDATE
-        @ApiImplicitParam(name = "P_MK_CO", value = "", paramType = "query"), // P_MK_CO
+        @ApiImplicitParam(name = "mkCo", value = "", paramType = "query"), // P_MK_CO
+        @ApiImplicitParam(name = "returnurl", value = "", paramType = "query"), // returnurl
     })
     @GetMapping("/time-assign-sales")
     public WsncTimeTableSalesDto.findRes getTmeAssignSales(WsncTimeTableSalesDto.findReq req) {

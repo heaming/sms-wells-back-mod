@@ -12,23 +12,22 @@ public class WsncTimeTableSalesDto {
     @ApiModel(value = "WsncTimeTableSalesDto-findReq")
     public record findReq(
         @NotBlank
-        String chnlDvCd,
+        String chnlDvCd, // gbCd
         @NotBlank
         String svDvCd, // DATA_GB
         @NotBlank
         String sellDate, // SEL_DATE
         @NotBlank
-        String svBizDclsfCd,
+        String svBizDclsfCd, // wrkTypDtl
         @NotBlank
         String cntrNo,
-        @NotBlank
         String cntrSn,
-        String sidingCd, // MOJONG_CD
+
         String inGb,
         String basePdCd, // GDS_CD
         String wrkDt,
         String seq,
-        String dtaStatCd, // DATA_STUS
+        String dataStatCd, // DATA_STUS
         String returnUrl,
         String userId,
         String mkCo

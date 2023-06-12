@@ -40,6 +40,7 @@ public class WsncTimeTableSalesDvo {
     String lcst09; // 확인필요
     String returnurl;
     String mkCo;
+    String seq;
 
     List<WsncTimeTableSidingDaysDvo> list;
     List<WsncTimeTableMonthScheduleDvo> ordCnt;
