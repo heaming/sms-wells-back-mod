@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaTransferMaterialsConverter;
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaItemStockItemizationDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.*;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaTransferMaterialsMapper;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
@@ -47,6 +46,8 @@ public class WsnaTransferMaterialsService {
     private static final String GUBUN_OSTR = "O";
     // 입고
     private static final String GUBUN_STR = "I";
+    // 작업구분 - 등록
+    private static final String WORK_DIV_A = "A";
 
     /**
      * 물량이동 수불 데이터 처리
@@ -172,15 +173,15 @@ public class WsnaTransferMaterialsService {
         this.mapper.insertItmStrIz(dvo);
 
         // 품목재고내역 등록 - 출고창고
-        WsnaItemStockItemizationDto.SaveReq ostrStockReq = this.convertStockItemizationCreateReq(dvo, GUBUN_OSTR);
+        WsnaItemStockItemizationReqDvo ostrStockReq = this.convertStockItemizationCreateReq(dvo, GUBUN_OSTR);
         this.stockService.createStock(ostrStockReq);
 
         // 품목재고내역 이동 - 입고창고
-        WsnaItemStockItemizationDto.SaveReq strMoveReq = this.convertStockItemizationMoveReq(dvo);
+        WsnaItemStockItemizationReqDvo strMoveReq = this.convertStockItemizationMoveReq(dvo);
         this.stockService.saveStockMovement(strMoveReq);
 
         // 품목재고내역 등록 - 입고창고
-        WsnaItemStockItemizationDto.SaveReq strStockReq = this.convertStockItemizationCreateReq(dvo, GUBUN_STR);
+        WsnaItemStockItemizationReqDvo strStockReq = this.convertStockItemizationCreateReq(dvo, GUBUN_STR);
         this.stockService.createStock(strStockReq);
 
         // 품목출고내역 입고처리
@@ -196,9 +197,9 @@ public class WsnaTransferMaterialsService {
      * 재고내역 파라미터 변환
      * @param dvo       (필수) 품목 입/출고 dvo
      * @param iostGb    (필수) 입출고 구분 (O : 출고, I : 입고)
-     * @return 재고등록 request dto
+     * @return 재고등록 request dvo
      */
-    private WsnaItemStockItemizationDto.SaveReq convertStockItemizationCreateReq(
+    private WsnaItemStockItemizationReqDvo convertStockItemizationCreateReq(
         WsnaTransferMaterialsIostDvo dvo, String iostGb
     ) {
 
@@ -207,52 +208,52 @@ public class WsnaTransferMaterialsService {
 
         String nowDay = DateUtil.getNowDayString();
 
-        String procsYm = nowDay.substring(0, 6);
-
         String wareDv = GUBUN_OSTR.equals(iostGb) ? dvo.getOstrWareDvCd() : dvo.getStrWareDvCd();
         String wareNo = GUBUN_OSTR.equals(iostGb) ? dvo.getOstrOjWareNo() : dvo.getStrOjWareNo();
         String wareMngtPrtnrNo = GUBUN_OSTR.equals(iostGb) ? dvo.getOstrPrtnrNo() : dvo.getStrPrtnrNo();
         String iostTp = GUBUN_OSTR.equals(iostGb) ? dvo.getOstrTpCd() : dvo.getStrTpCd();
 
-        String workDiv = dvo.getItmGdCd();
-        String itmPdCd = dvo.getItmPdCd();
-        String mngtUnit = dvo.getMngtUnitCd();
-        String itemGd = dvo.getItmGdCd();
-        String qty = String.valueOf(dvo.getOstrAkQty());
+        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
+        reqDvo.setProcsYm(nowDay.substring(0, 6));
+        reqDvo.setProcsDt(nowDay);
+        reqDvo.setWareDv(wareDv);
+        reqDvo.setWareNo(wareNo);
+        reqDvo.setWareMngtPrtnrNo(wareMngtPrtnrNo);
+        reqDvo.setIostTp(iostTp);
+        reqDvo.setWorkDiv(WORK_DIV_A);
+        reqDvo.setItmPdCd(dvo.getItmPdCd());
+        reqDvo.setMngtUnit(dvo.getMngtUnitCd());
+        reqDvo.setItemGd(dvo.getItmGdCd());
+        reqDvo.setQty(String.valueOf(dvo.getOstrAkQty()));
 
-        return new WsnaItemStockItemizationDto.SaveReq(
-            procsYm, nowDay, wareDv, wareNo, wareMngtPrtnrNo, iostTp, workDiv, itmPdCd, mngtUnit, itemGd, qty, null,
-            null, null
-        );
+        return reqDvo;
     }
 
     /**
      * 재고이동 파라미터 변환
      * @param dvo   (필수) 품목 입/출고 dvo
-     * @return 재고이동 request dto
+     * @return 재고이동 request dvo
      */
-    private WsnaItemStockItemizationDto.SaveReq convertStockItemizationMoveReq(WsnaTransferMaterialsIostDvo dvo) {
+    private WsnaItemStockItemizationReqDvo convertStockItemizationMoveReq(WsnaTransferMaterialsIostDvo dvo) {
 
         ValidAssert.notNull(dvo);
 
         String nowDay = DateUtil.getNowDayString();
-
-        String procsYm = nowDay.substring(0, 6);
-        String wareDv = dvo.getStrWareDvCd();
-        String wareNo = dvo.getStrOjWareNo();
-        String wareMngtPrtnrNo = dvo.getStrPrtnrNo();
+        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
+        reqDvo.setProcsYm(nowDay.substring(0, 6));
+        reqDvo.setProcsDt(nowDay);
+        reqDvo.setWareDv(dvo.getStrWareDvCd());
+        reqDvo.setWareNo(dvo.getStrOjWareNo());
+        reqDvo.setWareMngtPrtnrNo(dvo.getStrPrtnrNo());
         // 이동입고(991)
-        String iostTp = SnServiceConst.MMT_STR;
-        String workDiv = dvo.getItmGdCd();
-        String itmPdCd = dvo.getItmPdCd();
-        String mngtUnit = dvo.getMngtUnitCd();
-        String itemGd = dvo.getItmGdCd();
-        String qty = String.valueOf(dvo.getOstrAkQty());
+        reqDvo.setIostTp(SnServiceConst.MMT_STR);
+        reqDvo.setWorkDiv(WORK_DIV_A);
+        reqDvo.setItmPdCd(dvo.getItmPdCd());
+        reqDvo.setMngtUnit(dvo.getMngtUnitCd());
+        reqDvo.setItemGd(dvo.getItmGdCd());
+        reqDvo.setQty(String.valueOf(dvo.getOstrAkQty()));
 
-        return new WsnaItemStockItemizationDto.SaveReq(
-            procsYm, nowDay, wareDv, wareNo, wareMngtPrtnrNo, iostTp, workDiv, itmPdCd, mngtUnit, itemGd, qty, null,
-            null, null
-        );
+        return reqDvo;
     }
 
     /**

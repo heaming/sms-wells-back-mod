@@ -1,10 +1,11 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
-import com.kyowon.sms.wells.web.service.stock.dto.WsnaItemStockItemizationDto;
-import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationDvo;
+import static com.kyowon.sms.wells.web.service.stock.dto.WsnaItemStockItemizationDto.SaveReq;
+
 import org.apache.ibatis.annotations.Mapper;
 
-import static com.kyowon.sms.wells.web.service.stock.dto.WsnaItemStockItemizationDto.*;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationDvo;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 
 /**
  * <pre>
@@ -16,9 +17,15 @@ import static com.kyowon.sms.wells.web.service.stock.dto.WsnaItemStockItemizatio
  */
 @Mapper
 public interface WsnaItemStockItemizationMapper {
+    @Deprecated
     int selectCountItmPdCdInfo(SaveReq dto);
 
+    int selectCountItmPdCdInfo(WsnaItemStockItemizationReqDvo dvo);
+
+    @Deprecated
     WsnaItemStockItemizationDvo selectItmPdCdInformation(SaveReq dto);
+
+    WsnaItemStockItemizationDvo selectItmPdCdInformation(WsnaItemStockItemizationReqDvo dvo);
 
     /**
      * 구매입고 - 입출고 유형 : 구매입고(110)
