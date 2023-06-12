@@ -12,122 +12,122 @@
     </select>
 
     <select id="selectMcbyItmStocs" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksDvo">
-        SELECT BASE_YM                   /* 기준년월 */
-             , WARE_NO                   /* 창고번호 */
-             , ITM_PD_CD                 /* 품목상품코드 */
-             , WARE_MNGT_PRTNR_NO        /* 창고관리파트너번호 */
-             , OG_TP_CD                  /* 조직유형코드 */
-             , SFT_STOC_A_GD_QTY         /* 안전재고A등급수량 */
-             , SFT_STOC_B_GD_QTY         /* 안전재고B등급수량 */
-             , SFT_STOC_E_GD_QTY         /* 안전재고E등급수량 */
-             , SFT_STOC_R_GD_QTY         /* 안전재고R등급수량 */
-             , BTD_STOC_A_GD_QTY         /* 기초재고A등급수량 */
-             , BTD_STOC_B_GD_QTY         /* 기초재고B등급수량 */
-             , BTD_STOC_E_GD_QTY         /* 기초재고E등급수량 */
-             , BTD_STOC_R_GD_QTY         /* 기초재고R등급수량 */
-             , PITM_STOC_A_GD_QTY        /* 시점재고A등급수량 */
-             , PITM_STOC_E_GD_QTY        /* 시점재고E등급수량 */
-             , PITM_STOC_R_GD_QTY        /* 시점재고R등급수량 */
-             , PRCHS_STR_QTY             /* 구매입고수량 */
-             , PRCHS_STR_B_GD_QTY        /* 구매입고B등급수량 */
-             , NOM_STR_A_GD_QTY          /* 정상입고A등급수량 */
-             , NOM_STR_E_GD_QTY          /* 정상입고E등급수량 */
-             , NOM_STR_R_GD_QTY          /* 정상입고R등급수량 */
-             , QOM_ASN_STR_A_GD_QTY      /* 물량배정입고A등급수량 */
-             , QOM_ASN_STR_E_GD_QTY      /* 물량배정입고E등급수량 */
-             , QOM_ASN_STR_R_GD_QTY      /* 물량배정입고R등급수량 */
-             , QOM_MMT_STR_A_GD_QTY      /* 물량이동입고A등급수량 */
-             , QOM_MMT_STR_E_GD_QTY      /* 물량이동입고E등급수량 */
-             , QOM_MMT_STR_R_GD_QTY      /* 물량이동입고R등급수량 */
-             , RTNGD_STR_INSI_A_GD_QTY   /* 반품입고내부A등급수량 */
-             , RTNGD_STR_INSI_E_GD_QTY   /* 반품입고내부E등급수량 */
-             , RTNGD_STR_INSI_R_GD_QTY   /* 반품입고내부R등급수량 */
-             , RTNGD_STR_OTSD_A_GD_QTY   /* 반품입고외부A등급수량 */
-             , RTNGD_STR_OTSD_E_GD_QTY   /* 반품입고외부E등급수량 */
-             , RTNGD_STR_OTSD_R_GD_QTY   /* 반품입고외부R등급수량 */
-             , ETC_STR_A_GD_QTY          /* 기타입고A등급수량 */
-             , ETC_STR_E_GD_QTY          /* 기타입고E등급수량 */
-             , ETC_STR_A_GD_QTY1         /* 기타입고A등급수량1 */
-             , ETC_STR_B_GD_QTY1         /* 기타입고B등급수량1 */
-             , ETC_STR_E_GD_QTY1         /* 기타입고E등급수량1 */
-             , ETC_STR_R_GD_QTY1         /* 기타입고R등급수량1 */
-             , STOC_ACINSP_STR_A_GD_QTY  /* 재고실사입고A등급수량 */
-             , STOC_ACINSP_STR_E_GD_QTY  /* 재고실사입고E등급수량 */
-             , STOC_ACINSP_STR_R_GD_QTY  /* 재고실사입고R등급수량 */
-             , NOM_OSTR_A_GD_QTY         /* 정상출고A등급수량 */
-             , NOM_OSTR_E_GD_QTY         /* 정상출고E등급수량 */
-             , NOM_OSTR_R_GD_QTY         /* 정상출고R등급수량 */
-             , QOM_ASN_OSTR_A_GD_QTY     /* 물량배정출고A등급수량 */
-             , QOM_ASN_OSTR_E_GD_QTY     /* 물량배정출고E등급수량 */
-             , QOM_ASN_OSTR_R_GD_QTY     /* 물량배정출고R등급수량 */
-             , QOM_MMT_OSTR_A_GD_QTY     /* 물량이동출고A등급수량 */
-             , QOM_MMT_OSTR_E_GD_QTY     /* 물량이동출고E등급수량 */
-             , QOM_MMT_OSTR_R_GD_QTY     /* 물량이동출고R등급수량 */
-             , RTNGD_OSTR_INSI_A_GD_QTY  /* 반품출고내부A등급수량 */
-             , RTNGD_OSTR_INSI_E_GD_QTY  /* 반품출고내부E등급수량 */
-             , RTNGD_OSTR_INSI_R_GD_QTY  /* 반품출고내부R등급수량 */
-             , RTNGD_OSTR_OTSD_A_GD_QTY  /* 반품출고외부A등급수량 */
-             , RTNGD_OSTR_OTSD_E_GD_QTY  /* 반품출고외부E등급수량 */
-             , RTNGD_OSTR_OTSD_R_GD_QTY  /* 반품출고외부R등급수량 */
-             , SELL_OSTR_QTY             /* 판매출고수량 */
-             , SELL_OSTR_B_GD_QTY        /* 판매출고B등급수량 */
-             , DSU_OSTR_A_GD_QTY         /* 폐기출고A등급수량 */
-             , DSU_OSTR_E_GD_QTY         /* 폐기출고E등급수량 */
-             , DSU_OSTR_R_GD_QTY         /* 폐기출고R등급수량 */
-             , WK_OSTR_A_GD_QTY          /* 작업출고A등급수량 */
-             , WK_OSTR_E_GD_QTY          /* 작업출고E등급수량 */
-             , WK_OSTR_R_GD_QTY          /* 작업출고R등급수량 */
-             , ETC_OSTR_A_GD_QTY         /* 기타출고A등급수량 */
-             , ETC_OSTR_E_GD_QTY         /* 기타출고E등급수량 */
-             , ETC_OSTR_R_GD_QTY         /* 기타출고R등급수량 */
-             , ETC_OSTR_A_GD_QTY1        /* 기타출고A등급수량1 */
-             , ETC_OSTR_E_GD_QTY1        /* 기타출고E등급수량1 */
-             , ETC_OSTR_R_GD_QTY1        /* 기타출고R등급수량1 */
-             , STOC_ACINSP_OSTR_A_GD_QTY /* 재고실사출고A등급수량 */
-             , STOC_ACINSP_OSTR_E_GD_QTY /* 재고실사출고E등급수량 */
-             , STOC_ACINSP_OSTR_R_GD_QTY /* 재고실사출고R등급수량 */
-             , STOC_STAT_NOM_BAD_CTR_QTY /* 재고상태정상불량조정수량 */
-             , STOC_STAT_BAD_NOM_CTR_QTY /* 재고상태불량정상조정수량 */
-             , STOC_ACINSP_A_GD_QTY      /* 재고실사A등급수량 */
-             , STOC_ACINSP_E_GD_QTY      /* 재고실사E등급수량 */
-             , STOC_ACINSP_R_GD_QTY      /* 재고실사R등급수량 */
-             , MMT_STOC_A_GD_QTY         /* 이동재고A등급수량 */
-             , MMT_STOC_E_GD_QTY         /* 이동재고E등급수량 */
-             , MMT_STOC_R_GD_QTY         /* 이동재고R등급수량 */
-             , FRE_EXPN_STOC_A_GD_QTY    /* 무료체험재고A등급수량 */
-             , FRE_EXPN_STOC_E_GD_QTY    /* 무료체험재고E등급수량 */
-             , FRE_EXPN_STOC_R_GD_QTY    /* 무료체험재고R등급수량 */
-             , PITM_STOC_B_GD_QTY        /* 시점재고B등급수량 */
-             , NOM_STR_B_GD_QTY          /* 정상입고B등급수량 */
-             , QOM_ASN_STR_B_GD_QTY      /* 물량배정입고B등급수량 */
-             , QOM_MMT_STR_B_GD_QTY      /* 물량이동입고B등급수량 */
-             , RTNGD_STR_INSI_B_GD_QTY   /* 반품입고내부B등급수량 */
-             , RTNGD_STR_OTSD_B_GD_QTY   /* 반품입고외부B등급수량 */
-             , STOC_ACINSP_STR_B_GD_QTY  /* 재고실사입고B등급수량 */
-             , NOM_OSTR_B_GD_QTY         /* 정상출고B등급수량 */
-             , QOM_ASN_OSTR_B_GD_QTY     /* 물량배정출고B등급수량 */
-             , QOM_MMT_OSTR_B_GD_QTY     /* 물량이동출고B등급수량 */
-             , RTNGD_OSTR_INSI_B_GD_QTY  /* 반품출고내부B등급수량 */
-             , RTNGD_OSTR_OTSD_B_GD_QTY  /* 반품출고외부B등급수량 */
-             , DSU_OSTR_B_GD_QTY         /* 폐기출고B등급수량 */
-             , WK_OSTR_B_GD_QTY          /* 작업출고B등급수량 */
-             , ETC_OSTR_B_GD_QTY         /* 기타출고B등급수량 */
-             , ETC_OSTR_B_GD_QTY1        /* 기타출고B등급수량1 */
-             , STOC_ACINSP_OSTR_B_GD_QTY /* 재고실사출고B등급수량 */
-             , STOC_ACINSP_B_GD_QTY      /* 재고실사B등급수량 */
-             , MMT_STOC_B_GD_QTY         /* 이동재고B등급수량 */
-             , FRE_EXPN_STOC_B_GD_QTY    /* 무료체험재고B등급수량 */
-             , REFR_OSTR_A_GD_QTY        /* 리퍼출고A등급수량 */
-             , REFR_OSTR_B_GD_QTY        /* 리퍼출고B등급수량 */
-             , REFR_OSTR_E_GD_QTY        /* 리퍼출고E등급수량 */
-             , REFR_OSTR_R_GD_QTY        /* 리퍼출고R등급수량 */
-             , STOC_ACINSP_DT            /* 재고실사일자 */
-             , DTA_DL_YN                 /* 데이터삭제여부 */
+        SELECT BASE_YM                                                        /* 기준년월 */
+             , WARE_NO                                                        /* 창고번호 */
+             , ITM_PD_CD                                                      /* 품목상품코드 */
+             , WARE_MNGT_PRTNR_NO                                             /* 창고관리파트너번호 */
+             , OG_TP_CD                                                       /* 조직유형코드 */
+             , NVL(SFT_STOC_A_GD_QTY, 0)         AS SFT_STOC_A_GD_QTY         /* 안전재고A등급수량 */
+             , NVL(SFT_STOC_B_GD_QTY, 0)         AS SFT_STOC_B_GD_QTY         /* 안전재고B등급수량 */
+             , NVL(SFT_STOC_E_GD_QTY, 0)         AS SFT_STOC_E_GD_QTY         /* 안전재고E등급수량 */
+             , NVL(SFT_STOC_R_GD_QTY, 0)         AS SFT_STOC_R_GD_QTY         /* 안전재고R등급수량 */
+             , NVL(BTD_STOC_A_GD_QTY, 0)         AS BTD_STOC_A_GD_QTY         /* 기초재고A등급수량 */
+             , NVL(BTD_STOC_B_GD_QTY, 0)         AS BTD_STOC_B_GD_QTY         /* 기초재고B등급수량 */
+             , NVL(BTD_STOC_E_GD_QTY, 0)         AS BTD_STOC_E_GD_QTY         /* 기초재고E등급수량 */
+             , NVL(BTD_STOC_R_GD_QTY, 0)         AS BTD_STOC_R_GD_QTY         /* 기초재고R등급수량 */
+             , NVL(PITM_STOC_A_GD_QTY, 0)        AS PITM_STOC_A_GD_QTY        /* 시점재고A등급수량 */
+             , NVL(PITM_STOC_E_GD_QTY, 0)        AS PITM_STOC_E_GD_QTY        /* 시점재고E등급수량 */
+             , NVL(PITM_STOC_R_GD_QTY, 0)        AS PITM_STOC_R_GD_QTY        /* 시점재고R등급수량 */
+             , NVL(PRCHS_STR_QTY, 0)             AS PRCHS_STR_QTY             /* 구매입고수량 */
+             , NVL(PRCHS_STR_B_GD_QTY, 0)        AS PRCHS_STR_B_GD_QTY        /* 구매입고B등급수량 */
+             , NVL(NOM_STR_A_GD_QTY, 0)          AS NOM_STR_A_GD_QTY          /* 정상입고A등급수량 */
+             , NVL(NOM_STR_E_GD_QTY, 0)          AS NOM_STR_E_GD_QTY          /* 정상입고E등급수량 */
+             , NVL(NOM_STR_R_GD_QTY, 0)          AS NOM_STR_R_GD_QTY          /* 정상입고R등급수량 */
+             , NVL(QOM_ASN_STR_A_GD_QTY, 0)      AS QOM_ASN_STR_A_GD_QTY      /* 물량배정입고A등급수량 */
+             , NVL(QOM_ASN_STR_E_GD_QTY, 0)      AS QOM_ASN_STR_E_GD_QTY      /* 물량배정입고E등급수량 */
+             , NVL(QOM_ASN_STR_R_GD_QTY, 0)      AS QOM_ASN_STR_R_GD_QTY      /* 물량배정입고R등급수량 */
+             , NVL(QOM_MMT_STR_A_GD_QTY, 0)      AS QOM_MMT_STR_A_GD_QTY      /* 물량이동입고A등급수량 */
+             , NVL(QOM_MMT_STR_E_GD_QTY, 0)      AS QOM_MMT_STR_E_GD_QTY      /* 물량이동입고E등급수량 */
+             , NVL(QOM_MMT_STR_R_GD_QTY, 0)      AS QOM_MMT_STR_R_GD_QTY      /* 물량이동입고R등급수량 */
+             , NVL(RTNGD_STR_INSI_A_GD_QTY, 0)   AS RTNGD_STR_INSI_A_GD_QTY   /* 반품입고내부A등급수량 */
+             , NVL(RTNGD_STR_INSI_E_GD_QTY, 0)   AS RTNGD_STR_INSI_E_GD_QTY   /* 반품입고내부E등급수량 */
+             , NVL(RTNGD_STR_INSI_R_GD_QTY, 0)   AS RTNGD_STR_INSI_R_GD_QTY   /* 반품입고내부R등급수량 */
+             , NVL(RTNGD_STR_OTSD_A_GD_QTY, 0)   AS RTNGD_STR_OTSD_A_GD_QTY   /* 반품입고외부A등급수량 */
+             , NVL(RTNGD_STR_OTSD_E_GD_QTY, 0)   AS RTNGD_STR_OTSD_E_GD_QTY   /* 반품입고외부E등급수량 */
+             , NVL(RTNGD_STR_OTSD_R_GD_QTY, 0)   AS RTNGD_STR_OTSD_R_GD_QTY   /* 반품입고외부R등급수량 */
+             , NVL(ETC_STR_A_GD_QTY, 0)          AS ETC_STR_A_GD_QTY          /* 기타입고A등급수량 */
+             , NVL(ETC_STR_E_GD_QTY, 0)          AS ETC_STR_E_GD_QTY          /* 기타입고E등급수량 */
+             , NVL(ETC_STR_A_GD_QTY1, 0)         AS ETC_STR_A_GD_QTY1         /* 기타입고A등급수량1 */
+             , NVL(ETC_STR_B_GD_QTY1, 0)         AS ETC_STR_B_GD_QTY1         /* 기타입고B등급수량1 */
+             , NVL(ETC_STR_E_GD_QTY1, 0)         AS ETC_STR_E_GD_QTY1         /* 기타입고E등급수량1 */
+             , NVL(ETC_STR_R_GD_QTY1, 0)         AS ETC_STR_R_GD_QTY1         /* 기타입고R등급수량1 */
+             , NVL(STOC_ACINSP_STR_A_GD_QTY, 0)  AS STOC_ACINSP_STR_A_GD_QTY  /* 재고실사입고A등급수량 */
+             , NVL(STOC_ACINSP_STR_E_GD_QTY, 0)  AS STOC_ACINSP_STR_E_GD_QTY  /* 재고실사입고E등급수량 */
+             , NVL(STOC_ACINSP_STR_R_GD_QTY, 0)  AS STOC_ACINSP_STR_R_GD_QTY  /* 재고실사입고R등급수량 */
+             , NVL(NOM_OSTR_A_GD_QTY, 0)         AS NOM_OSTR_A_GD_QTY         /* 정상출고A등급수량 */
+             , NVL(NOM_OSTR_E_GD_QTY, 0)         AS NOM_OSTR_E_GD_QTY         /* 정상출고E등급수량 */
+             , NVL(NOM_OSTR_R_GD_QTY, 0)         AS NOM_OSTR_R_GD_QTY         /* 정상출고R등급수량 */
+             , NVL(QOM_ASN_OSTR_A_GD_QTY, 0)     AS QOM_ASN_OSTR_A_GD_QTY     /* 물량배정출고A등급수량 */
+             , NVL(QOM_ASN_OSTR_E_GD_QTY, 0)     AS QOM_ASN_OSTR_E_GD_QTY     /* 물량배정출고E등급수량 */
+             , NVL(QOM_ASN_OSTR_R_GD_QTY, 0)     AS QOM_ASN_OSTR_R_GD_QTY     /* 물량배정출고R등급수량 */
+             , NVL(QOM_MMT_OSTR_A_GD_QTY, 0)     AS QOM_MMT_OSTR_A_GD_QTY     /* 물량이동출고A등급수량 */
+             , NVL(QOM_MMT_OSTR_E_GD_QTY, 0)     AS QOM_MMT_OSTR_E_GD_QTY     /* 물량이동출고E등급수량 */
+             , NVL(QOM_MMT_OSTR_R_GD_QTY, 0)     AS QOM_MMT_OSTR_R_GD_QTY     /* 물량이동출고R등급수량 */
+             , NVL(RTNGD_OSTR_INSI_A_GD_QTY, 0)  AS RTNGD_OSTR_INSI_A_GD_QTY  /* 반품출고내부A등급수량 */
+             , NVL(RTNGD_OSTR_INSI_E_GD_QTY, 0)  AS RTNGD_OSTR_INSI_E_GD_QTY  /* 반품출고내부E등급수량 */
+             , NVL(RTNGD_OSTR_INSI_R_GD_QTY, 0)  AS RTNGD_OSTR_INSI_R_GD_QTY  /* 반품출고내부R등급수량 */
+             , NVL(RTNGD_OSTR_OTSD_A_GD_QTY, 0)  AS RTNGD_OSTR_OTSD_A_GD_QTY  /* 반품출고외부A등급수량 */
+             , NVL(RTNGD_OSTR_OTSD_E_GD_QTY, 0)  AS RTNGD_OSTR_OTSD_E_GD_QTY  /* 반품출고외부E등급수량 */
+             , NVL(RTNGD_OSTR_OTSD_R_GD_QTY, 0)  AS RTNGD_OSTR_OTSD_R_GD_QTY  /* 반품출고외부R등급수량 */
+             , NVL(SELL_OSTR_QTY, 0)             AS SELL_OSTR_QTY             /* 판매출고수량 */
+             , NVL(SELL_OSTR_B_GD_QTY, 0)        AS SELL_OSTR_B_GD_QTY        /* 판매출고B등급수량 */
+             , NVL(DSU_OSTR_A_GD_QTY, 0)         AS DSU_OSTR_A_GD_QTY         /* 폐기출고A등급수량 */
+             , NVL(DSU_OSTR_E_GD_QTY, 0)         AS DSU_OSTR_E_GD_QTY         /* 폐기출고E등급수량 */
+             , NVL(DSU_OSTR_R_GD_QTY, 0)         AS DSU_OSTR_R_GD_QTY         /* 폐기출고R등급수량 */
+             , NVL(WK_OSTR_A_GD_QTY, 0)          AS WK_OSTR_A_GD_QTY          /* 작업출고A등급수량 */
+             , NVL(WK_OSTR_E_GD_QTY, 0)          AS WK_OSTR_E_GD_QTY          /* 작업출고E등급수량 */
+             , NVL(WK_OSTR_R_GD_QTY, 0)          AS WK_OSTR_R_GD_QTY          /* 작업출고R등급수량 */
+             , NVL(ETC_OSTR_A_GD_QTY, 0)         AS ETC_OSTR_A_GD_QTY         /* 기타출고A등급수량 */
+             , NVL(ETC_OSTR_E_GD_QTY, 0)         AS ETC_OSTR_E_GD_QTY         /* 기타출고E등급수량 */
+             , NVL(ETC_OSTR_R_GD_QTY, 0)         AS ETC_OSTR_R_GD_QTY         /* 기타출고R등급수량 */
+             , NVL(ETC_OSTR_A_GD_QTY1, 0)        AS ETC_OSTR_A_GD_QTY1        /* 기타출고A등급수량1 */
+             , NVL(ETC_OSTR_E_GD_QTY1, 0)        AS ETC_OSTR_E_GD_QTY1        /* 기타출고E등급수량1 */
+             , NVL(ETC_OSTR_R_GD_QTY1, 0)        AS ETC_OSTR_R_GD_QTY1        /* 기타출고R등급수량1 */
+             , NVL(STOC_ACINSP_OSTR_A_GD_QTY, 0) AS STOC_ACINSP_OSTR_A_GD_QTY /* 재고실사출고A등급수량 */
+             , NVL(STOC_ACINSP_OSTR_E_GD_QTY, 0) AS STOC_ACINSP_OSTR_E_GD_QTY /* 재고실사출고E등급수량 */
+             , NVL(STOC_ACINSP_OSTR_R_GD_QTY, 0) AS STOC_ACINSP_OSTR_R_GD_QTY /* 재고실사출고R등급수량 */
+             , NVL(STOC_STAT_NOM_BAD_CTR_QTY, 0) AS STOC_STAT_NOM_BAD_CTR_QTY /* 재고상태정상불량조정수량 */
+             , NVL(STOC_STAT_BAD_NOM_CTR_QTY, 0) AS STOC_STAT_BAD_NOM_CTR_QTY /* 재고상태불량정상조정수량 */
+             , NVL(STOC_ACINSP_A_GD_QTY, 0)      AS STOC_ACINSP_A_GD_QTY      /* 재고실사A등급수량 */
+             , NVL(STOC_ACINSP_E_GD_QTY, 0)      AS STOC_ACINSP_E_GD_QTY      /* 재고실사E등급수량 */
+             , NVL(STOC_ACINSP_R_GD_QTY, 0)      AS STOC_ACINSP_R_GD_QTY      /* 재고실사R등급수량 */
+             , NVL(MMT_STOC_A_GD_QTY, 0)         AS MMT_STOC_A_GD_QTY         /* 이동재고A등급수량 */
+             , NVL(MMT_STOC_E_GD_QTY, 0)         AS MMT_STOC_E_GD_QTY         /* 이동재고E등급수량 */
+             , NVL(MMT_STOC_R_GD_QTY, 0)         AS MMT_STOC_R_GD_QTY         /* 이동재고R등급수량 */
+             , NVL(FRE_EXPN_STOC_A_GD_QTY, 0)    AS FRE_EXPN_STOC_A_GD_QTY    /* 무료체험재고A등급수량 */
+             , NVL(FRE_EXPN_STOC_E_GD_QTY, 0)    AS FRE_EXPN_STOC_E_GD_QTY    /* 무료체험재고E등급수량 */
+             , NVL(FRE_EXPN_STOC_R_GD_QTY, 0)    AS FRE_EXPN_STOC_R_GD_QTY    /* 무료체험재고R등급수량 */
+             , NVL(PITM_STOC_B_GD_QTY, 0)        AS PITM_STOC_B_GD_QTY        /* 시점재고B등급수량 */
+             , NVL(NOM_STR_B_GD_QTY, 0)          AS NOM_STR_B_GD_QTY          /* 정상입고B등급수량 */
+             , NVL(QOM_ASN_STR_B_GD_QTY, 0)      AS QOM_ASN_STR_B_GD_QTY      /* 물량배정입고B등급수량 */
+             , NVL(QOM_MMT_STR_B_GD_QTY, 0)      AS QOM_MMT_STR_B_GD_QTY      /* 물량이동입고B등급수량 */
+             , NVL(RTNGD_STR_INSI_B_GD_QTY, 0)   AS RTNGD_STR_INSI_B_GD_QTY   /* 반품입고내부B등급수량 */
+             , NVL(RTNGD_STR_OTSD_B_GD_QTY, 0)   AS RTNGD_STR_OTSD_B_GD_QTY   /* 반품입고외부B등급수량 */
+             , NVL(STOC_ACINSP_STR_B_GD_QTY, 0)  AS STOC_ACINSP_STR_B_GD_QTY  /* 재고실사입고B등급수량 */
+             , NVL(NOM_OSTR_B_GD_QTY, 0)         AS NOM_OSTR_B_GD_QTY         /* 정상출고B등급수량 */
+             , NVL(QOM_ASN_OSTR_B_GD_QTY, 0)     AS QOM_ASN_OSTR_B_GD_QTY     /* 물량배정출고B등급수량 */
+             , NVL(QOM_MMT_OSTR_B_GD_QTY, 0)     AS QOM_MMT_OSTR_B_GD_QTY     /* 물량이동출고B등급수량 */
+             , NVL(RTNGD_OSTR_INSI_B_GD_QTY, 0)  AS RTNGD_OSTR_INSI_B_GD_QTY  /* 반품출고내부B등급수량 */
+             , NVL(RTNGD_OSTR_OTSD_B_GD_QTY, 0)  AS RTNGD_OSTR_OTSD_B_GD_QTY  /* 반품출고외부B등급수량 */
+             , NVL(DSU_OSTR_B_GD_QTY, 0)         AS DSU_OSTR_B_GD_QTY         /* 폐기출고B등급수량 */
+             , NVL(WK_OSTR_B_GD_QTY, 0)          AS WK_OSTR_B_GD_QTY          /* 작업출고B등급수량 */
+             , NVL(ETC_OSTR_B_GD_QTY, 0)         AS ETC_OSTR_B_GD_QTY         /* 기타출고B등급수량 */
+             , NVL(ETC_OSTR_B_GD_QTY1, 0)        AS ETC_OSTR_B_GD_QTY1        /* 기타출고B등급수량1 */
+             , NVL(STOC_ACINSP_OSTR_B_GD_QTY, 0) AS STOC_ACINSP_OSTR_B_GD_QTY /* 재고실사출고B등급수량 */
+             , NVL(STOC_ACINSP_B_GD_QTY, 0)      AS STOC_ACINSP_B_GD_QTY      /* 재고실사B등급수량 */
+             , NVL(MMT_STOC_B_GD_QTY, 0)         AS MMT_STOC_B_GD_QTY         /* 이동재고B등급수량 */
+             , NVL(FRE_EXPN_STOC_B_GD_QTY, 0)    AS FRE_EXPN_STOC_B_GD_QTY    /* 무료체험재고B등급수량 */
+             , NVL(REFR_OSTR_A_GD_QTY, 0)        AS REFR_OSTR_A_GD_QTY        /* 리퍼출고A등급수량 */
+             , NVL(REFR_OSTR_B_GD_QTY, 0)        AS REFR_OSTR_B_GD_QTY        /* 리퍼출고B등급수량 */
+             , NVL(REFR_OSTR_E_GD_QTY, 0)        AS REFR_OSTR_E_GD_QTY        /* 리퍼출고E등급수량 */
+             , NVL(REFR_OSTR_R_GD_QTY, 0)        AS REFR_OSTR_R_GD_QTY        /* 리퍼출고R등급수량 */
+             , STOC_ACINSP_DT                                                 /* 재고실사일자 */
+             , DTA_DL_YN                                                      /* 데이터삭제여부 */
           FROM TB_SVST_MCITM_STOC_IZ /* 월별품목재고내역 */
          WHERE 1 = 1
-           AND BASE_YM = #{procsYm}                  /* 기준년월 */
-           AND WARE_NO = #{wareNo}                  /* 창고번호 */
-           AND ITM_PD_CD = #{itmPdCd}                    /* 상품코드 */
+           AND BASE_YM   = #{procsYm}   /* 기준년월 */
+           AND WARE_NO   = #{wareNo}    /* 창고번호 */
+           AND ITM_PD_CD = #{itmPdCd}   /* 상품코드 */
     </select>
 
 
