@@ -563,7 +563,7 @@
     <select id="selectWarehouseCloseCheckCounter" resultType="integer">
         SELECT COUNT(*) AS CNT
           FROM TB_SVST_MCBY_WARE_CL_IZ
-         WHERE APY_YM = #{apyYm}
+         WHERE APY_YM = SUBSTR(#{apyYm},1,6)
            AND WARE_NO = #{wareNo}
            AND WARE_CL_YN = 'Y'
     </select>
