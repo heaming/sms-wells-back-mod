@@ -1,14 +1,24 @@
 package com.kyowon.sms.wells.web.service.stock.mapper;
 
+import java.util.Optional;
+
+import org.apache.ibatis.annotations.Mapper;
+
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaMonthlyItemStocksDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksDvo;
-import org.apache.ibatis.annotations.Mapper;
+import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksReqDvo;
 
 @Mapper
 public interface WsnaMonthlyItemStocksMapper {
+    @Deprecated
     int selectCountMcbyStock(WsnaMonthlyItemStocksDto.SaveReq dto);
 
+    int selectCountMcbyStock(WsnaMonthlyItemStocksReqDvo dvo);
+
+    @Deprecated
     WsnaMonthlyItemStocksDvo selectMcbyItmStocs(WsnaMonthlyItemStocksDto.SaveReq dto);
+
+    WsnaMonthlyItemStocksDvo selectMcbyItmStocs(WsnaMonthlyItemStocksReqDvo dvo);
 
     /**
      * 입력받은 구분값이 A일경우 시점재고 A등급 , 이동재고 A등급 을 조회해온다.
@@ -16,7 +26,10 @@ public interface WsnaMonthlyItemStocksMapper {
      * @param dto
      * @return
      */
+    @Deprecated
     WsnaMonthlyItemStocksDvo selectPitmMmtStocAQty(WsnaMonthlyItemStocksDto.SaveReq dto);
+
+    Optional<WsnaMonthlyItemStocksDvo> selectPitmMmtStocAQty(WsnaMonthlyItemStocksReqDvo dvo);
 
     /**
      * 입력받은 구분값이 B일경우 시점재고 B등급 , 이동재고 B등급 을 조회해온다.
@@ -24,7 +37,10 @@ public interface WsnaMonthlyItemStocksMapper {
      * @param dto
      * @return
      */
+    @Deprecated
     WsnaMonthlyItemStocksDvo selectPitmMmtStocBQty(WsnaMonthlyItemStocksDto.SaveReq dto);
+
+    Optional<WsnaMonthlyItemStocksDvo> selectPitmMmtStocBQty(WsnaMonthlyItemStocksReqDvo dvo);
 
     /**
      * 입력받은 구분값이 E일경우 시점재고 E등급 , 이동재고 E등급 을 조회해온다.
@@ -32,7 +48,10 @@ public interface WsnaMonthlyItemStocksMapper {
      * @param dto
      * @return
      */
+    @Deprecated
     WsnaMonthlyItemStocksDvo selectPitmMmtStocEQty(WsnaMonthlyItemStocksDto.SaveReq dto);
+
+    Optional<WsnaMonthlyItemStocksDvo> selectPitmMmtStocEQty(WsnaMonthlyItemStocksReqDvo dvo);
 
     /**
      * 입력받은 구분값이 A일경우 시점재고 R등급 , 이동재고 R등급 을 조회해온다.
@@ -40,7 +59,10 @@ public interface WsnaMonthlyItemStocksMapper {
      * @param dto
      * @return
      */
+    @Deprecated
     WsnaMonthlyItemStocksDvo selectPitmMmtStocRQty(WsnaMonthlyItemStocksDto.SaveReq dto);
+
+    Optional<WsnaMonthlyItemStocksDvo> selectPitmMmtStocRQty(WsnaMonthlyItemStocksReqDvo dvo);
 
     /**
      * 구매입고 유형에 따른 처리

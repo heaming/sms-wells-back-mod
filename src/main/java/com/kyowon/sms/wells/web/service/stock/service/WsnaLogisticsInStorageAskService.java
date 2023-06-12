@@ -309,7 +309,7 @@ public class WsnaLogisticsInStorageAskService {
         req.setStrAkSn(askDtlDvo.getStrAkSn());
         // 세션정보 활용
         req.setAkCanUsrId(session.getUserId());
-        req.setAkCanDeptId(session.getDepartmentId());
+        req.setAkCanDeptId(session.getOgCd());
 
         return this.interfaceService
             .post(EAI_CBD01006, req, LogisticsInStorageCancelResIvo.class);

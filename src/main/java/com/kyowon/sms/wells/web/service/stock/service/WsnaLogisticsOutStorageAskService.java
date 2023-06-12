@@ -314,7 +314,7 @@ public class WsnaLogisticsOutStorageAskService {
         req.setOstrAkSn(askDtlDvo.getOstrAkSn());
         // 세션정보 활용
         req.setAkCanUsrId(session.getUserId());
-        req.setAkCanDeptId(session.getDepartmentId());
+        req.setAkCanDeptId(session.getOgCd());
 
         return this.interfaceService
             .post(EAI_CBD01005, req, LogisticsOutOfStorageCancelResIvo.class);
