@@ -8,7 +8,7 @@ import java.util.List;
 
 @Setter
 @Getter
-public class WsncTimeTableDvo {
+public class WsncTimeTableSalesDvo {
 
     String baseY;
     String baseMm;
@@ -18,10 +18,10 @@ public class WsncTimeTableDvo {
     String phldYn;
     String rmkCn;
     String zip;
-    String wrkTypDtl;
+    String svBizDclsfCd; //wrkTypDtl
     String inGb;
-    String gbCd;
-    String dataGb;
+    String chnlDvCd; //gbCd
+    String svDvCd; //dataGb
     String cntrNo;
     String selDate;
     String ordDt;
@@ -33,7 +33,7 @@ public class WsncTimeTableDvo {
     String curDateTimeString;
     String wrkGb;
     String wrkDt;
-    String dataStus;
+    String dtaStatCd; // =P_DATA_STUS
     String gdsCd;
     String pajongDay;
     String lcst09;

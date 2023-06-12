@@ -1,14 +1,12 @@
 package com.kyowon.sms.wells.web.service.allocate.rest;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto.*;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSalesDto;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncTimeTableService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-
-import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,28 +25,26 @@ public class WsncTimeTableController {
 
     private final WsncTimeTableService service;
 
-    @ApiOperation(value = "타임테이블 일정 조회")
+    @ApiOperation(value = "타임테이블 조회(판매)")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "baseYm,", value = "기준월", paramType = "query"),
-        @ApiImplicitParam(name = "prevTag,", value = "조회구분", paramType = "query"),
-        @ApiImplicitParam(name = "gbCd,", value = "", paramType = "query"),
-        @ApiImplicitParam(name = "svBizHclsfCd,", value = "", paramType = "query"),
-        @ApiImplicitParam(name = "prtnrNo,", value = "파트너번호", paramType = "query"),
-        @ApiImplicitParam(name = "sellDate,", value = "방문예정일자", paramType = "query"),
-        @ApiImplicitParam(name = "saleCd,", value = "상품코드", paramType = "query"),
-        @ApiImplicitParam(name = "ordDt,", value = "", paramType = "query"),
-        @ApiImplicitParam(name = "ordSeq,", value = "", paramType = "query"),
-        @ApiImplicitParam(name = "svBizDclsfCd,", value = "작업구분", paramType = "query"),
-        @ApiImplicitParam(name = "zipno,", value = "우편번호코드", paramType = "query"),
-        @ApiImplicitParam(name = "cntrCd,", value = "", paramType = "query"),
-        @ApiImplicitParam(name = "cntrNo,", value = "제품코드", paramType = "query"),
-        @ApiImplicitParam(name = "sidingCd", value = "모종코드", paramType = "query"),
+        @ApiImplicitParam(name = "cntrNo", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "chnlDvCd", value = "", paramType = "query"), // GB_CD
+        @ApiImplicitParam(name = "inGb", value = "", paramType = "query"), // P_IN_GB
+        @ApiImplicitParam(name = "svDvCd", value = "", paramType = "query"), // P_DATA_GB
+        @ApiImplicitParam(name = "wrkDt", value = "", paramType = "query"), // P_WRK_DT
+        @ApiImplicitParam(name = "seq", value = "", paramType = "query"), // P_SEQ
+        @ApiImplicitParam(name = "dataStatCd", value = "", paramType = "query"), // P_DATA_STUS
+        @ApiImplicitParam(name = "svBizDclsfCd", value = "", paramType = "query"), // P_WRK_TYP_DTL
+        @ApiImplicitParam(name = "emeId", value = "", paramType = "query"), // P_USER_ID
+        @ApiImplicitParam(name = "returnurl", value = "", paramType = "query"), // returnurl
+        @ApiImplicitParam(name = "basePdCd", value = "", paramType = "query"), // P_GDS_CD
+        @ApiImplicitParam(name = "sellDate", value = "", paramType = "query"), // P_SELDATE
+        @ApiImplicitParam(name = "P_MK_CO", value = "", paramType = "query"), // P_MK_CO
     })
-    @GetMapping
-    public SearchRes getTimeTable(
-        SearchReq req
-    ) {
-        return service.getTimeTable(req);
+    @GetMapping("/time-assign-sales")
+    public WsncTimeTableSalesDto.findRes getTmeAssignSales(WsncTimeTableSalesDto.findReq req) {
+        return service.getTmeAssignSales(req);
     }
 
 }

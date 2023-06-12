@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.mapper;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto.SearchReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSalesDto.findReq;
 
 import java.util.List;
 
@@ -25,19 +25,21 @@ public interface WsncTimeTableMapper {
      * @param req : 조회파라메터
      * @return 조회결과
      */
-    List<WsncTimeTableDvo> selectTimeTableDates(SearchReq req);
+    List<WsncTimeTableSalesDvo> selectTimeTableDates(findReq req);
 
-    WsncTimeTableCustDetailDvo selectCustDetail(String cntrNo);
+    //WsncTimeTableCustDetailDvo selectCustDetail(String cntrNo);
 
-    String selectItemcode(String cntrNo);
+    //String selectItemcode(String cntrNo);
 
     String selectLocalEmpinfo(String zip, String wrkTypDtl, String selDate, String saleCd);
 
-    String selectFarmYn(String basePdCd);
+    //String selectFarmYn(String basePdCd, String svDvCd);
 
-    WsncTimeTablePackageDvo selectPackage(String sidingCd, String baePdCd);
+    //WsncTimeTablePackageDvo selectPackage(String sidingCd, String baePdCd, String cntrNo);
+    WsncTimeTableCntrDvo selectCntr(String cntrNo, String cntrSn);
+    WsncTimeTableProductDvo selectProduct(String basePdCd, String pdctPdCd);
 
-    String selectOjPdCd(String saleCd);
+    //String selectOjPdCd(String saleCd);
 
     List<WsncTimeTableSidingDaysDvo> selectSidingDaysKiwim(String saleCd);
     List<WsncTimeTableSidingDaysDvo> selectSidingDays(String saleCd);//getMojongDays
@@ -72,9 +74,9 @@ public interface WsncTimeTableMapper {
     );
 
     String selectAddGb(String saleCd);
-    String selectKiwiItemCode(String saleCd);
+    //String selectKiwiItemCode(String saleCd);
 
-    String selectTimeAssign_v2_step0(String zip, String kiwiItemCd, String wrkTypDtl, String selDate);
+    String selectFnSvpdLocaraPrtnr01(String zip, String kiwiItemCd, String wrkTypDtl, String selDate);
 
     List<WsncTimeTableTimAssStep1Dvo> selectTimeAssignStep1(String gbCd, String selDate, String zip, String dataGb, String cntrNo, String inGb, String wrkTypDtl, String kiwiItemCd, String prtnrNo);
     List<WsncTimeTableTimAssStep2Dvo> selectTimeAssignStep2(WsncTimeTableTimAssStep1Dvo dvo);

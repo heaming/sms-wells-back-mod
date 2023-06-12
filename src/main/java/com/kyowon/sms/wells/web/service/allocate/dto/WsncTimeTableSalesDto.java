@@ -6,37 +6,36 @@ import io.swagger.annotations.ApiModel;
 import javax.validation.constraints.NotBlank;
 import java.util.List;
 
-public class WsncTimeTableDto {
+/*타임테이블 조회(판매)*/
+public class WsncTimeTableSalesDto {
 
-    @ApiModel(value = "WsncTimeTableDto-SearchReq")
-    public record SearchReq(
+    @ApiModel(value = "WsncTimeTableSalesDto-findReq")
+    public record findReq(
         @NotBlank
-        String baseYm,
-        String prevTag,
-        String gbCd,
-        String svBizHclsfCd, // DATA_GB
-        String prtnrNo,
+        String chnlDvCd,
+        @NotBlank
+        String svDvCd, // DATA_GB
         @NotBlank
         String sellDate, // SEL_DATE
         @NotBlank
-        String Dt,
-        String ordSeq,
         String svBizDclsfCd,
-        String newAdrZip,
         @NotBlank
         String cntrNo,
+        @NotBlank
+        String cntrSn,
         String sidingCd, // MOJONG_CD
         String inGb,
         String basePdCd, // GDS_CD
         String wrkDt,
         String seq,
-        String dataStus,
+        String dtaStatCd, // DATA_STUS
         String returnUrl,
-        String userId
+        String userId,
+        String mkCo
     ) {}
 
-    @ApiModel(value = "WsncTimeTableDto-SearchRes")
-    public record SearchRes(
+    @ApiModel(value = "WsncTimeTableSalesDto-findRes")
+    public record findRes(
         String baseY,
         String baseMm,
         String baseD,
@@ -45,10 +44,10 @@ public class WsncTimeTableDto {
         String phldYn,
         String rmkCn,
         String zip,
-        String wrkTypDtl,
+        String svBizDclsfCd, //wrkTypDtl
         String inGb,
-        String gbCd,
-        String dataGb,
+        String chnlDvCd, //gbCd
+        String svDvCd, //dataGb
         String cntrNo,
         String selDate,
         String ordDt,
@@ -60,13 +59,12 @@ public class WsncTimeTableDto {
         String curDateTimeString,
         String wrkGb,
         String wrkDt,
-        String dataStus,
+        String dtaStatCd, // P_DATA_STUS
         String gdsCd,
         String pajongDay,
         String lcst09,
 
         List<WsncTimeTableSidingDaysDvo> list,
-//        List<SidingDays> list,
         List<WsncTimeTableMonthScheduleDvo> ordCnt,
         List<WsncTimeTableDisableDaysDvo> diableDays,
         List<WsncTimeTableTimAssStep3Dvo> timAssStep3,
@@ -76,14 +74,4 @@ public class WsncTimeTableDto {
 
     ) {}
 
-//    @ApiModel(value = "WsncTimeTableDto-SidingDays")
-//    public record SidingDays(
-//        String title,
-//        String sumCnt,
-//        String st,
-//        String ed,
-//        String w3th,
-//        String ablDays,
-//        String sowDay
-//    ) {}
 }

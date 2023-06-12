@@ -1,7 +1,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncTimeTableMapper">
 
-    <select id='selectTimeTableDates' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDvo">
+    <select id='selectTimeTableDates' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSalesDvo">
         WITH TB_CAL AS (
           SELECT TO_CHAR(FIRST_DAY + LEVEL - 1, 'D') DAYS
                , TO_CHAR(FIRST_DAY + LEVEL - 1, 'YYYYMMDD') BASE_YMD
@@ -99,41 +99,109 @@
            AND REL.BASE_PD_CD = #{basePdCd}
     </select>
 
-    <select id="selectFarmYn" resultType="java.lang.String">
-        -----------------------------------------------------------------------------------------------------------------
-        --SELECT (CASE WHEN (ST101_ITEM_GR = '11' OR (  GET_FARM_GIGI_YN(ST101_ITEM_CD||ST101_PART_CD) ='Y' AND #DATA_GB# != '3' )) THEN 'Y' ELSE 'N'
-        --         END) AS FARM_YN
-        -- FROM LC_STOCK_ST112TB
-        --       , LC_STOCK_ST101TB
-        --  WHERE TRIM(ST112_SALE_CD) = #P_GDS_CD#
-        --     AND ST101_ITEM_CD = ST112_ITEM_CD
-        --     AND ST101_PART_CD = ST112_PART_CD
-        -----------------------------------------------------------------------------------------------------------------
-        -- 모종여부조회
-        --SELECT (CASE WHEN (ITEM_GR = '11' OR ( #{dataGb} != '3' AND ITEM_GR ='92')) THEN 'Y' ELSE 'N' END) AS FARM_YN
-        --  FROM (SELECT T1.PD_CD
-        --             , T2.PD_PRP_VAL20 AS ITEM_GR
-        --          FROM TB_PDBS_PD_BAS T1
-        --         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
-        --            ON T1.PD_CD = T2.PD_CD
-        --           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
-        --           AND T2.DTA_DL_YN = 'N'
-        --         WHERE T1.PD_TP_CD = 'M'
-        --           AND T1.DTA_DL_YN = 'N') T
-        -- WHERE T.PD_CD = (SELECT DISTINCT BAS.PD_CD
-        --                         FROM TB_PDBS_PD_BAS BAS /*상품기본*/
-        --                        INNER JOIN TB_PDBS_PD_REL REL /*상품관계*/
-        --                           ON BAS.PD_CD = REL.OJ_PD_CD
-        --                          AND REL.PD_REL_TP_CD = '05'
-        --                          AND REL.DTA_DL_YN = 'N'
-        --                          AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
-        --                        WHERE BAS.DTA_DL_YN = 'N'
-        --                          AND REL.BASE_PD_CD = #{basePdCd})
-        -----------------------------------------------------------------------------------------------------------------
-        SELECT CASE WHEN P1.SELL_TP_DTL_CD = '62' THEN 'Y' ELSE 'N' END SDING_YN
-          FROM TB_PDBS_PD_BAS P1
-         WHERE P1.PD_CD = #{basePdCd}
+    <!--selectCustDetail, selectItemcode-->
+    <select id="selectCntr" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableCntrDvo">
+        SELECT C2.CNTR_NO
+             , C2.CNTR_SN
+             , A1.NEW_ADR_ZIP AS ADR_ZIP -- 우편번호
+             , C2.BASE_PD_CD -- 기준상품코드
+             , P1.PD_NM AS BASE_PD_NM -- 기준상품코드
+             , S1.PDCT_PD_CD -- 제품상품코드
+             , P2.PD_NM AS PDCT_PD_NM  -- 제품상품코드
+             , P3.PD_PRP_VAL20 AS PD_GRP_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', P3.PD_PRP_VAL20) AS PD_GRP_NM
+          FROM TB_SSCT_CNTR_BAS C1
+         INNER JOIN TB_SSCT_CNTR_DTL C2
+            ON C1.CNTR_NO = C2.CNTR_NO
+         INNER JOIN TB_SSCT_CNTR_ADR_REL C3
+            ON C2.CNTR_NO = C3.DTL_CNTR_NO
+           AND C2.CNTR_SN = C3.DTL_CNTR_SN
+           AND C3.ADRPC_TP_CD IN ('2', '3')
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C4
+            ON C3.CNTR_ADRPC_ID = C4.CNTR_ADRPC_ID
+         INNER JOIN TB_GBCO_ADR_BAS A1
+            ON C4.ADR_ID = A1.ADR_ID
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S1
+            ON C2.CNTR_NO = S1.CNTR_NO
+           AND C2.CNTR_SN = S1.CNTR_SN
+         INNER JOIN TB_PDBS_PD_BAS P1
+            ON C2.BASE_PD_CD = P1.PD_CD
+         INNER JOIN TB_PDBS_PD_BAS P2
+            ON S1.PDCT_PD_CD = P2.PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P3
+            ON S1.PDCT_PD_CD = P3.PD_CD
+           AND P3.PD_EXTS_PRP_GRP_CD = 'PART'
+         WHERE C2.CNTR_NO = #{cntrNo}
+           AND C2.CNTR_SN = #{cntrSn}
     </select>
+
+    <select id="selectProduct" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableProductDvo">
+        SELECT P2.BASE_PD_CD
+             , P1.PD_NM AS BASE_PD_NM
+             , P2.OJ_PD_CD PDCT_PD_CD
+             , P3.PD_NM AS PDCT_PD_NM
+             , P1.SELL_TP_DTL_CD -- 판매유형상세코드
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', P1.SELL_TP_DTL_CD) AS SELL_TP_DTL_NM
+             , P4.PD_PRP_VAL13 AS RGLR_SPP_PRC_DV_CD -- 정기배송가격구분코드
+             , F_CMZ_CD_NM('TNT_WELLS', 'RGLR_SPP_PRC_DV_CD', P4.PD_PRP_VAL13) AS RGLR_SPP_PRC_DV_NM
+             , P5.PD_PRP_VAL20 AS PDCT_PD_GRP_CD -- 상품그룹코드(PD_GRP_CD)
+             , F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', P5.PD_PRP_VAL20) AS PDCT_PD_GRP_NM
+             --, CASE WHEN P5.PD_PRP_VAL20 IN ('11', '92') THEN 'Y' ELSE 'N' END SDING_YN -- 모종 여부
+             , CASE WHEN P5.PD_PRP_VAL20 = '11' OR (#{svDvCd} != '3' AND P5.PD_PRP_VAL20 = '92') THEN 'Y' ELSE 'N' END SDING_YN -- 모종 여부
+             , CASE WHEN P5.PD_PRP_VAL20 = '10' THEN 'Y' ELSE 'N' END HCR_YN -- 홈케어 여부
+             , CASE WHEN P5.PD_PRP_VAL01 LIKE '5%' THEN '2' ELSE '1' END AS ADD_GB
+          FROM TB_PDBS_PD_BAS P1
+         INNER JOIN TB_PDBS_PD_REL P2
+            ON P1.PD_CD = P2.BASE_PD_CD
+           AND DECODE(P1.SELL_TP_DTL_CD, '62', '18', '05') = P2.PD_REL_TP_CD
+         INNER JOIN TB_PDBS_PD_BAS P3
+            ON P2.OJ_PD_CD = P3.PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P4
+            ON P2.BASE_PD_CD = P4.PD_CD
+           AND P4.PD_EXTS_PRP_GRP_CD = 'CNTR'
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P5
+            ON P2.OJ_PD_CD = P5.PD_CD
+           AND P5.PD_EXTS_PRP_GRP_CD = 'PART'
+         WHERE P2.BASE_PD_CD = #{basePdCd} -- 기준/판매 상품코드
+           AND P2.OJ_PD_CD = #{pdctPdCd} -- 제품상품코드
+    </select>
+
+    <!--<select id="selectFarmYn" resultType="java.lang.String">
+        -&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;
+        &#45;&#45;SELECT (CASE WHEN (ST101_ITEM_GR = '11' OR (  GET_FARM_GIGI_YN(ST101_ITEM_CD||ST101_PART_CD) ='Y' AND #DATA_GB# != '3' )) THEN 'Y' ELSE 'N'
+        &#45;&#45;         END) AS FARM_YN
+        &#45;&#45; FROM LC_STOCK_ST112TB
+        &#45;&#45;       , LC_STOCK_ST101TB
+        &#45;&#45;  WHERE TRIM(ST112_SALE_CD) = #P_GDS_CD#
+        &#45;&#45;     AND ST101_ITEM_CD = ST112_ITEM_CD
+        &#45;&#45;     AND ST101_PART_CD = ST112_PART_CD
+        -&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;
+        &#45;&#45; 모종여부조회
+        SELECT (CASE WHEN (ITEM_GR = '11' OR ( #{svDvCd} != '3' AND ITEM_GR ='92')) THEN 'Y' ELSE 'N' END) AS FARM_YN
+          FROM (SELECT T1.PD_CD
+                     , T2.PD_PRP_VAL20 AS ITEM_GR
+                  FROM TB_PDBS_PD_BAS T1
+                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+                    ON T1.PD_CD = T2.PD_CD
+                   AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+                   AND T2.DTA_DL_YN = 'N'
+                 WHERE T1.PD_TP_CD = 'M'
+                   AND T1.DTA_DL_YN = 'N') T
+         WHERE T.PD_CD = (SELECT DISTINCT BAS.PD_CD
+                                 FROM TB_PDBS_PD_BAS BAS /*상품기본*/
+                                INNER JOIN TB_PDBS_PD_REL REL /*상품관계*/
+                                   ON BAS.PD_CD = REL.OJ_PD_CD
+                                  AND REL.PD_REL_TP_CD = '05'
+                                  AND REL.DTA_DL_YN = 'N'
+                                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                                WHERE BAS.DTA_DL_YN = 'N'
+                                  AND REL.BASE_PD_CD = #{basePdCd})
+        -&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;
+        &#45;&#45; SELECT CASE WHEN P1.SELL_TP_DTL_CD = '62' THEN 'Y' ELSE 'N' END SDING_YN
+        &#45;&#45;   FROM TB_PDBS_PD_BAS P1
+        &#45;&#45;  WHERE P1.PD_CD = #{basePdCd}
+    </select>-->
 
     <select id="selectPackage" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTablePackageDvo">
         -- SELECT (CASE WHEN #P_MOJONG_CD# = '999' THEN #P_GDS_CD#
@@ -211,7 +279,7 @@
     </select>
 
     <!--selectPackage_kiwi-->
-    <select id="selectOjPdCd" resultType="java.lang.String">
+    <!--<select id="selectOjPdCd" resultType="java.lang.String">
         SELECT DISTINCT OJ_PD_CD AS PD_CD
           FROM TB_PDBS_PD_REL REL
          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL ECOM
@@ -221,9 +289,9 @@
          WHERE REL.DTA_DL_YN = 'N'
            AND REL.TEMP_SAVE_YN = 'N'
            AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN REL.VL_STRT_DTM AND REL.VL_END_DTM
-           AND REL.PD_REL_TP_CD = '05' -- 기준상품
+           AND REL.PD_REL_TP_CD = '05' &#45;&#45; 기준상품
            AND BASE_PD_CD = #{basePdCd}
-    </select>
+    </select>-->
 
     <!--getMojongDays_kiwim-->
     <select id="selectSidingDaysKiwim" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo">
@@ -392,7 +460,7 @@
             UNION ALL
             -------------------------------------------------------------------------------------------------------------------------------------
             -- QUERY 3
-            <if test="@MybatisUtils@equals(dataGb, '3')">
+            <if test="@MybatisUtils@equals(svDvCd, '3')">
                 <if test="!@MybatisUtils@equals(gbCd, 'M')">
                     <if test="!@MybatisUtils@equals(gbCd, 'I')">
 
@@ -463,7 +531,7 @@
                              WHERE B.RSTR_CNDT_ID = 'TC031'
                                AND B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
                                AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
-                               AND BIZ_APY_DV_VAL = #{dataGb} /* 업무구분 */
+                               AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */
                                <if test='@MybatisUtils@isNotEmpty(localGb)'>
                                AND RSTR_CNDT_VAL1 = #{localGb}
                                </if>
@@ -505,7 +573,7 @@
                              WHERE B.RSTR_CNDT_ID = 'TC004'
                                AND B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
                                AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
-                               AND BIZ_APY_DV_VAL = #{dataGb} /* 업무구분 */
+                               AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */
                                --AND BIZ_APY_DV_VAL = '3' /* 업무구분 */
                                AND ROWNUM = 1) B
                      WHERE A.BASE_Y || A.BASE_MM || A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
@@ -537,7 +605,7 @@
             <if test='@MybatisUtils@isNotEmpty(exYn)'>
                 <if test="@MybatisUtils@equals(exYn, 'Y')">
                     <if test="@MybatisUtils@equals(gbCd, 'C')">
-                        <if test="@MybatisUtils@equals(dataGb, '3')">
+                        <if test="@MybatisUtils@equals(svDvCd, '3')">
                             -- 강력날짜막기: CubigCC고객센터 막음,Depth 요일별
                             -- 큐빅CC 전용 제한조건 52(지정시간)+6(점심시간)+9(미지정)=67: 최정문매니저님, 송정수매니저님 2020.01.22
 
@@ -629,8 +697,8 @@
             </if>
             -------------------------------------------------------------------------------------------------------------------------------------
             -- QUERY 8
-            <if test='@MybatisUtils@isNotEmpty(dataGb)'>
-                <if test="@MybatisUtils@equals(dataGb, '1')">
+            <if test='@MybatisUtils@isNotEmpty(svDvCd)'>
+                <if test="@MybatisUtils@equals(svDvCd, '1')">
                     <if test="!@MybatisUtils@equals(gbCd, 'I')">
 
                         -- SELECT CO160_YR||'-'||TO_NUMBER(CO160_MTH)||'-'|| TO_NUMBER(CO160_DAY) AS DISABLE_DAYS
@@ -758,7 +826,7 @@
                                    AND B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
                                    AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
                                    AND C.CHNL_APY_DV_VAL = #{gbCd} /* 채널적용구분값 */
-                                   AND BIZ_APY_DV_VAL = #{dataGb} /* 업무구분 */
+                                   AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */
                                    <if test='@MybatisUtils@isNotEmpty(gdsList)'>
                                    AND B.RSTR_CNDT_VAL1 IN (
                                         <if test='@MybatisUtils@isNotEmpty(gdsList)'>
@@ -824,7 +892,7 @@
                                        AND B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
                                        AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
                                        AND C.CHNL_APY_DV_VAL = #{gbCd} /* 채널적용구분값 */
-                                       AND BIZ_APY_DV_VAL = #{dataGb} /* 업무구분 */ ) B
+                                       AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */ ) B
                                  , (SELECT T2.PD_PRP_VAL01 AS SVPD_ITEM_CD
                                          , T2.PD_PRP_VAL31 AS SVPD_PART_CD
                                          , T2.PD_PRP_VAL20 AS SVPD_ITEM_GR
@@ -896,7 +964,7 @@
                                        AND B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
                                        AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
                                        AND C.CHNL_APY_DV_VAL = #{gbCd} /* 채널적용구분값 */
-                                       AND BIZ_APY_DV_VAL = #{dataGb} /* 업무구분 */
+                                       AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */
                                        --AND DF_YN IS NULL
                                        --AND PHLD_YN IS NULL
                                         ) B
@@ -1009,7 +1077,7 @@
                                              WHERE BAS.RSTR_CNDT_ID = DTL.RSTR_CNDT_ID
                                                AND BAS.RSTR_CNDT_SN = DTL.RSTR_CNDT_SN
                                                AND DTL.CHNL_APY_DV_VAL LIKE '%' ||#{gbCd} || '%'
-                                               AND DTL.BIZ_APY_DV_VAL LIKE '%' ||#{dataGb} || '%'
+                                               AND DTL.BIZ_APY_DV_VAL LIKE '%' ||#{svDvCd} || '%'
                                                AND BASE_Y || BASE_MM || BASE_D BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE + 120, 'YYYYMMDD')
                                                AND TO_CHAR(TO_DATE(TRIM(BASE_Y) || TRIM(BASE_MM) || TRIM(BASE_D)), 'D') != '1'
                                                AND DF_YN IS NULL
@@ -1049,7 +1117,7 @@
                                                                                           )
                                                                                           AND PD_CD = T.RSTR_CNDT_VAL1
                                                                                           AND T2.CHNL_APY_DV_VAL LIKE '%' || #{gbCd} || '%'
-                                                                                          AND T2.BIZ_APY_DV_VAL LIKE '%' || #{dataGb} || '%'), #{contDt})
+                                                                                          AND T2.BIZ_APY_DV_VAL LIKE '%' || #{svDvCd} || '%'), #{contDt})
                                                AND #{lcwgub} = '1'
                                                AND #{lcetc3} != '2'))
                              WHERE RN > RSTR_CNDT_VAL1
@@ -1063,8 +1131,8 @@
             </if>
             -------------------------------------------------------------------------------------------------------------------------------------
             -- QUERY 14
-            <if test='@MybatisUtils@isNotEmpty(dataGb)'>
-                <if test="@MybatisUtils@equals(dataGb, '4')">
+            <if test='@MybatisUtils@isNotEmpty(svDvCd)'>
+                <if test="@MybatisUtils@equals(svDvCd, '4')">
                     <if test="@MybatisUtils@equals(addGb, '2')">
 
                         -- --isNotEmpty property="DATA_GB">
@@ -1189,7 +1257,7 @@
                                    AND REL.DTA_DL_YN = 'N'
                                    AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
                                    AND REL.BASE_PD_CD = #{basePdCd}) = ST101.PD_CD
-                           AND (ST101.SVPD_ITEM_GR = '11' OR (ST101.SVPD_ITEM_GR = '92' AND #{dataGb} != '3'))) V1
+                           AND (ST101.SVPD_ITEM_GR = '11' OR (ST101.SVPD_ITEM_GR = '92' AND #{svDvCd} != '3'))) V1
                      , (SELECT BASE_Y
                              , BASE_MM
                              , BASE_D
@@ -1210,7 +1278,7 @@
                           FROM TB_SVPD_CST_SVAS_IST_OJ_IZ  AC211 /*LC_ALLOCATE_AC211TB A/S 및 설치 배정대상정보*/
                              , TB_SVPD_CST_SVAS_IST_ASN_IZ AC221 /*LC_ALLOCATE_AC221TB 설치및A/S배정정보*/
                          WHERE AC211.CST_SV_ASN_NO = AC221.CST_SV_ASN_NO
-                           AND SUBSTR(AC211.CST_SV_ASN_NO, 0, 1) = #{dataGb}
+                           AND SUBSTR(AC211.CST_SV_ASN_NO, 0, 1) = #{svDvCd}
                            AND (PD_CD = (CASE WHEN #{lcpkag} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106345'
                                               WHEN #{lcpkag} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106347'
                                               WHEN #{lcpkag} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106349'
@@ -1256,7 +1324,7 @@
                           FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ  AC251 /*LC_ALLOCATE_AC251TB*//*고객서비스BS대상내역*/
                              , TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261/*LC_ALLOCATE_AC261TB*//*고객서비스BS배정내역*/
                          WHERE AC251.CST_SV_ASN_NO = AC261.CST_SV_ASN_NO
-                           AND SUBSTR(AC251.CST_SV_ASN_NO, 0, 1) = #{dataGb}
+                           AND SUBSTR(AC251.CST_SV_ASN_NO, 0, 1) = #{svDvCd}
                            AND (PDCT_PD_CD = (CASE WHEN #{lcpkag} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106345'
                                                    WHEN #{lcpkag} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106347'
                                                    WHEN #{lcpkag} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106349'
@@ -1313,9 +1381,9 @@
                                                   WHERE FA105.VST_DT = T1.VST_DT
                                                     AND FA105.WIDE_SDING_PD_CD = T1.WIDE_SDING_PD_CD
                                                     AND FA105.SLIM_SDING_PD_CD = T1.SLIM_SDING_PD_CD
-                                                    AND FA105.SV_BIZ_HCLSF_CD = #{dataGb})
+                                                    AND FA105.SV_BIZ_HCLSF_CD = #{svDvCd})
                                    AND VST_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
-                                   AND SV_BIZ_HCLSF_CD = #{dataGb})
+                                   AND SV_BIZ_HCLSF_CD = #{svDvCd})
                              , (SELECT B.BASE_Y || B.BASE_MM || B.BASE_D AS DAYS
                                   FROM TB_SVPD_SV_CLND_BAS B /*LC_COMMONCODE_CO160TB*/
                                  WHERE B.BASE_Y || B.BASE_MM || B.BASE_D BETWEEN (CASE WHEN #{lcst09} = '03' THEN TO_CHAR(SYSDATE + 40, 'YYYYMMDD')
@@ -1366,7 +1434,7 @@
            AND ROWNUM = 1
     </select>
 
-    <select id="selectKiwiItemCode" resultType="java.lang.String">
+    <!--<select id="selectKiwiItemCode" resultType="java.lang.String">
         SELECT OJ_PD_CD AS PD_CD
           FROM TB_PDBS_PD_REL REL
          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL ECOM
@@ -1376,12 +1444,12 @@
          WHERE REL.DTA_DL_YN = 'N'
            AND REL.TEMP_SAVE_YN = 'N'
            AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN REL.VL_STRT_DTM AND REL.VL_END_DTM
-           AND REL.PD_REL_TP_CD = '05' -- 기준상품
+           AND REL.PD_REL_TP_CD = '05' &#45;&#45; 기준상품
            AND BASE_PD_CD = #{basePdCd}
            AND ROWNUM = 1
-    </select>
+    </select>-->
 
-    <select id="selectTimeAssign_v2_step0" resultType="java.lang.String">
+    <select id="selectFnSvpdLocaraPrtnr01" resultType="java.lang.String">
       SELECT FN_SVPD_LOCARA_PRTNR_01(TRIM(#{zip}), #{kiwiItemCd}, #{wrkTypDtl}, #{sellDate}) FROM DUAL
     </select>
     <select id="selectTimeAssignStep1" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableTimAssStep1Dvo">
@@ -1439,14 +1507,14 @@
           INNER JOIN TB_SVPD_RPB_LOCARA_PSIC_IZ T3 /*책임지역별담당자내역*/
             ON T3.RPB_LOCARA_CD = T2.RPB_LOCARA_CD
            AND #{sellDate} BETWEEN T3.APY_STRTDT AND T3.APY_ENDDT /*적용기간*/
-           <if test='@MybatisUtils@equals(dataGb, "2")'>
+           <if test='@MybatisUtils@equals(svDvCd, "2")'>
            AND WK_GRP_CD = (CASE WHEN #{vstGb} IN ('10', '11', '12') THEN '10'
                                  WHEN #{vstGb} = '13' THEN '20'
                                  WHEN #{vstGb} = '20' THEN '50'
                                  ELSE FN_SVPD_WRK_GRP_01(#{kiwiItemCd}, #{wrkTypDtl}, #{sellDate})
                             END)
            </if>
-           <if test='!@MybatisUtils@equals(dataGb, "2")'>
+           <if test='!@MybatisUtils@equals(svDvCd, "2")'>
            AND WK_GRP_CD = FN_SVPD_WRK_GRP_01(#{kiwiItemCd}, #{wrkTypDtl}, #{sellDate})
            </if>
          INNER JOIN TB_OGBS_MM_PRTNR_IZ T4
@@ -1483,23 +1551,21 @@
                                                                  AND PIC.WK_GRP_CD = TT2.WK_GRP_CD
                                                                  AND #{sellDate} BETWEEN PIC.APY_STRTDT AND PIC.APY_ENDDT))
 
-           <if test='@MybatisUtils@equals(dataGb, "2")'>
+           <if test='@MybatisUtils@equals(svDvCd, "2")'>
                <choose>
                    <when test='gbCd == "I"'>
                    /*2021.04.30 최정문파트장님 요청 BS이관기록이 있을경우 담당자 본인 배정 */
-                   --@TODO function 생성요청 승인 후 주석 제거
-                   --AND T4.HMNRSC_EMPNO = (SELECT CASE WHEN (ASN_TF_DV_CD IS NOT NULL AND ASN_TF_DV_CD != '411') THEN CNFM_PSIC_PRTNR_NO /*확정담당자파트너번호*/
-                   --                                   ELSE FN_SVPD_LOCARA_PRTNR_BS_01(TRIM({zip}), {kiwiItemCd}, {wrkTypDtl}, {selDate}, {vstGb}) END
-                   --                         FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*고객서비스BS배정내역*/
-                   --                        WHERE CST_SV_ASN_NO = {cstSvAsnNo})
+                   AND T4.HMNRSC_EMPNO = (SELECT CASE WHEN (ASN_TF_DV_CD IS NOT NULL AND ASN_TF_DV_CD != '411') THEN CNFM_PSIC_PRTNR_NO /*확정담당자파트너번호*/
+                                                     ELSE FN_SVPD_LOCARA_PRTNR_BS_01(TRIM({zip}), {kiwiItemCd}, {wrkTypDtl}, {selDate}, {vstGb}) END
+                                           FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*고객서비스BS배정내역*/
+                                          WHERE CST_SV_ASN_NO = {cstSvAsnNo})
                    </when>
                    <otherwise>
-                   --@TODO function 생성요청 승인 후 주석 제거
-                   --AND T4.HMNRSC_EMPNO = FN_SVPD_LOCARA_PRTNR_BS_01(TRIM({zip}), {kiwiItemCd}, {wrkTypDtl}, {selDate}, {vstGb})
+                   AND T4.HMNRSC_EMPNO = FN_SVPD_LOCARA_PRTNR_BS_01(TRIM({zip}), {kiwiItemCd}, {wrkTypDtl}, {selDate}, {vstGb})
                    </otherwise>
                </choose>
            </if>
-           <if test='!@MybatisUtils@equals(dataGb, "2")'>
+           <if test='!@MybatisUtils@equals(svDvCd, "2")'>
                <choose>
                    <when test='gbCd == "I"'>
                    AND T4.HMNRSC_EMPNO = FN_SVPD_LOCARA_PRTNR_OWR_01(TRIM({zip}), {kiwiItemCd}, {wrkTypDtl}, {selDate})
