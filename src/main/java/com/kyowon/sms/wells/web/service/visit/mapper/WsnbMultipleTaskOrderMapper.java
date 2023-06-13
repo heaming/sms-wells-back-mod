@@ -1,33 +1,25 @@
 package com.kyowon.sms.wells.web.service.visit.mapper;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbAsAssignReqDvo;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractReqDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo;
 
 @Mapper
 public interface WsnbMultipleTaskOrderMapper {
+    WsnbContractReqDvo selectContract(String cntrNo, String cntrSn);
 
-    int selectCountItemizationByItemGroup(String cntrNo);
-
-    int selectCountItemizationByCntrNoB(String cntrNo);
+    WsnbAsAssignReqDvo selectAsAssign(String cstSvAsnNo);
 
     WsnbMultipleTaskOrderDvo selectWorkRequidationItemization(String asIstOjNo);
 
-    String selectRcgvpKnm(String cntrNo, String cntrSn);
-
-    int selectCountInstallationDate(String cntrNo, String cntrSn);
-
-    int selectCountRequidationDate(String cntrNo, String cntrSn);
-
     int selectCountAsIstAsnIz(WsnbMultipleTaskOrderDvo dvo);
 
-    int selectCountStopDate(String cntrNo, String cntrSn);
-
     String selectWorkContent(String newSvBizDclsfCd);
-
-    int selectUseMonth(String vstRqdt, String cntrNo, String cntrSn);
 
     int selectCountChangeTotal(String cntrNo);
 
@@ -35,13 +27,11 @@ public interface WsnbMultipleTaskOrderMapper {
 
     int selectCountRangeChangeBs(String cntrNo);
 
-    int selectCountItem(String cntrNo);
+    int selectWorkOutStorageCount(String cntrNo, String cntrSn);
 
     int selectCountAsIstOjIz(String asIstOjNo);
 
     WsnbMultipleTaskOrderDvo selectAsIstOjIzKey(WsnbMultipleTaskOrderDvo dvo);
-
-    WsnbMultipleTaskOrderDvo selectPdCd(WsnbMultipleTaskOrderDvo dvo);
 
     int insertErrorItemization(WsnbMultipleTaskOrderDvo dvo);
 
@@ -69,8 +59,6 @@ public interface WsnbMultipleTaskOrderMapper {
 
     int deleteAsInstallationAssignIz(String cstSvAsnNo);
 
-    String selectItemGr(String newPdCd);
-
     /**/
     int deleteSdingShipping(WsnbMultipleTaskOrderDvo dvo);
 
@@ -80,7 +68,7 @@ public interface WsnbMultipleTaskOrderMapper {
 
     int insertAsInstallationAssignHistByNewKey(WsnbMultipleTaskOrderDvo dvo);
 
-    String selectVstDtChk(String vstRqDt);
+    Optional<String> selectVstDtChk(String vstRqDt);
 
     WsnbMultipleTaskOrderDvo selectSdingCount();
 
