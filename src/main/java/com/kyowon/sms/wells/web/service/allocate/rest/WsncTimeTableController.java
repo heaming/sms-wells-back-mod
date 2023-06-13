@@ -1,19 +1,22 @@
 package com.kyowon.sms.wells.web.service.allocate.rest;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSalesDto;
-import com.kyowon.sms.wells.web.service.allocate.service.WsncTimeTableService;
-import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import java.text.ParseException;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSalesDto;
+import com.kyowon.sms.wells.web.service.allocate.service.WsncTimeTableService;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping(SnServiceConst.REST_URL_V1 + "/time-tables")
@@ -42,7 +45,8 @@ public class WsncTimeTableController {
         @ApiImplicitParam(name = "returnurl", value = "", paramType = "query"), // returnurl
     })
     @GetMapping("/sales")
-    public WsncTimeTableSalesDto.FindRes getTmeAssignSales(WsncTimeTableSalesDto.FindReq req) {
+    public WsncTimeTableSalesDto.FindRes getTmeAssignSales(WsncTimeTableSalesDto.FindReq req)
+        throws ParseException {
         return service.getTmeAssignSales(req);
     }
 

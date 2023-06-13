@@ -29,66 +29,6 @@
          ORDER BY T1.BASE_Y, T1.BASE_MM, T1.BASE_D
     </select>
 
-    <select id='selectCustDetail' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableCustDetailDvo">
-        SELECT A.CNTR_NO AS CNTR_NO
-             , (SELECT T2.NEW_ADR_ZIP FROM TB_SSCT_CNTR_ADRPC_BAS T1
-                 INNER JOIN TB_GBCO_ADR_BAS T2
-                    ON C.CNTR_NO = A.CNTR_NO
-                   AND C.ADR_ID = T2.ADR_ID
-                 FETCH FIRST 1 ROW ONLY) AS ZIP
-             , A.CNTR_PD_STRTDT AS CNTR_DT
-             , (SELECT BAS.PD_CD
-                  FROM TB_PDBS_PD_BAS BAS
-                 INNER JOIN TB_PDBS_PD_REL REL
-                    ON BAS.PD_CD = REL.OJ_PD_CD
-                   AND REL.PD_REL_TP_CD = '05'
-                   AND REL.DTA_DL_YN = 'N'
-                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
-                 WHERE BAS.DTA_DL_YN = 'N'
-                   AND REL.BASE_PD_CD = A.BASE_PD_CD) AS PD_CD
-             , A.BASE_PD_CD AS SALE_CD
-             , B.COPN_DV_CD AS COPN_DV_CD /*LCWGUB*//* 법인격구분코드 (1개인, 2법인)*/
-             , A.SELL_DSC_DV_CD AS SELL_DSC_DV_CD /*LCETC3*//* 판매할인구분코드 (1일시불할인, 2렌탈할인, 3멤버십할인) */
-             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_DSC_DV_CD', A.SELL_DSC_DV_CD, 'ko') AS SELL_DSC_DV_NM
-             , C.RCGVP_KNM /*LCWNAM 수령자한글명 */
-          FROM TB_SSCT_CNTR_DTL A
-    INNER JOIN TB_SSCT_CNTR_BAS B
-            ON A.CNTR_NO = B.CNTR_NO
-          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS C
-            ON C.CNTR_NO = A.CNTR_NO
-           AND C.CNTR_CST_NO IS NOT NULL
-         WHERE B.CNTR_CNFM_DTM IS NOT NULL -- 계약확정일시
-           AND A.CNTR_NO = #{cntrNo}
-           -- W20220112789 (일시불할인구분코드)
-           -- W20221398157 (렌탈할인구분코드)
-           -- W20221192649 (멤버십할인구분코드)
-         FETCH FIRST 1 ROW ONLY
-    </select>
-
-    <!--<select id='selectItemcode' resultType="java.lang.String">
-        SELECT (CASE WHEN D.PD_PRP_VAL20 = '10' /*홈케어*/ THEN '2' ELSE '1' END ) AS ADD_GB
-          FROM TB_SSCT_CNTR_DTL A
-          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL D
-            ON A.BASE_PD_CD = D.PD_CD
-           AND D.PD_EXTS_PRP_GRP_CD = 'PART'
-         WHERE A.CNTR_NO = #{cntrNo}
-    </select>-->
-
-    <!--<select id="selectLocalEmpinfo" resultType="java.lang.String">
-        SELECT FN_SVPD_LOCARA_PRTNR_01(#{zip}, BAS.PD_CD, #{svBizDclsfCd}, #{sellDate}) AS LOCAL_EMP_ID
-          FROM TB_PDBS_PD_BAS BAS
-         INNER JOIN TB_PDBS_PD_REL REL
-            ON BAS.PD_CD = REL.OJ_PD_CD
-           AND REL.PD_REL_TP_CD = '05'
-           AND REL.DTA_DL_YN = 'N'
-           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
-         INNER JOIN TB_PDBS_PD_BAS BAS1
-            ON REL.BASE_PD_CD = BAS1.PD_CD
-           AND BAS1.DTA_DL_YN = 'N'
-         WHERE BAS.DTA_DL_YN = 'N'
-           AND REL.BASE_PD_CD = #{basePdCd}
-    </select>-->
-
     <!--selectCustDetail, selectItemcode-->
     <select id="selectContract" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableCntrDvo">
         SELECT C2.CNTR_NO
@@ -160,119 +100,6 @@
            AND P2.OJ_PD_CD = #{pdctPdCd} -- 제품상품코드
     </select>
 
-    <!--<select id="selectFarmYn" resultType="java.lang.String">
-        -&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;
-        &#45;&#45;SELECT (CASE WHEN (ST101_ITEM_GR = '11' OR (  GET_FARM_GIGI_YN(ST101_ITEM_CD||ST101_PART_CD) ='Y' AND #DATA_GB# != '3' )) THEN 'Y' ELSE 'N'
-        &#45;&#45;         END) AS FARM_YN
-        &#45;&#45; FROM LC_STOCK_ST112TB
-        &#45;&#45;       , LC_STOCK_ST101TB
-        &#45;&#45;  WHERE TRIM(ST112_SALE_CD) = #P_GDS_CD#
-        &#45;&#45;     AND ST101_ITEM_CD = ST112_ITEM_CD
-        &#45;&#45;     AND ST101_PART_CD = ST112_PART_CD
-        -&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;
-        &#45;&#45; 모종여부조회
-        SELECT (CASE WHEN (ITEM_GR = '11' OR ( #{svDvCd} != '3' AND ITEM_GR ='92')) THEN 'Y' ELSE 'N' END) AS FARM_YN
-          FROM (SELECT T1.PD_CD
-                     , T2.PD_PRP_VAL20 AS ITEM_GR
-                  FROM TB_PDBS_PD_BAS T1
-                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
-                    ON T1.PD_CD = T2.PD_CD
-                   AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
-                   AND T2.DTA_DL_YN = 'N'
-                 WHERE T1.PD_TP_CD = 'M'
-                   AND T1.DTA_DL_YN = 'N') T
-         WHERE T.PD_CD = (SELECT DISTINCT BAS.PD_CD
-                                 FROM TB_PDBS_PD_BAS BAS /*상품기본*/
-                                INNER JOIN TB_PDBS_PD_REL REL /*상품관계*/
-                                   ON BAS.PD_CD = REL.OJ_PD_CD
-                                  AND REL.PD_REL_TP_CD = '05'
-                                  AND REL.DTA_DL_YN = 'N'
-                                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
-                                WHERE BAS.DTA_DL_YN = 'N'
-                                  AND REL.BASE_PD_CD = #{basePdCd})
-        -&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;
-        &#45;&#45; SELECT CASE WHEN P1.SELL_TP_DTL_CD = '62' THEN 'Y' ELSE 'N' END SDING_YN
-        &#45;&#45;   FROM TB_PDBS_PD_BAS P1
-        &#45;&#45;  WHERE P1.PD_CD = #{basePdCd}
-    </select>-->
-
-    <!--<select id="selectPackage" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTablePackageDvo">
-        SELECT CASE WHEN #{sidingCd} = '999' THEN #{basePdCd}
-                    &#45;&#45; 입력받은 basePdCd가 정기배송 구성품이 있는지
-                    WHEN (SELECT COUNT(*)
-                            FROM TB_PDBS_PD_BAS /*상품기본*/
-                           WHERE SELL_TP_CD = '6' &#45;&#45; 정기배송
-                             AND SELL_TP_DTL_CD IN ('61', '62', '63') &#45;&#45; 61:일반, 62:모종, 63:캡슐
-                             AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN SELL_STRTDT /*판매시작일자*/ AND SELL_ENDDT /*판매종료일자*/
-                             AND PD_CD = #{basePdCd}) > 0 THEN #{basePdCd}
-                    &#45;&#45; 계약번호로 정기배송 기준상품 조회
-                    ELSE (SELECT DTL.BASE_PD_CD
-                            FROM TB_SSCT_CNTR_BAS      BAS /*계약기본*/
-                           INNER JOIN TB_SSCT_CNTR_DTL DTL /*계약상세*/
-                              ON BAS.CNTR_NO = DTL.CNTR_NO
-                           WHERE BASE_PD_CD IN (SELECT PD_CD
-                                                  FROM TB_PDBS_PD_BAS /*상품기본*/
-                                                 WHERE SELL_TP_CD = '6' /*정기배송*/
-                                                   AND SELL_TP_DTL_CD IN ('61', '62', '63') /*61:일반, 62:모종, 63:캡슐*/
-                                                   AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN SELL_STRTDT /*판매시작일자*/ AND SELL_ENDDT /*판매종료일자*/)
-                             AND BAS.CNTR_NO = #{cntrNo})
-               END AS BASE_PD_CD
-             , (SELECT CASE WHEN SIDING.PD_CD IS NOT NULL
-                       THEN '03'
-                       ELSE CASE WHEN #{sellDate} > TO_CHAR(SYSDATE, 'YYYYMMDD')
-                                 THEN '02'
-                                 ELSE '01'
-                            END
-                       END AS LCST09
-                  FROM TB_PDBS_PD_BAS BAS
-                 INNER JOIN (SELECT PD_CD /*정기배송 기준상품*/
-                               FROM TB_PDBS_PD_BAS /*상품기본*/
-                              WHERE SELL_TP_CD = '6' /*정기배송*/
-                                AND SELL_TP_DTL_CD IN ('61', '62', '63') /*61:일반, 62:모종, 63:캡슐*/
-                                AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN SELL_STRTDT /*판매시작일자*/ AND SELL_ENDDT /*판매종료일자*/) SIDING
-                    ON SIDING.PD_CD = BAS.PD_CD
-                 WHERE BAS.PD_CD = (SELECT DTL.BASE_PD_CD
-                                      FROM TB_SSCT_CNTR_BAS BAS /*계약기본*/
-                                     INNER JOIN TB_SSCT_CNTR_DTL DTL /*계약상세*/
-                                        ON BAS.CNTR_NO = DTL.CNTR_NO
-                                     WHERE BAS.CNTR_NO = #{cntrNo})) AS LCST09
-          FROM DUAL
-    </select>-->
-
-    <!--selectPackage_kiwi-->
-    <!--<select id="selectOjPdCd" resultType="java.lang.String">
-        SELECT DISTINCT OJ_PD_CD AS PD_CD
-          FROM TB_PDBS_PD_REL REL
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL ECOM
-            ON REL.OJ_PD_CD = ECOM.PD_CD
-           AND ECOM.PD_EXTS_PRP_GRP_CD IN ('PART')
-           AND ECOM.DTA_DL_YN = 'N'
-         WHERE REL.DTA_DL_YN = 'N'
-           AND REL.TEMP_SAVE_YN = 'N'
-           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN REL.VL_STRT_DTM AND REL.VL_END_DTM
-           AND REL.PD_REL_TP_CD = '05' &#45;&#45; 기준상품
-           AND BASE_PD_CD = #{basePdCd}
-    </select>-->
-
-    <!--getMojongDays_kiwim-->
-    <!--<select id="selectSidingDaysKiwim" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo">
-        SELECT '배송가능' AS TITLE
-             , SDING_QTY AS SUM_CNT
-             , SUBSTR(W3TH,1,4)||'-'||SUBSTR(W3TH, 5, 2)||'-'||SUBSTR(W3TH, 7, 2)||'T'|| '00:00:00' AS ST
-             , SUBSTR(W3TH,1,4)||'-'||SUBSTR(W3TH, 5, 2)||'-'||SUBSTR(W3TH, 7, 2)||'T'|| '00:00:00' AS ED
-             , W3TH
-          FROM (
-            SELECT VST_DT AS W3TH
-                 , SDING_QTY
-              FROM TB_SVPD_DCBY_SDING_QTY_IZ
-             WHERE SDING_PKG_CD = (SELECT SDING_PKG_CD
-                                     FROM TB_SVPD_SDING_PKG_ITM_IZ
-                                    WHERE SDING_PKG_CD NOT LIKE '@%'
-                                      AND PD_CD = #{basePdCd})
-               AND SDING_QTY > 0
-          )
-    </select>-->
-
     <!--getMojongDays-->
     <select id="selectSidingDays" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo">
         SELECT SUBSTR(VST_DT,1,4)||'-'||TO_NUMBER(SUBSTR(VST_DT,5,2))||'-'||TO_NUMBER(SUBSTR(VST_DT,7,2)) AS ABL_DAYS
@@ -326,16 +153,18 @@
                  , BASE_Y||'-'|| BASE_MM||'-'|| BASE_D AS DISABLE_FULDAYS
                  , B.RSTR_CNDT_SRN_MARK_CN AS MSG
               FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
-                 , (SELECT B.RSTR_CNDT_ID, B.RSTR_CNDT_SN, B.RSTR_CNDT_SRN_MARK_CN, B.APY_STRTDT, B.APY_ENDDT, B.RSTR_CNDT_VAL1
-                      FROM TB_SVPD_SV_RSTR_CNDT_BAS B /* 서비스제약조건기본 */
-                INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C  /* 서비스제약조건상세 */
-                        ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
-                       AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
-                       AND C.CHNL_APY_DV_VAL = '%'||#{chnlDvCd}||'%' /* 채널적용구분값 */
-                     WHERE B.RSTR_CNDT_ID = 'TC002'
-                       AND ROWNUM = 1) B
-             WHERE A.BASE_Y||A.BASE_MM||A.BASE_D = TO_CHAR(SYSDATE + 1, 'YYYYMMDD') /*익일*/
-               AND (TO_CHAR(SYSDATE, 'HH24MI') <![CDATA[<]]> '0800' OR TO_CHAR(SYSDATE, 'HH24MI') > '1800')
+        INNER JOIN (
+                        SELECT B.RSTR_CNDT_ID, B.RSTR_CNDT_SN, B.RSTR_CNDT_SRN_MARK_CN, B.APY_STRTDT, B.APY_ENDDT, B.RSTR_CNDT_VAL1
+                          FROM TB_SVPD_SV_RSTR_CNDT_BAS B /* 서비스제약조건기본 */
+                    INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C  /* 서비스제약조건상세 */
+                            ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
+                           AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
+                           AND C.CHNL_APY_DV_VAL = '%'||#{chnlDvCd}||'%' /* 채널적용구분값 */
+                         WHERE B.RSTR_CNDT_ID = 'TC002'
+                           AND ROWNUM = 1
+                     ) B
+                 ON A.BASE_Y||A.BASE_MM||A.BASE_D = TO_CHAR(SYSDATE + 1, 'YYYYMMDD') /*익일*/
+                AND (TO_CHAR(SYSDATE, 'HH24MI') <![CDATA[<]]> '0800' OR TO_CHAR(SYSDATE, 'HH24MI') > '1800')
 
             UNION ALL
 
@@ -344,32 +173,34 @@
                  , B.BASE_Y || '-' || B.BASE_MM || '-' || B.BASE_D AS DISABLE_FULDAYS
                  , '제주도 매트리스 일일 4건 제한' AS MSG
               FROM TB_SVPD_EGER_ASN_ADR_IZ A /* 엔지니어배정용주소내역 */
-                 , TB_SVPD_SV_CLND_BAS B /* 서비스달력기본 */
-                 , (SELECT T1.PD_CD AS SVPD_PD_CD, T2.PD_PRP_VAL20 AS SVPD_ITEM_GR
-                      FROM TB_PDBS_PD_BAS T1
-                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
-                        ON T1.PD_CD = T2.PD_CD
-                       AND T2.PD_EXTS_PRP_GRP_CD IN ('PART', 'PDCT')
-                       AND T2.DTA_DL_YN = 'N') C
+        INNER JOIN TB_SVPD_SV_CLND_BAS B /* 서비스달력기본 */
+                ON B.BASE_Y || B.BASE_MM || B.BASE_D BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE + 180, 'YYYYMMDD')
              WHERE A.CTPV_NM LIKE '%제주%'
                AND A.NEW_ADR_ZIP = TRIM(#{newAdrZip})
-               AND B.BASE_Y || B.BASE_MM || B.BASE_D BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE + 180, 'YYYYMMDD')
-               AND C.SVPD_PD_CD IN (
-                    <if test='@MybatisUtils@isNotEmpty(basePdCdList)'>
-                    #{basePdCdList}
-                    </if>
-                    <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
-                    #{basePdCd}
-                    </if>
-               )
-               AND (CASE WHEN C.SVPD_ITEM_GR = '95' THEN 'Y' ELSE 'N' END) = 'Y'
                AND ((SELECT COUNT(1) AS SUM_T
                        FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1 /*고객서비스AS설치배정내역*/
                  INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T2
                          ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO /*고객서비스AS설치대상내역*/
                       WHERE T1.VST_CNFMDT = B.BASE_Y || B.BASE_MM || B.BASE_D
                         AND T1.WK_PRGS_STAT_CD IN ('00', '10')
-                        AND T2.PD_CD = C.SVPD_PD_CD
+                        AND T2.PD_CD IN (
+                                SELECT X1.PD_CD AS PD_CD
+                                  FROM TB_PDBS_PD_BAS X1
+                            INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL X2
+                                    ON X1.PD_CD = X2.PD_CD
+                                   AND X2.PD_EXTS_PRP_GRP_CD IN ('PART', 'PDCT')
+                                   AND X2.DTA_DL_YN = 'N'
+                                 WHERE 1 = 1
+                                   AND X2.PD_PRP_VAL20 = '95'
+                                   AND X1.PD_CD IN (
+                                    <if test='@MybatisUtils@isNotEmpty(basePdCdList)'>
+                                        #{basePdCdList}
+                                    </if>
+                                    <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
+                                        #{basePdCd}
+                                    </if>
+                                   )
+                            )
                         AND T2.IST_ADR LIKE '%제주%')) > 4
 
             UNION ALL
@@ -413,7 +244,8 @@
                     -- QUERY 4
                     SELECT A.BASE_Y || '-' || TO_NUMBER(A.BASE_MM) || '-' || TO_NUMBER(A.BASE_D) AS DISABLE_DAYS, A.BASE_Y || '-' || A.BASE_MM || '-' || A.BASE_D AS DISABLE_FULDAYS, B.RSTR_CNDT_SRN_MARK_CN AS MSG
                       FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
-                         , (SELECT B.RSTR_CNDT_ID
+                INNER JOIN (
+                            SELECT B.RSTR_CNDT_ID
                                  , B.RSTR_CNDT_SN
                                  , B.RSTR_CNDT_SRN_MARK_CN
                                  , B.APY_STRTDT
@@ -431,8 +263,9 @@
                                /* 지역구분 */
                                AND INSTR(RSTR_CNDT_VAL1, #{svBizDclsfCd}) > 0 /* 작업유형상세 */
                                AND INSTR(RSTR_CNDT_VAL2, '3121') > 0
-                               AND ROWNUM = 1) B
-                     WHERE A.BASE_Y || A.BASE_MM || A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
+                               AND ROWNUM = 1
+                            ) B
+                         ON A.BASE_Y || A.BASE_MM || A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
 
                     UNION ALL
                     </if>
@@ -444,7 +277,8 @@
                     /** 매니저 AS 접수 **/
                     SELECT A.BASE_Y || '-' || TO_NUMBER(A.BASE_MM) || '-' || TO_NUMBER(A.BASE_D) AS DISABLE_DAYS, A.BASE_Y || '-' || A.BASE_MM || '-' || A.BASE_D AS DISABLE_FULDAYS, B.RSTR_CNDT_SRN_MARK_CN AS MSG
                       FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
-                         , (SELECT B.RSTR_CNDT_ID
+                INNER JOIN (
+                            SELECT B.RSTR_CNDT_ID
                                  , B.RSTR_CNDT_SN
                                  , B.RSTR_CNDT_SRN_MARK_CN
                                  , B.APY_STRTDT
@@ -457,14 +291,16 @@
                                AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
                              WHERE B.RSTR_CNDT_ID = 'TC004'
                                AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */
-                               AND ROWNUM = 1) B
-                     WHERE A.BASE_Y || A.BASE_MM || A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
-                       --AND GET_WRKTYP_TCNT(FN_SVPD_LOCARA_PRTNR_01(TRIM(#ZIPNO1#) || TRIM(#ZIPNO2#), GET_GDS_CD(# P_GDS_CD#), '3110', CO160_YR || CO160_MTH || CO160_DAY), '3110', CO160_YR || CO160_MTH || CO160_DAY) > CO720_COL03
-                       AND (SELECT SUM_T AS V_WRK_AS_TOTAL_CNT
+                               AND ROWNUM = 1
+                            ) B
+                         ON A.BASE_Y || A.BASE_MM || A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
+                       WHERE 1 = 1
+                         AND (SELECT SUM_T AS V_WRK_AS_TOTAL_CNT
                               FROM (SELECT COUNT(1) AS SUM_T
                                       FROM TB_SVPD_CST_SVAS_IST_ASN_IZ AC221 /*LC_ALLOCATE_AC221TB 설치및A/S배정정보*/
-                                         , TB_SVPD_CST_SVAS_IST_OJ_IZ AC211  /*LC_ALLOCATE_AC211TB A/S 및 설치 배정대상정보*/
-                                     WHERE AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
+                                INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ AC211  /*LC_ALLOCATE_AC211TB A/S 및 설치 배정대상정보*/
+                                        ON AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
+                                     WHERE 1 = 1
                                        AND AC221.ICHR_PRTNR_NO = FN_SVPD_LOCARA_PRTNR_01(#{newAdrZip}, (SELECT BAS.PD_CD
                                                                                                            FROM TB_PDBS_PD_BAS BAS
                                                                                                      INNER JOIN TB_PDBS_PD_REL REL
@@ -493,7 +329,7 @@
 
                             SELECT A.BASE_Y || '-' || TO_NUMBER(A.BASE_MM) || '-' || TO_NUMBER(A.BASE_D) AS DISABLE_DAYS, A.BASE_Y || '-' || A.BASE_MM || '-' || A.BASE_D AS DISABLE_FULDAYS, B.RSTR_CNDT_SRN_MARK_CN AS MSG
                               FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
-                                 , (SELECT B.RSTR_CNDT_ID
+                        INNER JOIN (SELECT B.RSTR_CNDT_ID
                                          , B.RSTR_CNDT_SN
                                          , B.RSTR_CNDT_SRN_MARK_CN
                                          , B.APY_STRTDT
@@ -506,19 +342,20 @@
                                      WHERE B.RSTR_CNDT_ID = 'TC003'
                                        AND C.CHNL_APY_DV_VAL = #{chnlDvCd} /* 채널적용구분값 */
                                        AND ROWNUM = 1) B
-                             WHERE A.BASE_Y || A.BASE_MM || A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
+                                ON A.BASE_Y || A.BASE_MM || A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
+                             WHERE 1 = 1
                                AND FN_SVPD_LDTM_TOT_01(#{prtnrNo}, A.BASE_Y || A.BASE_MM || A.BASE_D) + 6
                                 + (SELECT SUM(SUM_T) / 10 AS V_WRK_TOTAL_TIME
                                      FROM (
                                            SELECT SUM(FN_SVPD_MMT_AV_LDTM_01((SELECT MAX(NEW_ADR_ZIP) FROM TB_GBCO_ADR_BAS WHERE RNADR = AC211.IST_ADR),AC211.PD_CD, AC211.SV_BIZ_DCLSF_CD, AC221.VST_CNFMDT)) AS SUM_T
                                              FROM TB_SVPD_CST_SVAS_IST_ASN_IZ /*LC_ALLOCATE_AC221TB*/ AC221 /*고객서비스AS설치배정내역*/
-                                                , TB_SVPD_CST_SVAS_IST_OJ_IZ  /*LC_ALLOCATE_AC211TB*/ AC211 /*고객서비스AS설치대상내역*/
-                                            WHERE AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
+                                       INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ  /*LC_ALLOCATE_AC211TB*/ AC211 /*고객서비스AS설치대상내역*/
+                                               ON AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
+                                            WHERE 1 = 1
                                               AND AC221.ICHR_PRTNR_NO = {prtnrNo}
                                               AND AC221.VST_CNFMDT = {selDate}
                                               AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
-                                              AND AC221.VST_CNFM_HH <![CDATA[>=]]> '010000'
-                                              AND AC221.VST_CNFM_HH <![CDATA[<=]]> '030000'
+                                              AND AC221.VST_CNFM_HH BETWEEN '010000' AND '030000'
                                             UNION ALL
                                            SELECT SUM(FN_SVPD_MMT_AV_LDTM_01((SELECT MAX(ADR.NEW_ADR_ZIP)
                                                                                 FROM TB_SSCT_CNTR_ADRPC_BAS ADRPC
@@ -531,8 +368,7 @@
                                               AND AC261.CNFM_PSIC_PRTNR_NO =  {prtnrNo}
                                               AND AC261.VST_DUEDT = {selDate}
                                               AND AC261.VST_PRGS_STAT_CD IN ('00', '10')
-                                              AND AC261.VST_EXP_HH <![CDATA[>=]]> '010000'
-                                              AND AC261.VST_EXP_HH <![CDATA[<=]]> '030000'
+                                              AND AC261.VST_EXP_HH BETWEEN '010000' AND '030000'
                                             UNION ALL
                                            SELECT 0
                                              FROM DUAL
@@ -568,7 +404,7 @@
                              , A.BASE_Y||'-'||A.BASE_MM||'-'||A.BASE_D AS DISABLE_FULDAYS
                              , '접수마감일 제한(설치건수 서비스운영팀)' AS MSG
                           FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
-                             , (SELECT B.RSTR_CNDT_ID
+                    INNER JOIN (SELECT B.RSTR_CNDT_ID
                                      , B.RSTR_CNDT_SN
                                      , B.RSTR_CNDT_SRN_MARK_CN
                                      , B.APY_STRTDT
@@ -581,8 +417,8 @@
                                  WHERE B.RSTR_CNDT_ID = 'TC006'
                                    AND BIZ_APY_DV_VAL = '1' /* 업무구분 */
                                    AND ROWNUM = 1) B
-                         WHERE A.BASE_Y||A.BASE_MM||A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
-                           -- AND GET_WRK_TOTAL_CNT_INST(#EMP_ID#, CO160_YR||CO160_MTH||CO160_DAY) > CO720_COL01
+                            ON A.BASE_Y||A.BASE_MM||A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
+                         WHERE 1 = 1
                            AND (SELECT SUM_T AS V_WRK_INST_TOTAL_CNT
                                   FROM (
                                     SELECT COUNT(1) AS SUM_T
@@ -626,7 +462,8 @@
                              , A.BASE_Y||'-'||A.BASE_MM||'-'||A.BASE_D AS DISABLE_FULDAYS
                              , B.RSTR_CNDT_SRN_MARK_CN AS MSG
                           FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
-                             , (SELECT B.RSTR_CNDT_ID, B.RSTR_CNDT_SN, B.RSTR_CNDT_SRN_MARK_CN, B.APY_STRTDT, B.APY_ENDDT, B.RSTR_CNDT_VAL1
+                    INNER JOIN (
+                                SELECT B.RSTR_CNDT_ID, B.RSTR_CNDT_SN, B.RSTR_CNDT_SRN_MARK_CN, B.APY_STRTDT, B.APY_ENDDT, B.RSTR_CNDT_VAL1
                                   FROM TB_SVPD_SV_RSTR_CNDT_BAS B /* 서비스제약조건기본 */
                             INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
                                     ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
@@ -642,12 +479,13 @@
                                         <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
                                         #{basePdCd}
                                         </if>
-                                   ) /* SVPD_ITEM_CD || SVPD_PART_CD */
+                                   )
                                    </if>
                                    <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
                                    AND B.RSTR_CNDT_VAL1 = #{basePdCd}
                                    </if>) B
-                        WHERE A.BASE_Y||A.BASE_MM||A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
+                             ON A.BASE_Y||A.BASE_MM||A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
+                          WHERE 1 = 1
 
                         UNION ALL
                         -------------------------------------------------------------------------------------------------------------------------------------
@@ -662,36 +500,40 @@
                             SELECT A.BASE_Y||'-'||TO_NUMBER(A.BASE_MM)||'-'|| TO_NUMBER(A.BASE_D) AS DISABLE_DAYS
                                  , A.BASE_Y||'-'||A.BASE_MM||'-'||A.BASE_D AS DISABLE_FULDAYS
                                  , B.RSTR_CNDT_SRN_MARK_CN AS MSG
-                                 , ROW_NUMBER() OVER(PARTITION BY C.SVPD_ITEM_CD ORDER BY C.SVPD_ITEM_CD) AS RN
+                                 , ROW_NUMBER() OVER(PARTITION BY C.PD_CD ORDER BY C.PD_CD) AS RN
                                  , B.RSTR_CNDT_VAL1
                               FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
-                                 , (SELECT B.RSTR_CNDT_ID, B.RSTR_CNDT_SN, B.RSTR_CNDT_SRN_MARK_CN, B.APY_STRTDT, B.APY_ENDDT, B.RSTR_CNDT_VAL1
-                                      FROM TB_SVPD_SV_RSTR_CNDT_BAS B /* 서비스제약조건기본 */
-                                INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
-                                        ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
-                                       AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
-                                     WHERE B.RSTR_CNDT_ID = 'TC008'
-                                       AND C.CHNL_APY_DV_VAL = #{chnlDvCd} /* 채널적용구분값 */
-                                       AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */ ) B
-                                 , (SELECT T2.PD_PRP_VAL01 AS SVPD_ITEM_CD
-                                         , T2.PD_PRP_VAL31 AS SVPD_PART_CD
-                                         , T2.PD_PRP_VAL20 AS SVPD_ITEM_GR
-                                      FROM TB_PDBS_PD_BAS T1
-                                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
-                                        ON T1.PD_CD = T2.PD_CD
-                                       AND T2.PD_EXTS_PRP_GRP_CD IN ('PART','PDCT')
-                                       AND T2.DTA_DL_YN = 'N') C
+                        INNER JOIN (
+                                        SELECT B.RSTR_CNDT_ID, B.RSTR_CNDT_SN, B.RSTR_CNDT_SRN_MARK_CN, B.APY_STRTDT, B.APY_ENDDT, B.RSTR_CNDT_VAL1
+                                          FROM TB_SVPD_SV_RSTR_CNDT_BAS B /* 서비스제약조건기본 */
+                                    INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
+                                            ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
+                                           AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
+                                         WHERE B.RSTR_CNDT_ID = 'TC008'
+                                           AND C.CHNL_APY_DV_VAL = #{chnlDvCd} /* 채널적용구분값 */
+                                           AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */
+                                   ) B
+                                ON A.BASE_Y||A.BASE_MM||A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
+                        INNER JOIN (
+                                        SELECT T1.PD_CD
+                                          FROM TB_PDBS_PD_BAS T1
+                                    INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+                                            ON T1.PD_CD = T2.PD_CD
+                                           AND T2.PD_EXTS_PRP_GRP_CD IN ('PART','PDCT')
+                                           AND T2.DTA_DL_YN = 'N'
+                                         WHERE 1 = 1
+                                           AND T2.PD_PRP_VAL20 = '95' /* 상품그룹 PD_GRP_CD 95=매트리스 */
+                                           AND T1.PD_CD IN (
+                                                <if test='@MybatisUtils@isNotEmpty(basePdCdList)'>
+                                                    #{basePdCdList}
+                                                </if>
+                                                <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
+                                                    #{basePdCd}
+                                                </if>
+                                               )
+                                    ) C
+                                ON 1 = 1
                              WHERE A.BASE_Y||A.BASE_MM||A.BASE_D > TO_CHAR(SYSDATE, 'YYYYMMDD')
-                               AND A.BASE_Y||A.BASE_MM||A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
-                               AND C.SVPD_ITEM_CD || C.SVPD_PART_CD IN (
-                                    <if test='@MybatisUtils@isNotEmpty(basePdCdList)'>
-                                    #{basePdCdList}
-                                    </if>
-                                    <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
-                                    #{basePdCd}
-                                    </if>
-                               ) /* SVPD_ITEM_CD || SVPD_PART_CD */
-                               AND C.SVPD_ITEM_GR = '95' /* 상품그룹 PD_GRP_CD 95=매트리스 */
                           )
                          WHERE RN <![CDATA[<]]> RSTR_CNDT_VAL1 /* 최대 노출일수 */
 
@@ -704,39 +546,42 @@
                             SELECT A.BASE_Y||'-'||TO_NUMBER(A.BASE_MM)||'-'|| TO_NUMBER(A.BASE_D) AS DISABLE_DAYS
                                  , A.BASE_Y||'-'||A.BASE_MM||'-'||A.BASE_D AS DISABLE_FULDAYS
                                  , B.RSTR_CNDT_SRN_MARK_CN AS MSG
-                                 , ROW_NUMBER() OVER(PARTITION BY C.SVPD_ITEM_CD ORDER BY C.SVPD_ITEM_CD) AS RN
+                                 , ROW_NUMBER() OVER(PARTITION BY C.PD_CD ORDER BY C.PD_CD) AS RN
                                  , B.RSTR_CNDT_VAL1
                               FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
-                                 , (SELECT B.RSTR_CNDT_ID, B.RSTR_CNDT_SN, B.RSTR_CNDT_SRN_MARK_CN, B.APY_STRTDT, B.APY_ENDDT, B.RSTR_CNDT_VAL1
-                                      FROM TB_SVPD_SV_RSTR_CNDT_BAS B /* 서비스제약조건기본 */
-                                INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
-                                        ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
-                                       AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
-                                     WHERE B.RSTR_CNDT_ID = 'TC039'
-                                       AND C.CHNL_APY_DV_VAL = #{chnlDvCd} /* 채널적용구분값 */
-                                       AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */
-                                       --AND DF_YN IS NULL
-                                       --AND PHLD_YN IS NULL
+                        INNER JOIN (
+                                        SELECT B.RSTR_CNDT_ID, B.RSTR_CNDT_SN, B.RSTR_CNDT_SRN_MARK_CN, B.APY_STRTDT, B.APY_ENDDT, B.RSTR_CNDT_VAL1
+                                          FROM TB_SVPD_SV_RSTR_CNDT_BAS B /* 서비스제약조건기본 */
+                                    INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
+                                            ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
+                                           AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
+                                         WHERE B.RSTR_CNDT_ID = 'TC039'
+                                           AND C.CHNL_APY_DV_VAL = #{chnlDvCd} /* 채널적용구분값 */
+                                           AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */
+                                           --AND DF_YN IS NULL
+                                           --AND PHLD_YN IS NULL
                                         ) B
-                                 , (SELECT T2.PD_PRP_VAL01 AS SVPD_ITEM_CD
-                                         , T2.PD_PRP_VAL31 AS SVPD_PART_CD
-                                         , T2.PD_PRP_VAL20 AS SVPD_ITEM_GR
-                                      FROM TB_PDBS_PD_BAS          T1
-                                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
-                                        ON T1.PD_CD = T2.PD_CD
-                                       AND T2.PD_EXTS_PRP_GRP_CD IN ('PART','PDCT')
-                                       AND T2.DTA_DL_YN = 'N') C
+                                ON A.BASE_Y||A.BASE_MM||A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
+                        INNER JOIN (
+                                        SELECT T1.PD_CD
+                                          FROM TB_PDBS_PD_BAS          T1
+                                    INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+                                            ON T1.PD_CD = T2.PD_CD
+                                           AND T2.PD_EXTS_PRP_GRP_CD IN ('PART','PDCT')
+                                           AND T2.DTA_DL_YN = 'N'
+                                         WHERE 1 = 1
+                                           AND T2.PD_PRP_VAL20 = '95' /* 상품그룹 PD_GRP_CD 95=매트리스 */
+                                           AND T1.PD_CD IN (
+                                                <if test='@MybatisUtils@isNotEmpty(basePdCdList)'>
+                                                    #{basePdCdList}
+                                                </if>
+                                                <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
+                                                    #{basePdCd}
+                                                </if>
+                                               )
+                                    ) C
+                                ON 1 = 1
                              WHERE A.BASE_Y||A.BASE_MM||A.BASE_D > TO_CHAR(SYSDATE, 'YYYYMMDD')
-                               AND A.BASE_Y||A.BASE_MM||A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
-                               AND C.SVPD_ITEM_CD || C.SVPD_PART_CD IN (
-                                    <if test='@MybatisUtils@isNotEmpty(basePdCdList)'>
-                                    #{basePdCdList}
-                                    </if>
-                                    <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
-                                    #{basePdCd}
-                                    </if>
-                               ) /* '4678','4682','4683','7333' */
-                               AND C.SVPD_ITEM_GR = '95' /* 상품그룹 PD_GRP_CD 95=매트리스 */
                                AND DF_YN IS NULL
                                AND PHLD_YN IS NULL
                           )
@@ -766,16 +611,20 @@
                                                  , CASE WHEN INSTR(#{vstDowValCd}, TO_CHAR(TO_DATE(TRIM(BASE_Y) || TRIM(BASE_MM) || TRIM(BASE_D)), 'D')) = 0 THEN 0 ELSE 1 END AS DAY_YN
                                                  , RSTR_CNDT_VAL1
                                               FROM TB_SVPD_SV_RSTR_CNDT_BAS BAS /*LC_COMMONCODE_CO720TB*/
-                                                 , (SELECT RSTR_CNDT_ID
-                                                         , RSTR_CNDT_SN
-                                                         , LISTAGG(CHNL_APY_DV_VAL, ',') AS CHNL_APY_DV_VAL
-                                                         , BIZ_APY_DV_VAL AS BIZ_APY_DV_VAL
-                                                      FROM TB_SVPD_SV_RSTR_CNDT_DTL
-                                                     WHERE RSTR_CNDT_ID = 'TC005'
-                                                     GROUP BY RSTR_CNDT_ID, RSTR_CNDT_SN, BIZ_APY_DV_VAL) DTL
-                                                 , TB_SVPD_SV_CLND_BAS CLND /*LC_COMMONCODE_CO160TB BASE_Y || BASE_MM || BASE_D */
-                                             WHERE BAS.RSTR_CNDT_ID = DTL.RSTR_CNDT_ID
-                                               AND BAS.RSTR_CNDT_SN = DTL.RSTR_CNDT_SN
+                                        INNER JOIN (
+                                                        SELECT RSTR_CNDT_ID
+                                                             , RSTR_CNDT_SN
+                                                             , LISTAGG(CHNL_APY_DV_VAL, ',') AS CHNL_APY_DV_VAL
+                                                             , BIZ_APY_DV_VAL AS BIZ_APY_DV_VAL
+                                                          FROM TB_SVPD_SV_RSTR_CNDT_DTL
+                                                         WHERE RSTR_CNDT_ID = 'TC005'
+                                                         GROUP BY RSTR_CNDT_ID, RSTR_CNDT_SN, BIZ_APY_DV_VAL
+                                                     ) DTL
+                                                 ON BAS.RSTR_CNDT_ID = DTL.RSTR_CNDT_ID
+                                                AND BAS.RSTR_CNDT_SN = DTL.RSTR_CNDT_SN
+                                         INNER JOIN TB_SVPD_SV_CLND_BAS CLND
+                                                ON 1 = 1
+                                             WHERE 1 = 1
                                                AND DTL.CHNL_APY_DV_VAL LIKE '%' ||#{chnlDvCd} || '%'
                                                AND DTL.BIZ_APY_DV_VAL LIKE '%' ||#{svDvCd} || '%'
                                                AND BASE_Y || BASE_MM || BASE_D BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE + 120, 'YYYYMMDD')
@@ -785,37 +634,39 @@
                                                AND NOT EXISTS(select 1 from TB_OGBS_MM_PRTNR_IZ WHERE OG_CD IN ('70533', '70534', '70079') AND CLTN_DT IS NULL AND BASE_YM = TO_CHAR(SYSDATE, 'yyyyMM') AND PRTNR_NO = #{prtnrNo})
                                                AND BASE_Y || BASE_MM || BASE_D >= NVL((SELECT MAX(T.RSTR_CNDT_VAL2)
                                                                                          FROM TB_SVPD_SV_RSTR_CNDT_BAS T
-                                                                                            , (SELECT RSTR_CNDT_ID
-                                                                                                    , RSTR_CNDT_SN
-                                                                                                    , LISTAGG(CHNL_APY_DV_VAL, ',') AS CHNL_APY_DV_VAL
-                                                                                                    , BIZ_APY_DV_VAL AS BIZ_APY_DV_VAL
-                                                                                                 FROM TB_SVPD_SV_RSTR_CNDT_DTL
-                                                                                                WHERE RSTR_CNDT_ID = 'TC001'
-                                                                                                GROUP BY RSTR_CNDT_ID, RSTR_CNDT_SN, BIZ_APY_DV_VAL) T2
-                                                                                            , (SELECT BAS.PD_CD
-                                                                                                    , BAS.PD_NM
-                                                                                                    , REL.BASE_PD_CD AS SALE_CD
-                                                                                                    , BAS1.PD_NM AS SALE_CD_NM
-                                                                                                 FROM TB_PDBS_PD_BAS BAS
-                                                                                                INNER JOIN TB_PDBS_PD_REL REL
-                                                                                                   ON BAS.PD_CD = REL.OJ_PD_CD
-                                                                                                  AND REL.PD_REL_TP_CD = '05'
-                                                                                                  AND REL.DTA_DL_YN = 'N'
-                                                                                                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
-                                                                                                INNER JOIN TB_PDBS_PD_BAS BAS1
-                                                                                                   ON REL.BASE_PD_CD = BAS1.PD_CD
-                                                                                                  AND BAS1.DTA_DL_YN = 'N'
-                                                                                                WHERE BAS.DTA_DL_YN = 'N')
+                                                                                   INNER JOIN (
+                                                                                                   SELECT RSTR_CNDT_ID
+                                                                                                        , RSTR_CNDT_SN
+                                                                                                        , LISTAGG(CHNL_APY_DV_VAL, ',') AS CHNL_APY_DV_VAL
+                                                                                                        , BIZ_APY_DV_VAL AS BIZ_APY_DV_VAL
+                                                                                                     FROM TB_SVPD_SV_RSTR_CNDT_DTL
+                                                                                                    WHERE RSTR_CNDT_ID = 'TC001'
+                                                                                                    GROUP BY RSTR_CNDT_ID, RSTR_CNDT_SN, BIZ_APY_DV_VAL
+                                                                                               ) T2
+                                                                                            ON 1 = 1
+                                                                                             (
+                                                                                                   SELECT BAS.PD_CD
+                                                                                                     FROM TB_PDBS_PD_BAS BAS
+                                                                                                    INNER JOIN TB_PDBS_PD_REL REL
+                                                                                                       ON BAS.PD_CD = REL.OJ_PD_CD
+                                                                                                      AND REL.PD_REL_TP_CD = '05'
+                                                                                                      AND REL.DTA_DL_YN = 'N'
+                                                                                                      AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                                                                                                    INNER JOIN TB_PDBS_PD_BAS BAS1
+                                                                                                       ON REL.BASE_PD_CD = BAS1.PD_CD
+                                                                                                      AND BAS1.DTA_DL_YN = 'N'
+                                                                                                    WHERE BAS.DTA_DL_YN = 'N'
+                                                                                                      AND BAS.PD_CD IN (
+                                                                                                            <if test='@MybatisUtils@isNotEmpty(basePdCdList)'>
+                                                                                                            #{basePdCdList}
+                                                                                                            </if>
+                                                                                                            <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
+                                                                                                            #{basePdCd}
+                                                                                                            </if>
+                                                                                                         )
+                                                                                              ) C
+                                                                                           ON T.RSTR_CNDT_VAL1 = C.PD_CD
                                                                                         WHERE 1 = 1
-                                                                                          AND SALE_CD IN (
-                                                                                            <if test='@MybatisUtils@isNotEmpty(basePdCdList)'>
-                                                                                            #{basePdCdList}
-                                                                                            </if>
-                                                                                            <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
-                                                                                            #{basePdCd}
-                                                                                            </if>
-                                                                                          )
-                                                                                          AND PD_CD = T.RSTR_CNDT_VAL1
                                                                                           AND T2.CHNL_APY_DV_VAL LIKE '%' || #{chnlDvCd} || '%'
                                                                                           AND T2.BIZ_APY_DV_VAL LIKE '%' || #{svDvCd} || '%'), #{contDt})
                                                AND #{copnDvCd} = '1'
@@ -890,189 +741,202 @@
                              AND PHLD_YN IS NULL
                              AND ROWNUM = 1)
                END AS PAJONG_DAY
-          FROM (SELECT V1.BASE_Y
-                     , V1.BASE_MM
-                     , V1.BASE_D
-                     , V1.CO160_DAYS
-                     , V1.DF_YN
-                     , V1.PHLD_YN
-                     , W3TH
-                     , B.RN
-                  FROM (SELECT A.BASE_Y
-                             , A.BASE_MM
-                             , A.BASE_D
-                             , TO_CHAR(TO_DATE(TRIM(A.BASE_Y) || TRIM(A.BASE_MM) || TRIM(A.BASE_D)), 'D') AS CO160_DAYS
-                             , A.DF_YN
-                             , A.PHLD_YN
-                               /**  1. 2020.02.03 휴일, 공휴일 또는 회사휴무일 제외 모든 일자 배송가능  **/
-                             , CASE WHEN (TO_CHAR(TO_DATE(TRIM(A.BASE_Y) || TRIM(A.BASE_MM) || TRIM(A.BASE_D)), 'D') != '1' AND A.DF_YN IS NULL AND A.PHLD_YN IS NULL)
-                                    THEN TO_CHAR(TO_DATE(A.BASE_Y || A.BASE_MM || A.BASE_D), 'YYYYMMDD')
-                               END AS W3TH
-                          FROM TB_SVPD_SV_CLND_BAS A /*LC_COMMONCODE_CO160TB*/
-                             , (SELECT T1.PD_CD, T2.PD_PRP_VAL20 AS SVPD_ITEM_GR
-                                  FROM TB_PDBS_PD_BAS T1
-                                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
-                                    ON T1.PD_CD = T2.PD_CD
-                                   AND T2.PD_EXTS_PRP_GRP_CD IN ('PART')
-                                   AND T2.DTA_DL_YN = 'N') ST101/*LC_STOCK_ST101TB*/
-                             --, LC_STOCK_ST112TB /*5250 판매코드 KIWI 코드 매핑*/
-                         WHERE BASE_Y || BASE_MM || BASE_D BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{sellDate} || '01'), -5), 'YYYYMMDD') AND TO_CHAR(ADD_MONTHS(TO_DATE(#{sellDate} || '01'), 5), 'YYYYMMDD')
-                           AND (SELECT REL.OJ_PD_CD
-                                  FROM TB_PDBS_PD_REL REL
-                                 WHERE REL.PD_REL_TP_CD = '05'
-                                   AND REL.DTA_DL_YN = 'N'
-                                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
-                                   AND REL.BASE_PD_CD = #{basePdCd}) = ST101.PD_CD
-                           AND (ST101.SVPD_ITEM_GR = '11' OR (ST101.SVPD_ITEM_GR = '92' AND #{svDvCd} != '3'))) V1
-                     , (SELECT BASE_Y
-                             , BASE_MM
-                             , BASE_D
-                             , ROW_NUMBER() OVER (PARTITION BY BASE_Y,BASE_MM ORDER BY BASE_D ASC ) AS RN
-                          FROM TB_SVPD_SV_CLND_BAS CLND /*LC_COMMONCODE_CO160TB*/
-                         WHERE TO_CHAR(TO_DATE(TRIM(BASE_Y) || TRIM(BASE_MM) || TRIM(BASE_D)), 'D') != '1'
-                           AND DF_YN IS NULL
-                           AND PHLD_YN IS NULL) B
-                 WHERE W3TH IS NOT NULL
-                   AND B.BASE_Y || B.BASE_MM || B.BASE_D = W3TH(+))
-             , (SELECT SUM(SUM_CNT) AS SUM_CNT, VST_CNFMDT
-                  FROM (SELECT /*+ INDEX(AC221 LC_ALLOCATE_AC221TB_IDX13) USE_NL(AC221 AC211) */
-                    -SUM(CASE WHEN (SELECT PD_NM FROM TB_PDBS_PD_BAS T WHERE T.PD_CD = AC211.PD_CD) LIKE '%SLIM' THEN 0.5
-                              WHEN (SELECT PD_NM FROM TB_PDBS_PD_BAS T WHERE T.PD_CD = AC211.PD_CD) LIKE '%WIDE' THEN 1
-                              ELSE 1
-                         END) AS SUM_CNT
-                             , AC221.VST_CNFMDT
-                          FROM TB_SVPD_CST_SVAS_IST_OJ_IZ  AC211 /*LC_ALLOCATE_AC211TB A/S 및 설치 배정대상정보*/
-                             , TB_SVPD_CST_SVAS_IST_ASN_IZ AC221 /*LC_ALLOCATE_AC221TB 설치및A/S배정정보*/
-                         WHERE AC211.CST_SV_ASN_NO = AC221.CST_SV_ASN_NO
-                           AND SUBSTR(AC211.CST_SV_ASN_NO, 0, 1) = #{svDvCd}
-                           AND (PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106345'
-                                              WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106347'
-                                              WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106349'
-                                              WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106351'
-                                              ELSE #{pdctPdCd}
-                                         END) OR PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106346'
-                                                               WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106348'
-                                                               WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106350'
-                                                               WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106352'
+          FROM (
+                    SELECT V1.BASE_Y
+                         , V1.BASE_MM
+                         , V1.BASE_D
+                         , V1.CO160_DAYS
+                         , V1.DF_YN
+                         , V1.PHLD_YN
+                         , W3TH
+                         , B.RN
+                      FROM (
+                                SELECT A.BASE_Y
+                                     , A.BASE_MM
+                                     , A.BASE_D
+                                     , TO_CHAR(TO_DATE(TRIM(A.BASE_Y) || TRIM(A.BASE_MM) || TRIM(A.BASE_D)), 'D') AS CO160_DAYS
+                                     , A.DF_YN
+                                     , A.PHLD_YN
+                                       /**  1. 2020.02.03 휴일, 공휴일 또는 회사휴무일 제외 모든 일자 배송가능  **/
+                                     , CASE WHEN (TO_CHAR(TO_DATE(TRIM(A.BASE_Y) || TRIM(A.BASE_MM) || TRIM(A.BASE_D)), 'D') != '1' AND A.DF_YN IS NULL AND A.PHLD_YN IS NULL)
+                                            THEN TO_CHAR(TO_DATE(A.BASE_Y || A.BASE_MM || A.BASE_D), 'YYYYMMDD')
+                                       END AS W3TH
+                                  FROM TB_SVPD_SV_CLND_BAS A /*LC_COMMONCODE_CO160TB*/
+                            INNER JOIN (
+                                        SELECT T1.PD_CD
+                                             , T2.PD_PRP_VAL20 AS PD_GRP_CD
+                                          FROM TB_PDBS_PD_BAS T1
+                                         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+                                            ON T1.PD_CD = T2.PD_CD
+                                           AND T2.PD_EXTS_PRP_GRP_CD IN ('PART')
+                                           AND T2.DTA_DL_YN = 'N'
+                                        ) B/*LC_STOCK_ST101TB*/
+                                    ON 1 = 1
+                                 WHERE BASE_Y || BASE_MM || BASE_D BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{sellDate} || '01'), -5), 'YYYYMMDD') AND TO_CHAR(ADD_MONTHS(TO_DATE(#{sellDate} || '01'), 5), 'YYYYMMDD')
+                                   AND (SELECT REL.OJ_PD_CD
+                                          FROM TB_PDBS_PD_REL REL
+                                         WHERE REL.PD_REL_TP_CD = '05'
+                                           AND REL.DTA_DL_YN = 'N'
+                                           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                                           AND REL.BASE_PD_CD = #{basePdCd}) = B.PD_CD
+                                   AND (B.PD_GRP_CD = '11' OR (B.PD_GRP_CD = '92' AND #{svDvCd} != '3'))
+                            ) V1
+            LEFT OUTER JOIN (
+                                SELECT BASE_Y
+                                     , BASE_MM
+                                     , BASE_D
+                                     , ROW_NUMBER() OVER (PARTITION BY BASE_Y,BASE_MM ORDER BY BASE_D ASC ) AS RN
+                                  FROM TB_SVPD_SV_CLND_BAS CLND /*LC_COMMONCODE_CO160TB*/
+                                 WHERE TO_CHAR(TO_DATE(TRIM(BASE_Y) || TRIM(BASE_MM) || TRIM(BASE_D)), 'D') != '1'
+                                   AND DF_YN IS NULL
+                                   AND PHLD_YN IS NULL
+                           ) B
+                        ON V1.W3TH = B.BASE_Y || B.BASE_MM || B.BASE_D
+                     WHERE W3TH IS NOT NULL
+                  )
+        INNER JOIN (
+                    SELECT SUM(SUM_CNT) AS SUM_CNT, VST_CNFMDT
+                      FROM (SELECT /*+ INDEX(AC221 LC_ALLOCATE_AC221TB_IDX13) USE_NL(AC221 AC211) */
+                        -SUM(CASE WHEN (SELECT PD_NM FROM TB_PDBS_PD_BAS T WHERE T.PD_CD = AC211.PD_CD) LIKE '%SLIM' THEN 0.5
+                                  WHEN (SELECT PD_NM FROM TB_PDBS_PD_BAS T WHERE T.PD_CD = AC211.PD_CD) LIKE '%WIDE' THEN 1
+                                  ELSE 1
+                             END) AS SUM_CNT
+                                 , AC221.VST_CNFMDT
+                              FROM TB_SVPD_CST_SVAS_IST_OJ_IZ  AC211 /*LC_ALLOCATE_AC211TB A/S 및 설치 배정대상정보*/
+                        INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ AC221 /*LC_ALLOCATE_AC221TB 설치및A/S배정정보*/
+                                ON AC211.CST_SV_ASN_NO = AC221.CST_SV_ASN_NO
+                             WHERE 1 = 1
+                               AND SUBSTR(AC211.CST_SV_ASN_NO, 0, 1) = #{svDvCd}
+                               AND (PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106345'
+                                                  WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106347'
+                                                  WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106349'
+                                                  WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106351'
+                                                  ELSE #{pdctPdCd}
+                                             END) OR PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106346'
+                                                                   WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106348'
+                                                                   WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106350'
+                                                                   WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106352'
+                                                                   ELSE #{pdctPdCd}
+                                                              END) OR PD_CD
+                                 = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106356'
+                                         WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106358'
+                                         WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106360'
+                                         WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106362'
+                                         ELSE #{pdctPdCd}
+                                    END) OR PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106356'
+                                                          WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106358'
+                                                          WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106360'
+                                                          WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106362'
+                                                          ELSE #{pdctPdCd}
+                                                     END) OR PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106364'
+                                                                           WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106366'
+                                                                           WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106368'
+                                                                           WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106370'
+                                                                           ELSE #{pdctPdCd}
+                                                                      END) OR PD_CD
+                                 = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106365'
+                                         WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106367'
+                                         WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106369'
+                                         WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106371'
+                                         ELSE #{pdctPdCd}
+                                    END))
+                               AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
+                               AND AC221.VST_CNFMDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+                             GROUP BY AC221.VST_CNFMDT
+                             UNION ALL
+                            SELECT -SUM(CASE WHEN (SELECT PD_NM FROM TB_PDBS_PD_BAS T WHERE T.PD_CD = PDCT_PD_CD) LIKE '%SLIM' THEN 0.5
+                                             WHEN (SELECT PD_NM FROM TB_PDBS_PD_BAS T WHERE T.PD_CD = PDCT_PD_CD) LIKE '%WIDE' THEN 1
+                                             ELSE 1
+                                        END) AS SUM_CNT
+                                 , AC261.VST_DUEDT
+                              FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ  AC251 /*LC_ALLOCATE_AC251TB*//*고객서비스BS대상내역*/
+                                 , TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261/*LC_ALLOCATE_AC261TB*//*고객서비스BS배정내역*/
+                             WHERE AC251.CST_SV_ASN_NO = AC261.CST_SV_ASN_NO
+                               AND SUBSTR(AC251.CST_SV_ASN_NO, 0, 1) = #{svDvCd}
+                               AND (PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106345'
+                                                       WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106347'
+                                                       WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106349'
+                                                       WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106351'
+                                                       ELSE #{pdctPdCd}
+                                                  END) OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106346'
+                                                                             WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106348'
+                                                                             WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106350'
+                                                                             WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106352'
+                                                                             ELSE #{pdctPdCd}
+                                                                        END) OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106355'
+                                                                                                   WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106357'
+                                                                                                   WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106359'
+                                                                                                   WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106361'
+                                                                                                   ELSE #{pdctPdCd}
+                                                                                              END) OR PDCT_PD_CD
+                                 = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106356'
+                                         WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106358'
+                                         WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106360'
+                                         WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106362'
+                                         ELSE #{pdctPdCd}
+                                    END) OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106364'
+                                                               WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106366'
+                                                               WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106368'
+                                                               WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106370'
                                                                ELSE #{pdctPdCd}
-                                                          END) OR PD_CD
-                             = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106356'
-                                     WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106358'
-                                     WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106360'
-                                     WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106362'
-                                     ELSE #{pdctPdCd}
-                                END) OR PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106356'
-                                                      WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106358'
-                                                      WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106360'
-                                                      WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106362'
-                                                      ELSE #{pdctPdCd}
-                                                 END) OR PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106364'
-                                                                       WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106366'
-                                                                       WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106368'
-                                                                       WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106370'
-                                                                       ELSE #{pdctPdCd}
-                                                                  END) OR PD_CD
-                             = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106365'
-                                     WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106367'
-                                     WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106369'
-                                     WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106371'
-                                     ELSE #{pdctPdCd}
-                                END))
-                           AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
-                           AND AC221.VST_CNFMDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
-                         GROUP BY AC221.VST_CNFMDT
-                         UNION ALL
-                        SELECT -SUM(CASE WHEN (SELECT PD_NM FROM TB_PDBS_PD_BAS T WHERE T.PD_CD = PDCT_PD_CD) LIKE '%SLIM' THEN 0.5
-                                         WHEN (SELECT PD_NM FROM TB_PDBS_PD_BAS T WHERE T.PD_CD = PDCT_PD_CD) LIKE '%WIDE' THEN 1
-                                         ELSE 1
-                                    END) AS SUM_CNT
-                             , AC261.VST_DUEDT
-                          FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ  AC251 /*LC_ALLOCATE_AC251TB*//*고객서비스BS대상내역*/
-                             , TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261/*LC_ALLOCATE_AC261TB*//*고객서비스BS배정내역*/
-                         WHERE AC251.CST_SV_ASN_NO = AC261.CST_SV_ASN_NO
-                           AND SUBSTR(AC251.CST_SV_ASN_NO, 0, 1) = #{svDvCd}
-                           AND (PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106345'
-                                                   WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106347'
-                                                   WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106349'
-                                                   WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106351'
-                                                   ELSE #{pdctPdCd}
-                                              END) OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106346'
-                                                                         WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106348'
-                                                                         WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106350'
-                                                                         WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106352'
-                                                                         ELSE #{pdctPdCd}
-                                                                    END) OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106355'
-                                                                                               WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106357'
-                                                                                               WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106359'
-                                                                                               WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106361'
-                                                                                               ELSE #{pdctPdCd}
-                                                                                          END) OR PDCT_PD_CD
-                             = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106356'
-                                     WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106358'
-                                     WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106360'
-                                     WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106362'
-                                     ELSE #{pdctPdCd}
-                                END) OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106364'
-                                                           WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106366'
-                                                           WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106368'
-                                                           WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106370'
-                                                           ELSE #{pdctPdCd}
-                                                      END) OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106365'
-                                                                                 WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106367'
-                                                                                 WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106369'
-                                                                                 WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106371'
-                                                                                 ELSE #{pdctPdCd}
-                                                                            END))
-                           AND AC261.VST_PRGS_STAT_CD IN ('00', '10')
-                           AND AC261.VST_DUEDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
-                           AND AC251.ASN_OJ_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-                         GROUP BY AC261.VST_DUEDT
-                         UNION ALL
-                        SELECT NVL(LIM_QTY, 500), DAYS
-                          FROM (SELECT T1.LIM_QTY, T1.VST_DT
-                                  FROM TB_SVPD_DCBY_SDING_RCP_LIM_IZ T1 /*LC_FARM_FA105TB 일별모종접수한도내역*/
-                                 WHERE (WIDE_SDING_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106345'
-                                                                 WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106347'
-                                                                 WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106349'
-                                                                 WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106351'
-                                                                 ELSE #{pdctPdCd}
-                                                            END) OR SLIM_SDING_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106346'
-                                                                                             WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106348'
-                                                                                             WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106350'
-                                                                                             WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106352'
-                                                                                             ELSE #{pdctPdCd}
-                                                                                        END))
-                                   AND LIM_SN = (SELECT LPAD(NVL(MAX(FA105.LIM_SN), 0), 2, '0')
-                                                   FROM TB_SVPD_DCBY_SDING_RCP_LIM_IZ FA105 /*LC_FARM_FA105TB 일별모종접수한도내역*/
-                                                  WHERE FA105.VST_DT = T1.VST_DT
-                                                    AND FA105.WIDE_SDING_PD_CD = T1.WIDE_SDING_PD_CD
-                                                    AND FA105.SLIM_SDING_PD_CD = T1.SLIM_SDING_PD_CD
-                                                    AND FA105.SV_BIZ_HCLSF_CD = #{svDvCd})
-                                   AND VST_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
-                                   AND SV_BIZ_HCLSF_CD = #{svDvCd})
-                             , (SELECT B.BASE_Y || B.BASE_MM || B.BASE_D AS DAYS
-                                  FROM TB_SVPD_SV_CLND_BAS B /*LC_COMMONCODE_CO160TB*/
-                                 WHERE B.BASE_Y || B.BASE_MM || B.BASE_D BETWEEN (CASE WHEN #{lcst09} = '03' THEN TO_CHAR(SYSDATE + 40, 'YYYYMMDD')
-                                                                                       ELSE (CASE WHEN (SELECT COUNT(1)
-                                                                                                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*LC_ALLOCATE_AC261TB*//*고객서비스BS배정내역*/
-                                                                                                         WHERE ASN_OJ_YM = TO_CHAR(SYSDATE, 'YYYYMM') || '00' AND CNTR_NO = #{cntrNo}) > 0
-                                                                                                  THEN TO_CHAR(ADD_MONTHS(SYSDATE, 1), 'YYYYMM') || '01'
-                                                                                                  ELSE TO_CHAR(SYSDATE, 'YYYYMMDD')
-                                                                                             END)
-                                                                                  END) AND (CASE WHEN #{lcst09} = '03' THEN TO_CHAR(SYSDATE + 70, 'YYYYMMDD')
-                                                                                                 ELSE (CASE WHEN (SELECT COUNT(1)
-                                                                                                                    FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*LC_ALLOCATE_AC261TB*//*고객서비스BS배정내역*/
-                                                                                                                   WHERE ASN_OJ_YM = TO_CHAR(SYSDATE, 'YYYYMM') || '00' AND CNTR_NO = #{cntrNo}) > 0
-                                                                                                            THEN (TO_CHAR(TO_DATE(TO_CHAR(ADD_MONTHS(SYSDATE, 1), 'YYYYMM') || '01', 'YYYYMMDD') + 70, 'YYYYMMDD'))
-                                                                                                            ELSE TO_CHAR(SYSDATE + 70, 'YYYYMMDD')
-                                                                                                       END)
-                                                                                            END)
-                                   AND TO_CHAR(TO_DATE(TRIM(B.BASE_Y) || TRIM(B.BASE_MM) || TRIM(B.BASE_D)), 'D') != '1'
-                                   AND B.DF_YN IS NULL
-                                   AND B.PHLD_YN IS NULL)
-                         WHERE VST_DT(+) = DAYS)
-                 GROUP BY VST_CNFMDT)
-         WHERE W3TH = VST_CNFMDT
+                                                          END) OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106365'
+                                                                                     WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106367'
+                                                                                     WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106369'
+                                                                                     WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106371'
+                                                                                     ELSE #{pdctPdCd}
+                                                                                END))
+                               AND AC261.VST_PRGS_STAT_CD IN ('00', '10')
+                               AND AC261.VST_DUEDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+                               AND AC251.ASN_OJ_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                             GROUP BY AC261.VST_DUEDT
+                             UNION ALL
+                            SELECT NVL(LIM_QTY, 500), DAYS
+                              FROM (SELECT T1.LIM_QTY, T1.VST_DT
+                                      FROM TB_SVPD_DCBY_SDING_RCP_LIM_IZ T1 /*LC_FARM_FA105TB 일별모종접수한도내역*/
+                                     WHERE (WIDE_SDING_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106345'
+                                                                     WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106347'
+                                                                     WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106349'
+                                                                     WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106351'
+                                                                     ELSE #{pdctPdCd}
+                                                                END) OR SLIM_SDING_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106346'
+                                                                                                 WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106348'
+                                                                                                 WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106350'
+                                                                                                 WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106352'
+                                                                                                 ELSE #{pdctPdCd}
+                                                                                            END))
+                                       AND LIM_SN = (SELECT LPAD(NVL(MAX(FA105.LIM_SN), 0), 2, '0')
+                                                       FROM TB_SVPD_DCBY_SDING_RCP_LIM_IZ FA105 /*LC_FARM_FA105TB 일별모종접수한도내역*/
+                                                      WHERE FA105.VST_DT = T1.VST_DT
+                                                        AND FA105.WIDE_SDING_PD_CD = T1.WIDE_SDING_PD_CD
+                                                        AND FA105.SLIM_SDING_PD_CD = T1.SLIM_SDING_PD_CD
+                                                        AND FA105.SV_BIZ_HCLSF_CD = #{svDvCd})
+                                       AND VST_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+                                       AND SV_BIZ_HCLSF_CD = #{svDvCd})
+                                 , (SELECT B.BASE_Y || B.BASE_MM || B.BASE_D AS DAYS
+                                      FROM TB_SVPD_SV_CLND_BAS B /*LC_COMMONCODE_CO160TB*/
+                                     WHERE B.BASE_Y || B.BASE_MM || B.BASE_D BETWEEN (CASE WHEN #{lcst09} = '03' THEN TO_CHAR(SYSDATE + 40, 'YYYYMMDD')
+                                                                                           ELSE (CASE WHEN (SELECT COUNT(1)
+                                                                                                              FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*LC_ALLOCATE_AC261TB*//*고객서비스BS배정내역*/
+                                                                                                             WHERE ASN_OJ_YM = TO_CHAR(SYSDATE, 'YYYYMM') || '00' AND CNTR_NO = #{cntrNo}) > 0
+                                                                                                      THEN TO_CHAR(ADD_MONTHS(SYSDATE, 1), 'YYYYMM') || '01'
+                                                                                                      ELSE TO_CHAR(SYSDATE, 'YYYYMMDD')
+                                                                                                 END)
+                                                                                      END) AND (CASE WHEN #{lcst09} = '03' THEN TO_CHAR(SYSDATE + 70, 'YYYYMMDD')
+                                                                                                     ELSE (CASE WHEN (SELECT COUNT(1)
+                                                                                                                        FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*LC_ALLOCATE_AC261TB*//*고객서비스BS배정내역*/
+                                                                                                                       WHERE ASN_OJ_YM = TO_CHAR(SYSDATE, 'YYYYMM') || '00' AND CNTR_NO = #{cntrNo}) > 0
+                                                                                                                THEN (TO_CHAR(TO_DATE(TO_CHAR(ADD_MONTHS(SYSDATE, 1), 'YYYYMM') || '01', 'YYYYMMDD') + 70, 'YYYYMMDD'))
+                                                                                                                ELSE TO_CHAR(SYSDATE + 70, 'YYYYMMDD')
+                                                                                                           END)
+                                                                                                END)
+                                       AND TO_CHAR(TO_DATE(TRIM(B.BASE_Y) || TRIM(B.BASE_MM) || TRIM(B.BASE_D)), 'D') != '1'
+                                       AND B.DF_YN IS NULL
+                                       AND B.PHLD_YN IS NULL)
+                             WHERE VST_DT(+) = DAYS)
+                     GROUP BY VST_CNFMDT
+                )
+            ON W3TH = VST_CNFMDT
+         WHERE 1 = 1
            /* BS 마감일 기준 D-3일 이내 배정불가 */
            AND W3TH NOT IN (SELECT BASE_Y || BASE_MM || BASE_D
                               FROM TB_SVPD_BFSVC_CL_D_BASE_IZ AC271 /*LC_ALLOCATE_AC271TB*//*BS목록조회마감일기준내역*/
@@ -1084,36 +948,6 @@
          ORDER BY W3TH
     </select>
 
-    <!--selectConvertItemcode-->
-    <!--<select id="selectAddGb" resultType="java.lang.String">
-        SELECT CASE WHEN PD_PRP_VAL01 LIKE '5%' THEN '2' ELSE '1' END AS ADD_GB
-          FROM TB_PDBS_PD_REL REL
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL ECOM
-            ON REL.OJ_PD_CD = ECOM.PD_CD
-           AND ECOM.PD_EXTS_PRP_GRP_CD IN ('PART')
-           AND ECOM.DTA_DL_YN = 'N'
-         WHERE REL.DTA_DL_YN = 'N'
-           AND REL.TEMP_SAVE_YN = 'N'
-           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN REL.VL_STRT_DTM AND REL.VL_END_DTM
-           AND REL.PD_REL_TP_CD = '05'
-           AND BASE_PD_CD = #{basePdCd}
-           AND ROWNUM = 1
-    </select>-->
-
-    <!--<select id="selectKiwiItemCode" resultType="java.lang.String">
-        SELECT OJ_PD_CD AS PD_CD
-          FROM TB_PDBS_PD_REL REL
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL ECOM
-            ON REL.OJ_PD_CD = ECOM.PD_CD
-           AND ECOM.PD_EXTS_PRP_GRP_CD IN ('PART')
-           AND ECOM.DTA_DL_YN = 'N'
-         WHERE REL.DTA_DL_YN = 'N'
-           AND REL.TEMP_SAVE_YN = 'N'
-           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN REL.VL_STRT_DTM AND REL.VL_END_DTM
-           AND REL.PD_REL_TP_CD = '05' &#45;&#45; 기준상품
-           AND BASE_PD_CD = #{basePdCd}
-           AND ROWNUM = 1
-    </select>-->
 
     <select id="selectFnSvpdLocaraPrtnr01" resultType="java.lang.String">
       SELECT FN_SVPD_LOCARA_PRTNR_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{svBizDclsfCd}, #{sellDate}) FROM DUAL
@@ -1167,11 +1001,16 @@
              , VST_DOW_VAL AS VST_DOW_VAL_CD
              , #{svBizDclsfCd} AS SV_BIZ_DCLSF_CD
              , #{pdctPdCd} AS PDCT_PD_CD
-             , (SELECT LISTAGG(SALE_CD, ',') WITHIN GROUP (ORDER BY SALE_CD) AS SALE_CD_LIST
-                  FROM (SELECT DISTINCT B.BASE_PD_CD AS SALE_CD /*판매상품코드*/
+             , (
+                SELECT LISTAGG(BASE_PD_CD, ',') WITHIN GROUP (ORDER BY BASE_PD_CD) AS BASE_PD_CDS
+                  FROM (
+                        SELECT DISTINCT B.BASE_PD_CD
                           FROM TB_PDBS_LVLH_CSTMW_FILT_BASE A
                          INNER JOIN TB_PDBS_PD_REL B
-                            ON OJ_PD_CD = A.PDCT_PD_CD AND PD_REL_TP_CD = '05')) AS SALE_CD_LIST/*선택형필터청정기 기준상품코드 목록*/
+                            ON OJ_PD_CD = A.PDCT_PD_CD
+                           AND PD_REL_TP_CD = '05'
+                        )
+                ) AS BASE_PD_CDS /*선택형필터청정기 기준상품코드 목록*/
           FROM TB_SVPD_EGER_ASN_ADR_IZ T1 /*엔지니어배정용주소내역*/
          INNER JOIN TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T2 /*책임지역별관리주소내역*/
             ON T2.FR2P_LGLD_CD = T1.FR2P_LGLD_CD
@@ -1182,8 +1021,6 @@
           INNER JOIN TB_SVPD_RPB_LOCARA_PSIC_IZ T3 /*책임지역별담당자내역*/
             ON T3.RPB_LOCARA_CD = T2.RPB_LOCARA_CD
            AND #{sellDate} BETWEEN T3.APY_STRTDT AND T3.APY_ENDDT /*적용기간*/
-
-
            <if test='@MybatisUtils@equals(svDvCd, "2")'>
            AND WK_GRP_CD = (CASE WHEN #{vstGb} IN ('10', '11', '12') THEN '10'
                                  WHEN #{vstGb} = '13' THEN '20'
@@ -1196,8 +1033,6 @@
            <if test='!@MybatisUtils@equals(svDvCd, "2")'>
            AND WK_GRP_CD = FN_SVPD_WRK_GRP_01(#{pdctPdCd}, #{svBizDclsfCd}, #{sellDate})
            </if>
-
-
 
          INNER JOIN TB_OGBS_MM_PRTNR_IZ T4
             ON T4.DTA_DL_YN = 'N' /*월파트너내역*/
@@ -1578,9 +1413,15 @@
     <select id="selectOffDays" resultType="java.lang.String">
         SELECT CLD.BASE_Y || CLD.BASE_MM || CLD.BASE_D || ICHR_PRTNR_NO AS HS_OFF_DAYS
           FROM TB_OGPS_EGER_VCN_IZ /*엔지니어휴가내역*/ /*LC_ATTEND_AT210TB 근태사유 관리*/ AT210
-         INNER JOIN TB_OGBS_PRTNR_BAS /*파트너기본*/ /*LC_ALLOCATE_AC021TB 인사마스타*/ AC021
-            ON AT210.PRTNR_NO = AC021.PRTNR_NO
-         INNER JOIN (SELECT DISTINCT T2.ICHR_PRTNR_NO
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ /*파트너기본*/ /*LC_ALLOCATE_AC021TB 인사마스타*/ AC021
+            ON AC021.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND AT210.OG_TP_CD = AC021.OG_TP_CD
+           AND AT210.PRTNR_NO = AC021.PRTNR_NO
+         INNER JOIN TB_SVPD_SV_CLND_BAS /*서비스달력기본*/ CLD
+            ON CLD.BASE_Y || CLD.BASE_MM || CLD.BASE_D BETWEEN AT210.VCN_STRT_DT AND AT210.VCN_END_DT
+         INNER JOIN (SELECT DISTINCT
+                            T2.ICHR_PRTNR_OG_TP_CD
+                          , T2.ICHR_PRTNR_NO
                        FROM TB_SVPD_RPB_LOCARA_BAS T1 /*책임지역기본*/
                        INNER JOIN TB_SVPD_RPB_LOCARA_PSIC_IZ T2 /*책임지역담당자내역*/
                          ON T1.WK_GRP_CD = T2.WK_GRP_CD
@@ -1603,10 +1444,10 @@
                         AND T4.DTA_DL_YN = 'N'
                       WHERE T1.DTA_DL_YN = 'N'
                         AND T1.WK_GRP_CD = '20'
-                        AND T4.NEW_ADR_ZIP = #{newAdrZip}) LOC
-            ON AT210.PRTNR_NO = LOC.ICHR_PRTNR_NO
-         INNER JOIN TB_SVPD_SV_CLND_BAS /*서비스달력기본*/ CLD
-            ON CLD.BASE_Y || CLD.BASE_MM || CLD.BASE_D BETWEEN AT210.VCN_STRT_DT AND AT210.VCN_END_DT
+                        AND T4.NEW_ADR_ZIP = #{newAdrZip}
+                        ) LOC
+            ON AT210.OG_TP_CD = LOC.ICHR_PRTNR_OG_TP_CD
+           AND AT210.PRTNR_NO = LOC.ICHR_PRTNR_NO
          WHERE AC021.OG_ID = '71507' -- FIX
            AND AT210.EGER_WRK_STAT_CD IS NOT NULL
            AND AT210.VCN_STRT_DT > TO_CHAR(SYSDATE, 'YYYYMMDD')

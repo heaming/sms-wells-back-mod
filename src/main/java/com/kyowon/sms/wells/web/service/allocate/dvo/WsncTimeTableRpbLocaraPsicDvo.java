@@ -28,7 +28,7 @@ public class WsncTimeTableRpbLocaraPsicDvo {
     String vstDowValCd;
     String svBizDclsfCd;
     String pdctPdCd;
-    String saleCdList;
+    String basePdCds;
     String newAdrZip;
     String svDvCd;
     String prtnrNo01;

@@ -1,11 +1,20 @@
 package com.kyowon.sms.wells.web.service.allocate.mapper;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSalesDto;
-
 import java.util.List;
+import java.util.Optional;
 
-import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import org.apache.ibatis.annotations.Mapper;
+
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSalesDto;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableAssignTimeDvo;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableCntrDvo;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDisableDaysDvo;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableProductDvo;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTablePsicDataDvo;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableRpbLocaraPsicDvo;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSalesDvo;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSalesParamDvo;
+import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo;
 
 /**
  *
@@ -27,16 +36,8 @@ public interface WsncTimeTableMapper {
      */
     List<WsncTimeTableSalesDvo> selectTimeTableDates(WsncTimeTableSalesDto.FindReq req);
 
-    //WsncTimeTableCustDetailDvo selectCustDetail(String cntrNo);
-
-    //String selectItemcode(String cntrNo);
-
-    //String selectLocalEmpinfo(String zip, String wrkTypDtl, String selDate, String saleCd);
-
-    //String selectFarmYn(String basePdCd, String svDvCd);
-
     //WsncTimeTablePackageDvo selectPackage(String sidingCd, String baePdCd, String cntrNo);
-    WsncTimeTableCntrDvo selectContract(String cntrNo, String cntrSn);
+    Optional<WsncTimeTableCntrDvo> selectContract(String cntrNo, String cntrSn);
 
     WsncTimeTableProductDvo selectProduct(String basePdCd, String pdctPdCd);
 
@@ -58,9 +59,6 @@ public interface WsncTimeTableMapper {
         String lcpkag,
         String cntrNo
     );
-
-    //String selectAddGb(String saleCd);
-    //String selectKiwiItemCode(String saleCd);
 
     String selectFnSvpdLocaraPrtnr01(String newAdrZip, String pdctPdCd, String svBizDclsfCd, String sellDate);
 
