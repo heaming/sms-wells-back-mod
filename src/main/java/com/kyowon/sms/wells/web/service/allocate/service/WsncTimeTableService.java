@@ -231,7 +231,7 @@ public class WsncTimeTableService {
             newAdrZip = contractDvo.getAdrZip();
             contDt = contractDvo.getCntrDt();
             copnDvCd = contractDvo.getCopnDvCd();
-            //sellDscDbCd = cntrDvo.getSellDscDvCd();
+            sellDscDbCd = contractDvo.getSellDscDbCd();
 
             // Cubig CC 홈케어 조회용 타임테이블 http://ccwells.kyowon.co.kr/obm/obm0800/obm0800.jsp
             // KSS접수와 동일하게 하기위해 (백현아 K 요청)

@@ -19,5 +19,6 @@ public class WsncTimeTableCntrDvo {
     String pdGrpCd;
     String pdGrpNm;
     String cntrDt;
-    String copnDvCd; // 법인격구분코드 (1개인, 2법인)
+    String copnDvCd; // lcwgub 법인격구분 1:개인, 2법인
+    String sellDscDbCd; // lcetc3 판매할인구분코드 1: 일시불할인구분코드, 2: 렌탈할인구분코드, 3: 멤버십할인구분코드
 }

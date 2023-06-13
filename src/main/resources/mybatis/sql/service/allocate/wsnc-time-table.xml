@@ -144,7 +144,6 @@
              --, CASE WHEN P5.PD_PRP_VAL20 IN ('11', '92') THEN 'Y' ELSE 'N' END SDING_YN -- 모종 여부
              , CASE WHEN P5.PD_PRP_VAL20 = '11' OR (#{svDvCd} != '3' AND P5.PD_PRP_VAL20 = '92') THEN 'Y' ELSE 'N' END SIDING_YN -- 모종 여부
              , CASE WHEN P5.PD_PRP_VAL20 = '10' THEN 'Y' ELSE 'N' END HCR_YN -- 홈케어 여부
-             , CASE WHEN P5.PD_PRP_VAL01 LIKE '5%' THEN '2' ELSE '1' END AS ADD_GB
           FROM TB_PDBS_PD_BAS P1
     INNER JOIN TB_PDBS_PD_REL P2
             ON P1.PD_CD = P2.BASE_PD_CD
@@ -276,17 +275,6 @@
 
     <!--getMojongDays-->
     <select id="selectSidingDays" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo">
-        -- SELECT SUBSTR(FA106_VST_DT,1,4)||'-'||TO_NUMBER(SUBSTR(FA106_VST_DT,5,2))||'-'||TO_NUMBER(SUBSTR(FA106_VST_DT,7,2)) AS ABL_DAYS
-        --      , FA106_MOJONG_PAK_QTY AS SUM_CNT
-        --   FROM (SELECT FA106_VST_DT
-        --              , FA106_MOJONG_PAK_QTY
-        --           FROM LC_FARM_FA106TB
-        --          WHERE FA106_PAK_CD = (SELECT ST101_NM_ENG
-        --                                  FROM LC_STOCK_ST101TB
-        --                                 WHERE ST101_ITEM_CD || ST101_PART_CD= #LCPKAG_KIWI#)
-        --    AND FA106_MOJONG_PAK_QTY > 0
-        --    AND FA106_VST_DT >= TO_CHAR(SYSDATE + 3 , 'YYYYMMDD')  /** 이희준매니저님 D+3 적용요청 **/)
-
         SELECT SUBSTR(VST_DT,1,4)||'-'||TO_NUMBER(SUBSTR(VST_DT,5,2))||'-'||TO_NUMBER(SUBSTR(VST_DT,7,2)) AS ABL_DAYS
              , SDING_QTY AS SUM_CNT
           FROM (SELECT VST_DT
@@ -392,17 +380,6 @@
                     <if test="!@MybatisUtils@equals(chnlDvCd, 'I')">
 
                     /** 일반 AS접수 **/
-
-                    -- SELECT CO160_YR||'-'||TO_NUMBER(CO160_MTH)||'-'|| TO_NUMBER(CO160_DAY) AS DISABLE_DAYS
-                    --     , CO160_YR||'-'||CO160_MTH||'-'|| CO160_DAY AS DISABLE_FULDAYS
-                    --     , CO720_MSG
-                    -- FROM LC_COMMONCODE_CO720TB
-                    --    , LC_COMMONCODE_CO160TB
-                    -- WHERE CO720_TIMETBL_CNST_ID = 'TC004'
-                    --   AND CO720_DATA_GB LIKE '%'||#DATA_GB#||'%'
-                    --   AND CO160_YR||CO160_MTH||CO160_DAY BETWEEN CO720_APLD_FR AND CO720_APLD_TO
-                    --   AND GET_WRKTYP_TCNT(#EMP_ID#, '3110' ,CO160_YR||CO160_MTH||CO160_DAY) >= CO720_COL01
-
                     SELECT A.BASE_Y || '-' || TO_NUMBER(A.BASE_MM) || '-' || TO_NUMBER(A.BASE_D) AS DISABLE_DAYS, A.BASE_Y || '-' || A.BASE_MM || '-' || A.BASE_D AS DISABLE_FULDAYS, B.RSTR_CNDT_SRN_MARK_CN AS MSG
                       FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
                          , (SELECT B.RSTR_CNDT_ID
@@ -434,17 +411,6 @@
                     UNION ALL
                     -------------------------------------------------------------------------------------------------------------------------------------
                     -- QUERY 4
-                    -- SELECT CO160_YR||'-'||TO_NUMBER(CO160_MTH)||'-'|| TO_NUMBER(CO160_DAY) AS DISABLE_DAYS
-                    -- , CO160_YR||'-'||CO160_MTH||'-'|| CO160_DAY AS DISABLE_FULDAYS
-                    -- , CO720_MSG
-                    -- FROM LC_COMMONCODE_CO720TB
-                    -- , LC_COMMONCODE_CO160TB
-                    -- WHERE CO720_TIMETBL_CNST_ID = 'TC031'
-                    -- AND CO720_DATA_GB LIKE '%'||#DATA_GB#||'%'
-                    -- AND CO160_YR||CO160_MTH||CO160_DAY BETWEEN CO720_APLD_FR AND CO720_APLD_TO
-                    -- AND CO720_COL01 = #AC146_LOCAL_GB#
-                    -- AND INSTR(CO720_COL02, #WRK_TYP_DTL#) > 0
-
                     SELECT A.BASE_Y || '-' || TO_NUMBER(A.BASE_MM) || '-' || TO_NUMBER(A.BASE_D) AS DISABLE_DAYS, A.BASE_Y || '-' || A.BASE_MM || '-' || A.BASE_D AS DISABLE_FULDAYS, B.RSTR_CNDT_SRN_MARK_CN AS MSG
                       FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
                          , (SELECT B.RSTR_CNDT_ID
@@ -476,16 +442,6 @@
                 <if test="@MybatisUtils@equals(chnlDvCd, 'M')">
 
                     /** 매니저 AS 접수 **/
-                    -- SELECT CO160_YR||'-'||TO_NUMBER(CO160_MTH)||'-'|| TO_NUMBER(CO160_DAY) AS DISABLE_DAYS
-                    --      , CO160_YR||'-'||CO160_MTH||'-'|| CO160_DAY AS DISABLE_FULDAYS
-                    --      , CO720_MSG
-                    -- FROM LC_COMMONCODE_CO720TB
-                    --    , LC_COMMONCODE_CO160TB
-                    --WHERE CO720_TIMETBL_CNST_ID = 'TC004'
-                    --  AND CO720_DATA_GB LIKE '%'||#DATA_GB#||'%'
-                    --  AND CO160_YR||CO160_MTH||CO160_DAY BETWEEN CO720_APLD_FR AND CO720_APLD_TO
-                    --  AND GET_WRKTYP_TCNT(GET_LOCAL_EMP_ID(TRIM(#ZIPNO1#)||TRIM(#ZIPNO2#), GET_GDS_CD(#P_GDS_CD#) , '3110', CO160_YR||CO160_MTH||CO160_DAY ), '3110', CO160_YR||CO160_MTH||CO160_DAY) > CO720_COL03
-
                     SELECT A.BASE_Y || '-' || TO_NUMBER(A.BASE_MM) || '-' || TO_NUMBER(A.BASE_D) AS DISABLE_DAYS, A.BASE_Y || '-' || A.BASE_MM || '-' || A.BASE_D AS DISABLE_FULDAYS, B.RSTR_CNDT_SRN_MARK_CN AS MSG
                       FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
                          , (SELECT B.RSTR_CNDT_ID
@@ -535,16 +491,6 @@
                             -- 강력날짜막기: CubigCC고객센터 막음,Depth 요일별
                             -- 큐빅CC 전용 제한조건 52(지정시간)+6(점심시간)+9(미지정)=67: 최정문매니저님, 송정수매니저님 2020.01.22
 
-                            --SELECT CO160_YR||'-'||TO_NUMBER(CO160_MTH)||'-'|| TO_NUMBER(CO160_DAY) AS DISABLE_DAYS
-                            --     , CO160_YR||'-'||CO160_MTH||'-'|| CO160_DAY AS DISABLE_FULDAYS
-                            --     , CO720_MSG
-                            --  FROM LC_COMMONCODE_CO720TB
-                            --     , LC_COMMONCODE_CO160TB
-                            -- WHERE CO720_TIMETBL_CNST_ID = 'TC003'
-                            --   AND CO720_GUB_CD LIKE '%'||#GB_CD#||'%'
-                            --   AND CO160_YR||CO160_MTH||CO160_DAY BETWEEN CO720_APLD_FR AND CO720_APLD_TO
-                            --   AND GET_WRK_TOTAL_TIME(#EMP_ID#, CO160_YR||CO160_MTH||CO160_DAY) + 6 + GET_WRK_TOTAL_TIME_ETC(#EMP_ID#, CO160_YR||CO160_MTH||CO160_DAY) > 67
-
                             SELECT A.BASE_Y || '-' || TO_NUMBER(A.BASE_MM) || '-' || TO_NUMBER(A.BASE_D) AS DISABLE_DAYS, A.BASE_Y || '-' || A.BASE_MM || '-' || A.BASE_D AS DISABLE_FULDAYS, B.RSTR_CNDT_SRN_MARK_CN AS MSG
                               FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
                                  , (SELECT B.RSTR_CNDT_ID
@@ -561,37 +507,36 @@
                                        AND C.CHNL_APY_DV_VAL = #{chnlDvCd} /* 채널적용구분값 */
                                        AND ROWNUM = 1) B
                              WHERE A.BASE_Y || A.BASE_MM || A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
-                               --@TODO 승인 후 주석 제거
-                               --AND FN_SVPD_LDTM_TOT_01(#{prtnrNo}, A.BASE_Y || A.BASE_MM || A.BASE_D) + 6
-                               --  + (SELECT SUM(SUM_T) / 10 AS V_WRK_TOTAL_TIME
-                               --       FROM (
-                               --             SELECT SUM(FN_SVPD_MMT_AV_LDTM_01((SELECT MAX(NEW_ADR_ZIP) FROM TB_GBCO_ADR_BAS WHERE RNADR = AC211.IST_ADR),AC211.PD_CD, AC211.SV_BIZ_DCLSF_CD, AC221.VST_CNFMDT)) AS SUM_T
-                               --               FROM TB_SVPD_CST_SVAS_IST_ASN_IZ /*LC_ALLOCATE_AC221TB*/ AC221 /*고객서비스AS설치배정내역*/
-                               --                  , TB_SVPD_CST_SVAS_IST_OJ_IZ  /*LC_ALLOCATE_AC211TB*/ AC211 /*고객서비스AS설치대상내역*/
-                               --              WHERE AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
-                               --                AND AC221.ICHR_PRTNR_NO = {prtnrNo}
-                               --                AND AC221.VST_CNFMDT = {selDate}
-                               --                AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
-                               --                AND AC221.VST_CNFM_HH <![CDATA[>=]]> '010000'
-                               --                AND AC221.VST_CNFM_HH <![CDATA[<=]]> '030000'
-                               --              UNION ALL
-                               --             SELECT SUM(FN_SVPD_MMT_AV_LDTM_01((SELECT MAX(ADR.NEW_ADR_ZIP)
-                               --                                                  FROM TB_SSCT_CNTR_ADRPC_BAS ADRPC
-                               --                                                  INNER JOIN TB_GBCO_ADR_BAS ADR
-                               --                                                    ON ADRPC.ADR_ID = ADR.ADR_ID
-                               --                                                 WHERE ADR.ADR_ID = AC251.ADR_ID),AC251.PDCT_PD_CD, AC251.SV_BIZ_DCLSF_CD, AC261.VST_DUEDT)) AS SUM_T
-                               --               FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*LC_ALLOCATE_AC261TB*/ AC261
-                               --                  , TB_SVPD_CST_SV_BFSVC_OJ_IZ  /*LC_ALLOCATE_AC251TB*/ AC251 /*고객서비스BS대상내역*/
-                               --              WHERE AC261.CST_SV_ASN_NO = AC251.CST_SV_ASN_NO
-                               --                AND AC261.CNFM_PSIC_PRTNR_NO =  {prtnrNo}
-                               --                AND AC261.VST_DUEDT = {selDate}
-                               --                AND AC261.VST_PRGS_STAT_CD IN ('00', '10')
-                               --                AND AC261.VST_EXP_HH <![CDATA[>=]]> '010000'
-                               --                AND AC261.VST_EXP_HH <![CDATA[<=]]> '030000'
-                               --              UNION ALL
-                               --             SELECT 0
-                               --               FROM DUAL
-                               --            )) > 67
+                               AND FN_SVPD_LDTM_TOT_01(#{prtnrNo}, A.BASE_Y || A.BASE_MM || A.BASE_D) + 6
+                                + (SELECT SUM(SUM_T) / 10 AS V_WRK_TOTAL_TIME
+                                     FROM (
+                                           SELECT SUM(FN_SVPD_MMT_AV_LDTM_01((SELECT MAX(NEW_ADR_ZIP) FROM TB_GBCO_ADR_BAS WHERE RNADR = AC211.IST_ADR),AC211.PD_CD, AC211.SV_BIZ_DCLSF_CD, AC221.VST_CNFMDT)) AS SUM_T
+                                             FROM TB_SVPD_CST_SVAS_IST_ASN_IZ /*LC_ALLOCATE_AC221TB*/ AC221 /*고객서비스AS설치배정내역*/
+                                                , TB_SVPD_CST_SVAS_IST_OJ_IZ  /*LC_ALLOCATE_AC211TB*/ AC211 /*고객서비스AS설치대상내역*/
+                                            WHERE AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
+                                              AND AC221.ICHR_PRTNR_NO = {prtnrNo}
+                                              AND AC221.VST_CNFMDT = {selDate}
+                                              AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
+                                              AND AC221.VST_CNFM_HH <![CDATA[>=]]> '010000'
+                                              AND AC221.VST_CNFM_HH <![CDATA[<=]]> '030000'
+                                            UNION ALL
+                                           SELECT SUM(FN_SVPD_MMT_AV_LDTM_01((SELECT MAX(ADR.NEW_ADR_ZIP)
+                                                                                FROM TB_SSCT_CNTR_ADRPC_BAS ADRPC
+                                                                                INNER JOIN TB_GBCO_ADR_BAS ADR
+                                                                                  ON ADRPC.ADR_ID = ADR.ADR_ID
+                                                                               WHERE ADR.ADR_ID = AC251.ADR_ID),AC251.PDCT_PD_CD, AC251.SV_BIZ_DCLSF_CD, AC261.VST_DUEDT)) AS SUM_T
+                                             FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*LC_ALLOCATE_AC261TB*/ AC261
+                                                , TB_SVPD_CST_SV_BFSVC_OJ_IZ  /*LC_ALLOCATE_AC251TB*/ AC251 /*고객서비스BS대상내역*/
+                                            WHERE AC261.CST_SV_ASN_NO = AC251.CST_SV_ASN_NO
+                                              AND AC261.CNFM_PSIC_PRTNR_NO =  {prtnrNo}
+                                              AND AC261.VST_DUEDT = {selDate}
+                                              AND AC261.VST_PRGS_STAT_CD IN ('00', '10')
+                                              AND AC261.VST_EXP_HH <![CDATA[>=]]> '010000'
+                                              AND AC261.VST_EXP_HH <![CDATA[<=]]> '030000'
+                                            UNION ALL
+                                           SELECT 0
+                                             FROM DUAL
+                                          )) > 67
 --
                             UNION ALL
                         </if>
@@ -601,14 +546,6 @@
             -------------------------------------------------------------------------------------------------------------------------------------
             -- QUERY 7
             <if test='@MybatisUtils@isEmpty(exYn)'>
-
-                -- SELECT CO160_YR||'-'||TO_NUMBER(CO160_MTH)||'-'|| TO_NUMBER(CO160_DAY) AS DISABLE_DAYS
-                --      , CO160_YR||'-'||CO160_MTH||'-'|| CO160_DAY AS DISABLE_FULDAYS
-                --      , '법정휴무일 또는 회사휴무' AS CO720_MSG
-                --   FROM LC_COMMONCODE_CO160TB V1
-                --  WHERE CO160_YR||CO160_MTH||CO160_DAY BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE + 180, 'YYYYMMDD')
-                --    AND ((CO160_OFFDAY_GB ='Y' OR CO160_HLDY_YN ='Y') AND CO160_DAYS != '7')
-                --    AND #GB_CD# NOT IN ('B','S')
 
                 SELECT A.BASE_Y || '-' || TO_NUMBER(A.BASE_MM) || '-' || TO_NUMBER(A.BASE_D) AS DISABLE_DAYS
                      , A.BASE_Y || '-' || A.BASE_MM || '-' || A.BASE_D AS DISABLE_FULDAYS
@@ -626,16 +563,6 @@
             <if test='@MybatisUtils@isNotEmpty(svDvCd)'>
                 <if test="@MybatisUtils@equals(svDvCd, '1')">
                     <if test="!@MybatisUtils@equals(chnlDvCd, 'I')">
-
-                        -- SELECT CO160_YR||'-'||TO_NUMBER(CO160_MTH)||'-'|| TO_NUMBER(CO160_DAY) AS DISABLE_DAYS
-                        --      , CO160_YR||'-'||CO160_MTH||'-'|| CO160_DAY AS DISABLE_FULDAYS
-                        --      , '접수마감일 제한(설치건수 서비스운영팀)' AS CO720_MSG
-                        --   FROM LC_COMMONCODE_CO720TB
-                        --      , LC_COMMONCODE_CO160TB
-                        --  WHERE CO720_TIMETBL_CNST_ID = 'TC006'
-                        --    AND CO720_DATA_GB LIKE '%'||#DATA_GB#||'%'
-                        --    AND CO160_YR||CO160_MTH||CO160_DAY  BETWEEN  CO720_APLD_TO AND CO720_APLD_FR
-                        --    AND GET_WRK_TOTAL_CNT_INST(#EMP_ID#, CO160_YR||CO160_MTH||CO160_DAY) > CO720_COL01
 
                         SELECT A.BASE_Y||'-'||TO_NUMBER(A.BASE_MM)||'-'|| TO_NUMBER(A.BASE_D) AS DISABLE_DAYS
                              , A.BASE_Y||'-'||A.BASE_MM||'-'||A.BASE_D AS DISABLE_FULDAYS
@@ -674,23 +601,6 @@
                     -- QUERY 9
                     <if test="@MybatisUtils@equals(addGb, '1')">
 
-                        -- SELECT CO160_YR||'-'||TO_NUMBER(CO160_MTH)||'-'|| TO_NUMBER(CO160_DAY) AS DISABLE_DAYS
-                        --      , CO160_YR||'-'||CO160_MTH||'-'|| CO160_DAY AS DISABLE_FULDAYS
-                        --      , '접수마감일 제한' AS CO720_MSG
-                        --   FROM LC_COMMONCODE_DEADLINE
-                        --      , LC_COMMONCODE_CO160TB
-                        --  WHERE MGT_YM  = TO_CHAR(SYSDATE, 'YYYYMM')
-                        --      AND CO160_YR = TO_CHAR(SYSDATE, 'YYYY')
-                        --      AND CO160_MTH = TO_CHAR(SYSDATE, 'MM')
-                        --      AND MGT_GB = '3'
-                        --      AND #CONT_DT# > END_DT
-                        --      AND ((CO160_YR||CO160_MTH||CO160_DAY > END_DT)
-                        --        isNotEmpty property="P_GDS_CD">
-                        -- 	         AND #P_GDS_CD# != '4016'
-                        -- 	       /isNotEmpty>
-                        --     OR (CO160_YR||CO160_MTH||CO160_DAY = #CONT_DT# AND END_TM &lt; TO_CHAR(SYSDATE, 'HH24MISS'))
-                        --     OR  (CO160_YR||CO160_MTH||CO160_DAY &lt; START_DT ))
-
                         SELECT A.BASE_Y||'-'||TO_NUMBER(A.BASE_MM)||'-'|| TO_NUMBER(A.BASE_D) AS DISABLE_DAYS
                              , A.BASE_Y||'-'||A.BASE_MM||'-'||A.BASE_D AS DISABLE_FULDAYS
                              , '접수마감일 제한' AS MSG
@@ -712,34 +622,6 @@
                         -------------------------------------------------------------------------------------------------------------------------------------
                         -- QUERY 10
                         -- 2019.01.01(월) 상품 접수 제한
-                        -- SELECT CO160_YR||'-'||TO_NUMBER(CO160_MTH)||'-'|| TO_NUMBER(CO160_DAY) AS DISABLE_DAYS
-                        --      , CO160_YR||'-'||CO160_MTH||'-'|| CO160_DAY AS DISABLE_FULDAYS
-                        --      , CO720_MSG
-                        --   FROM (SELECT MAX(CO720_MSG) AS CO720_MSG
-                        --              , MIN(CO720_APLD_FR) AS CO720_APLD_FR
-                        --              , MAX(CO720_APLD_TO) AS CO720_APLD_TO
-                        --           FROM LC_COMMONCODE_CO720TB
-                        --            , LC_STOCK_ST112TB
-                        --        WHERE 1=1
-
-                        --          AND ST112_SALE_CD IN (
-                        --          isNotEmpty property="P_GDS_LIST">
-                        --          iterate property="P_GDS_LIST" conjunction=",">
-                        --          #P_GDS_LIST[]#
-                        --          /iterate>
-                        --            /isNotEmpty>
-                        --            isNotEmpty property="P_GDS_CD">
-                        --          #P_GDS_CD#
-                        -- 	       /isNotEmpty>
-                        -- 		)
-                        -- 	    AND CO720_TIMETBL_CNST_ID = 'TC001'
-                        -- 	    AND ST112_ITEM_CD|| ST112_PART_CD = CO720_COL01
-                        -- 	    AND CO720_GUB_CD LIKE '%'||#GB_CD#||'%'
-                        -- 	    AND CO720_DATA_GB LIKE '%'||#DATA_GB#||'%'
-                        -- 	)
-                        -- 	 , LC_COMMONCODE_CO160TB
-                        -- 	 WHERE CO160_YR||CO160_MTH||CO160_DAY BETWEEN CO720_APLD_FR AND CO720_APLD_TO
-
                         SELECT A.BASE_Y||'-'||TO_NUMBER(A.BASE_MM)||'-'|| TO_NUMBER(A.BASE_D) AS DISABLE_DAYS
                              , A.BASE_Y||'-'||A.BASE_MM||'-'||A.BASE_D AS DISABLE_FULDAYS
                              , B.RSTR_CNDT_SRN_MARK_CN AS MSG
@@ -775,33 +657,6 @@
                         -- 2020.11.05 D+3일로 변경요청 (윤상모 매니저님)
                         -- 2022.02.28 D+7일로 변경요청 (정은재 매니저님)
                         -- 2022.03.31 D+1일로 변경요청 (정성훈 파트장님)
-                        -- SELECT DISABLE_DAYS,DISABLE_FULDAYS,CO720_MSG
-                        -- FROM (SELECT CO160_YR||'-'||TO_NUMBER(CO160_MTH)||'-'|| TO_NUMBER(CO160_DAY) AS DISABLE_DAYS
-                        --            , CO160_YR||'-'||CO160_MTH||'-'|| CO160_DAY AS DISABLE_FULDAYS
-                        --            , CO720_MSG
-                        --            , ROWNUM AS RN
-                        --            , CO720_COL01
-                        --         FROM LC_COMMONCODE_CO720TB
-                        --            , LC_COMMONCODE_CO160TB
-                        --            , LC_STOCK_ST112TB
-                        --        WHERE ST112_SALE_CD IN (
-                        --              isNotEmpty property="P_GDS_LIST">
-                        --              iterate property="P_GDS_LIST" conjunction=",">
-                        --              #P_GDS_LIST[]#
-                        --              /iterate>
-                        --              /isNotEmpty>
-                        --              isNotEmpty property="P_GDS_CD">
-                        --              #P_GDS_CD#
-                        --              /isNotEmpty>
-                        --         )
-                        --          AND CO720_TIMETBL_CNST_ID = 'TC008'
-                        --          AND GET_MATTRESS_YN(ST112_ITEM_CD|| ST112_PART_CD) = 'Y'
-                        --          AND CO160_YR||CO160_MTH||CO160_DAY > TO_CHAR(SYSDATE, 'YYYYMMDD')
-                        --          AND CO720_GUB_CD LIKE '%'||#GB_CD#||'%'
-                        --          AND CO720_DATA_GB LIKE '%'||#DATA_GB#||'%'
-                        --          AND CO160_YR||CO160_MTH||CO160_DAY BETWEEN CO720_APLD_FR AND CO720_APLD_TO)
-                        -- WHERE RN &lt; CO720_COL01
-
                         SELECT DISABLE_DAYS, DISABLE_FULDAYS, MSG
                           FROM (
                             SELECT A.BASE_Y||'-'||TO_NUMBER(A.BASE_MM)||'-'|| TO_NUMBER(A.BASE_D) AS DISABLE_DAYS
@@ -844,36 +699,6 @@
                         -------------------------------------------------------------------------------------------------------------------------------------
                         -- QUERY 12
                         -- 2022.04.29(금) 단기렌탈 제품 D+5 영업일 이후부터 설치
-                        -- SELECT DISABLE_DAYS,DISABLE_FULDAYS,CO720_MSG
-                        -- FROM (
-                        --     SELECT CO160_YR||'-'||TO_NUMBER(CO160_MTH)||'-'|| TO_NUMBER(CO160_DAY) AS DISABLE_DAYS
-                        --          , CO160_YR||'-'||CO160_MTH||'-'|| CO160_DAY AS DISABLE_FULDAYS
-                        --          , CO720_MSG
-                        --          , ROWNUM AS RN
-                        --          , CO720_COL01
-                        --       FROM LC_COMMONCODE_CO720TB
-                        --          , LC_COMMONCODE_CO160TB
-                        --          , LC_STOCK_ST112TB
-                        --      WHERE ST112_SALE_CD IN (
-                        --          isNotEmpty property="P_GDS_LIST">
-                        --          iterate property="P_GDS_LIST" conjunction=",">
-                        --          #P_GDS_LIST[]#
-                        --          /iterate>
-                        --          /isNotEmpty>
-                        --          isNotEmpty property="P_GDS_CD">
-                        --          #P_GDS_CD#
-                        --          /isNotEmpty>
-                        --        )
-                        --        AND CO720_TIMETBL_CNST_ID = 'TC039'
-                        --        AND ST112_SALE_CD = CO720_COL02
-                        --        AND CO160_YR||CO160_MTH||CO160_DAY > TO_CHAR(SYSDATE, 'YYYYMMDD')
-                        --        AND CO720_GUB_CD LIKE '%'||#GB_CD#||'%'
-                        --        AND CO720_DATA_GB LIKE '%'||#DATA_GB#||'%'
-                        --        AND CO160_OFFDAY_GB IS NULL
-                        --        AND CO160_HLDY_YN IS NULL
-                        --        AND CO160_YR||CO160_MTH||CO160_DAY BETWEEN CO720_APLD_FR AND CO720_APLD_TO)
-                        --WHERE RN &lt; CO720_COL01
-
                         SELECT DISABLE_DAYS, DISABLE_FULDAYS, MSG
                           FROM (
                             SELECT A.BASE_Y||'-'||TO_NUMBER(A.BASE_MM)||'-'|| TO_NUMBER(A.BASE_D) AS DISABLE_DAYS
@@ -923,56 +748,6 @@
                         -- 2019.08.13(화) 계약 접수일 기준 D+10 배정 접수 가능 LCWGUB  (1: 개인, 2:법인)
                         -- 2019.08.16(금) 영업부의 불편이 우려되어 재고부족 건, 설치 가능일로부터 D+10일로 설치일 배정
                         -- 2019.12.20(금) Wells TM 상담사 KSS에서 접수시 D+10 제외
-
-
-                        -- SELECT DISABLE_DAYS, DISABLE_FULDAYS, CO720_MSG
-                        --   FROM (SELECT DISABLE_DAYS
-                        --              , DISABLE_FULDAYS
-                        --              , CO720_MSG
-                        --              , CO160_DAYS
-                        --              , DAY_YN
-                        --              , CO720_COL01
-                        --              , SUM(DAY_YN) OVER (ORDER BY DISABLE_FULDAYS ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS RN
-                        --           FROM (SELECT CO160_YR || '-' || TO_NUMBER(CO160_MTH) || '-' || TO_NUMBER(CO160_DAY) AS DISABLE_DAYS
-                        --                      , CO160_YR || '-' || CO160_MTH || '-' || CO160_DAY AS DISABLE_FULDAYS
-                        --                      , CO720_MSG
-                        --                      , CO160_DAYS
-                        --                      , CO160_YR
-                        --                      , CO160_MTH
-                        --                      , CO160_DAY
-                        --                      , CASE WHEN INSTR(#AC146_VST_CYCL_CD#, CO160_DAYS) = 0 THEN 0 ELSE 1 END AS DAY_YN
-                        --                      , CO720_COL01
-                        --                   FROM LC_COMMONCODE_CO720TB, LC_COMMONCODE_CO160TB
-                        --                  WHERE CO720_TIMETBL_CNST_ID = 'TC005'
-                        --                    AND CO720_GUB_CD LIKE '%' ||#GB_CD# || '%'
-                        --                    AND CO720_DATA_GB LIKE '%' ||#DATA_GB# || '%'
-                        --                    AND CO160_YR || CO160_MTH || CO160_DAY BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE + 120, 'YYYYMMDD')
-                        --                    AND CO160_DAYS != '1'
-                        --                    AND CO160_OFFDAY_GB IS NULL
-                        --                    AND CO160_HLDY_YN IS NULL
-                        --                    AND NOT EXISTS(SELECT 1 FROM LC_ALLOCATE_AC021TB WHERE AC021_DEPT_CD IN ('70533', '70534', '70079') AND AC021_RET_DT IS NULL AND AC021_EMP_ID = #P_USER_ID#)
-                        --                    AND CO160_YR || CO160_MTH || CO160_DAY >= NVL((SELECT MAX(CO720_COL02)
-                        --                                                                     FROM LC_COMMONCODE_CO720TB, LC_STOCK_ST112TB
-                        --                                                                    WHERE 1 = 1
-                        --                                                                      AND ST112_SALE_CD IN (
-                        --                                                                        isEmpty property="P_GDS_CD">
-                        --                                                                         iterate property="P_GDS_LIST" conjunction=",">
-                        --                                                                         #P_GDS_LIST[]#
-                        --                                                                         /iterate>
-                        --                                                                        /isEmpty>
-                        --                                                                        isNotEmpty property="P_GDS_CD">
-                        --                                                                         #P_GDS_CD#
-                        --                                                                        /isNotEmpty>
-                        --                                                                      )
-                        --                                                                      AND CO720_TIMETBL_CNST_ID = 'TC001'
-                        --                                                                      AND ST112_ITEM_CD || ST112_PART_CD = CO720_COL01
-                        --                                                                      AND CO720_GUB_CD LIKE '%' ||#GB_CD# || '%'
-                        --                                                                      AND CO720_DATA_GB LIKE '%' ||#DATA_GB# || '%'), #CONT_DT#)
-                        --                    AND #LCWGUB# = '1'
-                        --                    AND #LCETC3# != '2'))
-                        --  WHERE RN > CO720_COL01
-
-
                         <if test='@MybatisUtils@isNotEmpty(copnDvCd)'>
                             <if test="@MybatisUtils@equals(copnDvCd, '1')">
                             SELECT DISABLE_DAYS, DISABLE_FULDAYS, RSTR_CNDT_SRN_MARK_CN AS CO720_MSG
@@ -1059,30 +834,6 @@
             <if test='@MybatisUtils@isNotEmpty(svDvCd)'>
                 <if test="@MybatisUtils@equals(svDvCd, '4')">
                     <if test="@MybatisUtils@equals(addGb, '2')">
-
-                        -- --isNotEmpty property="DATA_GB">
-                        -- isEqual property="DATA_GB" compareValue="4">
-                        -- isEqual property="ADD_GB" compareValue="2">
-
-                        -- SELECT CO160_YR||'-'||TO_NUMBER(CO160_MTH)||'-'|| TO_NUMBER(CO160_DAY) AS DISABLE_DAYS
-                        --             , CO160_YR||'-'||CO160_MTH||'-'|| CO160_DAY AS DISABLE_FULDAYS
-                        --             , '홈케어 마감일관리' AS CO720_MSG
-                        --   FROM LC_COMMONCODE_DEADLINE
-                        --          , LC_COMMONCODE_CO160TB
-                        --  WHERE MGT_YM  = TO_CHAR(SYSDATE, 'YYYYMM')
-                        --    AND CO160_YR = TO_CHAR(SYSDATE, 'YYYY')
-                        --    AND CO160_MTH = TO_CHAR(SYSDATE, 'MM')
-                        --    AND MGT_GB = '3'
-                        --    AND #CONT_DT# > END_DT
-                        --    AND ((CO160_YR||CO160_MTH||CO160_DAY > END_DT)
-                        --     OR (CO160_YR||CO160_MTH||CO160_DAY = #CONT_DT# AND END_TM &lt; TO_CHAR(SYSDATE, 'HH24MISS'))
-                        --     OR  (CO160_YR||CO160_MTH||CO160_DAY &lt; START_DT ))
-                        -- UNION ALL
-
-                        -- /isEqual>
-                        -- /isEqual>
-                        -- /isNotEmpty>
-
                         SELECT A.BASE_Y||'-'||TO_NUMBER(A.BASE_MM)||'-'|| TO_NUMBER(A.BASE_D) AS DISABLE_DAYS
                              , A.BASE_Y||'-'||A.BASE_MM||'-'||A.BASE_D AS DISABLE_FULDAYS
                              , '홈케어 마감일관리' AS MSG
@@ -1101,16 +852,6 @@
             -------------------------------------------------------------------------------------------------------------------------------------
             -- QUERY 15
             --  센터별날짜막기:  전체 적용 Depth 센터, 요일별
-            -- SELECT SUBSTR(AC160_ASG_DT,1,4)||'-'||TO_NUMBER(SUBSTR(AC160_ASG_DT,5,2))||'-'|| TO_NUMBER(SUBSTR(AC160_ASG_DT,7,2)) AS DISABLE_DAYS
-            --      , SUBSTR(AC160_ASG_DT,1,4)||'-'||(SUBSTR(AC160_ASG_DT,5,2))||'-'|| (SUBSTR(AC160_ASG_DT,7,2)) AS DISABLE_FULDAYS
-            --      , '센터 워크샵 및 교육' AS CO720_MSG
-            --   FROM LC_ALLOCATE_AC160TB
-            --      , LC_ALLOCATE_AC021TB
-            --  WHERE AC021_EMP_ID = #EMP_ID#
-            --    AND AC160_ASG_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
-            --    AND AC160_SVC_CD = AC021_DEPT_CD
-            --    AND AC160_OFFDAY_GB = 'Y'
-
             SELECT SUBSTR(ASN_DT,1,4)||'-'||TO_NUMBER(SUBSTR(ASN_DT,5,2))||'-'|| TO_NUMBER(SUBSTR(ASN_DT,7,2)) AS DISABLE_DAYS
                  , SUBSTR(ASN_DT,1,4)||'-'||(SUBSTR(ASN_DT,5,2))||'-'|| (SUBSTR(ASN_DT,7,2)) AS DISABLE_FULDAYS
                  , '센터 워크샵 및 교육' AS MSG
@@ -1125,7 +866,7 @@
         ORDER BY DISABLE_DAYS
     </select>
 
-    <!--bestDeptQuery.xml > getMojongDays_ilsibul-->
+    <!--getMojongDays_ilsibul-->
     <select id="selectSidingDaysForSpay" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo">
         SELECT SUBSTR(W3TH, 1, 4) || '-' || TO_NUMBER(SUBSTR(W3TH, 5, 2)) || '-' || TO_NUMBER(SUBSTR(W3TH, 7, 2)) AS ABL_DAYS
              , W3TH
@@ -1344,7 +1085,7 @@
     </select>
 
     <!--selectConvertItemcode-->
-    <select id="selectAddGb" resultType="java.lang.String">
+    <!--<select id="selectAddGb" resultType="java.lang.String">
         SELECT CASE WHEN PD_PRP_VAL01 LIKE '5%' THEN '2' ELSE '1' END AS ADD_GB
           FROM TB_PDBS_PD_REL REL
          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL ECOM
@@ -1357,7 +1098,7 @@
            AND REL.PD_REL_TP_CD = '05'
            AND BASE_PD_CD = #{basePdCd}
            AND ROWNUM = 1
-    </select>
+    </select>-->
 
     <!--<select id="selectKiwiItemCode" resultType="java.lang.String">
         SELECT OJ_PD_CD AS PD_CD
@@ -1835,40 +1576,40 @@
     </select>
 
     <select id="selectOffDays" resultType="java.lang.String">
-        SELECT CLD.BASE_Y || CLD.BASE_MM || CLD.BASE_D || MAIN_EMP_ID AS HS_OFF_DAYS
-          FROM TB_OGPS_EGER_VCN_IZ /*엔지니어휴가내역*/ /*LC_ATTEND_AT210TB 근태사유 관리*/ IZ
-             , TB_OGBS_PRTNR_BAS /*파트너기본*/ /*LC_ALLOCATE_AC021TB 인사마스타*/ AC021
-             , (SELECT DISTINCT T2.ICHR_PRTNR_NO AS MAIN_EMP_ID
-                 FROM TB_SVPD_RPB_LOCARA_BAS T1 /*책임지역기본*/
-           INNER JOIN TB_SVPD_RPB_LOCARA_PSIC_IZ T2 /*책임지역담당자내역*/
-                   ON T1.WK_GRP_CD = T2.WK_GRP_CD
-                  AND T1.RPB_LOCARA_CD = T2.RPB_LOCARA_CD
-                  AND T1.WK_GRP_CD = T2.WK_GRP_CD
-                  AND T1.APY_STRTDT = T2.APY_STRTDT
-                  AND T1.APY_ENDDT = T2.APY_ENDDT
-                  AND T2.UDSN_USE_YN = 'Y'
-                  AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T2.APY_STRTDT AND T2.APY_ENDDT
-           INNER JOIN TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T3 /*책임지역관리주소내역*/
-                   ON T1.RPB_LOCARA_CD = T3.RPB_LOCARA_CD
-                  AND T3.DTA_DL_YN = 'N'
-                  AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T3.APY_STRTDT AND T3.APY_ENDDT
-           INNER JOIN TB_SVPD_EGER_ASN_ADR_IZ T4 /*엔지니어배정주소내역*/
-                   ON T3.FR2P_LGLD_CD = T4.FR2P_LGLD_CD
-                  AND T3.CTPV_NM = T4.CTPV_NM
-                  AND T3.CTCTY_NM = T4.CTCTY_NM
-                  AND T3.LAWC_EMD_NM = T4.LAWC_EMD_NM
-                  AND T3.AMTD_NM = T4.AMTD_NM
-                  AND T4.DTA_DL_YN = 'N'
-                WHERE T1.DTA_DL_YN = 'N'
-                  AND T1.WK_GRP_CD = '20'
-                  AND T4.NEW_ADR_ZIP = #{newAdrZip})
-             , TB_SVPD_SV_CLND_BAS /*서비스달력기본*/ CLD
+        SELECT CLD.BASE_Y || CLD.BASE_MM || CLD.BASE_D || ICHR_PRTNR_NO AS HS_OFF_DAYS
+          FROM TB_OGPS_EGER_VCN_IZ /*엔지니어휴가내역*/ /*LC_ATTEND_AT210TB 근태사유 관리*/ AT210
+         INNER JOIN TB_OGBS_PRTNR_BAS /*파트너기본*/ /*LC_ALLOCATE_AC021TB 인사마스타*/ AC021
+            ON AT210.PRTNR_NO = AC021.PRTNR_NO
+         INNER JOIN (SELECT DISTINCT T2.ICHR_PRTNR_NO
+                       FROM TB_SVPD_RPB_LOCARA_BAS T1 /*책임지역기본*/
+                       INNER JOIN TB_SVPD_RPB_LOCARA_PSIC_IZ T2 /*책임지역담당자내역*/
+                         ON T1.WK_GRP_CD = T2.WK_GRP_CD
+                        AND T1.RPB_LOCARA_CD = T2.RPB_LOCARA_CD
+                        AND T1.WK_GRP_CD = T2.WK_GRP_CD
+                        AND T1.APY_STRTDT = T2.APY_STRTDT
+                        AND T1.APY_ENDDT = T2.APY_ENDDT
+                        AND T2.UDSN_USE_YN = 'Y'
+                        AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T2.APY_STRTDT AND T2.APY_ENDDT
+                       INNER JOIN TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T3 /*책임지역관리주소내역*/
+                         ON T1.RPB_LOCARA_CD = T3.RPB_LOCARA_CD
+                        AND T3.DTA_DL_YN = 'N'
+                        AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T3.APY_STRTDT AND T3.APY_ENDDT
+                       INNER JOIN TB_SVPD_EGER_ASN_ADR_IZ T4 /*엔지니어배정주소내역*/
+                         ON T3.FR2P_LGLD_CD = T4.FR2P_LGLD_CD
+                        AND T3.CTPV_NM = T4.CTPV_NM
+                        AND T3.CTCTY_NM = T4.CTCTY_NM
+                        AND T3.LAWC_EMD_NM = T4.LAWC_EMD_NM
+                        AND T3.AMTD_NM = T4.AMTD_NM
+                        AND T4.DTA_DL_YN = 'N'
+                      WHERE T1.DTA_DL_YN = 'N'
+                        AND T1.WK_GRP_CD = '20'
+                        AND T4.NEW_ADR_ZIP = #{newAdrZip}) LOC
+            ON AT210.PRTNR_NO = LOC.ICHR_PRTNR_NO
+         INNER JOIN TB_SVPD_SV_CLND_BAS /*서비스달력기본*/ CLD
+            ON CLD.BASE_Y || CLD.BASE_MM || CLD.BASE_D BETWEEN AT210.VCN_STRT_DT AND AT210.VCN_END_DT
          WHERE AC021.OG_ID = '71507' -- FIX
-           AND IZ.PRTNR_NO = AC021.PRTNR_NO
-           AND IZ.PRTNR_NO = MAIN_EMP_ID
-           AND IZ.EGER_WRK_STAT_CD IS NOT NULL
-           AND IZ.VCN_STRT_DT > TO_CHAR(SYSDATE, 'YYYYMMDD')
-           AND CLD.BASE_Y || CLD.BASE_MM || CLD.BASE_D BETWEEN IZ.VCN_STRT_DT AND IZ.VCN_END_DT
+           AND AT210.EGER_WRK_STAT_CD IS NOT NULL
+           AND AT210.VCN_STRT_DT > TO_CHAR(SYSDATE, 'YYYYMMDD')
     </select>
 
 </mapper>

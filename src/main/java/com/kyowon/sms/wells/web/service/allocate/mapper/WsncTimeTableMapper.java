@@ -59,7 +59,7 @@ public interface WsncTimeTableMapper {
         String cntrNo
     );
 
-    String selectAddGb(String saleCd);
+    //String selectAddGb(String saleCd);
     //String selectKiwiItemCode(String saleCd);
 
     String selectFnSvpdLocaraPrtnr01(String newAdrZip, String pdctPdCd, String svBizDclsfCd, String sellDate);
