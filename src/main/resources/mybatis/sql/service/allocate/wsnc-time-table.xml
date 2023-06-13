@@ -683,7 +683,7 @@
                                      , B.APY_ENDDT
                                      , B.RSTR_CNDT_VAL1
                                   FROM TB_SVPD_SV_RSTR_CNDT_BAS B      /* 서비스제약조건기본 */
-                                 INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
+                            INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
                                     ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
                                    AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
                                  WHERE B.RSTR_CNDT_ID = 'TC006'

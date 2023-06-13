@@ -9,10 +9,10 @@ W-MP-U-0186P01
 */
 public class WsncTimeTableAsMonthDto {
 
-    @ApiModel(value = "WsncTimeTableMngtASMonthDto-findReq")
-    public record findReq() {}
+    @ApiModel(value = "WsncTimeTableMngtASMonthDto-FindReq")
+    public record FindReq() {}
 
-    @ApiModel(value = "WsncTimeTableMngtASMonthDto-findRes")
-    public record findRes() {}
+    @ApiModel(value = "WsncTimeTableMngtASMonthDto-FindRes")
+    public record FindRes() {}
 
 }
