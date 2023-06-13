@@ -52,7 +52,7 @@
              , F_CMZ_CD_NM('TNT_WELLS', 'SELL_DSC_DV_CD', A.SELL_DSC_DV_CD, 'ko') AS SELL_DSC_DV_NM
              , C.RCGVP_KNM /*LCWNAM 수령자한글명 */
           FROM TB_SSCT_CNTR_DTL A
-         INNER JOIN TB_SSCT_CNTR_BAS B
+    INNER JOIN TB_SSCT_CNTR_BAS B
             ON A.CNTR_NO = B.CNTR_NO
           LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS C
             ON C.CNTR_NO = A.CNTR_NO
@@ -103,25 +103,25 @@
              , C2.CNTR_PD_STRTDT AS CNTR_DT
              , C1.COPN_DV_CD -- 법인격구분코드 (1개인, 2법인)
           FROM TB_SSCT_CNTR_BAS C1
-         INNER JOIN TB_SSCT_CNTR_DTL C2
+    INNER JOIN TB_SSCT_CNTR_DTL C2
             ON C1.CNTR_NO = C2.CNTR_NO
-         INNER JOIN TB_SSCT_CNTR_ADR_REL C3
+    INNER JOIN TB_SSCT_CNTR_ADR_REL C3
             ON C2.CNTR_NO = C3.DTL_CNTR_NO
            AND C2.CNTR_SN = C3.DTL_CNTR_SN
            AND C3.ADRPC_TP_CD IN ('2', '3')
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
-         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C4
+    INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C4
             ON C3.CNTR_ADRPC_ID = C4.CNTR_ADRPC_ID
-         INNER JOIN TB_GBCO_ADR_BAS A1
+    INNER JOIN TB_GBCO_ADR_BAS A1
             ON C4.ADR_ID = A1.ADR_ID
-         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S1
+    INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S1
             ON C2.CNTR_NO = S1.CNTR_NO
            AND C2.CNTR_SN = S1.CNTR_SN
-         INNER JOIN TB_PDBS_PD_BAS P1
+    INNER JOIN TB_PDBS_PD_BAS P1
             ON C2.BASE_PD_CD = P1.PD_CD
-         INNER JOIN TB_PDBS_PD_BAS P2
+    INNER JOIN TB_PDBS_PD_BAS P2
             ON S1.PDCT_PD_CD = P2.PD_CD
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P3
+    INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P3
             ON S1.PDCT_PD_CD = P3.PD_CD
            AND P3.PD_EXTS_PRP_GRP_CD = 'PART'
          WHERE C2.CNTR_NO = #{cntrNo}
@@ -146,15 +146,15 @@
              , CASE WHEN P5.PD_PRP_VAL20 = '10' THEN 'Y' ELSE 'N' END HCR_YN -- 홈케어 여부
              , CASE WHEN P5.PD_PRP_VAL01 LIKE '5%' THEN '2' ELSE '1' END AS ADD_GB
           FROM TB_PDBS_PD_BAS P1
-         INNER JOIN TB_PDBS_PD_REL P2
+    INNER JOIN TB_PDBS_PD_REL P2
             ON P1.PD_CD = P2.BASE_PD_CD
            AND DECODE(P1.SELL_TP_DTL_CD, '62', '18', '05') = P2.PD_REL_TP_CD
-         INNER JOIN TB_PDBS_PD_BAS P3
+    INNER JOIN TB_PDBS_PD_BAS P3
             ON P2.OJ_PD_CD = P3.PD_CD
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P4
+    INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P4
             ON P2.BASE_PD_CD = P4.PD_CD
            AND P4.PD_EXTS_PRP_GRP_CD = 'CNTR'
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P5
+    INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P5
             ON P2.OJ_PD_CD = P5.PD_CD
            AND P5.PD_EXTS_PRP_GRP_CD = 'PART'
          WHERE P2.BASE_PD_CD = #{basePdCd} -- 기준/판매 상품코드
@@ -340,7 +340,7 @@
               FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
                  , (SELECT B.RSTR_CNDT_ID, B.RSTR_CNDT_SN, B.RSTR_CNDT_SRN_MARK_CN, B.APY_STRTDT, B.APY_ENDDT, B.RSTR_CNDT_VAL1
                       FROM TB_SVPD_SV_RSTR_CNDT_BAS B /* 서비스제약조건기본 */
-                     INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C  /* 서비스제약조건상세 */
+                INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C  /* 서비스제약조건상세 */
                         ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
                        AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
                        AND C.CHNL_APY_DV_VAL = '%'||#{chnlDvCd}||'%' /* 채널적용구분값 */
@@ -394,7 +394,7 @@
                  , TB_SVPD_SV_CLND_BAS B /* 서비스달력기본 */
                  , (SELECT T1.PD_CD AS SVPD_PD_CD, T2.PD_PRP_VAL20 AS SVPD_ITEM_GR
                       FROM TB_PDBS_PD_BAS T1
-                     INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
                         ON T1.PD_CD = T2.PD_CD
                        AND T2.PD_EXTS_PRP_GRP_CD IN ('PART', 'PDCT')
                        AND T2.DTA_DL_YN = 'N') C
@@ -412,9 +412,9 @@
                AND (CASE WHEN C.SVPD_ITEM_GR = '95' THEN 'Y' ELSE 'N' END) = 'Y'
                AND ((SELECT COUNT(1) AS SUM_T
                        FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1 /*고객서비스AS설치배정내역*/
-                          , TB_SVPD_CST_SVAS_IST_OJ_IZ  T2 /*고객서비스AS설치대상내역*/
-                      WHERE T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
-                        AND T1.VST_CNFMDT = B.BASE_Y || B.BASE_MM || B.BASE_D
+                 INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T2
+                         ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO /*고객서비스AS설치대상내역*/
+                      WHERE T1.VST_CNFMDT = B.BASE_Y || B.BASE_MM || B.BASE_D
                         AND T1.WK_PRGS_STAT_CD IN ('00', '10')
                         AND T2.PD_CD = C.SVPD_PD_CD
                         AND T2.IST_ADR LIKE '%제주%')) > 4
@@ -447,10 +447,10 @@
                                  , B.APY_ENDDT
                                  , B.RSTR_CNDT_VAL1
                               FROM TB_SVPD_SV_RSTR_CNDT_BAS B /* 서비스제약조건기본 */
-                                 , TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
-                             WHERE B.RSTR_CNDT_ID = 'TC004'
-                               AND B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
+                        INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
+                                ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
                                AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
+                             WHERE B.RSTR_CNDT_ID = 'TC004'
                                AND C.CHNL_APY_DV_VAL = '%'||#{chnlDvCd}||'%' /* 채널적용구분값 */
                                AND ROWNUM = 1) B
                      WHERE A.BASE_Y || A.BASE_MM || A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
@@ -458,9 +458,9 @@
                        AND (SELECT SUM_T AS V_WRK_AS_TOTAL_CNT
                               FROM (SELECT COUNT(1) AS SUM_T
                                       FROM TB_SVPD_CST_SVAS_IST_ASN_IZ AC221 /*LC_ALLOCATE_AC221TB 설치및A/S배정정보*/
-                                         , TB_SVPD_CST_SVAS_IST_OJ_IZ AC211  /*LC_ALLOCATE_AC211TB A/S 및 설치 배정대상정보*/
-                                     WHERE AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
-                                       AND AC221.ICHR_PRTNR_NO = #{prtnrNo}
+                                INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ AC211  /*LC_ALLOCATE_AC211TB A/S 및 설치 배정대상정보*/
+                                        ON AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
+                                     WHERE AC221.ICHR_PRTNR_NO = #{prtnrNo}
                                        AND AC221.VST_CNFMDT = A.BASE_Y || A.BASE_MM || A.BASE_D
                                        AND AC211.SV_BIZ_DCLSF_CD LIKE '3%'
                                        AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
@@ -489,10 +489,10 @@
                                  , B.APY_ENDDT
                                  , B.RSTR_CNDT_VAL1
                               FROM TB_SVPD_SV_RSTR_CNDT_BAS B /* 서비스제약조건기본 */
-                                 , TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
+                        INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C
+                                ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
+                               AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN/* 서비스제약조건상세 */
                              WHERE B.RSTR_CNDT_ID = 'TC031'
-                               AND B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
-                               AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
                                AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */
                                <if test='@MybatisUtils@isNotEmpty(localGb)'>
                                AND RSTR_CNDT_VAL1 = #{localGb}
@@ -531,10 +531,10 @@
                                  , B.RSTR_CNDT_VAL1
                                  , B.RSTR_CNDT_VAL3
                               FROM TB_SVPD_SV_RSTR_CNDT_BAS B /* 서비스제약조건기본 */
-                                 , TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
-                             WHERE B.RSTR_CNDT_ID = 'TC004'
-                               AND B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
+                        INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
+                                ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
                                AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
+                             WHERE B.RSTR_CNDT_ID = 'TC004'
                                AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */
                                AND ROWNUM = 1) B
                      WHERE A.BASE_Y || A.BASE_MM || A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
@@ -545,14 +545,14 @@
                                          , TB_SVPD_CST_SVAS_IST_OJ_IZ AC211  /*LC_ALLOCATE_AC211TB A/S 및 설치 배정대상정보*/
                                      WHERE AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
                                        AND AC221.ICHR_PRTNR_NO = FN_SVPD_LOCARA_PRTNR_01(#{newAdrZip}, (SELECT BAS.PD_CD
-                                                                                                      FROM TB_PDBS_PD_BAS BAS
+                                                                                                           FROM TB_PDBS_PD_BAS BAS
                                                                                                      INNER JOIN TB_PDBS_PD_REL REL
-                                                                                                        ON BAS.PD_CD = REL.OJ_PD_CD
-                                                                                                       AND REL.PD_REL_TP_CD = '05'
-                                                                                                       AND REL.DTA_DL_YN = 'N'
-                                                                                                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
-                                                                                                     WHERE BAS.DTA_DL_YN = 'N'
-                                                                                                       AND REL.BASE_PD_CD = #{basePdCd}), '3110', A.BASE_Y || A.BASE_MM || A.BASE_D)
+                                                                                                             ON BAS.PD_CD = REL.OJ_PD_CD
+                                                                                                            AND REL.PD_REL_TP_CD = '05'
+                                                                                                            AND REL.DTA_DL_YN = 'N'
+                                                                                                            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                                                                                                          WHERE BAS.DTA_DL_YN = 'N'
+                                                                                                            AND REL.BASE_PD_CD = #{basePdCd}), '3110', A.BASE_Y || A.BASE_MM || A.BASE_D)
                                        AND AC221.VST_CNFMDT = A.BASE_Y || A.BASE_MM || A.BASE_D
                                        AND AC211.SV_BIZ_DCLSF_CD LIKE '3%'
                                        AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
@@ -589,10 +589,10 @@
                                          , B.APY_ENDDT
                                          , B.RSTR_CNDT_VAL1
                                       FROM TB_SVPD_SV_RSTR_CNDT_BAS B /* 서비스제약조건기본 */
-                                         , TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
-                                     WHERE B.RSTR_CNDT_ID = 'TC003'
-                                       AND B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
+                                INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
+                                        ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
                                        AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
+                                     WHERE B.RSTR_CNDT_ID = 'TC003'
                                        AND C.CHNL_APY_DV_VAL = #{chnlDvCd} /* 채널적용구분값 */
                                        AND ROWNUM = 1) B
                              WHERE A.BASE_Y || A.BASE_MM || A.BASE_D BETWEEN B.APY_STRTDT AND B.APY_ENDDT
@@ -695,9 +695,9 @@
                                   FROM (
                                     SELECT COUNT(1) AS SUM_T
                                       FROM TB_SVPD_CST_SVAS_IST_ASN_IZ /*LC_ALLOCATE_AC221TB*/ AC221 /*고객서비스AS설치배정내역*/
-                                         , TB_SVPD_CST_SVAS_IST_OJ_IZ  /*LC_ALLOCATE_AC211TB*/ AC211 /*고객서비스AS설치대상내역*/
-                                     WHERE AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
-                                       AND AC221.ICHR_PRTNR_NO = #{prtnrNo}
+                                INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ  /*LC_ALLOCATE_AC211TB*/ AC211 /*고객서비스AS설치대상내역*/
+                                        ON AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
+                                     WHERE AC221.ICHR_PRTNR_NO = #{prtnrNo}
                                        AND AC221.VST_CNFMDT = A.BASE_Y||A.BASE_MM||A.BASE_D
                                        AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
                                        AND AC221.SV_BIZ_HCLSF_CD LIKE '11%'
@@ -730,9 +730,9 @@
                              , A.BASE_Y||'-'||A.BASE_MM||'-'||A.BASE_D AS DISABLE_FULDAYS
                              , '접수마감일 제한' AS MSG
                           FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
-                             , TB_SVST_BIZ_CL_BAS B /* 업무마감기본 */
+                    INNER JOIN TB_SVST_BIZ_CL_BAS B /* 업무마감기본 */
+                            ON B.MNGT_YM = A.BASE_Y||A.BASE_MM
                          WHERE A.BASE_Y||A.BASE_MM = TO_CHAR(SYSDATE, 'YYYYMM')
-                           AND B.MNGT_YM = A.BASE_Y||A.BASE_MM
                            AND B.CL_MNGT_DV_CD = '3' /* 마감구분 */
                            AND #{contDt} > BIZ_ENDDT
                            AND ((A.BASE_Y||A.BASE_MM||A.BASE_D > B.BIZ_ENDDT)
@@ -781,10 +781,10 @@
                           FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
                              , (SELECT B.RSTR_CNDT_ID, B.RSTR_CNDT_SN, B.RSTR_CNDT_SRN_MARK_CN, B.APY_STRTDT, B.APY_ENDDT, B.RSTR_CNDT_VAL1
                                   FROM TB_SVPD_SV_RSTR_CNDT_BAS B /* 서비스제약조건기본 */
-                                     , TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
-                                 WHERE B.RSTR_CNDT_ID = 'TC001'
-                                   AND B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
+                            INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
+                                    ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
                                    AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
+                                 WHERE B.RSTR_CNDT_ID = 'TC001'
                                    AND C.CHNL_APY_DV_VAL = #{chnlDvCd} /* 채널적용구분값 */
                                    AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */
                                    <if test='@MybatisUtils@isNotEmpty(basePdCdList)'>
@@ -847,17 +847,17 @@
                               FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
                                  , (SELECT B.RSTR_CNDT_ID, B.RSTR_CNDT_SN, B.RSTR_CNDT_SRN_MARK_CN, B.APY_STRTDT, B.APY_ENDDT, B.RSTR_CNDT_VAL1
                                       FROM TB_SVPD_SV_RSTR_CNDT_BAS B /* 서비스제약조건기본 */
-                                         , TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
-                                     WHERE B.RSTR_CNDT_ID = 'TC008'
-                                       AND B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
+                                INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
+                                        ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
                                        AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
+                                     WHERE B.RSTR_CNDT_ID = 'TC008'
                                        AND C.CHNL_APY_DV_VAL = #{chnlDvCd} /* 채널적용구분값 */
                                        AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */ ) B
                                  , (SELECT T2.PD_PRP_VAL01 AS SVPD_ITEM_CD
                                          , T2.PD_PRP_VAL31 AS SVPD_PART_CD
                                          , T2.PD_PRP_VAL20 AS SVPD_ITEM_GR
                                       FROM TB_PDBS_PD_BAS T1
-                                     INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+                                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
                                         ON T1.PD_CD = T2.PD_CD
                                        AND T2.PD_EXTS_PRP_GRP_CD IN ('PART','PDCT')
                                        AND T2.DTA_DL_YN = 'N') C
@@ -919,10 +919,10 @@
                               FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
                                  , (SELECT B.RSTR_CNDT_ID, B.RSTR_CNDT_SN, B.RSTR_CNDT_SRN_MARK_CN, B.APY_STRTDT, B.APY_ENDDT, B.RSTR_CNDT_VAL1
                                       FROM TB_SVPD_SV_RSTR_CNDT_BAS B /* 서비스제약조건기본 */
-                                         , TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
-                                     WHERE B.RSTR_CNDT_ID = 'TC039'
-                                       AND B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
+                                INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C /* 서비스제약조건상세 */
+                                        ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
                                        AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
+                                     WHERE B.RSTR_CNDT_ID = 'TC039'
                                        AND C.CHNL_APY_DV_VAL = #{chnlDvCd} /* 채널적용구분값 */
                                        AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */
                                        --AND DF_YN IS NULL
@@ -931,8 +931,8 @@
                                  , (SELECT T2.PD_PRP_VAL01 AS SVPD_ITEM_CD
                                          , T2.PD_PRP_VAL31 AS SVPD_PART_CD
                                          , T2.PD_PRP_VAL20 AS SVPD_ITEM_GR
-                                      FROM TB_PDBS_PD_BAS T1
-                                     INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+                                      FROM TB_PDBS_PD_BAS          T1
+                                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
                                         ON T1.PD_CD = T2.PD_CD
                                        AND T2.PD_EXTS_PRP_GRP_CD IN ('PART','PDCT')
                                        AND T2.DTA_DL_YN = 'N') C
@@ -1122,9 +1122,9 @@
                              , A.BASE_Y||'-'||A.BASE_MM||'-'||A.BASE_D AS DISABLE_FULDAYS
                              , '홈케어 마감일관리' AS MSG
                           FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
-                             , TB_SVST_BIZ_CL_BAS B /* 업무마감기본 */
+                    INNER JOIN TB_SVST_BIZ_CL_BAS B /* 업무마감기본 */
+                            ON B.MNGT_YM = A.BASE_Y||A.BASE_MM
                          WHERE A.BASE_Y||A.BASE_MM = TO_CHAR(SYSDATE, 'YYYYMM')
-                           AND B.MNGT_YM = A.BASE_Y||A.BASE_MM
                            AND B.CL_MNGT_DV_CD = '3' /* 마감구분 3=접수마감 */
                            AND #{contDt} > BIZ_ENDDT
                            AND ((A.BASE_Y||A.BASE_MM||A.BASE_D > B.BIZ_ENDDT)
@@ -1150,10 +1150,10 @@
                  , SUBSTR(ASN_DT,1,4)||'-'||(SUBSTR(ASN_DT,5,2))||'-'|| (SUBSTR(ASN_DT,7,2)) AS DISABLE_FULDAYS
                  , '센터 워크샵 및 교육' AS MSG
               FROM TB_SVPD_SV_CNR_ASN_LIM_IZ A /*서비스센터별 배정한도*/
-                 , TB_OGBS_PRTNR_BAS B /*파트너기본*/
+        INNER JOIN TB_OGBS_PRTNR_BAS B /*파트너기본*/
+                ON IZ.SV_CNR_OG_ID = B.OG_CD
              WHERE BNDT_EGER_PRTNR_NO = #{prtnrNo}
                AND ASN_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
-               AND SV_CNR_OG_ID = OG_CD
                AND DF_D_WK_YN = 'Y'
         )
         GROUP BY DISABLE_DAYS, DISABLE_FULDAYS
@@ -1627,9 +1627,9 @@
              , #{fr2pLgldCd} AS AC112_ADM_CD
              , (SELECT NVL(COUNT(1), 0)
                   FROM TB_SVPD_CST_SVAS_IST_ASN_IZ AC221 /*설치및A/S배정정보*/
-                     , TB_SVPD_CST_SVAS_IST_OJ_IZ  AC211 /*A/S 및 설치 배정대상정보*/
-                 WHERE AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
-                   AND AC221.VST_CNFMDT = #{sellDate}
+            INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ  AC211 /*A/S 및 설치 배정대상정보*/
+                    ON AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
+                 WHERE AC221.VST_CNFMDT = #{sellDate}
                    AND AC221.ICHR_PRTNR_NO = #{hmnrscEmpno}
                    AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
                    AND AC221.SV_BIZ_HCLSF_CD IN ('1', '4')
@@ -1641,9 +1641,9 @@
                    AND AC221.VST_CNFM_HH >= '080000') AS INST_CNT
              , (SELECT NVL(COUNT(1), 0)
                   FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261 /*B/S배정정보*/
-                     , TB_SVPD_CST_SV_BFSVC_OJ_IZ  AC251/*B/S배정대상정보*/
-                 WHERE AC261.CST_SV_ASN_NO = AC251.CST_SV_ASN_NO
-                   AND AC251.ASN_OJ_YM = SUBSTR(#{sellDate}, 1, 6)
+            INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ  AC251/*B/S배정대상정보*/
+                    ON AC261.CST_SV_ASN_NO = AC251.CST_SV_ASN_NO
+                 WHERE AC251.ASN_OJ_YM = SUBSTR(#{sellDate}, 1, 6)
                    AND SUBSTR(AC261.CST_SV_ASN_NO, 2, 8) = SUBSTR(#{sellDate}, 1, 6) || '00'
                    AND AC261.VST_DUEDT = #{sellDate}
                    AND AC261.CNFM_PSIC_PRTNR_NO = #{hmnrscEmpno}
@@ -1656,9 +1656,9 @@
                                                  'WM05100123', 'WM04100127', 'WM04100155', 'WM02100157', 'WM04100152', 'WM04100164', 'WM04100121') OR (AC251.VST_DV_CD = '13'))) AS BS_CNT
              , (SELECT NVL(COUNT(1), 0)
                   FROM TB_SVPD_CST_SVAS_IST_ASN_IZ AC221 /*설치및A/S배정정보*/
-                     , TB_SVPD_CST_SVAS_IST_OJ_IZ  AC211/*A/S 및 설치 배정대상정보*/
-                 WHERE AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
-                   AND AC221.VST_CNFMDT = #{sellDate}
+            INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ  AC211/*A/S 및 설치 배정대상정보*/
+                    ON AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
+                 WHERE AC221.VST_CNFMDT = #{sellDate}
                    AND AC221.ICHR_PRTNR_NO = #{hmnrscEmpno}
                    AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
                    AND AC221.SV_BIZ_HCLSF_CD = '3'
@@ -1806,9 +1806,10 @@
                                              , TO_NUMBER(FN_SVPD_WRK_CT_01(PD_CD, T1.SV_BIZ_DCLSF_CD, VST_CNFMDT)) AS CNT
                                              , '' AS WRK_T_CHK
                                              , 0 AS WRK_T_RN
-                                          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1, TB_SVPD_CST_SVAS_IST_OJ_IZ T2
-                                         WHERE T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
-                                           AND T1.ICHR_PRTNR_NO = #{ac021EmpId}
+                                          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1
+                                    INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ  T2
+                                            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                                         WHERE T1.ICHR_PRTNR_NO = #{ac021EmpId}
                                            AND VST_CNFMDT = #{ac221CfrmDt}
                                            AND WK_PRGS_STAT_CD IN ('00', '10')
                                            AND VST_CNFM_HH >= '090000'
@@ -1818,9 +1819,10 @@
                                              , TO_NUMBER(FN_SVPD_WRK_CT_01(PDCT_PD_CD, T1.SV_BIZ_DCLSF_CD, T1.VST_DUEDT)) AS CNT
                                              , '' AS WRK_T_CHK
                                              , 0 AS WRK_T_RN
-                                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1, TB_SVPD_CST_SV_BFSVC_OJ_IZ T2
-                                         WHERE T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
-                                           AND CNFM_PSIC_PRTNR_NO = #{ac021EmpId}
+                                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
+                                    INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ  T2
+                                            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+                                         WHERE CNFM_PSIC_PRTNR_NO = #{ac021EmpId}
                                            AND T1.VST_DUEDT = #{ac221CfrmDt}
                                            AND VST_PRGS_STAT_CD IN ('00', '10')
                                            AND VST_EXP_HH <![CDATA[>=]]> '090000'
@@ -1873,19 +1875,19 @@
              , TB_OGBS_PRTNR_BAS /*파트너기본*/ /*LC_ALLOCATE_AC021TB 인사마스타*/ AC021
              , (SELECT DISTINCT T2.ICHR_PRTNR_NO AS MAIN_EMP_ID
                  FROM TB_SVPD_RPB_LOCARA_BAS T1 /*책임지역기본*/
-                 INNER JOIN TB_SVPD_RPB_LOCARA_PSIC_IZ T2 /*책임지역담당자내역*/
+           INNER JOIN TB_SVPD_RPB_LOCARA_PSIC_IZ T2 /*책임지역담당자내역*/
                    ON T1.WK_GRP_CD = T2.WK_GRP_CD
-                       AND T1.RPB_LOCARA_CD = T2.RPB_LOCARA_CD
-                       AND T1.WK_GRP_CD = T2.WK_GRP_CD
-                       AND T1.APY_STRTDT = T2.APY_STRTDT
-                       AND T1.APY_ENDDT = T2.APY_ENDDT
-                       AND T2.UDSN_USE_YN = 'Y'
-                       AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T2.APY_STRTDT AND T2.APY_ENDDT
-                 INNER JOIN TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T3 /*책임지역관리주소내역*/
+                  AND T1.RPB_LOCARA_CD = T2.RPB_LOCARA_CD
+                  AND T1.WK_GRP_CD = T2.WK_GRP_CD
+                  AND T1.APY_STRTDT = T2.APY_STRTDT
+                  AND T1.APY_ENDDT = T2.APY_ENDDT
+                  AND T2.UDSN_USE_YN = 'Y'
+                  AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T2.APY_STRTDT AND T2.APY_ENDDT
+           INNER JOIN TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ T3 /*책임지역관리주소내역*/
                    ON T1.RPB_LOCARA_CD = T3.RPB_LOCARA_CD
                   AND T3.DTA_DL_YN = 'N'
                   AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T3.APY_STRTDT AND T3.APY_ENDDT
-                 INNER JOIN TB_SVPD_EGER_ASN_ADR_IZ T4 /*엔지니어배정주소내역*/
+           INNER JOIN TB_SVPD_EGER_ASN_ADR_IZ T4 /*엔지니어배정주소내역*/
                    ON T3.FR2P_LGLD_CD = T4.FR2P_LGLD_CD
                   AND T3.CTPV_NM = T4.CTPV_NM
                   AND T3.CTCTY_NM = T4.CTCTY_NM
