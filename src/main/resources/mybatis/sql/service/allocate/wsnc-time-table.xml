@@ -350,41 +350,6 @@
                AND (TO_CHAR(SYSDATE, 'HH24MI') <![CDATA[<]]> '0800' OR TO_CHAR(SYSDATE, 'HH24MI') > '1800')
 
             UNION ALL
-             -------------------------------------------------------------------------------------------------------------------------------------
-             -- QUERY 2
-            /** 제주도 매트리스 4건 제한 최정문P 요청 2022.01.10(월) **/
-            -- SELECT CO160_YR||'-'||TO_NUMBER(CO160_MTH)||'-'|| TO_NUMBER(CO160_DAY) AS DISABLE_DAYS
-            --      , CO160_YR||'-'||CO160_MTH||'-'|| CO160_DAY AS DISABLE_FULDAYS
-            --      , '제주도 매트리스 일일 4건 제한' AS CO720_MSG
-            --   FROM LC_ALLOCATE_AC112TB
-            --      , LC_COMMONCODE_CO160TB
-            --      , LC_STOCK_ST112TB
-            --  WHERE AC112_CTP_KOR_NM LIKE '%제주%'
-            --    AND AC112_ZIP = TRIM(#ZIPNO1#)||TRIM(#ZIPNO2#)
-            --    AND CO160_YR||CO160_MTH||CO160_DAY BETWEEN TO_CHAR(SYSDATE, 'YYYYMMDD') AND TO_CHAR(SYSDATE + 180, 'YYYYMMDD')
-            --    AND ST112_SALE_CD IN (
-            --             isNotEmpty property="P_GDS_LIST">
-            --                iterate property="P_GDS_LIST" conjunction=",">
-            --                 #P_GDS_LIST[]#
-            --                /iterate>
-            --             /isNotEmpty>
-            --             isNotEmpty property="P_GDS_CD">
-            --                 #P_GDS_CD#
-            --             /isNotEmpty>
-            --         )
-            --    AND GET_MATTRESS_YN(ST112_ITEM_CD|| ST112_PART_CD) = 'Y'
-            --    AND ((SELECT COUNT(1) AS SUM_T
-            --            FROM LC_ALLOCATE_AC221TB T1
-            --               , LC_ALLOCATE_AC211TB T2
-            --           WHERE 1=1
-            --             AND AC221_DATA_GB = AC211_DATA_GB
-            --             AND AC221_ORD_DT = AC211_ORD_DT
-            --             AND AC221_ORD_SEQ = AC211_ORD_SEQ
-            --             AND AC221_CFRM_DT = CO160_YR||CO160_MTH||CO160_DAY
-            --             AND AC221_PROC_STUS IN ('00', '10')
-            --             AND GET_MATTRESS_YN(AC211_GDS_CD) = 'Y'
-            --             AND AC211_ADD LIKE '%제주%')
-            --         ) > 4
 
             /** 제주도 매트리스 4건 제한 최정문P 요청 2022.01.10(월) **/
             SELECT B.BASE_Y || '-' || TO_NUMBER(B.BASE_MM) || '-' || TO_NUMBER(B.BASE_D) AS DISABLE_DAYS
@@ -1151,7 +1116,7 @@
                  , '센터 워크샵 및 교육' AS MSG
               FROM TB_SVPD_SV_CNR_ASN_LIM_IZ A /*서비스센터별 배정한도*/
         INNER JOIN TB_OGBS_PRTNR_BAS B /*파트너기본*/
-                ON IZ.SV_CNR_OG_ID = B.OG_CD
+                ON A.SV_CNR_OG_ID = B.OG_CD
              WHERE BNDT_EGER_PRTNR_NO = #{prtnrNo}
                AND ASN_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
                AND DF_D_WK_YN = 'Y'

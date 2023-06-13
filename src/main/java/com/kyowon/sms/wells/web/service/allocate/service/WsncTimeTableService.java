@@ -264,6 +264,7 @@ public class WsncTimeTableService {
             paramDvo.setCopnDvCd(copnDvCd);
             paramDvo.setCopnDvCd(copnDvCd);
             paramDvo.setSellDscDbCd(sellDscDbCd);
+            paramDvo.setBasePdCd(basePdCd);
 
             log.debug("chnlDvCd: {}", chnlDvCd);
             log.debug("sellDate: {}", sellDate);
