@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class WsncTimeTableTimAssStep2Dvo {
+public class WsncTimeTablePsicDataDvo {
     String ac021EmpId;
     String empPic;
     String ac221CfrmDt;

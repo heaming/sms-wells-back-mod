@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class WsncTimeTableTimAssStep3Dvo {
+public class WsncTimeTableAssignTimeDvo {
     String vstDt;
     String empId;
     String tm;

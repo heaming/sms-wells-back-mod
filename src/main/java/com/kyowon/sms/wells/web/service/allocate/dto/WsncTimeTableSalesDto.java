@@ -9,8 +9,8 @@ import java.util.List;
 /*타임테이블 조회(판매)*/
 public class WsncTimeTableSalesDto {
 
-    @ApiModel(value = "WsncTimeTableSalesDto-findReq")
-    public record findReq(
+    @ApiModel(value = "WsncTimeTableSalesDto-FindReq")
+    public record FindReq(
         @NotBlank
         String chnlDvCd, // gbCd
         @NotBlank
@@ -26,15 +26,14 @@ public class WsncTimeTableSalesDto {
         String inGb,
         String basePdCd, // GDS_CD
         String wrkDt,
-        String seq,
         String dataStatCd, // DATA_STUS
         String returnUrl,
         String userId,
         String mkCo
     ) {}
 
-    @ApiModel(value = "WsncTimeTableSalesDto-findRes")
-    public record findRes(
+    @ApiModel(value = "WsncTimeTableSalesDto-FindRes")
+    public record FindRes(
         String baseY,
         String baseMm,
         String baseD,
@@ -59,17 +58,17 @@ public class WsncTimeTableSalesDto {
         String wrkGb,
         String wrkDt,
         String dtaStatCd, // P_DATA_STUS
-        String gdsCd,
+        String basePdCd, // gdsCd
         String pajongDay,
         String lcst09,
 
-        List<WsncTimeTableSidingDaysDvo> list,
-        List<WsncTimeTableMonthScheduleDvo> ordCnt,
-        List<WsncTimeTableDisableDaysDvo> diableDays,
-        List<WsncTimeTableTimAssStep3Dvo> timAssStep3,
-        List<WsncTimeTableTimAssStep2Dvo> timAssStep2,
-        List<WsncTimeTableSidingDaysDvo> ableDays,
-        List<WsncTimeTableSmPmNtDvo> SmPmNt
+        List<WsncTimeTableSidingDaysDvo> sidingDaysDvos,
+        List<WsncTimeTableMonthScheduleDvo> monthScheduleDvos,
+        List<WsncTimeTableDisableDaysDvo> disableDaysDvos,
+        List<WsncTimeTableAssignTimeDvo> assignTimeDvo,
+        List<WsncTimeTablePsicDataDvo> psicDataDvos,
+        //List<WsncTimeTableSidingDaysDvo> ableDayDvos,
+        List<WsncTimeTableSmPmNtDvo> smPmNtDvo
 
     ) {}
 

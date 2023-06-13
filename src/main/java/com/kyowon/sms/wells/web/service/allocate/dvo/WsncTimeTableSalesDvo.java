@@ -17,7 +17,7 @@ public class WsncTimeTableSalesDvo {
     String dfYn;
     String phldYn;
     String rmkCn;
-    String newAdrZip;
+    String zip;
     String svBizDclsfCd; //wrkTypDtl
     String inGb;
     String chnlDvCd; //gbCd
@@ -27,26 +27,27 @@ public class WsncTimeTableSalesDvo {
     String selDate;
     String ordDt;
     String ordSeq;
-    String userId;
+    String empId;
     String saleCd;
     String addGb;
     String offDays;
     String curDateTimeString;
     String wrkGb;
     String wrkDt;
-    String dataStatCd; // =P_DATA_STUS
+    String dataStatCd; // P_DATA_STUS
     String basePdCd;
+    String pajongDay;
+    String lcst09;
+    String newAdrZip;
+    String userId;
     String sowDay;
-    String lcst09; // 확인필요
     String returnurl;
     String mkCo;
-    String seq;
 
-    List<WsncTimeTableSidingDaysDvo> list;
-    List<WsncTimeTableMonthScheduleDvo> ordCnt;
-    List<WsncTimeTableDisableDaysDvo> diableDays;
-    List<WsncTimeTableTimAssStep3Dvo> timAssStep3;
-    List<WsncTimeTableTimAssStep2Dvo> timAssStep2;
-    List<WsncTimeTableSidingDaysDvo> ableDays;
-    List<WsncTimeTableSmPmNtDvo> SmPmNt = new ArrayList<WsncTimeTableSmPmNtDvo>();
+    List<WsncTimeTableSidingDaysDvo> sidingDayDvos;
+    List<WsncTimeTableMonthScheduleDvo> monthScheduleDvos;
+    List<WsncTimeTableDisableDaysDvo> disableDayDvos;
+    List<WsncTimeTablePsicDataDvo> psicDataDvos;
+    List<WsncTimeTableAssignTimeDvo> assignTimeDvos;
+    List<WsncTimeTableSmPmNtDvo> smPmNtDvos = new ArrayList<WsncTimeTableSmPmNtDvo>();
 }

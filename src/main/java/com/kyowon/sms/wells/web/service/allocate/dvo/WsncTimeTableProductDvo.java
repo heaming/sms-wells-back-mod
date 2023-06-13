@@ -1,8 +1,5 @@
 package com.kyowon.sms.wells.web.service.allocate.dvo;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,6 +16,6 @@ public class WsncTimeTableProductDvo {
     String rglrSppPrcDvNm;
     String pdctPdGrpCd;
     String pdctPdGrpNm;
-    String sdingYn;
+    String sidingYn;
     String hcrYn;
 }

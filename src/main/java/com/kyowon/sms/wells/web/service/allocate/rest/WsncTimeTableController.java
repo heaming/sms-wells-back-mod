@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(SnServiceConst.REST_URL_V1 + "/time-table")
+@RequestMapping(SnServiceConst.REST_URL_V1 + "/time-tables")
 @Api(tags = "[WSNC] 타임테이블 일정선택 RESET API")
 @RequiredArgsConstructor
 @Validated
@@ -33,17 +33,16 @@ public class WsncTimeTableController {
         @ApiImplicitParam(name = "inGb", value = "", paramType = "query"), // P_IN_GB
         @ApiImplicitParam(name = "svDvCd", value = "", paramType = "query"), // P_DATA_GB
         @ApiImplicitParam(name = "wrkDt", value = "", paramType = "query"), // P_WRK_DT
-        @ApiImplicitParam(name = "seq", value = "", paramType = "query"), // P_SEQ
         @ApiImplicitParam(name = "dataStatCd", value = "", paramType = "query"), // P_DATA_STUS
         @ApiImplicitParam(name = "svBizDclsfCd", value = "", paramType = "query"), // P_WRK_TYP_DTL
-        @ApiImplicitParam(name = "emeId", value = "", paramType = "query"), // P_USER_ID
+        @ApiImplicitParam(name = "empId", value = "", paramType = "query"), // P_USER_ID
         @ApiImplicitParam(name = "basePdCd", value = "", paramType = "query"), // P_GDS_CD
         @ApiImplicitParam(name = "sellDate", value = "", paramType = "query"), // P_SELDATE
         @ApiImplicitParam(name = "mkCo", value = "", paramType = "query"), // P_MK_CO
         @ApiImplicitParam(name = "returnurl", value = "", paramType = "query"), // returnurl
     })
-    @GetMapping("/time-assign-sales")
-    public WsncTimeTableSalesDto.findRes getTmeAssignSales(WsncTimeTableSalesDto.findReq req) {
+    @GetMapping("/sales")
+    public WsncTimeTableSalesDto.FindRes getTmeAssignSales(WsncTimeTableSalesDto.FindReq req) {
         return service.getTmeAssignSales(req);
     }
 

@@ -7,7 +7,7 @@ import io.swagger.annotations.ApiModel;
 매니저 AS 신청하는 타임테이블 캘린더
 W-MP-U-0186P01
 */
-public class WsncTimeTableMngtASMonthDto {
+public class WsncTimeTableAsMonthDto {
 
     @ApiModel(value = "WsncTimeTableMngtASMonthDto-findReq")
     public record findReq() {}

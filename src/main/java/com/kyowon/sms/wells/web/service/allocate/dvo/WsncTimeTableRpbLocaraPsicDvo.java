@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class WsncTimeTableTimAssStep1Dvo {
+public class WsncTimeTableRpbLocaraPsicDvo {
     String rpbLocaraCd;
     String localNm;
     String wkGrpCd;
@@ -29,4 +29,11 @@ public class WsncTimeTableTimAssStep1Dvo {
     String svBizDclsfCd;
     String pdctPdCd;
     String saleCdList;
+    String newAdrZip;
+    String svDvCd;
+    String prtnrNo01;
+    String prtnrNoBS01;
+    String prtnrNoOwr01;
+    String cntrNo;
+
 }
