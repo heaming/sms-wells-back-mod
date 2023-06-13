@@ -117,7 +117,6 @@
              , OSTR_DT                    /* 출고일자 */
              , ITM_KND_CD                 /* 품목종류코드 */
              , ITM_PD_CD                  /* 품목상품코드 */
-             , ITM_CD                     /* 품목코드 */
              , OSTR_WARE_DV_CD            /* 출고창고구분코드 */
              , MNGT_UNIT_CD               /* 관리단위코드 */
              , BOX_UNIT_QTY               /* 박스단위수량 */
@@ -150,7 +149,6 @@
              , TO_CHAR(SYSDATE, 'YYYYMMDD')    /* 출고일자 */
              , #{itmKndCd}                     /* 품목종류코드 */
              , #{itmPdCd}                      /* 품목상품코드 */
-             , #{itmCd}                        /* 품목코드 */
              , #{ostrWareDvCd}                 /* 출고창고구분코드 */
              , #{mngtUnitCd}                   /* 관리단위코드 */
              , #{boxUnitQty}                   /* 박스단위수량 */
@@ -190,7 +188,6 @@
              , DRT_STR_YN                 /* 직접입고여부 */
              , DLVG_DLPNR_NO              /* 납품거래처번호 */
              , ITM_PD_CD                  /* 품목상품코드 */
-             , ITM_CD                     /* 품목코드 */
              , ITM_GD_CD                  /* 품목등급코드 */
              , MNGT_UNIT_CD               /* 관리단위코드 */
              , STR_QTY                    /* 입고수량 */
@@ -221,7 +218,6 @@
              , 'N'                             /* 직접입고여부 */
              , #{ostrOjWareNo}                 /* 납품거래처번호 */
              , #{itmPdCd}                      /* 품목상품코드 */
-             , #{itmCd}                        /* 품목코드 */
              , #{itmGdCd}                      /* 품목등급코드 */
              , #{mngtUnitCd}                   /* 관리단위코드 */
              , #{ostrAkQty}                    /* 입고수량 */
@@ -330,7 +326,6 @@
              , OSTR_WARE_MNGT_PRTNR_NO         /* 출고창고관리파트너번호 */
              , OSTR_WARE_MNGT_PRTNR_OG_TP_CD   /* 출고창고관리파트너조직유형코드 */
              , ITM_PD_CD                       /* 품목상품코드 */
-             , ITM_CD                          /* 품목코드 */
              , MNGT_UNIT_CD                    /* 관리단위코드 */
              , BOX_UNIT_QTY                    /* 박스단위수량 */
              , ITM_GD_CD                       /* 품목등급코드 */
@@ -356,7 +351,6 @@
              , #{ostrWareMngtPrtnrNo}          /* 출고창고관리파트너번호 */
              , #{ostrWareMngtPrtnrOgTpCd}      /* 출고창고관리파트너조직유형코드 */
              , #{itmPdCd}                      /* 품목상품코드 */
-             , #{itmCd}                        /* 품목코드 */
              , #{mngtUnitCd}                   /* 관리단위코드 */
              , #{boxUnitQty}                   /* 박스단위수량 */
              , #{itmGdCd}                      /* 품목등급코드 */
