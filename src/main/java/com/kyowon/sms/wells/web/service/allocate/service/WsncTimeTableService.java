@@ -105,7 +105,7 @@ public class WsncTimeTableService {
         List<WsncTimeTablePsicDataDvo> psicDatas = null;
         List<WsncTimeTableAssignTimeDvo> assignTimes = null;
 
-        WsncTimeTableSalesParamDvo param = converter.mapSalesParamReqToDvo(req);
+        WsncTimeTableSalesParamDvo paramDvo = converter.mapSalesParamReqToDvo(req);
 
         try {
 
@@ -246,24 +246,24 @@ public class WsncTimeTableService {
             /*test*/
             prtnrNo01 = StringUtil.nvl(prtnrNo01, "621303");
 
-            param.setChnlDvCd(chnlDvCd);
-            param.setSellDate(sellDate);
-            param.setNewAdrZip(newAdrZip);
-            param.setSvDvCd(svDvCd);
-            param.setCntrNo(cntrNo);
-            param.setCntrSn(cntrSn);
-            param.setInGb(param.getInGb());
-            param.setSvBizDclsfCd(svBizDclsfCd);
-            param.setPdctPdCd(pdctPdCd);
-            param.setPrtnrNo01(prtnrNo01);
-            param.setPrtnrNoBS01(prtnrNoBS01);
-            param.setPrtnrNoOwr01(prtnrNoOwr01);
-            param.setAddGb(addGb);
-            param.setExYn("");
-            param.setContDt(contDt);
-            param.setCopnDvCd(copnDvCd);
-            param.setCopnDvCd(copnDvCd);
-            param.setSellDscDbCd(sellDscDbCd);
+            paramDvo.setChnlDvCd(chnlDvCd);
+            paramDvo.setSellDate(sellDate);
+            paramDvo.setNewAdrZip(newAdrZip);
+            paramDvo.setSvDvCd(svDvCd);
+            paramDvo.setCntrNo(cntrNo);
+            paramDvo.setCntrSn(cntrSn);
+            paramDvo.setInGb(paramDvo.getInGb());
+            paramDvo.setSvBizDclsfCd(svBizDclsfCd);
+            paramDvo.setPdctPdCd(pdctPdCd);
+            paramDvo.setPrtnrNo01(prtnrNo01);
+            paramDvo.setPrtnrNoBS01(prtnrNoBS01);
+            paramDvo.setPrtnrNoOwr01(prtnrNoOwr01);
+            paramDvo.setAddGb(addGb);
+            paramDvo.setExYn("");
+            paramDvo.setContDt(contDt);
+            paramDvo.setCopnDvCd(copnDvCd);
+            paramDvo.setCopnDvCd(copnDvCd);
+            paramDvo.setSellDscDbCd(sellDscDbCd);
 
             log.debug("chnlDvCd: {}", chnlDvCd);
             log.debug("sellDate: {}", sellDate);
@@ -280,10 +280,10 @@ public class WsncTimeTableService {
 
             // 책임지역 담당자 찾기
             // selectTimeAssign_v2_step1
-            rpbLocaraPsicDvo = mapper.selectRpbLocaraPsic(param);
-            param.setPrtnrNo(rpbLocaraPsicDvo.getHmnrscEmpno());
-            param.setLocalGb(rpbLocaraPsicDvo.getRpbLocaraCd());
-            param.setVstDowValCd(rpbLocaraPsicDvo.getVstDowValCd());
+            rpbLocaraPsicDvo = mapper.selectRpbLocaraPsic(paramDvo);
+            paramDvo.setPrtnrNo(rpbLocaraPsicDvo.getHmnrscEmpno());
+            paramDvo.setLocalGb(rpbLocaraPsicDvo.getRpbLocaraCd());
+            paramDvo.setVstDowValCd(rpbLocaraPsicDvo.getVstDowValCd());
 
             // 담당자 정보 표시 (왼쪽)
             // selectTimeAssign_v2_step2
@@ -293,8 +293,8 @@ public class WsncTimeTableService {
             // selectTimeAssign_v2_step3
             assignTimes = mapper.selectAssignTime(rpbLocaraPsicDvo);
 
-            List<WsncTimeTableDisableDaysDvo> disableDays = mapper.selectDisableDays(param);
-            String offdays = mapper.selectOffDays(param);
+            List<WsncTimeTableDisableDaysDvo> disableDays = mapper.selectDisableDays(paramDvo);
+            String offdays = mapper.selectOffDays(paramDvo);
 
             //---------------------------------------------------------//
 
@@ -309,7 +309,7 @@ public class WsncTimeTableService {
             result.setChnlDvCd(chnlDvCd);
             result.setCntrNo(cntrNo);
             result.setCntrSn(cntrSn);
-            result.setInGb(param.getInGb());//bypass
+            result.setInGb(paramDvo.getInGb());//bypass
             result.setWrkDt(wrkDt);
             result.setDataStatCd(dataStatCd);
             result.setSvBizDclsfCd(svBizDclsfCd);
@@ -319,7 +319,7 @@ public class WsncTimeTableService {
             result.setSowDay(sowDay);//pajong_day
             result.setLcst09(lcst09);
             result.setReturnurl(returnurl);
-            result.setMkCo(param.getMkCo());//bypass
+            result.setMkCo(paramDvo.getMkCo());//bypass
 
             for (int i = 0; i < assignTimes.size(); i++) {
                 WsncTimeTableSmPmNtDvo smPmNtDvo = new WsncTimeTableSmPmNtDvo();
