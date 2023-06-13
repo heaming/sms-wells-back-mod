@@ -8,6 +8,7 @@ import com.kyowon.sms.wells.web.service.allocate.mapper.WsncTimeTableMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
 
+import com.sds.sflex.system.config.exception.BizException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -127,7 +128,7 @@ public class WsncTimeTableService {
             String pdctPdCd = ""; // basePdCd
             String sidingYn = "N";
             String spayYn = "N";
-            String addGb = "";
+            String hcrYn = ""; // addGb
 
             String sowDay = ""; // PAJONG_DAY
             String lcst09 = "";
@@ -171,6 +172,9 @@ public class WsncTimeTableService {
             log.debug("--------------------------------------------------");
 
             WsncTimeTableCntrDvo contractDvo = mapper.selectContract(cntrNo, cntrSn);
+            if(contractDvo == null){
+                throw new BizException("MSG_ALT_NO_DATA");
+            }
             WsncTimeTableProductDvo ProductDvo = mapper
                 .selectProduct(contractDvo.getBasePdCd(), contractDvo.getPdctPdCd());
 
@@ -216,10 +220,11 @@ public class WsncTimeTableService {
 
             }
 
-            addGb = mapper.selectAddGb(basePdCd);
+            hcrYn = ProductDvo.getHcrYn();
+            //addGb = mapper.selectAddGb(basePdCd);
 
             //홈케어 상품일 경우 , KIWI 상품코드로 변경
-            if (addGb.equals("2")) {
+            if (hcrYn.equals("2")) {
                 basePdCd = contractDvo.getBasePdCd();
             }
 
@@ -232,7 +237,7 @@ public class WsncTimeTableService {
             // KSS접수와 동일하게 하기위해 (백현아 K 요청)
             // Cubig CC DATA_GB 변경할수 없음.
             // 상품코드로 접수구분과 DATA_GB 변경
-            if (addGb.equals("2") && chnlDvCd.equals("C") && svDvCd.equals("1")
+            if (hcrYn.equals("2") && chnlDvCd.equals("C") && svDvCd.equals("1")
                 && (StringUtil.isEmpty(returnurl))) {
                 chnlDvCd = "W";
                 svDvCd = "4";
@@ -258,7 +263,7 @@ public class WsncTimeTableService {
             paramDvo.setPrtnrNo01(prtnrNo01);
             paramDvo.setPrtnrNoBS01(prtnrNoBS01);
             paramDvo.setPrtnrNoOwr01(prtnrNoOwr01);
-            paramDvo.setAddGb(addGb);
+            paramDvo.setHcrYn(hcrYn);
             paramDvo.setExYn("");
             paramDvo.setContDt(contDt);
             paramDvo.setCopnDvCd(copnDvCd);

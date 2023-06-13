@@ -49,7 +49,7 @@ public class WsncTimeTableSalesParamDvo {
     // 6: 반품처리
     // 7: 정보변경
     // 9: 삭제
-    String addGb; // svBizHclsfCd
+    String hcrYn; // addGb
     // --------------------------------------------------
 
     String basePdCdList;
