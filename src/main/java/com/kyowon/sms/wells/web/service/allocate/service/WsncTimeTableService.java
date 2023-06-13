@@ -355,7 +355,7 @@ public class WsncTimeTableService {
     * @see "nosession_mng_as_month.do"
     *
     * */
-    protected WsncTimeTableAsMonthDto.findRes noSessionMngtASMonth(WsncTimeTableAsMonthDto.findReq req) {
+    protected WsncTimeTableAsMonthDto.FindRes noSessionMngtASMonth(WsncTimeTableAsMonthDto.FindReq req) {
 
         // -------------------------------------------------
         // 고객검색-> 신규AS등록 -> 방문일자 선택
