@@ -10,7 +10,6 @@
     <select id="selectItmPdCdInformation" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationDvo">
         SELECT WARE_NO                                                    /* 창고번호 */
              , ITM_PD_CD                                                  /* 품목상품코드 */
-             , ITM_CD                                                     /* 품목코드 */
              , NVL(PITM_STOC_A_GD_QTY, 0)     AS PITM_STOC_A_GD_QTY       /* 시점재고A등급수량 */
              , NVL(PITM_STOC_E_GD_QTY, 0)     AS PITM_STOC_E_GD_QTY       /* 시점재고E등급수량 */
              , NVL(PITM_STOC_R_GD_QTY, 0)     AS PITM_STOC_R_GD_QTY       /* 시점재고R등급수량 */
