@@ -28,7 +28,7 @@ public class WsncTimeTableController {
 
     private final WsncTimeTableService service;
 
-    @ApiOperation(value = "타임테이블 조회(판매)")
+    @ApiOperation(value = "타임테이블 조회 KSS 타임테이블 조회(팝업)")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "", paramType = "query"),
@@ -49,5 +49,6 @@ public class WsncTimeTableController {
         throws ParseException {
         return service.getTmeAssignSales(req);
     }
+
 
 }

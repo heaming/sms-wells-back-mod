@@ -44,66 +44,12 @@ public class WsncTimeTableService {
     private final WsncTimeTableConverter converter;
 
     /**
-     * 타임테이블 일정 조회
+     * 타임테이블 조회(판매) 팝업
      *
-     * @programId W-MP-U-0186P01
+     * @programId W-SV-U-0062M01
      * @param req : 조회파라메터
      * @return 조회결과
      */
-    //public FindRes getTimeTableSales(findReq req) {
-
-    /*Test*/
-    /*SearchReq req = new SearchReq(
-        "202305",
-        "reschedule",
-        "M",
-        "3",
-        request.prtnrNo(),
-        "20230512",
-        "WP01130572",
-        request.ordDt(),
-        request.ordSeq(),
-        "3110",
-        request.zipno(),
-        "WM01100337",
-        ""
-    );*/
-    /*Test*/
-
-    //        String prevTag = StringUtil.null2str(req.prevTag());
-    //
-    //        WsncTimeTableSalesDvo result = null;
-    //        switch (prevTag) {
-    //            case "schedule":
-    //                // nosession_timeAssign.do
-    //                result = noSessionTimeAssign(req);
-    //                break;
-    //            case "reschedule":
-    //            case "mng_as_schedule":
-    //                // nosession_mng_as_month.do
-    //                result = noSessionMngAsMonth(req);
-    //                break;
-    //            case "retimeselect":
-    //            case "mng_as_timeselect":
-    //                // nosession_as_timeAssign.do
-    //                result = noSessionAsTimeAssign(req);
-    //                break;
-    //            case "next_bs_schedule":
-    //            case "bs_schedule":
-    //                // nosession_bsnext_timeAssign.do
-    //                result = noSessionBsTimeAssign(req);
-    //                break;
-    //            case "timeAssignSales": // 타임테이블 조회(판매) - W-SV-U-0062M01
-    //                result = timeAssignSales(req);
-    //                break;
-    //            case "timeAssignWellsKmembers": // Wells홈페이지, K멤버스 타임테이블
-    //                result = timeAssignWellsKmembers();
-    //                break;
-    //        }
-    //
-    //        return converter.mapDvoToRes(result);
-    //}
-
     /**
     * @see "timeAssign.do GET"
     * */
