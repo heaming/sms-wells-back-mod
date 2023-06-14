@@ -4,7 +4,6 @@ import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import io.swagger.annotations.ApiModel;
 
 import javax.validation.constraints.NotBlank;
-import java.util.ArrayList;
 import java.util.List;
 
 /*타임테이블 조회(판매)*/
@@ -37,7 +36,7 @@ public class WsncTimeTableSalesDto {
     public record FindRes(
         String dowDvCd,
         String svBizDclsfCd, //wrkTypDtl
-        String inGb,
+        String inflwChnl, // inGb
         String chnlDvCd, //gbCd
         String svDvCd, //dataGb
         String cntrNo,

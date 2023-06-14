@@ -772,7 +772,7 @@
                                            AND T2.DTA_DL_YN = 'N'
                                         ) B/*LC_STOCK_ST101TB*/
                                     ON 1 = 1
-                                 WHERE BASE_Y || BASE_MM || BASE_D BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{sellDate} || '01'), -5), 'YYYYMMDD') AND TO_CHAR(ADD_MONTHS(TO_DATE(#{sellDate} || '01'), 5), 'YYYYMMDD')
+                                 WHERE BASE_Y || BASE_MM || BASE_D BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(#{sellDate},0,6) || '01'), -5), 'YYYYMMDD') AND TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(#{sellDate},0,6) || '01'), 5), 'YYYYMMDD')
                                    AND (SELECT REL.OJ_PD_CD
                                           FROM TB_PDBS_PD_REL REL
                                          WHERE REL.PD_REL_TP_CD = '05'
@@ -970,7 +970,7 @@
              , OG_NM /*조직명*/
              , HMNRSC_EMPNO /*인사사원번호*/
              , PRTNR_KNM /*파트너한글명*/
-             , #{inGb} AS IN_GB
+             , #{inflwChnl} AS IN_GB
              , #{chnlDvCd} AS CHNL_DV_CD
              , NVL(TRIM(SAT_WRK_YN), 'N') AS SAT_WRK_YN /*토요일근무여부*/
              , NVL(TRIM(DF_YN), 'N') AS DF_YN /*휴무여부*/
@@ -990,7 +990,7 @@
                      ELSE T3.RSTR_CNDT_USE_YN /*제약조건사용여부*/
                 END) AS RSTR_CNDT_USE_YN
              , (CASE WHEN T3.UDSN_USE_YN != 'Y' OR T3.UDSN_USE_YN IS NULL THEN 'N'
-                     WHEN T3.UDSN_USE_YN = 'Y' AND T3.WK_GRP_CD = '10' AND #{inGb} = '1' THEN 'Y'
+                     WHEN T3.UDSN_USE_YN = 'Y' AND T3.WK_GRP_CD = '10' AND #{inflwChnl} = '1' THEN 'Y'
                      WHEN T3.UDSN_USE_YN = 'Y' AND T3.VST_DOW_VAL LIKE '8%' THEN 'Y'
                      WHEN T3.WK_GRP_CD IN ('20', '30') AND P.ASN_BLC_YN = 'Y' THEN 'N'
                      WHEN T3.WK_GRP_CD = '10' AND P.ASN_BLC_YN = 'Y' THEN 'N'

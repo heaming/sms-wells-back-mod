@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
 import java.text.ParseException;
-import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -260,7 +259,7 @@ public class WsncTimeTableService {
         paramDvo.setSvDvCd(svDvCd);
         paramDvo.setCntrNo(cntrNo);
         paramDvo.setCntrSn(cntrSn);
-        paramDvo.setInGb(paramDvo.getInGb());
+        paramDvo.setInflwChnl(paramDvo.getInflwChnl());
         paramDvo.setSvBizDclsfCd(svBizDclsfCd);
         paramDvo.setPdctPdCd(pdctPdCd);
         paramDvo.setPrtnrNo01(prtnrNo01);
@@ -308,13 +307,14 @@ public class WsncTimeTableService {
         result.setDisableDayDvos(disableDays);
 
         result.setOffDays(offdays);
+        result.setSvDvCd(svDvCd);
         result.setNewAdrZip(newAdrZip);
         result.setCurDateTimeString(DateUtil.getNowDayString());
         result.setSellDate(sellDate);
         result.setChnlDvCd(chnlDvCd);
         result.setCntrNo(cntrNo);
         result.setCntrSn(cntrSn);
-        result.setInGb(paramDvo.getInGb());//bypass
+        result.setInflwChnl(paramDvo.getInflwChnl());//bypass
         result.setWrkDt(wrkDt);
         result.setDataStatCd(dataStatCd);
         result.setSvBizDclsfCd(svBizDclsfCd);
@@ -352,7 +352,7 @@ public class WsncTimeTableService {
        log.debug("ChnlDvCd: {}", result.getChnlDvCd());
        log.debug("CntrNo: {}", result.getCntrNo());
        log.debug("CntrSn: {}", result.getCntrSn());
-       log.debug("InGb: {}", result.getInGb());
+       log.debug("inflwChnl: {}", result.getInflwChnl());
        log.debug("WrkDt: {}", result.getWrkDt());
        log.debug("DataStatCd: {}", result.getDataStatCd());
        log.debug("SvBizDclsfCd: {}", result.getSvBizDclsfCd());

@@ -10,9 +10,17 @@ import java.util.List;
 @Getter
 public class WsncTimeTableSalesDvo {
 
+
+
+
+
+
+
+
+
     String dowDvCd;
     String svBizDclsfCd; //wrkTypDtl
-    String inGb;
+    String inflwChnl; // inflwChnl 채널구분
     String chnlDvCd; //gbCd
     String svDvCd; //dataGb
     String cntrNo;
