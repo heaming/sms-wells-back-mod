@@ -4,6 +4,7 @@ import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import io.swagger.annotations.ApiModel;
 
 import javax.validation.constraints.NotBlank;
+import java.util.ArrayList;
 import java.util.List;
 
 /*타임테이블 조회(판매)*/
@@ -34,41 +35,37 @@ public class WsncTimeTableSalesDto {
 
     @ApiModel(value = "WsncTimeTableSalesDto-FindRes")
     public record FindRes(
-        String baseY,
-        String baseMm,
-        String baseD,
         String dowDvCd,
-        String dfYn,
-        String phldYn,
-        String rmkCn,
-        String zip,
         String svBizDclsfCd, //wrkTypDtl
         String inGb,
         String chnlDvCd, //gbCd
         String svDvCd, //dataGb
         String cntrNo,
-        String selDate,
-        String ordDt,
-        String ordSeq,
+        String cntrSn,
+        String sellDate,
         String empId,
-        String saleCd,
-        String addGb,
-        String offDays,
         String curDateTimeString,
-        String wrkGb,
         String wrkDt,
-        String dtaStatCd, // P_DATA_STUS
-        String basePdCd, // gdsCd
-        String pajongDay,
+        String dataStatCd, // P_DATA_STUS
+        String basePdCd,
         String lcst09,
+        String newAdrZip,
+        String userId,
+        String sowDay,
+        String returnurl,
+        String mkCo,
 
-        List<WsncTimeTableSidingDaysDvo> sidingDaysDvos,
-        List<WsncTimeTableMonthScheduleDvo> monthScheduleDvos,
-        List<WsncTimeTableDisableDaysDvo> disableDaysDvos,
-        List<WsncTimeTableAssignTimeDvo> assignTimeDvo,
-        List<WsncTimeTablePsicDataDvo> psicDataDvos,
-        //List<WsncTimeTableSidingDaysDvo> ableDayDvos,
-        List<WsncTimeTableSmPmNtDvo> smPmNtDvo
+        List<String> offDays,
+        List<WsncTimeTableSidingDaysDvo> sidingDayDvos, // list2
+        List<WsncTimeTableDisableDaysDvo> disableDayDvos, // diabledays
+        List<WsncTimeTablePsicDataDvo> psicDataDvos, // left_info
+        List<WsncTimeTableAssignTimeDvo> assignTimeDvos, // list1
+
+        List<WsncTimeTableSmPmNtDvo> arrSm,
+        List<WsncTimeTableSmPmNtDvo> arrAm,
+        List<WsncTimeTableSmPmNtDvo> arrPm1,
+        List<WsncTimeTableSmPmNtDvo> arrPm2,
+        List<WsncTimeTableSmPmNtDvo> arrNt
 
     ) {}
 

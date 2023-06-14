@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
 import java.text.ParseException;
+import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -273,47 +274,43 @@ public class WsncTimeTableService {
         paramDvo.setSellDscDbCd(sellDscDbCd);
         paramDvo.setBasePdCd(basePdCd);
 
-        log.debug("chnlDvCd: {}", chnlDvCd);
-        log.debug("sellDate: {}", sellDate);
-        log.debug("newAdrZip: {}", newAdrZip);
-        log.debug("svDvCd: {}", svDvCd);
-        log.debug("cntrNo: {}", cntrNo);
-        log.debug("svBizDclsfCd: {}", svBizDclsfCd);
-        log.debug("pdctPdCd: {}", pdctPdCd);
-        log.debug("prtnrNo01: {}", prtnrNo01);
-        log.debug("prtnrNoBS01: {}", prtnrNoBS01);
-        log.debug("prtnrNoOwr01: {}", prtnrNoOwr01);
-
         //-----------------------------------------------------------------------------------------
 
         // 책임지역 담당자 찾기
         // selectTimeAssign_v2_step1
-        rpbLocaraPsicDvo = mapper.selectRpbLocaraPsic(paramDvo);
+        rpbLocaraPsicDvo = mapper.selectRpbLocaraPsic(paramDvo); // step1_with
         paramDvo.setPrtnrNo(rpbLocaraPsicDvo.getHmnrscEmpno());
         paramDvo.setLocalGb(rpbLocaraPsicDvo.getRpbLocaraCd());
         paramDvo.setVstDowValCd(rpbLocaraPsicDvo.getVstDowValCd());
 
         // 담당자 정보 표시 (왼쪽)
         // selectTimeAssign_v2_step2
-        psicDatas = mapper.selectPsicData(rpbLocaraPsicDvo);
+        psicDatas = mapper.selectPsicData(rpbLocaraPsicDvo); // left_info
 
         // 시간표시
         // selectTimeAssign_v2_step3
-        assignTimes = mapper.selectAssignTime(rpbLocaraPsicDvo);
+        assignTimes = mapper.selectAssignTime(rpbLocaraPsicDvo); // list1
 
         List<WsncTimeTableDisableDaysDvo> disableDays = mapper.selectDisableDays(paramDvo);
-        String offdays = mapper.selectOffDays(paramDvo);
+        List<String> offdays = mapper.selectOffDays(paramDvo);
 
         //---------------------------------------------------------//
 
-        result.getSmPmNtDvos().clear();
-        result.setOffDays(offdays);
+        result.getArrSm().clear();
+        result.getArrAm().clear();
+        result.getArrPm1().clear();
+        result.getArrPm2().clear();
+        result.getArrNt().clear();
+
         result.setPsicDataDvos(psicDatas);
         result.setAssignTimeDvos(assignTimes);
         result.setSidingDayDvos(sidingDaysDvos);
+        result.setDisableDayDvos(disableDays);
+
+        result.setOffDays(offdays);
         result.setNewAdrZip(newAdrZip);
         result.setCurDateTimeString(DateUtil.getNowDayString());
-        result.setSelDate(sellDate);
+        result.setSellDate(sellDate);
         result.setChnlDvCd(chnlDvCd);
         result.setCntrNo(cntrNo);
         result.setCntrSn(cntrSn);
@@ -323,20 +320,54 @@ public class WsncTimeTableService {
         result.setSvBizDclsfCd(svBizDclsfCd);
         result.setBasePdCd(basePdCd);
         result.setUserId(userId);
-        result.setDisableDayDvos(disableDays);
         result.setSowDay(sowDay);//pajong_day
         result.setLcst09(lcst09);
         result.setReturnurl(returnurl);
         result.setMkCo(paramDvo.getMkCo());//bypass
 
         for (WsncTimeTableAssignTimeDvo assignTime : assignTimes) {
+
             WsncTimeTableSmPmNtDvo smPmNtDvo = new WsncTimeTableSmPmNtDvo();
             time = assignTime.getTm();
             smPmNtDvo.setTime(time.substring(0, 2) + ":" + time.substring(2, 4));
             smPmNtDvo.setCnt(assignTime.getWrkCnt());
             smPmNtDvo.setAblYn(assignTime.getWrkChk2());
-            result.getSmPmNtDvos().add(smPmNtDvo);
+
+            if (Integer.valueOf(time) >= 10000 && Integer.valueOf(time) < 50000) {
+                result.getArrSm().add(smPmNtDvo);
+            } else if (Integer.valueOf(time) > 80000 && Integer.valueOf(time) < 140000) {
+                result.getArrAm().add(smPmNtDvo);
+            } else if (Integer.valueOf(time) >= 140000 && Integer.valueOf(time) < 180000) {
+                result.getArrPm1().add(smPmNtDvo);
+            } else if (Integer.valueOf(time) >= 180000 && Integer.valueOf(time) < 200000) {
+                result.getArrPm2().add(smPmNtDvo);
+            } else
+                result.getArrNt().add(smPmNtDvo);
+
         }
+
+       log.debug("NewAdrZip: {}", result.getNewAdrZip());
+       log.debug("CurDateTimeString: {}", result.getCurDateTimeString());
+       log.debug("SellDate: {}", result.getSellDate());
+       log.debug("ChnlDvCd: {}", result.getChnlDvCd());
+       log.debug("CntrNo: {}", result.getCntrNo());
+       log.debug("CntrSn: {}", result.getCntrSn());
+       log.debug("InGb: {}", result.getInGb());
+       log.debug("WrkDt: {}", result.getWrkDt());
+       log.debug("DataStatCd: {}", result.getDataStatCd());
+       log.debug("SvBizDclsfCd: {}", result.getSvBizDclsfCd());
+       log.debug("BasePdCd: {}", result.getBasePdCd());
+       log.debug("UserId: {}", result.getUserId());
+       log.debug("SowDay: {}", result.getSowDay());
+       log.debug("Lcst09: {}", result.getLcst09());
+       log.debug("Returnurl: {}", result.getReturnurl());
+       log.debug("MkCo: {}", result.getMkCo());
+
+       log.debug("offDays: {}",result.getOffDays() != null ? result.getOffDays().toArray().toString() : "offDays is null");
+       log.debug("psicDataDvos: {}",result.getPsicDataDvos() != null ? result.getPsicDataDvos().toString() : "psicDataDvos is null");
+       log.debug("assignTimeDvos: {}",result.getAssignTimeDvos() != null ? result.getAssignTimeDvos().toString() : "assignTimeDvos is null");
+       log.debug("sidingDayDvos: {}",result.getSidingDayDvos() != null ? result.getSidingDayDvos().toString() : "sidingDayDvos is null");
+       log.debug("disableDayDvos: {}",result.getDisableDayDvos() != null ? result.getDisableDayDvos().toString() : "disableDayDvos is null");
 
         return converter.mapSalesDvoToRes(result);
     }

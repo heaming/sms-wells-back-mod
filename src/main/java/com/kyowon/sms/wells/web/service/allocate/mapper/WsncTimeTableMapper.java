@@ -74,5 +74,5 @@ public interface WsncTimeTableMapper {
 
     List<WsncTimeTableAssignTimeDvo> selectAssignTime(WsncTimeTableRpbLocaraPsicDvo dvo);
 
-    String selectOffDays(WsncTimeTableSalesParamDvo dvo);
+    List<String> selectOffDays(WsncTimeTableSalesParamDvo dvo);
 }

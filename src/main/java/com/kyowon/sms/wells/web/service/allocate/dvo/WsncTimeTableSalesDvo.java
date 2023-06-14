@@ -10,33 +10,19 @@ import java.util.List;
 @Getter
 public class WsncTimeTableSalesDvo {
 
-    String baseY;
-    String baseMm;
-    String baseD;
     String dowDvCd;
-    String dfYn;
-    String phldYn;
-    String rmkCn;
-    String zip;
     String svBizDclsfCd; //wrkTypDtl
     String inGb;
     String chnlDvCd; //gbCd
     String svDvCd; //dataGb
     String cntrNo;
     String cntrSn;
-    String selDate;
-    String ordDt;
-    String ordSeq;
+    String sellDate;
     String empId;
-    String saleCd;
-    String addGb;
-    String offDays;
     String curDateTimeString;
-    String wrkGb;
     String wrkDt;
     String dataStatCd; // P_DATA_STUS
     String basePdCd;
-    String pajongDay;
     String lcst09;
     String newAdrZip;
     String userId;
@@ -44,10 +30,16 @@ public class WsncTimeTableSalesDvo {
     String returnurl;
     String mkCo;
 
-    List<WsncTimeTableSidingDaysDvo> sidingDayDvos;
-    List<WsncTimeTableMonthScheduleDvo> monthScheduleDvos;
+    List<String> offDays;
+    List<WsncTimeTableSidingDaysDvo> sidingDayDvos; // list2 abledays
     List<WsncTimeTableDisableDaysDvo> disableDayDvos;
-    List<WsncTimeTablePsicDataDvo> psicDataDvos;
-    List<WsncTimeTableAssignTimeDvo> assignTimeDvos;
-    List<WsncTimeTableSmPmNtDvo> smPmNtDvos = new ArrayList<WsncTimeTableSmPmNtDvo>();
+    List<WsncTimeTablePsicDataDvo> psicDataDvos; // left_info
+    List<WsncTimeTableAssignTimeDvo> assignTimeDvos; // list1
+
+    List<WsncTimeTableSmPmNtDvo> arrSm = new ArrayList<WsncTimeTableSmPmNtDvo>();
+    List<WsncTimeTableSmPmNtDvo> arrAm = new ArrayList<WsncTimeTableSmPmNtDvo>();
+    List<WsncTimeTableSmPmNtDvo> arrPm1 = new ArrayList<WsncTimeTableSmPmNtDvo>();
+    List<WsncTimeTableSmPmNtDvo> arrPm2 = new ArrayList<WsncTimeTableSmPmNtDvo>();
+    List<WsncTimeTableSmPmNtDvo> arrNt = new ArrayList<WsncTimeTableSmPmNtDvo>();
+
 }
