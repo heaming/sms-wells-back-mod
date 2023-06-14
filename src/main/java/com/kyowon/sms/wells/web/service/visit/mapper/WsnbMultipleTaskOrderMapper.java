@@ -7,17 +7,18 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbAsAssignReqDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractReqDvo;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallationObjectSaveDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo;
 
 @Mapper
 public interface WsnbMultipleTaskOrderMapper {
     WsnbContractReqDvo selectContract(String cntrNo, String cntrSn);
 
-    WsnbAsAssignReqDvo selectAsAssign(String cstSvAsnNo);
+    WsnbAsAssignReqDvo selectAsAssignByPk(String asIstOjNo);
 
-    WsnbMultipleTaskOrderDvo selectWorkRequidationItemization(String asIstOjNo);
+    WsnbMultipleTaskOrderDvo selectAsAssignOganizationByPk(String asIstOjNo);
 
-    int selectCountAsIstAsnIz(WsnbMultipleTaskOrderDvo dvo);
+    int selectAsAssignCountByPk(WsnbMultipleTaskOrderDvo dvo);
 
     String selectWorkContent(String newSvBizDclsfCd);
 
@@ -29,38 +30,36 @@ public interface WsnbMultipleTaskOrderMapper {
 
     int selectWorkOutStorageCount(String cntrNo, String cntrSn);
 
-    int selectCountAsIstOjIz(String asIstOjNo);
-
     WsnbMultipleTaskOrderDvo selectAsIstOjIzKey(WsnbMultipleTaskOrderDvo dvo);
 
-    int insertErrorItemization(WsnbMultipleTaskOrderDvo dvo);
+    int insertInstallationObjectError(WsnbMultipleTaskOrderDvo dvo);
 
-    String selectMexnoEncr();
+    String selectMexnoEncr(String userId);
 
-    int insertIstObjectItemization(WsnbMultipleTaskOrderDvo dvo);
+    int insertInstallationObject(WsnbMultipleTaskOrderDvo dvo);
 
-    int updateIstObjectItemization(WsnbMultipleTaskOrderDvo dvo);
+    int updateInstallationObject(WsnbInstallationObjectSaveDvo dvo);
 
-    int updateIstObjectItemizationByPk(WsnbMultipleTaskOrderDvo dvo);
+    int updateInstallationObjectDtaStatCd(WsnbMultipleTaskOrderDvo dvo);
 
-    int deleteAsPutItemIz(WsnbMultipleTaskOrderDvo dvo);
+    int deleteAsPutItem(WsnbMultipleTaskOrderDvo dvo);
 
-    int insertSdingIzTemp(String part);
+    int insertSeedingTemp(String part);
 
-    int insertSdingProcsTemp(WsnbMultipleTaskOrderDvo dvo);
+    int insertSeedingProcsTemp(WsnbMultipleTaskOrderDvo dvo);
 
     List<WsnbMultipleTaskOrderDvo> selectPutItems(WsnbMultipleTaskOrderDvo dvo);
 
-    int insertAsPutItemIz(WsnbMultipleTaskOrderDvo dvo);
+    int insertAsPutItem(WsnbMultipleTaskOrderDvo dvo);
 
     WsnbMultipleTaskOrderDvo selectCustomerServiceAssignNo(WsnbMultipleTaskOrderDvo dvo);
 
     int insertAsInstallationAssignHist(String asnCstSvAsnNo);
 
-    int deleteAsInstallationAssignIz(String cstSvAsnNo);
+    int deleteAsInstallationAssign(String cstSvAsnNo);
 
     /**/
-    int deleteSdingShipping(WsnbMultipleTaskOrderDvo dvo);
+    int deleteSeedingShipping(WsnbMultipleTaskOrderDvo dvo);
 
     WsnbMultipleTaskOrderDvo selectNewAsnCstSvAsnNo(WsnbMultipleTaskOrderDvo dvo);
 
@@ -74,16 +73,14 @@ public interface WsnbMultipleTaskOrderMapper {
 
     int selectSppPlanSn(WsnbMultipleTaskOrderDvo dvo);
 
-    String selectSaleNm(String newSaleCd);
+    int insertSeedingPlan(WsnbMultipleTaskOrderDvo dvo);
 
-    int insertSdingPlan(WsnbMultipleTaskOrderDvo dvo);
-
-    String selectPdSize(String newSaleCd);
-
-    int insertSdingExpByAs(WsnbMultipleTaskOrderDvo dvo);
+    int insertSeedingExpByAs(WsnbMultipleTaskOrderDvo dvo);
 
     int updateAsInstallationAssign(String asnCstSvAsnNo);
 
-    int updateIstObjectKey(WsnbMultipleTaskOrderDvo dvo);
+    int updateInstallationObjectKey(WsnbMultipleTaskOrderDvo dvo);
+
+    WsnbInstallationObjectSaveDvo selectSaveInstallationObject(WsnbMultipleTaskOrderDvo dvo);
 
 }

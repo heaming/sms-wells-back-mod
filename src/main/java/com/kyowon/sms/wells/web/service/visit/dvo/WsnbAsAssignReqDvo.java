@@ -17,7 +17,8 @@ public class WsnbAsAssignReqDvo {
     String svBizHclsfCd;
     String svBizDclsfCd;
     String dtaStatCd;
-    String vstCnfmdt;
+    String wkAcpteDt;
+    String wkAcpteStatCd;
     String wkPrgsStatCd;
     String pdctPdCd; /*  pdCd*/
 }

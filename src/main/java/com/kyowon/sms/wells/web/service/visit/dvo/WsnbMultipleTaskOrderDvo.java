@@ -8,6 +8,7 @@ import lombok.Setter;
 /**
  * <pre>
  * W-SV-S-0012 다건 작업오더, 정보변경 처리
+ * 저장 dvo
  * </pre>
  *
  * @author yeonghwa.cheon
@@ -20,7 +21,7 @@ public class WsnbMultipleTaskOrderDvo {
     String asIstOjNo; /* AS설치대상번호 */
     String svBizHclsfCd; /* 서비스업무대분류코드 */
     String rcpdt; /* 접수일자 */
-    String mtrStatCd; /* 자료상태코드 */
+    String dtaStatCd; /* 자료상태코드 */
     String svBizDclsfCd; /* 서비스업무세분류코드 */
     String urgtYn; /* 긴급여부 */
     String vstRqdt; /* 방문요청일자 */
@@ -52,10 +53,12 @@ public class WsnbMultipleTaskOrderDvo {
     String alncBzsCd; /* 제휴업체코드 */
     String payNm; /* 입금자명 */
     String partList;
+    String userId;
+    String userOgTpCd;
     /* service애서 만들어주는 값 */
     String newSvBizDclsfCd; /* 서비스업무세분류코드(V_WRK_TYP_DTL) */
     String newWkAcpteStatCd; /* V_CFRM_STUS_WRK */
-    String newMtrStatCd; /* V_DATA_STUS */
+    String newDtaStatCd; /* V_DATA_STUS */
     String newWkAcpteDt; /* V_AC221_CFRM_DT */
     String newWkPrgsStatCd; /* V_AC221_PROC_STUS */
     String newRcgvpKnm; /* V_CUST_NM */

@@ -21,9 +21,9 @@ public class WsnbContractReqDvo {
     String cntrDtlStatCd; /* 계약상세상태코드 */
     String rcgvpKnm; /* 계약자명 */
     String stopYn; /* */
-    String istDt; /**/
-    String reqdDt; /**/
-    String cpsDt; /**/
+    String istDt; /* 설치일자 */
+    String reqdDt; /* 철거일자 */
+    String cpsDt; /* 보상일자 */
     String basePdCd; /* saleCd */
     String basePdNm; /* saleNm */
     String pdctPdCd; /* pdCd */
