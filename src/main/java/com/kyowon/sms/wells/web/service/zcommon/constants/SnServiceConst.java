@@ -60,6 +60,10 @@ public class SnServiceConst {
     public static final String OSTR_AK_TP_CD_NOM_OSTR = "310";
     // 물량이동(320)
     public static final String OSTR_AK_TP_CD_QOM_MMT = "320";
+    // 자동출고(330)
+    public static final String OSTR_AK_TP_CD_AUTO_OSTR = "330";
+    // 물량배정(360)
+    public static final String OSTR_AK_TP_CD_QOM_ASN = "360";
 
     /**
      * SAP 관련 코드

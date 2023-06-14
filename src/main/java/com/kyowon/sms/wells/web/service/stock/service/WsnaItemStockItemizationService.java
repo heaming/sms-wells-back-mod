@@ -4,7 +4,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -16,10 +15,8 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksReqDvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemStockItemizationMapper;
-import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
-import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -1753,79 +1750,5 @@ public class WsnaItemStockItemizationService {
             vo.getQty()
         );
         return reqDto;
-    }
-
-    /**
-     * 재고내역 등록 (W-SV-B-0033 물류센터 출고완료정보 수신후 처리(배치)에서 호출)
-     * @param map   (필수) 파라미터 정보
-     * @return
-     * @throws ParseException 품목재고내역 Date Parsing Exception
-     */
-    public int createStockForBatch(Map<String, String> map) throws ParseException {
-
-        // W-SV-B-0033 물류센터 출고완료정보 수신후 처리(배치)에서 호출된 파라미터
-        ValidAssert.notNull(map);
-
-        WsnaItemStockItemizationReqDvo reqDvo = this.convertStockItemizationReqDvo(map);
-        // 재고내역 등록
-        return this.createStock(reqDvo);
-    }
-
-    /**
-     * 재고내역 이동 (W-SV-B-0033 물류센터 출고완료정보 수신후 처리(배치)에서 호출)
-     * @param map   (필수) 파라미터 정보
-     * @return
-     */
-    public int saveStockMovementForBatch(Map<String, String> map) {
-
-        // W-SV-B-0033 물류센터 출고완료정보 수신후 처리(배치)에서 호출된 파라미터
-        ValidAssert.notNull(map);
-
-        WsnaItemStockItemizationReqDvo reqDvo = this.convertStockItemizationReqDvo(map);
-
-        return this.saveStockMovement(reqDvo);
-    }
-
-    /**
-     * 품목재고내역 파라미터 변환
-     * @param map
-     * @return
-     */
-    private WsnaItemStockItemizationReqDvo convertStockItemizationReqDvo(Map<String, String> map) {
-        String nowDay = DateUtil.getNowDayString();
-
-        // 창고번호
-        String wareNo = map.get("PARAM1");
-        // 창고구분
-        String wareDv = map.get("PARAM2");
-        // 창고관리파트너번호
-        String wareMngtPrtnrNo = map.get("PARAM3");
-        // 입출고유형
-        String iostTp = map.get("PARAM4");
-        // 작업구분
-        String workDiv = map.get("PARAM5");
-        // 품목상품코드
-        String itemPdCd = map.get("PARAM6");
-        // 품목등급코드
-        String itmGdCd = map.get("PARAM7");
-        // 관리단위코드
-        String mngUnitCd = map.get("PARAM8");
-        // 수량
-        String qty = map.get("PARAM9");
-
-        WsnaItemStockItemizationReqDvo reqDvo = new WsnaItemStockItemizationReqDvo();
-        reqDvo.setProcsYm(nowDay.substring(0, 6));
-        reqDvo.setProcsDt(nowDay);
-        reqDvo.setWareDv(wareDv);
-        reqDvo.setWareNo(wareNo);
-        reqDvo.setWareMngtPrtnrNo(wareMngtPrtnrNo);
-        reqDvo.setIostTp(iostTp);
-        reqDvo.setWorkDiv(workDiv);
-        reqDvo.setItmPdCd(itemPdCd);
-        reqDvo.setMngtUnit(mngUnitCd);
-        reqDvo.setItemGd(itmGdCd);
-        reqDvo.setQty(qty);
-
-        return reqDvo;
     }
 }
