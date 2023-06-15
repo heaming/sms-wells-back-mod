@@ -52,4 +52,6 @@ public class PmPromotionConst {
     /* 서비스유형코드 */
     public static final String SERVICE_TYPE_CODE_PARCEL_1 = "7";            // 택배1
     public static final String SERVICE_TYPE_CODE_PARCEL_2 = "8";            // 택배2
+
+    public static final String TEST = "TEST";
 }
