@@ -3,18 +3,10 @@ package com.kyowon.sms.wells.web.service.allocate.mapper;
 import java.util.List;
 import java.util.Optional;
 
+import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSalesDto;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableAssignTimeDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableCntrDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDisableDaysDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableProductDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTablePsicDataDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableRpbLocaraPsicDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSalesDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSalesParamDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo;
 
 /**
  *
@@ -34,7 +26,7 @@ public interface WsncTimeTableMapper {
      * @param req : 조회파라메터
      * @return 조회결과
      */
-    List<WsncTimeTableSalesDvo> selectTimeTableDates(WsncTimeTableSalesDto.FindReq req);
+    List<WsncTimeTableDaysDvo> selectTimeTableDates(String baseYm);
 
     //WsncTimeTablePackageDvo selectPackage(String sidingCd, String baePdCd, String cntrNo);
     Optional<WsncTimeTableCntrDvo> selectContract(String cntrNo, String cntrSn);
@@ -70,7 +62,7 @@ public interface WsncTimeTableMapper {
 
     WsncTimeTableRpbLocaraPsicDvo selectRpbLocaraPsic(WsncTimeTableSalesParamDvo dvo);
 
-    List<WsncTimeTablePsicDataDvo> selectPsicData(WsncTimeTableRpbLocaraPsicDvo dvo);
+    WsncTimeTablePsicDataDvo selectPsicData(WsncTimeTableRpbLocaraPsicDvo dvo);
 
     List<WsncTimeTableAssignTimeDvo> selectAssignTime(WsncTimeTableRpbLocaraPsicDvo dvo);
 

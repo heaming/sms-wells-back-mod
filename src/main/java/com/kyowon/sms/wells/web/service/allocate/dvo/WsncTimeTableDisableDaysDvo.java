@@ -6,7 +6,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class WsncTimeTableDisableDaysDvo {
-    String disableDay;
-    String disableFulday;
+    String disableDays;
+    String disableFuldays;
     String tcMsg;
 }

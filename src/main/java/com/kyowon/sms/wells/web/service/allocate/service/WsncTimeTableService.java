@@ -3,21 +3,12 @@ package com.kyowon.sms.wells.web.service.allocate.service;
 import java.text.ParseException;
 import java.util.List;
 
+import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncTimeTableConverter;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableAsMonthDto;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSalesDto;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableAssignTimeDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableCntrDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDisableDaysDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableProductDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTablePsicDataDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableRpbLocaraPsicDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSalesDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSalesParamDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSmPmNtDvo;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncTimeTableMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
@@ -60,9 +51,9 @@ public class WsncTimeTableService {
         WsncTimeTableSalesDvo result = new WsncTimeTableSalesDvo();
 
         WsncTimeTableRpbLocaraPsicDvo rpbLocaraPsicDvo = new WsncTimeTableRpbLocaraPsicDvo();
-        List<WsncTimeTableSidingDaysDvo> sidingDaysDvos = null;
-        List<WsncTimeTablePsicDataDvo> psicDatas = null;
-        List<WsncTimeTableAssignTimeDvo> assignTimes = null;
+        List<WsncTimeTableSidingDaysDvo> sidingDayDvos = null;
+        WsncTimeTablePsicDataDvo psicDataDvos = null;
+        List<WsncTimeTableAssignTimeDvo> assignTimeDvos = null;
 
         WsncTimeTableSalesParamDvo paramDvo = converter.mapSalesParamReqToDvo(req);
 
@@ -73,7 +64,6 @@ public class WsncTimeTableService {
         String wrkDt = req.wrkDt(); // P_WRK_DT
         String dataStatCd = req.dataStatCd(); //DATA_STUS
         String svBizDclsfCd = req.svBizDclsfCd(); // wrkTypDtl
-        // ---------------------------------------------------------
         String userId = req.userId();
         String returnurl = req.returnUrl();
 
@@ -114,18 +104,6 @@ public class WsncTimeTableService {
         //                basePdCd = sidingCd;
         //            }
 
-        log.debug("--------------------------------------------------");
-        log.debug("userId:  {}", userId);
-        log.debug("svDvCd(dataGb):  {}", svDvCd);
-        log.debug("dataStatCd(dataStus):  {}", dataStatCd);
-        log.debug("cntrNo:  {}", req.cntrNo());
-        log.debug("cntrSn:  {}", req.cntrSn());
-        log.debug("svBizDclsfCd(wrkTypDtl):  {}", svBizDclsfCd);
-        log.debug("sellDate:  {}", sellDate);
-        log.debug("basePdCd:  {}", basePdCd);
-        log.debug("chnlDvCd(gbCd):  {}", chnlDvCd);
-        log.debug("--------------------------------------------------");
-
         WsncTimeTableCntrDvo contractDvo = mapper.selectContract(cntrNo, cntrSn)
             .orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
 
@@ -147,13 +125,13 @@ public class WsncTimeTableService {
 
                 //------------------------------------------------------
                 // getMojongDays_ilsibul
-                sidingDaysDvos = this.mapper
+                sidingDayDvos = this.mapper
                     .selectSidingDaysForSpay(lcst09, sellDate, basePdCd, svDvCd, pdctPdCd, cntrNo);
                 //------------------------------------------------------
 
                 boolean isAdd40Days = false;
 
-                for (WsncTimeTableSidingDaysDvo sidingDaysDvo : sidingDaysDvos) {
+                for (WsncTimeTableSidingDaysDvo sidingDaysDvo : sidingDayDvos) {
                     if (sidingDaysDvo.getAblDays().equals(DateUtil.formatDate(sellDate, "-"))) {
                         isAdd40Days = true;
                         sowDay = sidingDaysDvo.getSowDay();
@@ -162,13 +140,13 @@ public class WsncTimeTableService {
                 }
 
                 if (!isAdd40Days) {
-                    sellDate = sidingDaysDvos.get(0).getW3th();
-                    sowDay = sidingDaysDvos.get(0).getSowDay();
+                    sellDate = sidingDayDvos.get(0).getW3th();
+                    sowDay = sidingDayDvos.get(0).getSowDay();
                 }
                 // 일반모종 타임테이블
             } else {
                 //------------------------------------------------------
-                sidingDaysDvos = mapper.selectSidingDays(basePdCd);
+                sidingDayDvos = mapper.selectSidingDays(basePdCd);
                 //------------------------------------------------------
             }
 
@@ -230,16 +208,19 @@ public class WsncTimeTableService {
 
         // 담당자 정보 표시 (왼쪽)
         // selectTimeAssign_v2_step2
-        psicDatas = mapper.selectPsicData(rpbLocaraPsicDvo); // left_info
+        psicDataDvos = mapper.selectPsicData(rpbLocaraPsicDvo); // left_info
 
         // 시간표시
         // selectTimeAssign_v2_step3
-        assignTimes = mapper.selectAssignTime(rpbLocaraPsicDvo); // list1
+        assignTimeDvos = mapper.selectAssignTime(rpbLocaraPsicDvo); // list1
 
-        List<WsncTimeTableDisableDaysDvo> disableDays = mapper.selectDisableDays(paramDvo);
-        List<String> offdays = mapper.selectOffDays(paramDvo);
+        List<WsncTimeTableDisableDaysDvo> disableDayDvos = mapper.selectDisableDays(paramDvo);
+        List<String> offDays = mapper.selectOffDays(paramDvo);
 
         //---------------------------------------------------------//
+
+        List<WsncTimeTableDaysDvo> days = mapper.selectTimeTableDates(DateUtil.getNowDayString().substring(0, 6));
+        result.setDays(days);
 
         result.getArrSm().clear();
         result.getArrAm().clear();
@@ -247,12 +228,12 @@ public class WsncTimeTableService {
         result.getArrPm2().clear();
         result.getArrNt().clear();
 
-        result.setPsicDataDvos(psicDatas);
-        result.setAssignTimeDvos(assignTimes);
-        result.setSidingDayDvos(sidingDaysDvos);
-        result.setDisableDayDvos(disableDays);
+        result.setAssignTimeDvos(assignTimeDvos); // list1 = assignTimeDvos
+        result.setPsicDataDvos(psicDataDvos); // left_info = psicDataDvos
+        result.setSidingDayDvos(sidingDayDvos); // list2 = sidingDayDvos
+        result.setOffDays(offDays); // offdays = offDays
+        result.setDisableDayDvos(disableDayDvos); // diabledays = disableDayDvos
 
-        result.setOffDays(offdays);
         result.setSvDvCd(svDvCd);
         result.setNewAdrZip(newAdrZip);
         result.setCurDateTimeString(DateUtil.getNowDayString());
@@ -271,7 +252,10 @@ public class WsncTimeTableService {
         result.setReturnurl(returnurl);
         result.setMkCo(paramDvo.getMkCo());//bypass
 
-        for (WsncTimeTableAssignTimeDvo assignTime : assignTimes) {
+        result.setSidingYn(sidingYn); // 모종여부
+        result.setSpayYn(spayYn); // 일시불여부
+
+        for (WsncTimeTableAssignTimeDvo assignTime : assignTimeDvos) {
 
             WsncTimeTableSmPmNtDvo smPmNtDvo = new WsncTimeTableSmPmNtDvo();
             time = assignTime.getTm();
@@ -292,28 +276,42 @@ public class WsncTimeTableService {
 
         }
 
-       log.debug("NewAdrZip: {}", result.getNewAdrZip());
-       log.debug("CurDateTimeString: {}", result.getCurDateTimeString());
-       log.debug("SellDate: {}", result.getSellDate());
-       log.debug("ChnlDvCd: {}", result.getChnlDvCd());
-       log.debug("CntrNo: {}", result.getCntrNo());
-       log.debug("CntrSn: {}", result.getCntrSn());
-       log.debug("inflwChnl: {}", result.getInflwChnl());
-       log.debug("WrkDt: {}", result.getWrkDt());
-       log.debug("DataStatCd: {}", result.getDataStatCd());
-       log.debug("SvBizDclsfCd: {}", result.getSvBizDclsfCd());
-       log.debug("BasePdCd: {}", result.getBasePdCd());
-       log.debug("UserId: {}", result.getUserId());
-       log.debug("SowDay: {}", result.getSowDay());
-       log.debug("Lcst09: {}", result.getLcst09());
-       log.debug("Returnurl: {}", result.getReturnurl());
-       log.debug("MkCo: {}", result.getMkCo());
+        log.debug("NewAdrZip: {}", result.getNewAdrZip());
+        log.debug("CurDateTimeString: {}", result.getCurDateTimeString());
+        log.debug("SellDate: {}", result.getSellDate());
+        log.debug("ChnlDvCd: {}", result.getChnlDvCd());
+        log.debug("CntrNo: {}", result.getCntrNo());
+        log.debug("CntrSn: {}", result.getCntrSn());
+        log.debug("inflwChnl: {}", result.getInflwChnl());
+        log.debug("WrkDt: {}", result.getWrkDt());
+        log.debug("DataStatCd: {}", result.getDataStatCd());
+        log.debug("SvBizDclsfCd: {}", result.getSvBizDclsfCd());
+        log.debug("BasePdCd: {}", result.getBasePdCd());
+        log.debug("UserId: {}", result.getUserId());
+        log.debug("SowDay: {}", result.getSowDay());
+        log.debug("Lcst09: {}", result.getLcst09());
+        log.debug("Returnurl: {}", result.getReturnurl());
+        log.debug("MkCo: {}", result.getMkCo());
 
-       log.debug("offDays: {}",result.getOffDays() != null ? result.getOffDays().toArray().toString() : "offDays is null");
-       log.debug("psicDataDvos: {}",result.getPsicDataDvos() != null ? result.getPsicDataDvos().toString() : "psicDataDvos is null");
-       log.debug("assignTimeDvos: {}",result.getAssignTimeDvos() != null ? result.getAssignTimeDvos().toString() : "assignTimeDvos is null");
-       log.debug("sidingDayDvos: {}",result.getSidingDayDvos() != null ? result.getSidingDayDvos().toString() : "sidingDayDvos is null");
-       log.debug("disableDayDvos: {}",result.getDisableDayDvos() != null ? result.getDisableDayDvos().toString() : "disableDayDvos is null");
+        log.debug(
+            "offDays: {}", result.getOffDays() != null ? result.getOffDays().toArray().toString() : "offDays is null"
+        );
+        log.debug(
+            "psicDataDvos: {}",
+            result.getPsicDataDvos() != null ? result.getPsicDataDvos().toString() : "psicDataDvos is null"
+        );
+        log.debug(
+            "assignTimeDvos: {}",
+            result.getAssignTimeDvos() != null ? result.getAssignTimeDvos().toString() : "assignTimeDvos is null"
+        );
+        log.debug(
+            "sidingDayDvos: {}",
+            result.getSidingDayDvos() != null ? result.getSidingDayDvos().toString() : "sidingDayDvos is null"
+        );
+        log.debug(
+            "disableDayDvos: {}",
+            result.getDisableDayDvos() != null ? result.getDisableDayDvos().toString() : "disableDayDvos is null"
+        );
 
         return converter.mapSalesDvoToRes(result);
     }

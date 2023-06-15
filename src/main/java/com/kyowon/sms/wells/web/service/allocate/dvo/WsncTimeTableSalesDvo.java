@@ -30,11 +30,16 @@ public class WsncTimeTableSalesDvo {
     String returnurl;
     String mkCo;
 
+    String sidingYn; // 모종 여부
+    String spayYn; // 일시불여부
+
     List<String> offDays;
     List<WsncTimeTableSidingDaysDvo> sidingDayDvos; // list2 abledays
     List<WsncTimeTableDisableDaysDvo> disableDayDvos;
-    List<WsncTimeTablePsicDataDvo> psicDataDvos; // left_info
+    WsncTimeTablePsicDataDvo psicDataDvos; // left_info
     List<WsncTimeTableAssignTimeDvo> assignTimeDvos; // list1
+
+    List<WsncTimeTableDaysDvo> days;
 
     List<WsncTimeTableSmPmNtDvo> arrSm = new ArrayList<WsncTimeTableSmPmNtDvo>();
     List<WsncTimeTableSmPmNtDvo> arrAm = new ArrayList<WsncTimeTableSmPmNtDvo>();

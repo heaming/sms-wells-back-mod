@@ -40,4 +40,5 @@ public class WsncTimeTablePsicDataDvo {
     String instCnt;
     String bsCnt;
     String asCnt;
+    String ac021EmpNm1;
 }
