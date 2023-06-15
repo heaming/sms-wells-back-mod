@@ -28,12 +28,12 @@ public class WsncTimeTableController {
 
     private final WsncTimeTableService service;
 
-    @ApiOperation(value = "타임테이블 조회(판매)")
+    @ApiOperation(value = "타임테이블 조회 KSS 타임테이블 조회(팝업)")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "", paramType = "query"),
         @ApiImplicitParam(name = "chnlDvCd", value = "", paramType = "query"), // GB_CD
-        @ApiImplicitParam(name = "inGb", value = "", paramType = "query"), // P_IN_GB
+        @ApiImplicitParam(name = "inflwChnl", value = "", paramType = "query"), // P_IN_GB
         @ApiImplicitParam(name = "svDvCd", value = "", paramType = "query"), // P_DATA_GB
         @ApiImplicitParam(name = "wrkDt", value = "", paramType = "query"), // P_WRK_DT
         @ApiImplicitParam(name = "dataStatCd", value = "", paramType = "query"), // P_DATA_STUS
@@ -49,5 +49,6 @@ public class WsncTimeTableController {
         throws ParseException {
         return service.getTmeAssignSales(req);
     }
+
 
 }

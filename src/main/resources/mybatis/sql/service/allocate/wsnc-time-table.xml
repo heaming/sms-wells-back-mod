@@ -1,7 +1,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncTimeTableMapper">
 
-    <select id='selectTimeTableDates' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSalesDvo">
+    <select id='selectTimeTableDates' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDaysDvo">
         WITH TB_CAL AS (
           SELECT TO_CHAR(FIRST_DAY + LEVEL - 1, 'D') DAYS
                , TO_CHAR(FIRST_DAY + LEVEL - 1, 'YYYYMMDD') BASE_YMD
@@ -772,7 +772,7 @@
                                            AND T2.DTA_DL_YN = 'N'
                                         ) B/*LC_STOCK_ST101TB*/
                                     ON 1 = 1
-                                 WHERE BASE_Y || BASE_MM || BASE_D BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{sellDate} || '01'), -5), 'YYYYMMDD') AND TO_CHAR(ADD_MONTHS(TO_DATE(#{sellDate} || '01'), 5), 'YYYYMMDD')
+                                 WHERE BASE_Y || BASE_MM || BASE_D BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(#{sellDate},0,6) || '01'), -5), 'YYYYMMDD') AND TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(#{sellDate},0,6) || '01'), 5), 'YYYYMMDD')
                                    AND (SELECT REL.OJ_PD_CD
                                           FROM TB_PDBS_PD_REL REL
                                          WHERE REL.PD_REL_TP_CD = '05'
@@ -948,7 +948,6 @@
          ORDER BY W3TH
     </select>
 
-
     <select id="selectFnSvpdLocaraPrtnr01" resultType="java.lang.String">
       SELECT FN_SVPD_LOCARA_PRTNR_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{svBizDclsfCd}, #{sellDate}) FROM DUAL
     </select>
@@ -970,7 +969,7 @@
              , OG_NM /*조직명*/
              , HMNRSC_EMPNO /*인사사원번호*/
              , PRTNR_KNM /*파트너한글명*/
-             , #{inGb} AS IN_GB
+             , #{inflwChnl} AS IN_GB
              , #{chnlDvCd} AS CHNL_DV_CD
              , NVL(TRIM(SAT_WRK_YN), 'N') AS SAT_WRK_YN /*토요일근무여부*/
              , NVL(TRIM(DF_YN), 'N') AS DF_YN /*휴무여부*/
@@ -990,7 +989,7 @@
                      ELSE T3.RSTR_CNDT_USE_YN /*제약조건사용여부*/
                 END) AS RSTR_CNDT_USE_YN
              , (CASE WHEN T3.UDSN_USE_YN != 'Y' OR T3.UDSN_USE_YN IS NULL THEN 'N'
-                     WHEN T3.UDSN_USE_YN = 'Y' AND T3.WK_GRP_CD = '10' AND #{inGb} = '1' THEN 'Y'
+                     WHEN T3.UDSN_USE_YN = 'Y' AND T3.WK_GRP_CD = '10' AND #{inflwChnl} = '1' THEN 'Y'
                      WHEN T3.UDSN_USE_YN = 'Y' AND T3.VST_DOW_VAL LIKE '8%' THEN 'Y'
                      WHEN T3.WK_GRP_CD IN ('20', '30') AND P.ASN_BLC_YN = 'Y' THEN 'N'
                      WHEN T3.WK_GRP_CD = '10' AND P.ASN_BLC_YN = 'Y' THEN 'N'
@@ -1127,18 +1126,18 @@
     </select>
 
     <select id="selectPsicData" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTablePsicDataDvo">
-        SELECT AC021.PRTNR_NO AS AC021_EMP_ID
-             , 'http://kiwi-m.kyowon.co.kr/KIWI-M/upload_file/upload_file/' || AC021.PRTNR_NO || '.jpg' AS EMP_PIC
+        SELECT OG1.PRTNR_NO AS AC021_EMP_ID
+             , 'http://kiwi-m.kyowon.co.kr/KIWI-M/upload_file/upload_file/' || OG1.PRTNR_NO || '.jpg' AS EMP_PIC
              , #{sellDate} AS AC221_CFRM_DT
-             , AC125.OG_NM AS AC125_DEPT_NM
-             , AC125.OG_ID AS AC125_DEPT_CD
-             , AC021.PRTNR_KNM AS AC021_EMP_NM
-             , (CASE WHEN AC021.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '1' THEN '정규직'
-                     WHEN AC021.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '2' AND AC021.PSTN_DV_CD /*직급구분*/ = '86' THEN '직무사원(1급)'
-                     WHEN AC021.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '2' AND AC021.PSTN_DV_CD /*직급구분*/ = '87' THEN '직무사원(2급)'
-                     WHEN AC021.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '2' AND AC021.PSTN_DV_CD /*직급구분*/ = '88' THEN '직무사원(3급)'
-                     WHEN AC021.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '6' THEN '계약직'
-                     WHEN AC021.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '7' THEN '개인사업'
+             , OG2.OG_NM AS AC125_DEPT_NM
+             , OG2.OG_ID AS AC125_DEPT_CD
+             , OG1.PRTNR_KNM AS AC021_EMP_NM
+             , (CASE WHEN OG1.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '1' THEN '정규직'
+                     WHEN OG1.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '2' AND OG1.PSTN_DV_CD /*직급구분*/ = '86' THEN '직무사원(1급)'
+                     WHEN OG1.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '2' AND OG1.PSTN_DV_CD /*직급구분*/ = '87' THEN '직무사원(2급)'
+                     WHEN OG1.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '2' AND OG1.PSTN_DV_CD /*직급구분*/ = '88' THEN '직무사원(3급)'
+                     WHEN OG1.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '6' THEN '계약직'
+                     WHEN OG1.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '7' THEN '개인사업'
                      ELSE ''
                 END) AS ISCGUB_NM
              , AC151_2.DEG_NM
@@ -1146,13 +1145,13 @@
              , AC151_2.PM_WRK_CNT
              , #{wrkCnt} AS T_WRK_CNT
              , RSB_DV_CD AS AC025_EMP_OR -- 직책
-             , OG3.LOCARA_TNO
-             , OG3.EXNO_ENCR
-             , OG3.IDV_TNO
-             , OG3.CRAL_LOCARA_TNO
-             , OG3.MEXNO_ENCR
-             , OG3.CRAL_IDV_TNO
-             , (CASE WHEN TRIM(AC021.ROL_DV_CD) = '55' THEN '소장' WHEN TRIM(AC021.PRTNR_CLSF_CD) = '56' THEN '자재실장' ELSE '엔지니어' END) AS ISJMCD_NM
+             , OG3.LOCARA_TNO -- 지역전화번호
+             , OG3.EXNO_ENCR -- 전화국번호암호화
+             , OG3.IDV_TNO -- 개별전화번호
+             , OG3.CRAL_LOCARA_TNO -- 휴대지역전화번호
+             , OG3.MEXNO_ENCR -- 휴대전화국번호암호화
+             , OG3.CRAL_IDV_TNO -- 휴대개별전화
+             , (CASE WHEN TRIM(OG1.ROL_DV_CD) = '55' THEN '소장' WHEN TRIM(OG1.PRTNR_CLSF_CD) = '56' THEN '자재실장' ELSE '엔지니어' END) AS ISJMCD_NM
              , OG4.PRTNR_KNM AS AC021_EMP_NM1
              , OG4.CRAL_LOCARA_TNO AS SJ_HP1
              , OG4.MEXNO_ENCR AS SJ_HP2
@@ -1208,46 +1207,46 @@
                                            'WM05100129', 'WM05100196', 'WM04100156', 'WM07101114', 'WM03100251', 'WM04100202', 'WM04100201', 'WM05100128', 'WM05100125', 'WM04100166',
                                            'WM07101222', 'WM07100663', 'WM02100249', 'WM05100126', 'WM05100131', 'WM05100130', 'WM02100259', 'WM05100124', 'WM02100257', 'WM04100153',
                                            'WM05100123', 'WM04100127', 'WM04100155', 'WM02100157', 'WM04100152', 'WM04100164', 'WM04100121')) AS AS_CNT
-          FROM TB_OGBS_MM_PRTNR_IZ AC021 /*월파트너내역*/
-             , TB_OGBS_MM_OG_IZ AC125 /*월조직내역*/
-             , TB_OGBS_PRTNR_BAS OG3
-             , TB_OGBS_PRTNR_BAS OG4
-             , (SELECT RPB_LOCARA_CD
-                     , WK_GRP_CD
-                     , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('1', '7') THEN WKD_FRNN_ASN_LIM_CT
-                             ELSE WEEKD_FRNN_ASN_LIM_CT
-                        END) AS AM_WRK_CNT
-                     , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('1', '7') THEN WKD_AFNN_ASN_LIM_CT
-                             ELSE WEEKD_AFNN_ASN_LIM_CT
-                        END) AS PM_WRK_CNT
-                     , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('2', '3', '4', '5', '6') THEN ASN_GD_CD || '-' || '평일-' || WEEKD_ASN_LIM_CT /*월화수목금 -주일이면*/
-                             WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('7') THEN ASN_GD_CD || '-' || '주말-' || SAT_ASN_LIM_CT /*토요일이면*/
-                             ELSE '' /*일요일이면*/
-                        END) AS DEG_NM
-                  FROM (SELECT AC152.*, AC151.*, RANK() OVER (PARTITION BY ASN_GD_CD ORDER BY BASE_SN DESC) AS RN
-                          FROM (SELECT T.RPB_LOCARA_CD
-                                     , T.WK_GRP_CD
-                                     , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('7') THEN NVL(T.SAT_ASN_GD_CD, 'F')
-                                             WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('2', '3', '4', '5', '6') THEN T.ASN_GD_CD
-                                             ELSE 'D'
-                                        END) AS AC152_LOCAL_DEG
-                                  FROM TB_SVPD_RPB_LOCARA_BAS /*엔지니어지역등급기준내역*/ /*LC_ALLOCATE_AC152TB*/ /*책임지역별 배정듭급*/ T
-                                 WHERE T.RPB_LOCARA_CD = #{rpbLocaraCd}
-                                   AND T.WK_GRP_CD = #{wkGrpCd}) AC152
-                             , TB_SVPD_EGER_LOCARA_GD_BASE_IZ /*LC_ALLOCATE_AC151TB*/ AC151 /*일별,엔지니어별 지역 등급 기준 세팅*/
-                         WHERE AC152.AC152_LOCAL_DEG = AC151.ASN_GD_CD
-                           AND #{sellDate} BETWEEN AC151.APY_STRTDT AND AC151.APY_ENDDT
-                           AND AC152.RPB_LOCARA_CD = #{rpbLocaraCd}
-                           AND AC152.WK_GRP_CD = #{wkGrpCd}
-                           AND AC151.RCP_HH_DV_CD = 'R')
-                 WHERE RN = 1) AC151_2
-         WHERE AC021.BASE_YM = AC125.BASE_YM
-           AND AC021.OG_ID = AC125.OG_ID
-           AND AC021.BASE_YM = TO_CHAR(SYSDATE, 'yyyyMM')
-           AND AC021.PRTNR_NO = OG3.PRTNR_NO
-           AND AC125.HOO_PRTNR_NO = OG4.PRTNR_NO(+)
-           AND AC125.OG_ID = OG4.OG_ID(+)
-           AND AC021.PRTNR_NO = #{hmnrscEmpno}
+         FROM TB_OGBS_MM_PRTNR_IZ OG1 /*월파트너내역*/
+        INNER JOIN TB_OGBS_MM_OG_IZ OG2 /*월조직내역*/
+           ON OG1.BASE_YM = OG2.BASE_YM
+          AND OG1.OG_ID = OG2.OG_ID
+        INNER JOIN TB_OGBS_PRTNR_BAS OG3
+           ON OG1.PRTNR_NO = OG3.PRTNR_NO
+         LEFT OUTER JOIN TB_OGBS_PRTNR_BAS OG4
+           ON OG2.HOO_PRTNR_NO = OG4.PRTNR_NO
+          AND OG2.OG_ID = OG4.OG_ID
+         LEFT OUTER JOIN (SELECT RPB_LOCARA_CD
+                               , WK_GRP_CD
+                               , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('1', '7') THEN WKD_FRNN_ASN_LIM_CT
+                                       ELSE WEEKD_FRNN_ASN_LIM_CT
+                                  END) AS AM_WRK_CNT
+                               , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('1', '7') THEN WKD_AFNN_ASN_LIM_CT
+                                       ELSE WEEKD_AFNN_ASN_LIM_CT
+                                  END) AS PM_WRK_CNT
+                               , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('2', '3', '4', '5', '6') THEN ASN_GD_CD || '-' || '평일-' || WEEKD_ASN_LIM_CT /*월화수목금 -주일이면*/
+                                       WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('7') THEN ASN_GD_CD || '-' || '주말-' || SAT_ASN_LIM_CT /*토요일이면*/
+                                       ELSE '' /*일요일이면*/
+                                  END) AS DEG_NM
+                            FROM (SELECT AC152.*, AC151.*, RANK() OVER (PARTITION BY ASN_GD_CD ORDER BY BASE_SN DESC) AS RN
+                                    FROM (SELECT T.RPB_LOCARA_CD
+                                               , T.WK_GRP_CD
+                                               , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('7') THEN NVL(T.SAT_ASN_GD_CD, 'F')
+                                                       WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('2', '3', '4', '5', '6') THEN T.ASN_GD_CD
+                                                       ELSE 'D'
+                                                  END) AS AC152_LOCAL_DEG
+                                            FROM TB_SVPD_RPB_LOCARA_BAS /*엔지니어지역등급기준내역*/ /*LC_ALLOCATE_AC152TB*/ /*책임지역별 배정듭급*/ T
+                                           WHERE T.RPB_LOCARA_CD = #{rpbLocaraCd}
+                                             AND T.WK_GRP_CD = #{wkGrpCd}) AC152
+                                       , TB_SVPD_EGER_LOCARA_GD_BASE_IZ /*LC_ALLOCATE_AC151TB*/ AC151 /*일별,엔지니어별 지역 등급 기준 세팅*/
+                                   WHERE AC152.AC152_LOCAL_DEG = AC151.ASN_GD_CD
+                                     AND #{sellDate} BETWEEN AC151.APY_STRTDT AND AC151.APY_ENDDT
+                                     AND AC152.RPB_LOCARA_CD = #{rpbLocaraCd}
+                                     AND AC152.WK_GRP_CD = #{wkGrpCd}
+                                     AND AC151.RCP_HH_DV_CD = 'R')
+                           WHERE RN = 1) AC151_2 ON 1=1
+        WHERE OG1.BASE_YM = TO_CHAR(SYSDATE, 'yyyyMM')
+          AND OG1.PRTNR_NO = #{hmnrscEmpno}
     </select>
 
     <select id="selectAssignTime" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableAssignTimeDvo">
