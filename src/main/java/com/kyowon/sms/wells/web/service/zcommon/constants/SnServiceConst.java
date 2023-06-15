@@ -75,4 +75,21 @@ public class SnServiceConst {
     // 프라파주창고(Wells)
     public static final String SAP_SAVE_LCT_CD = "21082082";
 
+    //자료상태코드(dtaStatCd) 값 세팅 (1:신규, 2: 수정, 3: 삭제)
+    public static final String DTA_STAT_CD_NEW = "1";
+    public static final String DTA_STAT_CD_MOD = "2";
+    public static final String DTA_STAT_CD_DEL = "3";
+    //입력채널구분코드(IN_CHNL_DV_CD) 값 세팅
+    //CubigCC
+    public static final String IN_CHNL_DV_CD_CST = "1";
+    //KIWI-M
+    public static final String IN_CHNL_DV_CD_SERVICE = "2";
+    //KSS
+    public static final String IN_CHNL_DV_CD_SALES = "3";
+    //WEB
+    public static final String IN_CHNL_DV_CD_WEB = "4";
+    //K-MEMBERS
+    public static final String IN_CHNL_DV_CD_KMEMBERS = "5";
+    //자동생성
+    public static final String IN_CHNL_DV_CD_AUTO = "9";
 }
