@@ -33,8 +33,6 @@ public class WsnbMultipleTaskOrderDto {
         String cnslDtlpTpCd, /* 상담세부유형코드 */
         String cnslMoCn, /* 상담메모내용 */
         String cstCnrRefriDvCd, /* 기타정보 */
-        String rcpOgTpCd, /* 접수조직유형코드 */
-        String rcpIchrPrtnrNo, /* 접수담당파트너번호 */
         String cntrNo, /* 계약번호 */
         String cntrSn, /* 계약일련번호 */
         String rcgvpKnm, /* 고객한글명 */
