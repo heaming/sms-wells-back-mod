@@ -35,8 +35,6 @@ public class WsnbMultipleTaskOrderDvo {
     String cnslDtlpTpCd; /* 상담세부유형코드 */
     String cnslMoCn; /* 상담메모내용 */
     String cstCnrRefriDvCd; /* 기타정보 */
-    String rcpOgTpCd; /* 접수조직유형코드 */
-    String rcpIchrPrtnrNo; /* 접수담당파트너번호 */
     String cntrNo; /* 계약번호 */
     String cntrSn; /* 계약일련번호 */
     String rcgvpKnm; /* 고객한글명 */
@@ -54,7 +52,7 @@ public class WsnbMultipleTaskOrderDvo {
     String payNm; /* 입금자명 */
     String partList;
     String userId;
-    String userOgTpCd;
+    String ogTpCd;
     /* service애서 만들어주는 값 */
     String newSvBizDclsfCd; /* 서비스업무세분류코드(V_WRK_TYP_DTL) */
     String newWkAcpteStatCd; /* V_CFRM_STUS_WRK */

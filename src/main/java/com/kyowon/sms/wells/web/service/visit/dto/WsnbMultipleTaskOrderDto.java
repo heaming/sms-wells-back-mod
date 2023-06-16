@@ -19,7 +19,7 @@ public class WsnbMultipleTaskOrderDto {
         String asIstOjNo, /* AS설치대상번호 */
         String svBizHclsfCd, /* 서비스업무대분류코드 */
         String rcpdt, /* 접수일자 */
-        String mtrStatCd, /* 자료상태코드 */
+        String dtaStatCd, /* 자료상태코드 */
         String svBizDclsfCd, /* 서비스업무세분류코드 */
         String urgtYn, /* 긴급여부 */
         String vstRqdt, /* 방문요청일자 */
@@ -50,7 +50,9 @@ public class WsnbMultipleTaskOrderDto {
         String updtPsicDvCd, /* 업데이트담당자구분코드 */
         String alncBzsCd, /* 제휴업체코드 */
         String payNm, /* 입금자명 */
-        String partList /* 자재코드,수량,금액 | 자재코드,수량,금액 | ~~~ */
+        String partList, /* 자재코드,수량,금액 | 자재코드,수량,금액 | ~~~ */
+        String userId,
+        String ogTpCd
     ) {}
 
 }
