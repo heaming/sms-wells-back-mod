@@ -23,6 +23,7 @@ import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <pre>
@@ -43,6 +44,7 @@ public class WsnaItemStockItemizationService {
 
     private final WsnaMonthlyItemStocksService monthlyItemService;
 
+    @Transactional
     public int createStock(WsnaItemStockItemizationReqDvo reqDvo) throws ParseException {
 
         WsnaItemStockItemizationDvo dvo = this.converter
@@ -809,6 +811,7 @@ public class WsnaItemStockItemizationService {
 
     }
 
+    @Transactional
     public int removeStock(WsnaItemStockItemizationReqDvo reqDvo) throws ParseException {
         WsnaItemStockItemizationDvo dvo = this.converter
             .mapWsnaItemStockItemizationReqDvoToWsnaItemStockItemizationDvo(reqDvo);
@@ -1418,6 +1421,7 @@ public class WsnaItemStockItemizationService {
         return processCount;
     }
 
+    @Transactional
     public int saveStockMovement(WsnaItemStockItemizationReqDvo reqDvo) {
         int processCount = 0;
         int movementValue = 0;
