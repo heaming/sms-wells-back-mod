@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
 import java.text.ParseException;
+import java.util.Calendar;
 import java.util.List;
 
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;
@@ -65,7 +66,7 @@ public class WsncTimeTableService {
         String dataStatCd = req.dataStatCd(); //DATA_STUS
         String svBizDclsfCd = req.svBizDclsfCd(); // wrkTypDtl
         String userId = req.userId();
-        String returnurl = req.returnUrl();
+        String returnUrl = req.returnUrl();
 
         String newAdrZip = "";
         String contDt = "";
@@ -164,10 +165,10 @@ public class WsncTimeTableService {
         // Cubig CC DATA_GB 변경할수 없음.
         // 상품코드로 접수구분과 DATA_GB 변경
         if (isHcr && chnlDvCd.equals("C") && svDvCd.equals("1")
-            && (StringUtil.isEmpty(returnurl))) {
+            && (StringUtil.isEmpty(returnUrl))) {
             chnlDvCd = "W";
             svDvCd = "4";
-            returnurl = "http://ccwells.kyowon.co.kr/obm/obm0800/obm0800.jsp";
+            returnUrl = "http://ccwells.kyowon.co.kr/obm/obm0800/obm0800.jsp";
         }
 
         String prtnrNo01 = mapper.selectFnSvpdLocaraPrtnr01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate);
@@ -175,7 +176,7 @@ public class WsncTimeTableService {
         String prtnrNoOwr01 = mapper.selectFnSvpdLocaraPrtnrOwr01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate);
 
         /*test*/
-        prtnrNo01 = StringUtil.nvl(prtnrNo01, "621303");
+        //prtnrNo01 = StringUtil.nvl(prtnrNo01, "621303");
 
         paramDvo.setChnlDvCd(chnlDvCd);
         paramDvo.setSellDate(sellDate);
@@ -202,7 +203,7 @@ public class WsncTimeTableService {
         // 책임지역 담당자 찾기
         // selectTimeAssign_v2_step1
         rpbLocaraPsicDvo = mapper.selectRpbLocaraPsic(paramDvo); // step1_with
-        paramDvo.setPrtnrNo(rpbLocaraPsicDvo.getHmnrscEmpno());
+        paramDvo.setPrtnrNo(rpbLocaraPsicDvo.getIchrPrtnrNo());
         paramDvo.setLocalGb(rpbLocaraPsicDvo.getRpbLocaraCd());
         paramDvo.setVstDowValCd(rpbLocaraPsicDvo.getVstDowValCd());
 
@@ -249,7 +250,7 @@ public class WsncTimeTableService {
         result.setUserId(userId);
         result.setSowDay(sowDay);//pajong_day
         result.setLcst09(lcst09);
-        result.setReturnurl(returnurl);
+        result.setReturnUrl(returnUrl);
         result.setMkCo(paramDvo.getMkCo());//bypass
 
         result.setSidingYn(sidingYn); // 모종여부
@@ -290,7 +291,7 @@ public class WsncTimeTableService {
         log.debug("UserId: {}", result.getUserId());
         log.debug("SowDay: {}", result.getSowDay());
         log.debug("Lcst09: {}", result.getLcst09());
-        log.debug("Returnurl: {}", result.getReturnurl());
+        log.debug("returnUrl: {}", result.getReturnUrl());
         log.debug("MkCo: {}", result.getMkCo());
 
         log.debug(

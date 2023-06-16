@@ -27,7 +27,7 @@ public class WsncTimeTableSalesDvo {
     String newAdrZip;
     String userId;
     String sowDay;
-    String returnurl;
+    String returnUrl;
     String mkCo;
 
     String sidingYn; // 모종 여부
