@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.util.StringUtils;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaMonthlyItemStocksConverter;
@@ -42,6 +43,7 @@ public class WsnaMonthlyItemStocksService {
      * @return
      * @throws ParseException
      */
+    @Transactional
     public int saveMonthlyStock(WsnaMonthlyItemStocksReqDvo reqDvo) throws ParseException {
 
         WsnaMonthlyItemStocksDvo dvo = this.converter.mapWsnaMonthlyItemStocksReqDvoToWsnaMonthlyItemStocksDvo(reqDvo);
@@ -2859,6 +2861,7 @@ public class WsnaMonthlyItemStocksService {
      * @return
      * @throws ParseException
      */
+    @Transactional
     public int removeMonthlyStock(WsnaMonthlyItemStocksReqDvo reqDvo) throws ParseException {
         int processCount = 0;
         WsnaMonthlyItemStocksDvo dvo = this.converter.mapWsnaMonthlyItemStocksReqDvoToWsnaMonthlyItemStocksDvo(reqDvo);
