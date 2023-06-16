@@ -655,7 +655,6 @@
     <insert id="insertAsInstallationAssignHist">
         INSERT INTO TB_SVPD_CST_SVAS_IST_ASN_HIST
              ( CST_SV_ASN_NO
-             , CST_SV_ASN_SN
              , HIST_CH_DTM
              , CNTR_NO
              , CNTR_SN
@@ -697,11 +696,6 @@
               <include refid="COMMON.insertSystemField"/>
              )
         SELECT CST_SV_ASN_NO
-             , (SELECT LPAD(NVL(MAX(CST_SV_ASN_SN),0)+1,3,'0')
-                  FROM TB_SVPD_CST_SVAS_IST_ASN_HIST
-                 WHERE 1=1
-                   AND CST_SV_ASN_NO = #{asnCstSvAsnNo}
-               )
              , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
              , CNTR_NO
              , CNTR_SN
@@ -877,11 +871,6 @@
     <insert id="insertAsInstallationAssignHistByNewKey">
         INSERT INTO TB_SVPD_CST_SVAS_IST_ASN_HIST
         SELECT #{asnCstSvAsnNo}
-             , (SELECT LPAD(NVL(MAX(CST_SV_ASN_SN),0)+1,3,'0')
-                  FROM TB_SVPD_CST_SVAS_IST_ASN_HIST
-                 WHERE 1=1
-                   AND CST_SV_ASN_NO = #{asnCstSvAsnNo}
-               )
              , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
              , E1.CNTR_NO
              , E1.CNTR_SN
