@@ -112,7 +112,6 @@
         INSERT INTO TB_SVPD_CST_SVAS_IST_ASN_HIST (
                CST_SV_ASN_NO
              , HIST_CH_DTM
-             , CST_SV_ASN_SN
              , CNTR_NO
              , CNTR_SN
              , CNTR_CST_NO
@@ -161,9 +160,6 @@
         )
         SELECT CST_SV_ASN_NO
              , FNL_MDFC_DTM AS HIST_CH_DTM
-             , NVL((SELECT MAX(CST_SV_ASN_SN)
-                      FROM TB_SVPD_CST_SVAS_IST_ASN_HIST
-                     WHERE CST_SV_ASN_NO = T1.CST_SV_ASN_NO), 0) + 1
              , CNTR_NO
              , CNTR_SN
              , CNTR_CST_NO
