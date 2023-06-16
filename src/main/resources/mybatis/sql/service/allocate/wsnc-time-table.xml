@@ -740,7 +740,7 @@
                              AND DF_YN IS NULL
                              AND PHLD_YN IS NULL
                              AND ROWNUM = 1)
-               END AS PAJONG_DAY
+               END AS SOW_DAY-- PAJONG_DAY
           FROM (
                     SELECT V1.BASE_Y
                          , V1.BASE_MM
@@ -967,7 +967,8 @@
              , T3.WK_GRP_CD /*작업그룹코드*/
              , OG_CD /*조직코드*/
              , OG_NM /*조직명*/
-             , HMNRSC_EMPNO /*인사사원번호*/
+             --, HMNRSC_EMPNO /*인사사원번호*/
+             , T3.ICHR_PRTNR_NO
              , PRTNR_KNM /*파트너한글명*/
              , #{inflwChnl} AS IN_GB
              , #{chnlDvCd} AS CHNL_DV_CD
@@ -1036,6 +1037,8 @@
          INNER JOIN TB_OGBS_MM_PRTNR_IZ T4
             ON T4.DTA_DL_YN = 'N' /*월파트너내역*/
            AND T4.BASE_YM = SUBSTR(#{sellDate}, 0, 6)
+           AND T4.OG_TP_CD = T3.ICHR_PRTNR_OG_TP_CD
+           AND T4.PRTNR_NO = T3.ICHR_PRTNR_NO
          INNER JOIN TB_SVPD_SV_CLND_BAS C /*서비스달력기본*/
             ON BASE_Y || BASE_MM = T4.BASE_YM
            AND BASE_Y = SUBSTR(#{sellDate}, 1, 4)
@@ -1073,7 +1076,7 @@
 
            <if test='@MybatisUtils@isEmpty(svDvCd)'>
             -- svDvCd is null
-           AND T4.HMNRSC_EMPNO = #{prtnrNo01}
+           AND T3.ICHR_PRTNR_NO = #{prtnrNo01}
            </if>
 
            <if test='@MybatisUtils@isNotEmpty(svDvCd)'>
@@ -1081,25 +1084,25 @@
                <if test='@MybatisUtils@isNotEmpty(chnlDvCd)'>
                  <if test='@MybatisUtils@equals(chnlDvCd, "I")'>
                  -- svDvCd!=2, chnlDvCd = I
-                 AND T4.HMNRSC_EMPNO = #{prtnrNoOwr01}
+                 AND T3.ICHR_PRTNR_NO = #{prtnrNoOwr01}
                  </if>
                  <if test='!@MybatisUtils@equals(chnlDvCd, "I")'>
                    <if test='@MybatisUtils@equals(chnlDvCd, "C")'>
                    -- svDvCd!=2, chnlDvCd = C
-                   AND T4.HMNRSC_EMPNO = (CASE WHEN #{sellDate} = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                   AND T3.ICHR_PRTNR_NO = (CASE WHEN #{sellDate} = TO_CHAR(SYSDATE, 'YYYYMMDD')
                                                THEN #{prtnrNoOwr01}
                                                ELSE #{prtnrNo01}
                                           END)
                    </if>
                    <if test='!@MybatisUtils@equals(chnlDvCd, "C")'>
                    -- svDvCd!=2, chnlDvCd != C
-                   AND T4.HMNRSC_EMPNO = #{prtnrNo01}
+                   AND T3.ICHR_PRTNR_NO = #{prtnrNo01}
                    </if>
                  </if>
                </if>
                <if test='@MybatisUtils@isEmpty(chnlDvCd)'>
                -- svDvCd!=2, chnlDvCd is null
-               AND T4.HMNRSC_EMPNO = #{prtnrNo01}
+               AND T3.ICHR_PRTNR_NO = #{prtnrNo01}
                </if>
              </if>
              <if test='@MybatisUtils@equals(svDvCd, "2")'>
@@ -1107,19 +1110,19 @@
                  <if test='@MybatisUtils@equals(chnlDvCd, "I")'>
                  -- svDvCd=2, chnlDvCd = I
                  /*2021.04.30 최정문파트장님 요청 BS이관기록이 있을경우 담당자 본인 배정 */
-                 AND T4.HMNRSC_EMPNO = (SELECT CASE WHEN (ASN_TF_DV_CD IS NOT NULL AND ASN_TF_DV_CD != '411') THEN CNFM_PSIC_PRTNR_NO /*확정담당자파트너번호*/
+                 AND T3.ICHR_PRTNR_NO = (SELECT CASE WHEN (ASN_TF_DV_CD IS NOT NULL AND ASN_TF_DV_CD != '411') THEN CNFM_PSIC_PRTNR_NO /*확정담당자파트너번호*/
                                                    ELSE #{prtnrNoBS01} END
                                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*고객서비스BS배정내역*/
                                         WHERE CST_SV_ASN_NO = #{cstSvAsnNo})
                  </if>
                  <if test='!@MybatisUtils@equals(chnlDvCd, "I")'>
                  -- svDvCd=2, chnlDvCd != I
-                 AND T4.HMNRSC_EMPNO = #{prtnrNoBS01}
+                 AND T3.ICHR_PRTNR_NO = #{prtnrNoBS01}
                  </if>
                </if>
                <if test='@MybatisUtils@isEmpty(chnlDvCd)'>
                -- svDvCd=2, chnlDvCd is null
-               AND T4.HMNRSC_EMPNO = #{prtnrNoBS01}
+               AND T3.ICHR_PRTNR_NO = #{prtnrNoBS01}
                </if>
              </if>
            </if>
@@ -1211,11 +1214,14 @@
         INNER JOIN TB_OGBS_MM_OG_IZ OG2 /*월조직내역*/
            ON OG1.BASE_YM = OG2.BASE_YM
           AND OG1.OG_ID = OG2.OG_ID
+          AND OG2.OG_TP_CD = 'W06'
         INNER JOIN TB_OGBS_PRTNR_BAS OG3
            ON OG1.PRTNR_NO = OG3.PRTNR_NO
+          AND OG3.OG_TP_CD = 'W06'
          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS OG4
            ON OG2.HOO_PRTNR_NO = OG4.PRTNR_NO
           AND OG2.OG_ID = OG4.OG_ID
+          AND OG4.OG_TP_CD = 'W06'
          LEFT OUTER JOIN (SELECT RPB_LOCARA_CD
                                , WK_GRP_CD
                                , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('1', '7') THEN WKD_FRNN_ASN_LIM_CT
@@ -1246,7 +1252,8 @@
                                      AND AC151.RCP_HH_DV_CD = 'R')
                            WHERE RN = 1) AC151_2 ON 1=1
         WHERE OG1.BASE_YM = TO_CHAR(SYSDATE, 'yyyyMM')
-          AND OG1.PRTNR_NO = #{hmnrscEmpno}
+          AND OG1.PRTNR_NO = #{ichrPrtnrNo}
+          AND OG1.OG_TP_CD = 'W06'
     </select>
 
     <select id="selectAssignTime" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableAssignTimeDvo">
