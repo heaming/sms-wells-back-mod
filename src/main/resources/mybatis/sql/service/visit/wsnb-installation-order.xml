@@ -1,0 +1,99 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbInstallationOrderMapper">
+
+    <select id="selectContractByPk" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractReqDvo">
+        SELECT C4.RCGVP_KNM
+             , S1.PDCT_PD_CD /* 제품상품코드 */
+             , P2.PD_PRP_VAL20 AS PDCT_PD_GRP_CD
+             , C2.SELL_TP_CD
+          FROM TB_SSCT_CNTR_BAS C1
+         INNER JOIN TB_SSCT_CNTR_DTL C2
+            ON C1.CNTR_NO = C2.CNTR_NO
+         INNER JOIN TB_SSCT_CNTR_ADR_REL C3
+            ON C2.CNTR_NO = C3.DTL_CNTR_NO
+           AND C2.CNTR_SN = C3.DTL_CNTR_SN
+           AND C3.ADRPC_TP_CD = '3'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C4
+            ON C3.CNTR_ADRPC_ID = C4.CNTR_ADRPC_ID
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S1
+            ON C2.CNTR_NO = S1.CNTR_NO
+           AND C2.CNTR_SN = S1.CNTR_SN
+         INNER JOIN TB_PDBS_PD_BAS P1
+            ON C2.BASE_PD_CD = P1.PD_CD
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P2
+            ON S1.PDCT_PD_CD = P2.PD_CD
+           AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND P2.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND C2.CNTR_NO = #{cntrNo}
+           AND C2.CNTR_SN = ${cntrSn}
+    </select>
+
+    <select id="selectTaskProgStat" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbTaskProgStatDvo">
+        SELECT SUM(CASE WHEN S1.WK_ACPTE_STAT_CD = 'Y' AND S1.WK_PRGS_STAT_CD IN ('00', '10') THEN 1 ELSE 0 END) AS ACPTE_CT /* 수락된오더 건수 */
+             , SUM(CASE WHEN S1.VST_CNFMDT = TO_CHAR(SYSDATE, 'YYYYMMDD') AND S1.WK_PRGS_STAT_CD IN ('00', '10') THEN 1 ELSE 0 END) AS VST_CNFM_CT /* 당일방문예정오더 건수 */
+             , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD != '3130' AND S1.WK_PRGS_STAT_CD IN ('20') THEN 1 ELSE 0 END) AS FSH_CT /* 완료건수(설치환경점검은 제외) */
+          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S1
+         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ S2
+            ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
+         WHERE 1 = 1
+           AND S1.CNTR_NO = #{cntrNo}
+           AND S1.CNTR_SN = ${cntrSn}
+    </select>
+
+    <select id="selectOjContract" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbOjContractDvo">
+        SELECT C1.OJ_DTL_CNTR_NO AS CNTR_NO
+             , C1.OJ_DTL_CNTR_SN AS CNTR_SN
+          FROM TB_SSCT_CNTR_REL C1
+         WHERE 1 = 1
+           AND C1.CNTR_REL_DTL_CD = #{relDtlCd} /* 216 :모종결합, 221: 홈케어멤버십 */
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C1.VL_STRT_DTM AND C1.VL_END_DTM
+           AND C1.DTA_DL_YN = 'N'
+           AND C1.BASE_DTL_CNTR_NO = #{cntrNo}
+           AND C1.BASE_DTL_CNTR_SN = ${cntrSn}
+    </select>
+
+    <select id="selectSeedingCstSvAsnNos" resultType="java.lang.String">
+        SELECT S1.CST_SV_ASN_NO AS SIDING_CST_SV_ASN_NO
+          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S1
+         WHERE 1 = 1
+           AND S1.CNTR_NO = #{sidingCntrNo}
+           AND S1.CNTR_SN = ${sidingCntrSn}
+    </select>
+
+    <insert id="insertAsIstCancel">
+        INSERT INTO TB_SVPD_AS_IST_CAN_IZ ( /* AS설치취소내역 */
+               SV_BIZ_HCLSF_CD /* 서비스업무대분류코드 */
+             , IN_CHNL_DV_CD   /* 입력채널구분코드 */
+             , CNTR_NO         /* 계약번호 */
+             , CNTR_SN         /* 계약일련번호 */
+             , DTA_DL_YN       /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{svBizHclsfCd}
+             , #{inChnlDvCd}
+             , #{cntrNo}
+             , ${cntrSn}
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />)
+    </insert>
+
+    <delete id="deleteIstAsnIz">
+        UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ /* 고객서비스AS설치배정내역 */
+           SET DTA_DL_YN = 'Y'
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = ${cntrSn}
+    </delete>
+
+    <delete id="deleteIstOjIz">
+        UPDATE TB_SVPD_CST_SVAS_IST_OJ_IZ /* 고객서비스AS설치대상내역 */
+           SET DTA_DL_YN = 'Y'
+         WHERE 1 = 1
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = ${cntrSn}
+    </delete>
+
+</mapper>

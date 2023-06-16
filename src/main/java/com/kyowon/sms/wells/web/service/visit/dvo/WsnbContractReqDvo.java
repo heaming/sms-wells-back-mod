@@ -29,4 +29,5 @@ public class WsnbContractReqDvo {
     String pdctPdCd; /* pdCd */
     String pdctPdGrpCd; /**/
     String pdctPdSize; /**/
+    String sellTpCd; /* 판매유형코드 */
 }
