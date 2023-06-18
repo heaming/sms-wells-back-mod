@@ -35,11 +35,11 @@
              , C2.CNTR_SN
              , A1.NEW_ADR_ZIP AS ADR_ZIP -- 우편번호
              , C2.BASE_PD_CD -- 기준상품코드
-             , P1.PD_NM AS BASE_PD_NM -- 기준상품코드
-             , S1.PDCT_PD_CD -- 제품상품코드
-             , P2.PD_NM AS PDCT_PD_NM  -- 제품상품코드
-             , P3.PD_PRP_VAL20 AS PD_GRP_CD
-             , F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', P3.PD_PRP_VAL20) AS PD_GRP_NM
+             , P2.PD_NM AS BASE_PD_NM -- 기준상품코드
+             , P1.OJ_PD_CD AS PDCT_PD_CD-- 제품상품코드
+             , P3.PD_NM AS PDCT_PD_NM  -- 제품상품코드
+             , P4.PD_PRP_VAL20 AS PD_GRP_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', P4.PD_PRP_VAL20) AS PD_GRP_NM
              , C2.CNTR_PD_STRTDT AS CNTR_DT
              , C1.COPN_DV_CD -- 법인격구분코드 (1개인, 2법인)
           FROM TB_SSCT_CNTR_BAS C1
@@ -54,20 +54,19 @@
             ON C3.CNTR_ADRPC_ID = C4.CNTR_ADRPC_ID
     INNER JOIN TB_GBCO_ADR_BAS A1
             ON C4.ADR_ID = A1.ADR_ID
-    INNER JOIN TB_SVPD_CST_SV_EXCN_IZ S1
-            ON C2.CNTR_NO = S1.CNTR_NO
-           AND C2.CNTR_SN = S1.CNTR_SN
-    INNER JOIN TB_PDBS_PD_BAS P1
-            ON C2.BASE_PD_CD = P1.PD_CD
+    INNER JOIN TB_PDBS_PD_REL P1
+            ON C2.BASE_PD_CD = P1.BASE_PD_CD
+           AND P1.PD_REL_TP_CD IN ('05', '18')
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN P1.VL_STRT_DTM AND P1.VL_END_DTM
     INNER JOIN TB_PDBS_PD_BAS P2
-            ON S1.PDCT_PD_CD = P2.PD_CD
-    INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P3
-            ON S1.PDCT_PD_CD = P3.PD_CD
-           AND P3.PD_EXTS_PRP_GRP_CD = 'PART'
+            ON P1.BASE_PD_CD = P2.PD_CD
+    INNER JOIN TB_PDBS_PD_BAS P3
+            ON P1.OJ_PD_CD = P3.PD_CD
+    INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P4
+            ON P1.OJ_PD_CD = P4.PD_CD
+           AND P4.PD_EXTS_PRP_GRP_CD = 'PART'
          WHERE C2.CNTR_NO = #{cntrNo}
-           <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
            AND C2.CNTR_SN = #{cntrSn}
-           </if>
     </select>
 
     <select id="selectProduct" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableProductDvo">
