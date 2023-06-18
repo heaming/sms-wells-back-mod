@@ -1135,14 +1135,7 @@
              , OG2.OG_NM AS AC125_DEPT_NM
              , OG2.OG_ID AS AC125_DEPT_CD
              , OG1.PRTNR_KNM AS AC021_EMP_NM
-             , (CASE WHEN OG1.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '1' THEN '정규직'
-                     WHEN OG1.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '2' AND OG1.PSTN_DV_CD /*직급구분*/ = '86' THEN '직무사원(1급)'
-                     WHEN OG1.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '2' AND OG1.PSTN_DV_CD /*직급구분*/ = '87' THEN '직무사원(2급)'
-                     WHEN OG1.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '2' AND OG1.PSTN_DV_CD /*직급구분*/ = '88' THEN '직무사원(3급)'
-                     WHEN OG1.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '6' THEN '계약직'
-                     WHEN OG1.HIR_FOM_CD /*사원구분 EMP_DV_CD*/ = '7' THEN '개인사업'
-                     ELSE ''
-                END) AS ISCGUB_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'PRTNR_GD_CD', OG1.PRTNR_GD_CD) AS ISCGUB_NM
              , AC151_2.DEG_NM
              , AC151_2.AM_WRK_CNT
              , AC151_2.PM_WRK_CNT
