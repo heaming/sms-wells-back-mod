@@ -24,7 +24,7 @@ public class WsncTimeTableSalesDto {
         String cntrNo,
         String cntrSn,
 
-        String inGb,
+        String inflwChnl,
         String basePdCd, // GDS_CD
         String wrkDt,
         String dataStatCd, // DATA_STUS
@@ -37,7 +37,7 @@ public class WsncTimeTableSalesDto {
     public record FindRes(
         String dowDvCd,
         String svBizDclsfCd, //wrkTypDtl
-        String inflwChnl, // inGb
+        String inflwChnl, // inflwChnl
         String chnlDvCd, //gbCd
         String svDvCd, //dataGb
         String cntrNo,
@@ -50,10 +50,15 @@ public class WsncTimeTableSalesDto {
         String basePdCd,
         String lcst09,
         String newAdrZip,
-        String userId,
         String sowDay,
         String returnUrl,
         String mkCo,
+
+        String userId,
+        String rcpOgTpCd,
+
+        String prtnrNo,
+        String ogTpCd,
 
         String sidingYn,// 모종 여부
         String spayYn,// 일시불여부

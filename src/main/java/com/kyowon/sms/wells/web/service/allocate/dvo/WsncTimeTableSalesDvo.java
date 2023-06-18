@@ -25,10 +25,15 @@ public class WsncTimeTableSalesDvo {
     String basePdCd;
     String lcst09;
     String newAdrZip;
-    String userId;
     String sowDay;
     String returnUrl;
     String mkCo;
+
+    String userId;
+    String rcpOgTpCd;
+
+    String prtnrNo;
+    String ogTpCd;
 
     String sidingYn; // 모종 여부
     String spayYn; // 일시불여부

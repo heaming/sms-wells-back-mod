@@ -5,6 +5,8 @@ import java.util.Calendar;
 import java.util.List;
 
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncTimeTableConverter;
@@ -65,14 +67,14 @@ public class WsncTimeTableService {
         String wrkDt = req.wrkDt(); // P_WRK_DT
         String dataStatCd = req.dataStatCd(); //DATA_STUS
         String svBizDclsfCd = req.svBizDclsfCd(); // wrkTypDtl
-        String userId = req.userId();
+        //String userId = req.userId();
         String returnUrl = req.returnUrl();
 
         String newAdrZip = "";
         String contDt = "";
         String sellDate = StringUtil.isEmpty(req.sellDate()) ? DateUtil.getNowDayString() : req.sellDate();
-        String basePdCd = ""; // basePdCd
-        String pdctPdCd = ""; // basePdCd
+        String basePdCd = "";
+        String pdctPdCd = "";
         String sidingYn = "N";
         String spayYn = "N";
 
@@ -105,11 +107,9 @@ public class WsncTimeTableService {
         //                basePdCd = sidingCd;
         //            }
 
-        WsncTimeTableCntrDvo contractDvo = mapper.selectContract(cntrNo, cntrSn)
-            .orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
+        WsncTimeTableCntrDvo contractDvo = mapper.selectContract(cntrNo, cntrSn).orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
 
-        WsncTimeTableProductDvo productDvo = mapper
-            .selectProduct(contractDvo.getBasePdCd(), contractDvo.getPdctPdCd());
+        WsncTimeTableProductDvo productDvo = mapper.selectProduct(contractDvo.getBasePdCd(), contractDvo.getPdctPdCd());
 
         basePdCd = contractDvo.getBasePdCd();
         pdctPdCd = contractDvo.getPdctPdCd();
@@ -206,6 +206,7 @@ public class WsncTimeTableService {
         paramDvo.setPrtnrNo(rpbLocaraPsicDvo.getIchrPrtnrNo());
         paramDvo.setLocalGb(rpbLocaraPsicDvo.getRpbLocaraCd());
         paramDvo.setVstDowValCd(rpbLocaraPsicDvo.getVstDowValCd());
+        paramDvo.setOgTpCd(rpbLocaraPsicDvo.getOgTpCd());
 
         // 담당자 정보 표시 (왼쪽)
         // selectTimeAssign_v2_step2
@@ -247,14 +248,22 @@ public class WsncTimeTableService {
         result.setDataStatCd(dataStatCd);
         result.setSvBizDclsfCd(svBizDclsfCd);
         result.setBasePdCd(basePdCd);
-        result.setUserId(userId);
+        //result.setUserId(userId);
         result.setSowDay(sowDay);//pajong_day
         result.setLcst09(lcst09);
         result.setReturnUrl(returnUrl);
         result.setMkCo(paramDvo.getMkCo());//bypass
+        result.setPrtnrNo(paramDvo.getPrtnrNo());
+        result.setOgTpCd(paramDvo.getOgTpCd());
+        result.setWrkDt(wrkDt);
 
         result.setSidingYn(sidingYn); // 모종여부
         result.setSpayYn(spayYn); // 일시불여부
+
+
+        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+        result.setUserId(session.getEmployeeIDNumber());
+        result.setRcpOgTpCd(session.getOgTpCd());
 
         for (WsncTimeTableAssignTimeDvo assignTime : assignTimeDvos) {
 
@@ -293,6 +302,7 @@ public class WsncTimeTableService {
         log.debug("Lcst09: {}", result.getLcst09());
         log.debug("returnUrl: {}", result.getReturnUrl());
         log.debug("MkCo: {}", result.getMkCo());
+        log.debug("prtnrNo: {}", result.getPrtnrNo());
 
         log.debug(
             "offDays: {}", result.getOffDays() != null ? result.getOffDays().toArray().toString() : "offDays is null"
