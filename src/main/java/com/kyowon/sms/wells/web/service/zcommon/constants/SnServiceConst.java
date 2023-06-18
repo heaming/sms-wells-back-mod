@@ -92,4 +92,23 @@ public class SnServiceConst {
     public static final String IN_CHNL_DV_CD_KMEMBERS = "5";
     //자동생성
     public static final String IN_CHNL_DV_CD_AUTO = "9";
+
+    // 서비스업무대분류코드 SV_BIZ_HCLSF_CD "4" (홈케어)
+    public static final String SV_BIZ_HCLSF_CD_HOME_CARE = "4";
+
+    // 서비스업무대분류코드 SV_BIZ_HCLSF_CD "9" (삭제)
+    public static final String SV_BIZ_HCLSF_CD_DEL = "9";
+
+    // 서비스업무중분류코드 SV_BIZ_MCLSF_CD "11" (설치)
+    public static final String SV_BIZ_MCLSF_CD_IST = "11";
+
+    // 서비스업무중분류코드 SV_BIZ_MCLSF_CD "41" (신규)
+    public static final String SV_BIZ_MCLSF_CD_NEW = "41";
+
+    // 상품그룹코드(PG_GRP_CD) "11" (웰스팜모종)
+    public static final String PG_GRP_CD_WELLS_SEEDING = "11";
+
+    // 상품그룹코드(PG_GRP_CD) "92" (웰스팜)
+    public static final String PG_GRP_CD_WELLS_FARM = "92";
+
 }
