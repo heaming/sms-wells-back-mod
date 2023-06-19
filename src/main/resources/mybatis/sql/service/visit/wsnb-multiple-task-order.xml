@@ -196,6 +196,7 @@
                                                                                                                         AND I2.WK_PRGS_STAT_CD = '00'
                                                                                                                         AND I1.DTA_DL_YN       = 'N'
                                                                                                                         AND I1.CNTR_NO         = #{cntrNo}
+                                                                                                                        AND I1.CNTR_SN         = #{cntrSn}
                                                                                                                     )
                      WHEN #{rcpdt} IS NULL THEN TO_CHAR(SYSDATE, 'YYYYMMDD')
                      ELSE #{rcpdt}
