@@ -114,7 +114,7 @@
           AND O1.SV_BIZ_DCLSF_CD LIKE (CASE WHEN #{newSvBizDclsfCd} LIKE '11%' THEN SUBSTR(#{newSvBizDclsfCd},1,2) --설치
                                             WHEN #{newSvBizDclsfCd} != '3124' AND #{newSvBizDclsfCd} LIKE '31%' THEN SUBSTR(#{newSvBizDclsfCd},1,2) --전기레인지
                                             WHEN #{newSvBizDclsfCd} = '3124' THEN #{newSvBizDclsfCd} --전기레인지 상판교체
-                                            WHEN #{newSvBizDclsfCd} LKE '32%' THEN SUBSTR(#{newSvBizDclsfCd},1,2) --교체
+                                            WHEN #{newSvBizDclsfCd} LIKE '32%' THEN SUBSTR(#{newSvBizDclsfCd},1,2) --교체
                                             WHEN #{newSvBizDclsfCd} LIKE '331%' THEN SUBSTR(#{newSvBizDclsfCd},1,3)    --이전분리
                                             WHEN #{newSvBizDclsfCd} LIKE '332%' THEN SUBSTR(#{newSvBizDclsfCd},1,3)    --이전재설치
                                             WHEN #{newSvBizDclsfCd} LIKE '34%' THEN SUBSTR(#{newSvBizDclsfCd},1,2)    --철거
@@ -212,7 +212,7 @@
 	                                                                                                                       AND I2.WK_PRGS_STAT_CD = '00'
 	                                                                                                                       AND I1.DTA_DL_YN       = 'N'
 	                                                                                                                       AND I1.CNTR_NO         = #{cntrNo}
-                                                                                                                       ))
+                                                                                                                       )
                      WHEN #{asIstOjNo} IS NULL THEN LPAD(SQ_SVPD_CST_SVAS_IST_OJ_IZ$AS_IST_OJ_NO.NEXTVAL,5,'0')
                      ELSE SUBSTR(#{asIstOjNo},16)
                  END) AS NEW_REQ
@@ -291,7 +291,14 @@
              , T3.RNADR AS IST_ADR /*도로명주소*/
              , T3.RDADR AS IST_DTL_ADR /*도로명상세주소*/
              , 'N' AS DTA_DL_YN
-             <include refid="COMMON.updateSystemField"/>
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , #{session.userId}
+             , #{session.pageId}
+             , NVL(#{session.ogId}, 'NULL')
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , #{session.userId}
+             , #{session.pageId}
+             , NVL(#{session.ogId}, 'NULL')
           FROM TB_SVPD_CST_SV_EXCN_IZ A
          INNER JOIN TB_SSCT_CNTR_DTL C0 /*계약상세*/
             ON C0.CNTR_NO   = A.CNTR_NO
@@ -428,11 +435,11 @@
     </select>
     <insert id="insertInstallationObject">
         INSERT INTO TB_SVPD_CST_SVAS_IST_OJ_IZ
-        SELECT #{newAsIstOjNo} AS AS_IST_OJ_NO
+SELECT #{newAsIstOjNo} AS AS_IST_OJ_NO
              , A.CNTR_NO AS CNTR_NO
              , A.CNTR_SN AS CNTR_SN
              , C1.CNTR_CST_NO AS CNTR_CST_NO
-             , C4.ADR_ID AS ADR_ID
+             , C3.CNTR_ADRPC_ID AS CNTR_ADRPC_ID
              , #{newInChnlDvCd} AS IN_CHNL_DV_CD
              , #{newSvBizHclsfCd} AS SV_BIZ_HCLSF_CD
              , #{newSvBizDclsfCd} AS SV_BIZ_DCLSF_CD
@@ -490,12 +497,20 @@
                                                         END)
                      ELSE REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
                END) AS CNSL_MO_CN /*상담메모내용*/
-             , O.CRAL_LOCARA_TNO
-             , O.MEXNO_ENCR
-             , O.CRAL_IDV_TNO
              , C4.RCGVP_KNM AS ISTLL_KNM /*설치고객명*/
+             , C4.ADR_DV_CD AS ADR_DV_CD /*주소구분(지번/도로명)*/
+             , T3.RNADR AS IST_ADR /*도로명주소*/
+             , T3.RDADR AS IST_DTL_ADR /*도로명상세주소*/
+             , C4.ADR_ID AS ADR_ID
              , 'N' AS DTA_DL_YN
-             <include refid="COMMON.updateSystemField"/>
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FST_RGST_DTM
+             , #{session.userId} AS FST_RGST_USR_ID
+             , #{session.pageId} AS FST_RGST_PRG_ID
+             , NVL(#{session.ogId}, 'NULL') AS FST_RGST_DEPT_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
+             , #{session.userId} AS FNL_MDFC_USR_ID
+             , #{session.pageId} AS FNL_MDFC_PRG_ID
+             , NVL(#{session.ogId}, 'NULL') AS FNL_MDFC_DEPT_ID
           FROM TB_SVPD_CST_SV_EXCN_IZ A
          INNER JOIN TB_SSCT_CNTR_DTL C0 /*계약상세*/
             ON C0.CNTR_NO   = A.CNTR_NO
@@ -561,7 +576,7 @@
     </update>
     <update id="updateInstallationObjectDtaStatCd">
         UPDATE TB_SVPD_CST_SVAS_IST_OJ_IZ
-           SET A1.MTR_STAT_CD = #{dtaStatCd}
+           SET MTR_STAT_CD = #{dtaStatCd}
               <include refid="COMMON.updateSystemField"/>
          WHERE AS_IST_OJ_NO   = #{newAsIstOjNo}
     </update>
@@ -578,7 +593,7 @@
               <include refid="COMMON.insertSystemField"/>
              )
         VALUES
-             ( 'SVS' || LPAD(SQ_SVPD_SDING_PRCHS_IZ_TEMP$SDING_PRCHS_PROCS_ID, 12, '0')
+             ( 'SVS' || LPAD(SQ_SVPD_SDING_PRCHS_IZ_TEMP$SDING_PRCHS_PROCS_ID.NEXTVAL, 12, '0')
              , #{part}
               <include refid="COMMON.insertSystemFieldValue"/>
              )
@@ -629,7 +644,7 @@
                     SELECT MAX(ITM_SN) + 1
                       FROM TB_SVPD_CST_SVAS_PU_ITM_IZ
                      WHERE 1=1
-                       AND CST_SV_ASN_NO = #{#{puCstSvAsnNo}}), '1')
+                       AND CST_SV_ASN_NO = #{puCstSvAsnNo}), '1')
              , #{itmKndCd}
              , #{partCd}
              , #{partQty}
@@ -920,6 +935,7 @@
              , ''
              , ''
              , ''
+             , ''
              , 'N'
               <include refid="COMMON.insertSystemFieldValue"/>
           FROM TB_SVPD_CST_SV_EXCN_IZ E1
@@ -1009,10 +1025,10 @@
              , OSTR_DUEDT
              , OSTR_CNFMDT
              , DTA_DL_YN
-              <include refid="COMMON.insertSystemField"/>
+             <include refid="COMMON.insertSystemField"/>
              )
         VALUES
-             ( #{cntrNO}
+             ( #{cntrNo}
              , #{cntrSn}
              , #{newSvBizHclsfCd}
              , #{newSvBizDclsfCd}
@@ -1025,15 +1041,15 @@
              , ''
              , ''
              , '2'
-             , (CASE WHEN #{saleNm} LIKE '새싹%' THEN (SELECT OG_TP_CD
-                                                        FROM TB_OGBS_MM_PRTNR_IZ
-                                                       WHERE BASE_YM   = TO_CHAR(SYSDATE, 'YYYYMM')
-                                                         AND PRTNR_NO  = '28714'
-                                                         AND DTA_DL_YN = 'N')
-                     WHEN #{expMat} = 0 OR (#{sidingExpMat} IS NOT NULL AND #{sidingExpMat} > 0) THEN #{ichrOgTpCd}
+             , (CASE WHEN #{expMat} = 0 OR (#{sidingExpMat} IS NOT NULL AND #{sidingExpMat} > 0) THEN #{ichrOgTpCd}
+                     ELSE (SELECT OG_TP_CD
+                             FROM TB_OGBS_MM_PRTNR_IZ
+                            WHERE BASE_YM   = TO_CHAR(SYSDATE, 'YYYYMM')
+                              AND PRTNR_NO  = '28714'
+                              AND DTA_DL_YN = 'N') END
                ) /*택배발송이라면 담당자를 최진아 사원의 조직유형으로 변경*/
-             , (CASE WHEN #{saleNm} LIKE '새싹%' THEN '28714'
-                     WHEN #{expMat} = 0 OR (#{sidingExpMat} IS NOT NULL AND #{sidingExpMat} > 0) THEN #{ichrPrtnrNo}
+             , (CASE WHEN #{expMat} = 0 OR (#{sidingExpMat} IS NOT NULL AND #{sidingExpMat} > 0) THEN #{ichrPrtnrNo}
+                     ELSE '28714' END
                ) /*택배발송이라면 담당자를 최진아 사원으로 변경*/
              , (CASE WHEN #{expMat} = 0 OR (#{expMatSum} IS NOT NULL AND #{expMatSum} = 0) THEN '1' ELSE '2' END)
              , NVL(#{expMatSum}, 0)
@@ -1046,6 +1062,7 @@
                  END)
               , #{vstDtChk}
               , ''
+              , 'N'
               <include refid="COMMON.insertSystemFieldValue"/>
              )
     </insert>
