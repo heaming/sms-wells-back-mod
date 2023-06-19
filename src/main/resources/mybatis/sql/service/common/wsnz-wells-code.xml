@@ -127,6 +127,7 @@
     <select id="selectWareHouses" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeWareHouseDvo">
         SELECT DISTINCT WARE_NO
                       , WARE_NM || '('||CASE WHEN WARE_USE_YN = 'Y' THEN '사용' ELSE '미사용' END||')' AS WARE_NM
+                      , WARE_USE_YN
           FROM TB_SVST_MCBY_WARE_IZ
          WHERE APY_YM BETWEEN SUBSTR(#{startYm}, 1, 6) AND SUBSTR(#{endYm}, 1, 6)
            AND WARE_DV_CD = #{wareDvCd} --  (위의 창고구분을 선택값으로 받아서 사용)
@@ -153,7 +154,7 @@
             </when>
         </choose>
 
-         ORDER BY WARE_NM ASC, WARE_NO ASC
+         ORDER BY WARE_USE_YN DESC, WARE_NM ASC, WARE_NO ASC
     </select>
 
     <select id="selectMonthStocks" resultType="com.kyowon.sms.wells.web.service.common.dvo.WsnzWellsCodeMonthStockDvo">
