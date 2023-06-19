@@ -107,7 +107,7 @@ public class WsnbMultipleTaskOrderService {
         }
 
         /* 고객명이 없으면 구한다. */
-        if (dvo.getRcgvpKnm().trim().length() == 0) {
+        if (StringUtils.isEmpty(dvo.getRcgvpKnm())) {
             dvo.setNewRcgvpKnm(contractReqDvo.getRcgvpKnm());
         } else {
             dvo.setNewRcgvpKnm(dvo.getRcgvpKnm());
@@ -245,7 +245,7 @@ public class WsnbMultipleTaskOrderService {
         if (!(StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "7"))) {
             /* 받아온 접수키가 존재하는데 P_DATA_STUS 수정(2)이나 취소(3)가 아닌경우 에러 로그 TB_SVPD_CST_SVAS_IST_OJ_ERR_IZ에 저장 */
             if (!SnServiceConst.IN_CHNL_DV_CD_CST.equals(dvo.getInChnlDvCd().trim())
-                && dvo.getAsIstOjNo().trim().length() > 0
+                && StringUtils.isNotEmpty(dvo.getAsIstOjNo())
                 && SnServiceConst.DTA_STAT_CD_NEW.equals(dvo.getDtaStatCd())) {
                 processCount += mapper.insertInstallationObjectError(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_ERR_IZ */
             } else if (SnServiceConst.DTA_STAT_CD_NEW.equals(dvo.getDtaStatCd())) {
