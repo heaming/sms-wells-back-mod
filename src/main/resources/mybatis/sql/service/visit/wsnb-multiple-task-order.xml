@@ -59,14 +59,14 @@
             ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
            AND S2.DTA_DL_YN = 'N'
          WHERE 1 = 1
-           AND S1.AS_IST_OJ_NO = #{asIstOjNo}
+           AND S2.AS_IST_OJ_NO = #{asIstOjNo}
     </select>
     <select id="selectAsAssignOganizationByPk" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo">
         SELECT A2.OG_ID AS ICHR_CNR_CD
              , A2.PRTNR_NO AS ICHR_PRTNR_NO
              , A2.OG_TP_CD AS ICHR_OG_TP_CD
              , A1.RPB_LOCARA_CD
-          FROM (SELECT FN_SVPD_LOCARA_PRTNR_01(TRIM(T3.NEW_ADR_ZIP), T1.PD_CD, #{newSvBizDclsfCd}, NVL(#{vstRqdt}, TO_CHAR(SYSDATE, 'YYYYMMDD'))) AS PRTNR_NO
+          FROM (SELECT FN_SVPD_LOCARA_PRTNR_01(TRIM(T2.NEW_ADR_ZIP), T1.PD_CD, #{newSvBizDclsfCd}, NVL(#{vstRqdt}, TO_CHAR(SYSDATE, 'YYYYMMDD'))) AS PRTNR_NO
                      , (SELECT I2.RPB_LOCARA_CD
                           FROM TB_SVPD_EGER_ASN_ADR_IZ I1
                          INNER JOIN TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ I2
@@ -76,7 +76,7 @@
                            AND I1.LAWC_EMD_NM  = I2.LAWC_EMD_NM
                            AND I1.AMTD_NM      = I2.AMTD_NM
                            AND NVL(#{vstRqdt}, TO_CHAR(SYSDATE, 'YYYYMMDD')) BETWEEN I2.APY_STRTDT AND I2.APY_ENDDT
-                           AND I2.ADR_ORD_NO   = (SELECT MAX(ADR_ORD_NO)
+                           AND I2.ADR_ODR_NO   = (SELECT MAX(ADR_ODR_NO)
                                                     FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ
                                                    WHERE FR2P_LGLD_CD = I2.FR2P_LGLD_CD
                                                      AND CTPV_NM      = I2.CTPV_NM
@@ -92,13 +92,13 @@
                  INNER JOIN TB_GBCO_ADR_BAS T2 /*주소기본*/
                     ON T1.ADR_ID = T2.ADR_ID
                    AND T2.DTA_DL_YN = 'N'
-                 WHERE I1.AS_IST_OJ_NO = #{newAsIstOjNo}
+                 WHERE T1.AS_IST_OJ_NO = #{newAsIstOjNo}
                ) A1
            INNER JOIN TB_OGBS_MM_PRTNR_IZ A2
               ON BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
              AND DTA_DL_YN = 'N'
              AND A1.PRTNR_NO = A2.PRTNR_NO
-             AND A1.OG_TP_CD = 'W06'
+             AND A2.OG_TP_CD = 'W06'
     </select>
     <select id="selectAsAssignCountByPk" resultType="int">
         SELECT COUNT(1)
@@ -258,7 +258,7 @@
              , (SELECT OG_ID
                   FROM TB_OGBS_PRTNR_BAS
                  WHERE 1=1
-                   AND PRTNR_NO = FN_SVPD_LOCARA_PRTNR_02(TRIM(T3.NEW_ADR_ZIP), PDCT_PD_CD, #{newSvBizDclsfCd}, NVL(#{vstRqdt}, TO_CHAR(SYSDATE, 'YYYYMMDD')))) AS SV_CNR_OG_ID /*서비스센터조직ID*/
+                   AND PRTNR_NO = FN_SVPD_LOCARA_PRTNR_01(TRIM(T3.NEW_ADR_ZIP), PDCT_PD_CD, #{newSvBizDclsfCd}, NVL(#{vstRqdt}, TO_CHAR(SYSDATE, 'YYYYMMDD')))) AS SV_CNR_OG_ID /*서비스센터조직ID*/
              , #{mtrStatCd} AS MTR_STAT_CD /*자료상태코드*/
              , A.PDCT_PD_CD AS PD_CD /*상품코드*/
              , C0.PD_GD_CD AS PD_GD_CD /*상품등급코드*/
@@ -393,8 +393,8 @@
 		    ON A1.CNTR_NO = A2.CNTR_NO
            AND A1.CNTR_SN = A2.CNTR_SN
          INNER JOIN TB_SSCT_CNTR_DTL C0 /*계약상세*/
-            ON C0.CNTR_NO   = A.CNTR_NO
-           AND C0.CNTR_SN   = A.CNTR_SN
+            ON C0.CNTR_NO   = A1.CNTR_NO
+           AND C0.CNTR_SN   = A1.CNTR_SN
            AND C0.DTA_DL_YN = 'N'
          INNER JOIN TB_SSCT_CNTR_WELLS_DTL C9 /*계약WELLS상세*/
             ON C9.CNTR_NO = C0.CNTR_NO
@@ -432,7 +432,7 @@
              , A.CNTR_NO AS CNTR_NO
              , A.CNTR_SN AS CNTR_SN
              , C1.CNTR_CST_NO AS CNTR_CST_NO
-             , A.ADR_ID AS ADR_ID
+             , C4.ADR_ID AS ADR_ID
              , #{newInChnlDvCd} AS IN_CHNL_DV_CD
              , #{newSvBizHclsfCd} AS SV_BIZ_HCLSF_CD
              , #{newSvBizDclsfCd} AS SV_BIZ_DCLSF_CD
@@ -465,7 +465,7 @@
              , (SELECT OG_ID
                   FROM TB_OGBS_PRTNR_BAS
                  WHERE 1=1
-                   AND PRTNR_NO = FN_SVPD_LOCARA_PRTNR_02(TRIM(T3.NEW_ADR_ZIP), PDCT_PD_CD, #{newSvBizDclsfCd}, NVL(#{vstRqdt}, TO_CHAR(SYSDATE, 'YYYYMMDD')))) AS SV_CNR_OG_ID /*서비스센터조직ID*/
+                   AND PRTNR_NO = FN_SVPD_LOCARA_PRTNR_01(TRIM(T3.NEW_ADR_ZIP), PDCT_PD_CD, #{newSvBizDclsfCd}, NVL(#{vstRqdt}, TO_CHAR(SYSDATE, 'YYYYMMDD')))) AS SV_CNR_OG_ID /*서비스센터조직ID*/
              , #{mtrStatCd} AS MTR_STAT_CD /*자료상태코드*/
              , A.PDCT_PD_CD AS PD_CD /*상품코드*/
              , C0.PD_GD_CD AS PD_GD_CD /*상품등급코드*/
@@ -481,7 +481,7 @@
                                    END
                              FROM TB_OGBS_PRTNR_BAS A
                             WHERE 1=1
-                              AND A.PRTNR_NO = #{userId)
+                              AND A.PRTNR_NO = #{userId})
                      WHEN #{newInChnlDvCd} = '3' THEN (CASE WHEN #{newSvBizDclsfCd} IN ('1121', '1122')
                                                             THEN F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_DCLSF_CD', #{newSvBizDclsfCd}, #{session.langId}) || ': ' || SUBSTR(TRIM(#{cntrNoB}), 1, 4) || '-' || SUBSTR(TRIM(#{cntrNoB}), 5) || ' '  ||
                                                                  (SELECT T2.PD_ABBR_NM FROM TB_SSCT_CNTR_DTL T1 INNER JOIN TB_PDBS_PD_BAS T2 ON T1.BASE_PD_CD = T2.PD_CD WHERE CNTR_NO = #{cntrNoB} AND CNTR_SN = #{cntrSnB})
@@ -601,6 +601,7 @@
         SELECT #{puCstSvAsnNo} AS PU_CST_SV_ASN_NO
              , (SELECT PD_PRP_VAL19
                   FROM TB_PDBS_PD_ECOM_PRP_DTL
+                 WHERE 1=1
                    AND PD_EXTS_PRP_GRP_CD = 'PART'
                    AND DTA_DL_YN = 'N'
                    AND PD_PRP_VAL31 = T1.SDING_PD_CD) AS ITM_KND_CD
@@ -608,7 +609,7 @@
              , T1.SDING_QTY AS PART_QTY
              , T1.RECAP_CS_AMT AS PART_AMT
              , (CASE WHEN T1.RECAP_CS_AMT > 0 THEN 'Y' ELSE 'N' END) AS REFRI_YN
-          FROM TB_SVPD_SDING_PRCHS_PROCS_TEMP
+          FROM TB_SVPD_SDING_PRCHS_PROCS_TEMP T1
     </select>
     <insert id="insertAsPutItem">
         INSERT INTO TB_SVPD_CST_SVAS_PU_ITM_IZ
@@ -929,7 +930,7 @@
     </insert>
     <select id="selectVstDtChk" resultType="String">
         SELECT W3TH
-          FROM (SELECT W1TH
+          FROM (SELECT W1TH, W3TH
                   FROM (SELECT BASE_Y
                              , BASE_MM
                              , BASE_D
@@ -940,7 +941,7 @@
                                      ELSE TRIM(BASE_Y||BASE_MM||BASE_D)
                                  END) AS W1TH
                              , (CASE WHEN (BASE_D != '1' AND DF_YN  IS NULL AND PHLD_YN IS NULL)
-                                     THEN TO_CHAR(TO_DATE(BASE_Y||BASE_MM||BASE_D, 'YYYYMMDD'),'YYYYMMDD'
+                                     THEN TO_CHAR(TO_DATE(BASE_Y||BASE_MM||BASE_D, 'YYYYMMDD'),'YYYYMMDD')
                                 END) AS W3TH
                           FROM TB_SVPD_SV_CLND_BAS
                          WHERE BASE_Y || BASE_MM || BASE_D BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(#{vstRqdt},1,6)||'01', 'YYYYMMDD'), -5),'YYYYMMDD') AND TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(#{vstRqdt},1,6)||'01', 'YYYYMMDD'), 5),'YYYYMMDD')
@@ -1026,7 +1027,7 @@
              , '2'
              , (CASE WHEN #{saleNm} LIKE '새싹%' THEN (SELECT OG_TP_CD
                                                         FROM TB_OGBS_MM_PRTNR_IZ
-                                                       WHERE BAES_YM   = TO_CHAR(SYSDATE, 'YYYYMM')
+                                                       WHERE BASE_YM   = TO_CHAR(SYSDATE, 'YYYYMM')
                                                          AND PRTNR_NO  = '28714'
                                                          AND DTA_DL_YN = 'N')
                      WHEN #{expMat} = 0 OR (#{sidingExpMat} IS NOT NULL AND #{sidingExpMat} > 0) THEN #{ichrOgTpCd}
@@ -1154,7 +1155,7 @@
     <update id="updateAsInstallationAssign">
         UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ
            SET SV_CNR_OG_ID = '71394'
-             , AC221_EMP_ID_ENG = '28714'
+             , ICHR_PRTNR_NO = '28714'
               <include refid="COMMON.updateSystemField"/>
          WHERE 1=1
            AND CST_SV_ASN_NO = #{asnCstSvAsnNo}
