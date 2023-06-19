@@ -963,10 +963,10 @@
         -- selectTimeAssign_v2_step1
         SELECT DISTINCT  T3.RPB_LOCARA_CD /*책임지역코드*/
              , T2.CTPV_NM || ' ' || T2.CTCTY_NM || ' ' || T2.LAWC_EMD_NM || ':' || T2.AMTD_NM AS LOCAL_NM
-             , T3.WK_GRP_CD /*작업그룹코드*/
+             , T3.WK_GRP_CD /*작업그룹코드 wkGrpCd*/
              , OG_CD /*조직코드*/
              , OG_NM /*조직명*/
-             --, HMNRSC_EMPNO /*인사사원번호*/
+             --, HMNRSC_EMPNO hmnrscEmpno /*인사사원번호*/
              , T3.ICHR_PRTNR_NO
              , PRTNR_KNM /*파트너한글명*/
              , T4.OG_TP_CD
@@ -1301,9 +1301,9 @@
                      , WRK_CHK_1 /*배정 가능 여부 체크 - 지역 작업 가능 시간에 배정이 없는 시간*/
                      , WRK_CHK_1_RN /*가능시간대와 불가능시간대 각각의 순번*/
                      , MAX(CASE WHEN WRK_CHK_1 = 'Y' THEN 0 ELSE WRK_CHK_1_RN END) OVER (ORDER BY WRK_T_RN ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS WRK_CHK_1_RN_M /*현재 로우까지 불가능한 마지막 로우 순번*/
-                     , EMP_T_WRK_CNT
-                     , DEG_WRK_CNT
-                     , T_WRK_CNT
+                     , TO_NUMBER(#{empTWrkCnt}) EMP_T_WRK_CNT
+                     , TO_NUMBER(#{degWrkCnt}) DEG_WRK_CNT
+                     , TO_NUMBER(#{wrkCnt}) T_WRK_CNT
                   FROM (SELECT VST_DT /*방문일자*/
                              , EMP_ID /*담당자*/
                              , TM /*시간*/
@@ -1317,9 +1317,9 @@
                              , MIN(WRK_NEXT_CHK) OVER (ORDER BY WRK_T_RN ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS WRK_NEXT_CHK2
                              , (CASE WHEN WRK_T_CHK = 'Y' AND WRK_CNT = 0 AND GREATEST(WRK_T_CNT, WRK_NEXT_CHK) <![CDATA[<]]> WRK_T_RN THEN 'Y' ELSE 'N' END) AS WRK_CHK_1 /*배정 가능 여부 체크 - 지역 작업 가능 시간에 배정이 없는 시간*/
                              , RANK() OVER (PARTITION BY (CASE WHEN WRK_T_CHK = 'Y' AND WRK_CNT = 0 AND GREATEST(WRK_T_CNT, WRK_NEXT_CHK) <![CDATA[<]]> WRK_T_RN THEN 'Y' ELSE 'N' END) ORDER BY TM ASC) AS WRK_CHK_1_RN /*가능시간대와 불가능시간대 각각의 순번*/
-                             , EMP_T_WRK_CNT
-                             , DEG_WRK_CNT
-                             , T_WRK_CNT
+                             -- EMP_T_WRK_CNT
+                             --, DEG_WRK_CNT
+                             --, T_WRK_CNT
                           FROM (SELECT VST_DT /*방문일자*/
                                      , EMP_ID /*담당자*/
                                      , TM /*시간*/
@@ -1332,8 +1332,8 @@
                                   FROM (
                                     /*LC_COMMONCODE_CO110TB 에 세팅된 업무시간대별 설치,AS,BS 건수를 계산한다.*/
                                     /*테스트 32982 강민우*/
-                                    SELECT #{ac221CfrmDt} AS VST_DT
-                                         , #{ac021EmpId} AS EMP_ID
+                                    SELECT #{sellDate} AS VST_DT
+                                         , #{ichrPrtnrNo} AS EMP_ID
                                          , CO110_CD AS TM /*LC_COMMONCODE_CO110TB CO110_CD_GB = 'BD11' 에 세팅된 십분단위 업무 시간*/
                                          , SUM(CNT) AS WRK_CNT /*설치,AS,BS 작업건수 합*/
                                          , MAX(WRK_T_CHK) AS WRK_T_CHK /*일자별 엔지니어별 지역 등급에 따른 작업 가능 시간대 여부*/
@@ -1349,8 +1349,8 @@
                                           FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1
                                     INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ  T2
                                             ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
-                                         WHERE T1.ICHR_PRTNR_NO = #{ac021EmpId}
-                                           AND VST_CNFMDT = #{ac221CfrmDt}
+                                         WHERE T1.ICHR_PRTNR_NO = #{ichrPrtnrNo}
+                                           AND VST_CNFMDT = #{sellDate}
                                            AND WK_PRGS_STAT_CD IN ('00', '10')
                                            AND VST_CNFM_HH >= '090000'
                                            AND (CASE WHEN T1.SV_BIZ_HCLSF_CD = '1' AND FN_SVPD_PD_GRP_01(PD_CD) = '11' THEN '2' ELSE '1' END) = '1' /*모종제외*/
@@ -1362,8 +1362,8 @@
                                           FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
                                     INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ  T2
                                             ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
-                                         WHERE CNFM_PSIC_PRTNR_NO = #{ac021EmpId}
-                                           AND T1.VST_DUEDT = #{ac221CfrmDt}
+                                         WHERE CNFM_PSIC_PRTNR_NO = #{ichrPrtnrNo}
+                                           AND T1.VST_DUEDT = #{sellDate}
                                            AND VST_PRGS_STAT_CD IN ('00', '10')
                                            AND VST_EXP_HH <![CDATA[>=]]> '090000'
                                            AND VST_EXP_HH <![CDATA[<=]]> '183000'
@@ -1380,9 +1380,9 @@
                                            AND CD_USE_YN = 'Y'
                                            AND CD_ID = 'WK_HH_CD'
 
-                                           AND SUBSTR(CD_VLD_VAL, 1, 4) IN (SELECT TRIM(REGEXP_SUBSTR(FN_SVPD_GD_WRK_T_03(#{ac146LocalGb}, #{ac146WrkGr}, #{ac221CfrmDt}), '[^,]+', 1, LEVEL))
+                                           AND SUBSTR(CD_VLD_VAL, 1, 4) IN (SELECT TRIM(REGEXP_SUBSTR(#{wkHhCd}, '[^,]+', 1, LEVEL))
                                                                               FROM DUAL
-                                                                           CONNECT BY INSTR(FN_SVPD_GD_WRK_T_03(#{ac146LocalGb}, #{ac146WrkGr}, #{ac221CfrmDt}), ',', 1, LEVEL - 1) > 0)
+                                                                           CONNECT BY INSTR(#{wkHhCd}, ',', 1, LEVEL - 1) > 0)
 
                                          UNION ALL
                                         /*예정건이 없을 경우 타임테이블 그리기 위해 필요*/
@@ -1400,10 +1400,6 @@
                                      GROUP BY CO110_CD
                                      ORDER BY CO110_CD)
                                  ORDER BY TM) V1
-                             , (SELECT FN_SVPD_PRTNR_WRK_T_01(#{ac221CfrmDt}, #{ac021EmpId}) AS EMP_T_WRK_CNT /*일자별 엔지니어별 배정된 전체 작업건수*/
-                                     , FN_SVPD_RPB_LOCARA_ASN_CT_01(#{ac146LocalGb}, #{ac146WrkGr}, #{ac221CfrmDt}) AS DEG_WRK_CNT /*일자별 엔지니어별 직역 등급 작업건수*/
-                                     , #{wrkCnt} AS T_WRK_CNT /*입력 받아야 할 작업 건수*/
-                                  FROM DUAL)  V2
                          ORDER BY TM) V3
                  ORDER BY TM) V4
          ORDER BY TM
@@ -1450,6 +1446,18 @@
          WHERE AC021.OG_ID = '71507' -- FIX
            AND AT210.EGER_WRK_STAT_CD IS NOT NULL
            AND AT210.VCN_STRT_DT > TO_CHAR(SYSDATE, 'YYYYMMDD')
+    </select>
+
+    <select id="selectEmpTWrkCnt" resultType="java.lang.String">
+      SELECT FN_SVPD_PRTNR_WRK_T_01(#{sellDate}, #{ichrPrtnrNo}) FROM DUAL
+    </select>
+
+    <select id="selectDegWrkCnt" resultType="java.lang.String">
+      SELECT FN_SVPD_RPB_LOCARA_ASN_CT_01(#{rpbLocaraCd}, #{wkGrpCd}, #{sellDate}) FROM DUAL
+    </select>
+
+    <select id="selectWkHhCd" resultType="java.lang.String">
+      SELECT FN_SVPD_GD_WRK_T_03(#{rpbLocaraCd}, #{wkGrpCd}, #{sellDate}) FROM DUAL
     </select>
 
 </mapper>

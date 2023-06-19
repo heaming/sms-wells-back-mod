@@ -213,6 +213,9 @@ public class WsncTimeTableService {
 
         // 시간표시
         // selectTimeAssign_v2_step3
+        rpbLocaraPsicDvo.setEmpTWrkCnt(mapper.selectEmpTWrkCnt(rpbLocaraPsicDvo));
+        rpbLocaraPsicDvo.setDegWrkCnt(mapper.selectDegWrkCnt(rpbLocaraPsicDvo));
+        rpbLocaraPsicDvo.setWkHhCd(mapper.selectWkHhCd(rpbLocaraPsicDvo));
         assignTimeDvos = mapper.selectAssignTime(rpbLocaraPsicDvo); // list1
 
         List<WsncTimeTableDisableDaysDvo> disableDayDvos = mapper.selectDisableDays(paramDvo);
