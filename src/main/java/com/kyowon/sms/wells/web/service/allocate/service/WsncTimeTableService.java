@@ -87,7 +87,7 @@ public class WsncTimeTableService {
             sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 1);
         }
 
-        if (svDvCd.equals("1") && sellDate.equals(wrkDt)) {
+        if (svDvCd.equals("1") && (sellDate == null || sellDate.equals(wrkDt))) {
             sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 5);
         }
 

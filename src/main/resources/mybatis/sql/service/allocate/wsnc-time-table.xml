@@ -630,7 +630,12 @@
                                                AND TO_CHAR(TO_DATE(TRIM(BASE_Y) || TRIM(BASE_MM) || TRIM(BASE_D)), 'D') != '1'
                                                AND DF_YN IS NULL
                                                AND PHLD_YN IS NULL
-                                               AND NOT EXISTS(select 1 from TB_OGBS_MM_PRTNR_IZ WHERE OG_CD IN ('70533', '70534', '70079') AND CLTN_DT IS NULL AND BASE_YM = TO_CHAR(SYSDATE, 'yyyyMM') AND PRTNR_NO = #{prtnrNo})
+                                               AND NOT EXISTS(select 1
+                                                                from TB_OGBS_MM_PRTNR_IZ
+                                                               WHERE OG_CD IN ('70533', '70534', '70079')
+                                                                 AND CLTN_DT IS NULL
+                                                                 AND BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                                                                 AND PRTNR_NO = #{prtnrNo})
                                                AND BASE_Y || BASE_MM || BASE_D >= NVL((SELECT MAX(T.RSTR_CNDT_VAL2)
                                                                                          FROM TB_SVPD_SV_RSTR_CNDT_BAS T
                                                                                    INNER JOIN (
@@ -1034,15 +1039,15 @@
            AND WK_GRP_CD = FN_SVPD_WRK_GRP_01(#{pdctPdCd}, #{svBizDclsfCd}, #{sellDate})
            </if>
 
-         --INNER JOIN TB_OGBS_MM_PRTNR_IZ T4
-         --   ON T4.DTA_DL_YN = 'N' /*월파트너내역*/
-         --  AND T4.BASE_YM = SUBSTR({sellDate}, 0, 6)
-         --  AND T4.OG_TP_CD = T3.ICHR_PRTNR_OG_TP_CD
-         --  AND T4.PRTNR_NO = T3.ICHR_PRTNR_NO
-         INNER JOIN TB_OGBS_PRTNR_BAS T4
-            ON T4.DTA_DL_YN = 'N'
-           AND T4.OG_TP_CD = T3.ICHR_PRTNR_OG_TP_CD
-           AND T4.PRTNR_NO = T3.ICHR_PRTNR_NO
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ T4
+           ON T4.DTA_DL_YN = 'N' /*월파트너내역*/
+          AND T4.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+          AND T4.OG_TP_CD = T3.ICHR_PRTNR_OG_TP_CD
+          AND T4.PRTNR_NO = T3.ICHR_PRTNR_NO
+--          INNER JOIN TB_OGBS_PRTNR_BAS T4
+--             ON T4.DTA_DL_YN = 'N'
+--            AND T4.OG_TP_CD = T3.ICHR_PRTNR_OG_TP_CD
+--            AND T4.PRTNR_NO = T3.ICHR_PRTNR_NO
 
 
          INNER JOIN TB_SVPD_SV_CLND_BAS C /*서비스달력기본*/
@@ -1140,7 +1145,7 @@
              , OG2.OG_NM -- AS AC125_DEPT_NM
              , OG2.OG_ID -- AS AC125_DEPT_CD
              , OG1.PRTNR_KNM -- AS AC021_EMP_NM
-             , F_CMZ_CD_NM(#{session.tenantId}, 'PRTNR_GD_CD', OG6.PRTNR_GD_CD) AS ISCGUB_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'PRTNR_GD_CD', OG1.PRTNR_GD_CD) AS ISCGUB_NM
              , LOC.DEG_NM
              , LOC.AM_WRK_CNT
              , LOC.PM_WRK_CNT
@@ -1152,7 +1157,7 @@
              , OG3.CRAL_LOCARA_TNO -- 휴대지역전화번호
              , OG3.MEXNO_ENCR -- 휴대전화국번호암호화
              , OG3.CRAL_IDV_TNO -- 휴대개별전화
-             , F_CMZ_CD_NM('TNT_WELLS', 'ROL_DV_CD', OG6.ROL_DV_CD, 'ko') AS ROL_DV_NM
+             , F_CMZ_CD_NM('TNT_WELLS', 'ROL_DV_CD', OG1.ROL_DV_CD, 'ko') AS ROL_DV_NM
              , OG4.PRTNR_KNM AS PRTNR_KNM2--AC021_EMP_NM1
              , OG4.CRAL_LOCARA_TNO AS SJ_HP1
              , OG4.MEXNO_ENCR AS SJ_HP2
@@ -1208,10 +1213,12 @@
                                            'WM05100129', 'WM05100196', 'WM04100156', 'WM07101114', 'WM03100251', 'WM04100202', 'WM04100201', 'WM05100128', 'WM05100125', 'WM04100166',
                                            'WM07101222', 'WM07100663', 'WM02100249', 'WM05100126', 'WM05100131', 'WM05100130', 'WM02100259', 'WM05100124', 'WM02100257', 'WM04100153',
                                            'WM05100123', 'WM04100127', 'WM04100155', 'WM02100157', 'WM04100152', 'WM04100164', 'WM04100121')) AS AS_CNT
-          FROM TB_OGBS_PRTNR_BAS OG1 /*파트너기본*/
-         INNER JOIN TB_OGBS_OG_BAS OG2 /*조직기본*/
-            ON OG1.OG_ID = OG2.OG_ID
+          FROM TB_OGBS_MM_PRTNR_IZ OG1 /*월파트너내역*/
+         INNER JOIN TB_OGBS_MM_OG_IZ OG2 /*월조직내역*/
+            ON OG1.BASE_YM = OG2.BASE_YM
+           AND OG1.OG_ID = OG2.OG_ID
            AND OG2.OG_TP_CD = 'W06'
+
          INNER JOIN TB_OGBS_PRTNR_BAS OG3
             ON OG1.PRTNR_NO = OG3.PRTNR_NO
            AND OG3.OG_TP_CD = 'W06'
@@ -1221,38 +1228,39 @@
            AND OG4.OG_TP_CD = 'W06'
           LEFT OUTER JOIN (SELECT RPB_LOCARA_CD
                                 , WK_GRP_CD
-                                , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('1', '7') THEN WKD_FRNN_ASN_LIM_CT
+                                , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}), 'D') IN ('1', '7') THEN WKD_FRNN_ASN_LIM_CT
                                         ELSE WEEKD_FRNN_ASN_LIM_CT
                                    END) AS AM_WRK_CNT
-                                , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('1', '7') THEN WKD_AFNN_ASN_LIM_CT
+                                , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}), 'D') IN ('1', '7') THEN WKD_AFNN_ASN_LIM_CT
                                         ELSE WEEKD_AFNN_ASN_LIM_CT
                                    END) AS PM_WRK_CNT
-                                , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('2', '3', '4', '5', '6') THEN ASN_GD_CD || '-' || '평일-' || WEEKD_ASN_LIM_CT /*월화수목금 -주일이면*/
-                                        WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('7') THEN ASN_GD_CD || '-' || '주말-' || SAT_ASN_LIM_CT /*토요일이면*/
+                                , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}), 'D') IN ('2', '3', '4', '5', '6') THEN ASN_GD_CD || '-' || '평일-' || WEEKD_ASN_LIM_CT /*월화수목금 -주일이면*/
+                                        WHEN TO_CHAR(TO_DATE(#{sellDate}), 'D') IN ('7') THEN ASN_GD_CD || '-' || '주말-' || SAT_ASN_LIM_CT /*토요일이면*/
                                         ELSE '' /*일요일이면*/
                                    END) AS DEG_NM
                              FROM (SELECT LOC_BAS.*, LOC_GD_BASE.*, RANK() OVER (PARTITION BY ASN_GD_CD ORDER BY BASE_SN DESC) AS RN
                                      FROM (SELECT T.RPB_LOCARA_CD
                                                 , T.WK_GRP_CD
-                                                , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('7') THEN NVL(T.SAT_ASN_GD_CD, 'F')
-                                                        WHEN TO_CHAR(TO_DATE(#{sellDate}, 'YYYYMMDD'), 'D') IN ('2', '3', '4', '5', '6') THEN T.ASN_GD_CD
+                                                , (CASE WHEN TO_CHAR(TO_DATE(#{sellDate}), 'D') IN ('7') THEN NVL(T.SAT_ASN_GD_CD, 'F')
+                                                        WHEN TO_CHAR(TO_DATE(#{sellDate}), 'D') IN ('2', '3', '4', '5', '6') THEN T.ASN_GD_CD
                                                         ELSE 'D'
                                                    END) AS LOCAL_DEG
                                              FROM TB_SVPD_RPB_LOCARA_BAS /*엔지니어지역등급기준내역*/ /*LC_ALLOCATE_AC152TB*/ /*책임지역별 배정듭급*/ T
                                             WHERE T.RPB_LOCARA_CD = #{rpbLocaraCd}
                                               AND T.WK_GRP_CD = #{wkGrpCd}) LOC_BAS
-                                        , TB_SVPD_EGER_LOCARA_GD_BASE_IZ /*LC_ALLOCATE_AC151TB*/ LOC_GD_BASE /*일별,엔지니어별 지역 등급 기준 세팅*/
-                                    WHERE LOC_BAS.LOCAL_DEG = LOC_GD_BASE.ASN_GD_CD
+                                    INNER JOIN TB_SVPD_EGER_LOCARA_GD_BASE_IZ LOC_GD_BASE /*일별,엔지니어별 지역 등급 기준 세팅*/
+                                       ON LOC_GD_BASE.ASN_GD_CD = LOC_BAS.LOCAL_DEG
+                                      AND LOC_GD_BASE.RCP_HH_DV_CD = 'R'
                                       AND #{sellDate} BETWEEN LOC_GD_BASE.APY_STRTDT AND LOC_GD_BASE.APY_ENDDT
-                                      AND LOC_BAS.RPB_LOCARA_CD = #{rpbLocaraCd}
-                                      AND LOC_BAS.WK_GRP_CD = #{wkGrpCd}
-                                      AND LOC_GD_BASE.RCP_HH_DV_CD = 'R')
+                                    WHERE LOC_BAS.RPB_LOCARA_CD = #{rpbLocaraCd}
+                                      AND LOC_BAS.WK_GRP_CD = #{wkGrpCd})
                             WHERE RN = 1) LOC ON 1=1
-         INNER JOIN TB_OGBS_PRTNR_DTL OG6 /*파트너상세*/
-            ON OG1.PRTNR_NO = OG6.PRTNR_NO
-           AND OG1.OG_TP_CD = OG6.OG_TP_CD
+--          INNER JOIN TB_OGBS_PRTNR_DTL OG6 /*파트너상세*/
+--             ON OG1.PRTNR_NO = OG6.PRTNR_NO
+--            AND OG1.OG_TP_CD = OG6.OG_TP_CD
          WHERE OG1.PRTNR_NO = #{ichrPrtnrNo}
            AND OG1.OG_TP_CD = 'W06'
+           AND OG1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
     </select>
 
     <select id="selectAssignTime" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableAssignTimeDvo">
