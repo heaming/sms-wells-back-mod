@@ -87,7 +87,7 @@ public class WsncTimeTableService {
             sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 1);
         }
 
-        if (svDvCd.equals("1") && sellDate.equals(wrkDt)) {
+        if (svDvCd.equals("1") && (sellDate == null || sellDate.equals(wrkDt))) {
             sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 5);
         }
 
@@ -258,7 +258,6 @@ public class WsncTimeTableService {
         result.setMkCo(paramDvo.getMkCo());//bypass
         result.setPrtnrNo(paramDvo.getPrtnrNo());
         result.setOgTpCd(paramDvo.getOgTpCd());
-        result.setWrkDt(wrkDt);
 
         result.setSidingYn(sidingYn); // 모종여부
         result.setSpayYn(spayYn); // 일시불여부
