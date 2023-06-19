@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class WsnbMultipleTaskOrderController {
-    private WsnbMultipleTaskOrderService service;
+    private final WsnbMultipleTaskOrderService service;
 
     @ApiOperation(value = "다건 작업오더, 정보변경 처리", notes = "다건에 대한 작업오더 생성, 수정, 삭제, 정보 변경처리를 한다.")
     @PostMapping
