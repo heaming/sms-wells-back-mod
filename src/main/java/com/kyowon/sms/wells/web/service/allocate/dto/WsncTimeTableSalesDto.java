@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.system.config.validation.validator.ValidDate;
 import io.swagger.annotations.ApiModel;
 
 import javax.validation.constraints.NotBlank;
@@ -17,6 +18,7 @@ public class WsncTimeTableSalesDto {
         @NotBlank
         String svDvCd, // DATA_GB
         @NotBlank
+        @ValidDate
         String sellDate, // SEL_DATE
         @NotBlank
         String svBizDclsfCd, // wrkTypDtl
