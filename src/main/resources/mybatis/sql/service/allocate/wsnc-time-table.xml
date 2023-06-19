@@ -144,11 +144,11 @@
     </select>-->
 
     <select id="selectDisableDays" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDisableDaysDvo">
-        SELECT DISTINCT DISABLE_DAYS, DISABLE_FULDAYS, MAX(MSG) AS TC_MSG
+        SELECT DISTINCT /*DISABLE_DAYS,*/ DISABLE_FULDAYS, MAX(MSG) AS TC_MSG
         FROM (
             -------------------------------------------------------------------------------------------------------------------------------------
             -- QUERY 1
-            SELECT BASE_Y|| '-'||TO_NUMBER( BASE_MM)||'-'|| TO_NUMBER(BASE_D) AS DISABLE_DAYS
+            SELECT BASE_Y||'-'||TO_NUMBER(BASE_MM)||'-'|| TO_NUMBER(BASE_D) AS DISABLE_DAYS
                  , BASE_Y||'-'|| BASE_MM||'-'|| BASE_D AS DISABLE_FULDAYS
                  , B.RSTR_CNDT_SRN_MARK_CN AS MSG
               FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
@@ -712,8 +712,8 @@
                AND ASN_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
                AND DF_D_WK_YN = 'Y'
         )
-        GROUP BY DISABLE_DAYS, DISABLE_FULDAYS
-        ORDER BY DISABLE_DAYS
+        GROUP BY DISABLE_FULDAYS
+        ORDER BY DISABLE_FULDAYS
     </select>
 
     <!--getMojongDays_ilsibul-->
