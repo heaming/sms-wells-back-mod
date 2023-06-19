@@ -66,5 +66,9 @@ public interface WsncTimeTableMapper {
 
     List<WsncTimeTableAssignTimeDvo> selectAssignTime(WsncTimeTableRpbLocaraPsicDvo dvo);
 
+    String selectEmpTWrkCnt(WsncTimeTableRpbLocaraPsicDvo dvo);
+    String selectDegWrkCnt(WsncTimeTableRpbLocaraPsicDvo dvo);
+    String selectWkHhCd(WsncTimeTableRpbLocaraPsicDvo dvo);
+
     List<String> selectOffDays(WsncTimeTableSalesParamDvo dvo);
 }

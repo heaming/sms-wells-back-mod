@@ -23,7 +23,7 @@ public class WsncTimeTableRpbLocaraPsicDvo {
     String vstPos;
     String rstrCndtUseYn;
     String udsnUseYn;
-    String tWrkCnt;
+    String wrkCnt;
     String sellDate;
     String vstDowValCd;
     String svBizDclsfCd;
@@ -36,5 +36,9 @@ public class WsncTimeTableRpbLocaraPsicDvo {
     String prtnrNoOwr01;
     String cntrNo;
     String ogTpCd;
+
+    String empTWrkCnt;
+    String degWrkCnt;
+    String wkHhCd;
 
 }
