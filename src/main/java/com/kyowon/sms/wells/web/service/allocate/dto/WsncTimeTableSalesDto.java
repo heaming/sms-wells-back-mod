@@ -30,11 +30,13 @@ public class WsncTimeTableSalesDto {
         String dataStatCd, // DATA_STUS
         String returnUrl,
         String userId,
-        String mkCo
+        String mkCo,
+        String baseYm
     ) {}
 
     @ApiModel(value = "WsncTimeTableSalesDto-FindRes")
     public record FindRes(
+        String baseYm,
         String dowDvCd,
         String svBizDclsfCd, //wrkTypDtl
         String inflwChnl, // inflwChnl

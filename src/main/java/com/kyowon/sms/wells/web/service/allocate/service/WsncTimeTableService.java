@@ -222,8 +222,9 @@ public class WsncTimeTableService {
         List<String> offDays = mapper.selectOffDays(paramDvo);
 
         //---------------------------------------------------------//
+        result.setBaseYm(req.baseYm());
 
-        List<WsncTimeTableDaysDvo> days = mapper.selectTimeTableDates(DateUtil.getNowDayString().substring(0, 6));
+        List<WsncTimeTableDaysDvo> days = mapper.selectTimeTableDates(req.baseYm());
         result.setDays(days);
 
         result.getArrSm().clear();
@@ -288,6 +289,7 @@ public class WsncTimeTableService {
 
         }
 
+        log.debug("baesYm: {}", result.getBaseYm());
         log.debug("NewAdrZip: {}", result.getNewAdrZip());
         log.debug("CurDateTimeString: {}", result.getCurDateTimeString());
         log.debug("SellDate: {}", result.getSellDate());
