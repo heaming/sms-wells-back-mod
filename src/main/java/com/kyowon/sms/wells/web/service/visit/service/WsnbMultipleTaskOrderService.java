@@ -32,8 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class WsnbMultipleTaskOrderService {
-    private WsnbMultipleTaskOrderMapper mapper;
-    private WsnbMultipleTaskOrderConverter converter;
+    private final WsnbMultipleTaskOrderMapper mapper;
+    private final WsnbMultipleTaskOrderConverter converter;
 
     /**
      * W-SV-S-0012 다건 작업오더, 정보변경 처리
@@ -57,10 +57,6 @@ public class WsnbMultipleTaskOrderService {
 
     public int saveMultipleTaskOrders(WsnbMultipleTaskOrderDvo dvo) throws Exception {
         int processCount = 0;
-        /* V_객제역할 */
-
-        /* TODO : dvo 정리필요함. reqDvo로 받아오는값 정리 */
-
         /* 계약 관련 정보 */
         WsnbContractReqDvo contractReqDvo = mapper.selectContract(dvo.getCntrNo(), dvo.getCntrSn());
         /* 계약 관련 정보 before */
@@ -73,7 +69,6 @@ public class WsnbMultipleTaskOrderService {
         int rangeChangeCnt = 0; // V_RANGE_CHANGE_CNT
         int rangeChangeBsCnt = 0; // V_RANGE_CHANGE_BS_CNT
         int itemCnt = 0; // V_ITEM_CNT
-        // V_RANGE_CNT , V_RANGE_CNT2 , V_AC201_CSMR_B_CNT
 
         /* KSS 접수 건이면 작업상세코드 재확인 */
         if ((SnServiceConst.IN_CHNL_DV_CD_SALES.equals(dvo.getInChnlDvCd())
