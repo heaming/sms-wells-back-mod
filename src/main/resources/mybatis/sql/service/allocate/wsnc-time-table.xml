@@ -101,7 +101,7 @@
 
     <!--getMojongDays-->
     <select id="selectSidingDays" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo">
-        SELECT SUBSTR(VST_DT,1,4)||'-'||TO_NUMBER(SUBSTR(VST_DT,5,2))||'-'||TO_NUMBER(SUBSTR(VST_DT,7,2)) AS ABL_DAYS
+        SELECT SUBSTR(VST_DT,1,4)||'-'||SUBSTR(VST_DT,5,2)||'-'||SUBSTR(VST_DT,7,2) AS ABL_DAYS
              , SDING_QTY AS SUM_CNT
           FROM (SELECT VST_DT
                      , SDING_QTY
@@ -718,7 +718,7 @@
 
     <!--getMojongDays_ilsibul-->
     <select id="selectSidingDaysForSpay" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo">
-        SELECT SUBSTR(W3TH, 1, 4) || '-' || TO_NUMBER(SUBSTR(W3TH, 5, 2)) || '-' || TO_NUMBER(SUBSTR(W3TH, 7, 2)) AS ABL_DAYS
+        SELECT SUBSTR(W3TH, 1, 4) || '-' || SUBSTR(W3TH, 5, 2) || '-' || SUBSTR(W3TH, 7, 2) AS ABL_DAYS
              , W3TH
              , SUM(SUM_CNT) AS SUM_CNT
              , CASE WHEN #{lcst09} = '03' THEN (SELECT CLND.BASE_Y || CLND.BASE_MM || CLND.BASE_D
@@ -969,6 +969,7 @@
              --, HMNRSC_EMPNO /*인사사원번호*/
              , T3.ICHR_PRTNR_NO
              , PRTNR_KNM /*파트너한글명*/
+             , T4.OG_TP_CD
              , #{inflwChnl} AS IN_GB
              , #{chnlDvCd} AS CHNL_DV_CD
              , NVL(TRIM(SAT_WRK_YN), 'N') AS SAT_WRK_YN /*토요일근무여부*/
@@ -1128,44 +1129,44 @@
     </select>
 
     <select id="selectPsicData" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTablePsicDataDvo">
-        SELECT OG1.PRTNR_NO AS AC021_EMP_ID
+        SELECT OG1.PRTNR_NO -- AS AC021_EMP_ID
              , 'http://kiwi-m.kyowon.co.kr/KIWI-M/upload_file/upload_file/' || OG1.PRTNR_NO || '.jpg' AS EMP_PIC
-             , #{sellDate} AS AC221_CFRM_DT
-             , OG2.OG_NM AS AC125_DEPT_NM
-             , OG2.OG_ID AS AC125_DEPT_CD
+             , #{sellDate} AS SELL_DATE--AC221_CFRM_DT
+             , OG2.OG_NM -- AS AC125_DEPT_NM
+             , OG2.OG_ID -- AS AC125_DEPT_CD
              , OG1.PRTNR_KNM AS AC021_EMP_NM
              , F_CMZ_CD_NM(#{session.tenantId}, 'PRTNR_GD_CD', OG1.PRTNR_GD_CD) AS ISCGUB_NM
              , AC151_2.DEG_NM
              , AC151_2.AM_WRK_CNT
              , AC151_2.PM_WRK_CNT
              , #{wrkCnt} AS T_WRK_CNT
-             , RSB_DV_CD AS AC025_EMP_OR -- 직책
+             , RSB_DV_CD -- AS  AC025_EMP_OR -- 직책
              , OG3.LOCARA_TNO -- 지역전화번호
              , OG3.EXNO_ENCR -- 전화국번호암호화
              , OG3.IDV_TNO -- 개별전화번호
              , OG3.CRAL_LOCARA_TNO -- 휴대지역전화번호
              , OG3.MEXNO_ENCR -- 휴대전화국번호암호화
              , OG3.CRAL_IDV_TNO -- 휴대개별전화
-             , (CASE WHEN TRIM(OG1.ROL_DV_CD) = '55' THEN '소장' WHEN TRIM(OG1.PRTNR_CLSF_CD) = '56' THEN '자재실장' ELSE '엔지니어' END) AS ISJMCD_NM
-             , OG4.PRTNR_KNM AS AC021_EMP_NM1
+             , F_CMZ_CD_NM('TNT_WELLS', 'ROL_DV_CD', OG1.ROL_DV_CD, 'ko') AS ROL_DV_NM
+             , OG4.PRTNR_KNM AS PRTNR_KNM2--AC021_EMP_NM1
              , OG4.CRAL_LOCARA_TNO AS SJ_HP1
              , OG4.MEXNO_ENCR AS SJ_HP2
              , OG4.CRAL_IDV_TNO AS SJ_HP3
-             , #{vstDowVal} AS AC146_VST_CYCL
+             , #{vstDowVal} AS VST_DOW_VAL -- AC146_VST_CYCL
              , #{vstPos} AS VST_POS
-             , #{rstrCndtUseYn} AS AC146_TTB_USE
-             , #{udsnUseYn} AS AC146_UA_USE
-             , #{rpbLocaraCd} AS AC146_LOCAL_GB
-             , #{satWrkYn} AS AC146_SAT13_WRK_YN
-             , #{dfYn} AS CO160_OFFDAY_GB
-             , #{dowDvCd} AS CO160_DAYS
-             , #{fr2pLgldCd} AS AC112_ADM_CD
+             , #{rstrCndtUseYn} AS RSTR_CNDT_USE_YN -- AC146_TTB_USE
+             , #{udsnUseYn} AS UDSN_USE_YN -- AC146_UA_USE
+             , #{rpbLocaraCd} AS RPB_LOCARA_CD--AC146_LOCAL_GB
+             , #{satWrkYn} AS SAT_WRK_YN -- AC146_SAT13_WRK_YN
+             , #{dfYn} AS DF_YN -- CO160_OFFDAY_GB
+             , #{dowDvCd} AS DOW_DV_CD -- CO160_DAYS
+             , #{fr2pLgldCd} AS FR2P_LGLD_CD -- AC112_ADM_CD
              , (SELECT NVL(COUNT(1), 0)
                   FROM TB_SVPD_CST_SVAS_IST_ASN_IZ AC221 /*설치및A/S배정정보*/
             INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ  AC211 /*A/S 및 설치 배정대상정보*/
                     ON AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
                  WHERE AC221.VST_CNFMDT = #{sellDate}
-                   AND AC221.ICHR_PRTNR_NO = #{hmnrscEmpno}
+                   AND AC221.ICHR_PRTNR_NO = #{ichrPrtnrNo}
                    AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
                    AND AC221.SV_BIZ_HCLSF_CD IN ('1', '4')
                    AND AC211.PD_CD NOT LIKE '60%'
@@ -1181,7 +1182,7 @@
                  WHERE AC251.ASN_OJ_YM = SUBSTR(#{sellDate}, 1, 6)
                    AND SUBSTR(AC261.CST_SV_ASN_NO, 2, 8) = SUBSTR(#{sellDate}, 1, 6) || '00'
                    AND AC261.VST_DUEDT = #{sellDate}
-                   AND AC261.CNFM_PSIC_PRTNR_NO = #{hmnrscEmpno}
+                   AND AC261.CNFM_PSIC_PRTNR_NO = #{ichrPrtnrNo}
                    AND AC261.VST_PRGS_STAT_CD IN ('00', '10')
                    AND AC251.PDCT_PD_CD NOT LIKE '60%'
                    AND AC261.VST_EXP_HH >= '080000'
@@ -1194,7 +1195,7 @@
             INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ  AC211/*A/S 및 설치 배정대상정보*/
                     ON AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
                  WHERE AC221.VST_CNFMDT = #{sellDate}
-                   AND AC221.ICHR_PRTNR_NO = #{hmnrscEmpno}
+                   AND AC221.ICHR_PRTNR_NO = #{ichrPrtnrNo}
                    AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
                    AND AC221.SV_BIZ_HCLSF_CD = '3'
                    AND AC221.VST_CNFM_HH >= '080000'

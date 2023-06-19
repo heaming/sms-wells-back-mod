@@ -35,5 +35,6 @@ public class WsncTimeTableRpbLocaraPsicDvo {
     String prtnrNoBS01;
     String prtnrNoOwr01;
     String cntrNo;
+    String ogTpCd;
 
 }

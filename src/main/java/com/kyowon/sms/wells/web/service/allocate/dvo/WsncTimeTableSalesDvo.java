@@ -25,19 +25,24 @@ public class WsncTimeTableSalesDvo {
     String basePdCd;
     String lcst09;
     String newAdrZip;
-    String userId;
     String sowDay;
     String returnUrl;
     String mkCo;
+
+    String userId;
+    String rcpOgTpCd;
+
+    String prtnrNo;
+    String ogTpCd;
 
     String sidingYn; // 모종 여부
     String spayYn; // 일시불여부
 
     List<String> offDays;
-    List<WsncTimeTableSidingDaysDvo> sidingDayDvos; // list2 abledays
-    List<WsncTimeTableDisableDaysDvo> disableDayDvos;
-    WsncTimeTablePsicDataDvo psicDataDvos; // left_info
-    List<WsncTimeTableAssignTimeDvo> assignTimeDvos; // list1
+    List<WsncTimeTableSidingDaysDvo> sidingDays; // list2 abledays
+    List<WsncTimeTableDisableDaysDvo> disableDays;
+    WsncTimeTablePsicDataDvo psicDatas; // left_info
+    // List<WsncTimeTableAssignTimeDvo> assignTimeDvos; // list1
 
     List<WsncTimeTableDaysDvo> days;
 

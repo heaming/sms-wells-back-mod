@@ -29,7 +29,7 @@ public class WsncTimeTableSalesParamDvo {
     String newAdrZip;
     String cntrNo;
     String cntrSn;
-    String inflwChnl; // inGb
+    String inflwChnl; // inflwChnl
 
     // --------------------------------------------------
     //판매인 경우 '1110:신규설치' fix
@@ -58,6 +58,7 @@ public class WsncTimeTableSalesParamDvo {
     String contDt;
     String wrkDt;
     String prtnrNo;
+    String ogTpCd;
     String userId;
 
     // --------------------------------------------------

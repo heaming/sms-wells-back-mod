@@ -24,7 +24,7 @@ public class WsncTimeTableSalesDto {
         String cntrNo,
         String cntrSn,
 
-        String inGb,
+        String inflwChnl,
         String basePdCd, // GDS_CD
         String wrkDt,
         String dataStatCd, // DATA_STUS
@@ -37,7 +37,7 @@ public class WsncTimeTableSalesDto {
     public record FindRes(
         String dowDvCd,
         String svBizDclsfCd, //wrkTypDtl
-        String inflwChnl, // inGb
+        String inflwChnl, // inflwChnl
         String chnlDvCd, //gbCd
         String svDvCd, //dataGb
         String cntrNo,
@@ -50,19 +50,24 @@ public class WsncTimeTableSalesDto {
         String basePdCd,
         String lcst09,
         String newAdrZip,
-        String userId,
         String sowDay,
         String returnUrl,
         String mkCo,
+
+        String userId,
+        String rcpOgTpCd,
+
+        String prtnrNo,
+        String ogTpCd,
 
         String sidingYn,// 모종 여부
         String spayYn,// 일시불여부
 
         List<String> offDays,
-        List<WsncTimeTableSidingDaysDvo> sidingDayDvos, // list2
-        List<WsncTimeTableDisableDaysDvo> disableDayDvos, // diabledays
-        WsncTimeTablePsicDataDvo psicDataDvos, // left_info
-        List<WsncTimeTableAssignTimeDvo> assignTimeDvos, // list1
+        List<WsncTimeTableSidingDaysDvo> sidingDays, // list2
+        List<WsncTimeTableDisableDaysDvo> disableDays, // diabledays
+        WsncTimeTablePsicDataDvo psicDatas, // left_info
+        // List<WsncTimeTableAssignTimeDvo> assignTimeDvos, // list1
 
         List<WsncTimeTableDaysDvo> days,
         List<WsncTimeTableSmPmNtDvo> arrSm,
@@ -73,9 +78,9 @@ public class WsncTimeTableSalesDto {
 
     ) {
         public FindRes {
-            psicDataDvos.setExnoEncr(DbEncUtil.dec(psicDataDvos.getExnoEncr()));
-            psicDataDvos.setMexnoEncr(DbEncUtil.dec(psicDataDvos.getMexnoEncr()));
-            psicDataDvos.setSjHp2(DbEncUtil.dec(psicDataDvos.getSjHp2()));
+            psicDatas.setExnoEncr(DbEncUtil.dec(psicDatas.getExnoEncr()));
+            psicDatas.setMexnoEncr(DbEncUtil.dec(psicDatas.getMexnoEncr()));
+            psicDatas.setSjHp2(DbEncUtil.dec(psicDatas.getSjHp2()));
         }
     }
 
