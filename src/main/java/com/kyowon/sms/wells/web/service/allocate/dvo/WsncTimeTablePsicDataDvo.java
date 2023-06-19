@@ -6,39 +6,40 @@ import lombok.Setter;
 @Setter
 @Getter
 public class WsncTimeTablePsicDataDvo {
-    String ac021EmpId;
-    String empPic;
-    String ac221CfrmDt;
-    String ac125DeptNm;
-    String ac125DeptCd;
-    String ac021EmpNm;
+    String prtnrNo;//ac021EmpId;
+    String sellDate; // ac221CfrmDt;
     String iscgubNm;
+    String rolDvNm;
+    String sjHp1;
+    String sjHp2;
+    String sjHp3;
+    String rpbLocaraCd; // ac146LocalGb;
+    String ogNm; // ac125DeptNm;
+    String ogId; // ac125DeptCd;
+    String prtnrKnm; // ac021EmpNm;
+    String prtnrKnm2; // ac021EmpNm1;
+    String vstDowVal; // ac146VstCycl
     String degNm;
+    String instCnt;
+    String bsCnt;
+    String asCnt;
+    String satWrkYn; // ac146Sat13WrkYn;
+    String dfYn; // co160OffdayGb;
+    String dowDvCd; // co160Days;
+    String fr2pLgldCd; // ac112AdmCd;
+    String rstrCndtUseYn; // ac146TtbUse;
+    String udsnUseYn; // ac146UaUse;
+    String vstPos;
+    String rsbDvCd; // ac025EmpOr;
     String amWrkCnt;
     String pmWrkCnt;
     String tWrkCnt;
-    String ac025EmpOr;
+    String empPic;
     String locaraTno;
     String exnoEncr;
     String idvTno;
     String cralLocaraTno;
     String mexnoEncr;
     String cralIdvTno;
-    String isjmcdNm;
-    String sjHp1;
-    String sjHp2;
-    String sjHp3;
-    String ac146VstCycl;
-    String vstPos;
-    String ac146TtbUse;
-    String ac146UaUse;
-    String ac146LocalGb;
-    String ac146Sat13WrkYn;
-    String co160OffdayGb;
-    String co160Days;
-    String ac112AdmCd;
-    String instCnt;
-    String bsCnt;
-    String asCnt;
-    String ac021EmpNm1;
+
 }

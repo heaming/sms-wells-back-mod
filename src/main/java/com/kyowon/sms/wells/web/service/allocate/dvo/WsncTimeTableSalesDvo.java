@@ -39,10 +39,10 @@ public class WsncTimeTableSalesDvo {
     String spayYn; // 일시불여부
 
     List<String> offDays;
-    List<WsncTimeTableSidingDaysDvo> sidingDayDvos; // list2 abledays
-    List<WsncTimeTableDisableDaysDvo> disableDayDvos;
-    WsncTimeTablePsicDataDvo psicDataDvos; // left_info
-    List<WsncTimeTableAssignTimeDvo> assignTimeDvos; // list1
+    List<WsncTimeTableSidingDaysDvo> sidingDays; // list2 abledays
+    List<WsncTimeTableDisableDaysDvo> disableDays;
+    WsncTimeTablePsicDataDvo psicDatas; // left_info
+    // List<WsncTimeTableAssignTimeDvo> assignTimeDvos; // list1
 
     List<WsncTimeTableDaysDvo> days;
 

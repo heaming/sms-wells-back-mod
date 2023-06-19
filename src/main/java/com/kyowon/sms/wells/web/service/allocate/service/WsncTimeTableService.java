@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
 import java.text.ParseException;
-import java.util.Calendar;
 import java.util.List;
 
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;
@@ -230,11 +229,11 @@ public class WsncTimeTableService {
         result.getArrPm2().clear();
         result.getArrNt().clear();
 
-        result.setAssignTimeDvos(assignTimeDvos); // list1 = assignTimeDvos
-        result.setPsicDataDvos(psicDataDvos); // left_info = psicDataDvos
-        result.setSidingDayDvos(sidingDayDvos); // list2 = sidingDayDvos
+        //result.setAssignTimeDvos(assignTimeDvos); // list1 = assignTimeDvos
+        result.setPsicDatas(psicDataDvos); // left_info = psicDatas
+        result.setSidingDays(sidingDayDvos); // list2 = sidingDays
         result.setOffDays(offDays); // offdays = offDays
-        result.setDisableDayDvos(disableDayDvos); // diabledays = disableDayDvos
+        result.setDisableDays(disableDayDvos); // diabledays = disableDays
 
         result.setSvDvCd(svDvCd);
         result.setNewAdrZip(newAdrZip);
@@ -308,20 +307,16 @@ public class WsncTimeTableService {
             "offDays: {}", result.getOffDays() != null ? result.getOffDays().toArray().toString() : "offDays is null"
         );
         log.debug(
-            "psicDataDvos: {}",
-            result.getPsicDataDvos() != null ? result.getPsicDataDvos().toString() : "psicDataDvos is null"
+            "psicDatas: {}",
+            result.getPsicDatas() != null ? result.getPsicDatas().toString() : "psicDatas is null"
         );
         log.debug(
-            "assignTimeDvos: {}",
-            result.getAssignTimeDvos() != null ? result.getAssignTimeDvos().toString() : "assignTimeDvos is null"
+            "sidingDays: {}",
+            result.getSidingDays() != null ? result.getSidingDays().toString() : "sidingDays is null"
         );
         log.debug(
-            "sidingDayDvos: {}",
-            result.getSidingDayDvos() != null ? result.getSidingDayDvos().toString() : "sidingDayDvos is null"
-        );
-        log.debug(
-            "disableDayDvos: {}",
-            result.getDisableDayDvos() != null ? result.getDisableDayDvos().toString() : "disableDayDvos is null"
+            "disableDays: {}",
+            result.getDisableDays() != null ? result.getDisableDays().toString() : "disableDays is null"
         );
 
         return converter.mapSalesDvoToRes(result);
