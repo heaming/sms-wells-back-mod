@@ -220,12 +220,13 @@ public class WsnbMultipleTaskOrderService {
 
         /*LC_ALLOCATE_AC211TB 키를 생성한다.
         P_IN_GB 입력구분 1:CC, 2:KIWI, 3:KSS 1이면 CC에서 입력된 P_WRK_DT, P_SEQ 사용 아니면 자체 생성
-        SEQ_LC_ALLOCATE_AC211TB 5자리 시퀀스 생성, MAX 되면 CYCLE*/
+        SEQ_LC_ALLOCATE_AC211TB 5자리 시퀀스 생성, MAX 되면 CYCL
+        E*/
         WsnbMultipleTaskOrderDvo res2 = mapper.selectAsIstOjIzKey(dvo);
         String newAsIstOjNo = res2.getNewInChnlDvCd() + res2.getNewSvBizHclsfCd() + res2.getNewRcpdt()
-            + StringUtils.leftPad(res2.getNewReq(), 8, '0');
+            + StringUtils.leftPad(res2.getNewReq(), 8, "0");
         String puCstSvAsnNo = res2.getNewSvBizHclsfCd() + res2.getNewRcpdt()
-            + StringUtils.leftPad(res2.getNewReq(), 10, '0');
+            + StringUtils.leftPad(res2.getNewReq(), 10, "0");
         dvo.setNewInChnlDvCd(res2.getNewInChnlDvCd());
         dvo.setNewSvBizHclsfCd(res2.getNewSvBizHclsfCd());
         dvo.setNewRcpdt(res2.getNewRcpdt());
@@ -318,7 +319,7 @@ public class WsnbMultipleTaskOrderService {
                 dvo.setAsnCstSvAsnNo(newAsnCstSvAsnNo);
 
                 /* 배정정보를 구한다. */
-                WsnbMultipleTaskOrderDvo res3 = mapper.selectAsAssignOganizationByPk(dvo.getAsIstOjNo());
+                WsnbMultipleTaskOrderDvo res3 = mapper.selectAsAssignOganizationByPk(dvo);
                 dvo.setIchrCnrCd(res3.getIchrCnrCd());
                 dvo.setIchrPrtnrNo(res3.getIchrPrtnrNo());
                 dvo.setIchrOgTpCd(res3.getIchrOgTpCd());

@@ -53,6 +53,7 @@ public class WsnbMultipleTaskOrderDvo {
     String partList;
     String userId;
     String ogTpCd;
+    String rcpOgTpCd;
     /* service애서 만들어주는 값 */
     String newSvBizDclsfCd; /* 서비스업무세분류코드(V_WRK_TYP_DTL) */
     String newWkAcpteStatCd; /* V_CFRM_STUS_WRK */

@@ -16,7 +16,7 @@ public interface WsnbMultipleTaskOrderMapper {
 
     WsnbAsAssignReqDvo selectAsAssignByPk(String asIstOjNo);
 
-    WsnbMultipleTaskOrderDvo selectAsAssignOganizationByPk(String asIstOjNo);
+    WsnbMultipleTaskOrderDvo selectAsAssignOganizationByPk(WsnbMultipleTaskOrderDvo dvo);
 
     int selectAsAssignCountByPk(WsnbMultipleTaskOrderDvo dvo);
 
