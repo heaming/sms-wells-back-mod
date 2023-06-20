@@ -78,7 +78,7 @@ public class WsncTimeTableService {
         String spayYn = "N";
 
         String sowDay = ""; // PAJONG_DAY
-        String lcst09 = "";
+        String sdingCombin = "";
         String copnDvCd = ""; //법인격구분 1:개인, 2법인
         String sellDscDbCd = "";
         String time = "";
@@ -106,13 +106,16 @@ public class WsncTimeTableService {
         //                basePdCd = sidingCd;
         //            }
 
-        WsncTimeTableCntrDvo contractDvo = mapper.selectContract(cntrNo, cntrSn).orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
-
-        WsncTimeTableProductDvo productDvo = mapper.selectProduct(contractDvo.getBasePdCd(), contractDvo.getPdctPdCd());
-
+        WsncTimeTableCntrDvo contractDvo = mapper.selectContract(cntrNo, cntrSn, sellDate).orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
         basePdCd = contractDvo.getBasePdCd();
         pdctPdCd = contractDvo.getPdctPdCd();
+        newAdrZip = contractDvo.getAdrZip();
+        contDt = contractDvo.getCntrDt();
+        copnDvCd = contractDvo.getCopnDvCd();
+        sellDscDbCd = contractDvo.getSellDscDbCd();
+        sdingCombin = contractDvo.getSdingCombin(); // lcst09
 
+        WsncTimeTableProductDvo productDvo = mapper.selectProduct(basePdCd, pdctPdCd);
         sidingYn = productDvo.getSidingYn();
         spayYn = "3".equals(productDvo.getRglrSppPrcDvCd()) ? "Y" : "N"; // 일시불여부
         //------------------------------------------------------
@@ -126,7 +129,7 @@ public class WsncTimeTableService {
                 //------------------------------------------------------
                 // getMojongDays_ilsibul
                 sidingDayDvos = this.mapper
-                    .selectSidingDaysForSpay(lcst09, sellDate, basePdCd, svDvCd, pdctPdCd, cntrNo);
+                    .selectSidingDaysForSpay(sdingCombin, sellDate, basePdCd, svDvCd, pdctPdCd, cntrNo);
                 //------------------------------------------------------
 
                 boolean isAdd40Days = false;
@@ -154,10 +157,6 @@ public class WsncTimeTableService {
 
         boolean isHcr = "Y".equals(productDvo.getHcrYn());
 
-        newAdrZip = contractDvo.getAdrZip();
-        contDt = contractDvo.getCntrDt();
-        copnDvCd = contractDvo.getCopnDvCd();
-        sellDscDbCd = contractDvo.getSellDscDbCd();
 
         // Cubig CC 홈케어 조회용 타임테이블 http://ccwells.kyowon.co.kr/obm/obm0800/obm0800.jsp
         // KSS접수와 동일하게 하기위해 (백현아 K 요청)
@@ -253,7 +252,7 @@ public class WsncTimeTableService {
         result.setBasePdCd(basePdCd);
         //result.setUserId(userId);
         result.setSowDay(sowDay);//pajong_day
-        result.setLcst09(lcst09);
+        result.setLcst09(sdingCombin);
         result.setReturnUrl(returnUrl);
         result.setMkCo(paramDvo.getMkCo());//bypass
         result.setPrtnrNo(paramDvo.getPrtnrNo());
@@ -261,6 +260,9 @@ public class WsncTimeTableService {
 
         result.setSidingYn(sidingYn); // 모종여부
         result.setSpayYn(spayYn); // 일시불여부
+
+        result.setSeq(LPad(StringUtil.nvl(req.seq(),""), "0", 3));
+        result.setCstSvAsnNo(StringUtil.nvl(req.cstSvAsnNo(),""));
 
 
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
@@ -451,4 +453,17 @@ public class WsncTimeTableService {
         return null;
     }
 
+    public String LPad(String sOrg, String sPad, int nCnt) {
+        String sRet = "";
+        if (sOrg == null)
+            return "";
+        if (sPad == null)
+            sPad = "";
+        if (nCnt == 0)
+            nCnt = 1;
+        for (int i = 0; i < nCnt; i++)
+            sRet += sPad;
+        sRet += sOrg;
+        return sRet;
+    }
 }

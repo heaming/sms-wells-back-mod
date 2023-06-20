@@ -38,6 +38,8 @@ public class WsncTimeTableSalesDvo {
 
     String sidingYn; // 모종 여부
     String spayYn; // 일시불여부
+    String seq; // 일시불여부
+    String cstSvAsnNo;
 
     List<String> offDays;
     List<WsncTimeTableSidingDaysDvo> sidingDays; // list2 abledays

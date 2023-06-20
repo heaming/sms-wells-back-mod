@@ -29,7 +29,7 @@ public interface WsncTimeTableMapper {
     List<WsncTimeTableDaysDvo> selectTimeTableDates(String baseYm);
 
     //WsncTimeTablePackageDvo selectPackage(String sidingCd, String baePdCd, String cntrNo);
-    Optional<WsncTimeTableCntrDvo> selectContract(String cntrNo, String cntrSn);
+    Optional<WsncTimeTableCntrDvo> selectContract(String cntrNo, String cntrSn, String sellDate);
 
     WsncTimeTableProductDvo selectProduct(String basePdCd, String pdctPdCd);
 
