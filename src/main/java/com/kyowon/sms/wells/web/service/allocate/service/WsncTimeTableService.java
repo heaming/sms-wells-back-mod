@@ -6,6 +6,7 @@ import java.util.List;
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncTimeTableConverter;
@@ -261,9 +262,8 @@ public class WsncTimeTableService {
         result.setSidingYn(sidingYn); // 모종여부
         result.setSpayYn(spayYn); // 일시불여부
 
-        result.setSeq(LPad(StringUtil.nvl(req.seq(),""), "0", 3));
+        result.setSeq(StringUtils.leftPad(StringUtil.nvl(req.seq(),"1"), 8, "0"));
         result.setCstSvAsnNo(StringUtil.nvl(req.cstSvAsnNo(),""));
-
 
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
         result.setUserId(session.getEmployeeIDNumber());
@@ -451,19 +451,5 @@ public class WsncTimeTableService {
     * */
     protected WsncTimeTableSalesDvo noSessionBsTimeAssign() {
         return null;
-    }
-
-    public String LPad(String sOrg, String sPad, int nCnt) {
-        String sRet = "";
-        if (sOrg == null)
-            return "";
-        if (sPad == null)
-            sPad = "";
-        if (nCnt == 0)
-            nCnt = 1;
-        for (int i = 0; i < nCnt; i++)
-            sRet += sPad;
-        sRet += sOrg;
-        return sRet;
     }
 }
