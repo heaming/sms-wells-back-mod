@@ -278,7 +278,7 @@
               FROM TB_OGBS_PRTNR_BAS
              WHERE 1=1
                AND PRTNR_NO = #{userId}
-               AND OG_TP_CD = #{userOgTpCd}
+               AND OG_TP_CD = #{rcpOgTpCd}
     </select>
     <select id="selectSaveInstallationObject" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallationObjectSaveDvo">
         SELECT #{newAsIstOjNo} AS AS_IST_OJ_NO
@@ -288,7 +288,7 @@
                               FROM TB_OGBS_PRTNR_BAS
                              WHERE 1=1
                                AND PRTNR_NO = #{userId}
-                               AND OG_TP_CD = #{userOgTpCd})
+                               AND OG_TP_CD = #{rcpOgTpCd})
                  END) AS URGT_YN
              , #{vstRqdt} AS VST_RQDT /*방문요청일자*/
              , #{vstAkHh} AS VST_AK_HH /*방문요청시간*/
@@ -323,7 +323,7 @@
                              FROM TB_OGBS_PRTNR_BAS A
                             WHERE 1=1
                               AND A.PRTNR_NO = #{userId}
-                              AND A.OG_TP_CD = #{ogTpCd}
+                              AND A.OG_TP_CD = #{rcpOgTpCd}
                           )
                      WHEN #{newInChnlDvCd} = '3' THEN (CASE WHEN #{newSvBizDclsfCd} IN ('1121', '1122')
                                                             THEN F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_DCLSF_CD', #{newSvBizDclsfCd}, #{session.langId}) || ': ' || SUBSTR(TRIM(#{cntrNoB}), 1, 4) || '-' || SUBSTR(TRIM(#{cntrNoB}), 5) || ' '  ||
@@ -365,9 +365,6 @@
             ON T8.PD_CD = A1.PD_CD /*서비스상품코드*/
            AND T8.PD_EXTS_PRP_GRP_CD = 'SCHD' /*상품확장속성그룹코드 : AFS AS, PART AS부품, SCHD 일정관리*/
            AND T8.DTA_DL_YN = 'N'
-         INNER JOIN TB_OGBS_PRTNR_BAS O /*파트너기본*/
-            ON  O.PRTNR_NO = C1.SELL_PRTNR_NO
-           AND O.DTA_DL_YN = 'N'
          WHERE 1=1
            AND A1.CNTR_NO = #{cntrNo}
            AND A1.CNTR_SN = #{cntrSn}
@@ -383,7 +380,7 @@
              , #{newSvBizHclsfCd} AS SV_BIZ_HCLSF_CD
              , #{newSvBizDclsfCd} AS SV_BIZ_DCLSF_CD
              , '' AS RCP_SV_BIZ_DCLSF_CD
-             , #{ogTpCd} AS RCP_OG_TP_CD
+             , #{rcpOgTpCd} AS RCP_OG_TP_CD
              , #{userId} AS RCP_ICHR_PRTNR_NO
              , #{newRcpdt} AS RCPDT
              , TO_CHAR(SYSDATE,'YYYYMMDD') AS FNL_RCPDT /*최종접수일자*/
@@ -393,7 +390,7 @@
                               FROM TB_OGBS_PRTNR_BAS
                              WHERE 1=1
                                AND PRTNR_NO = #{userId}
-                               AND OG_TP_CD = #{ogTpCd})
+                               AND OG_TP_CD = #{rcpOgTpCd})
                  END) AS URGT_YN
              , #{vstRqdt} AS VST_RQDT /*방문요청일자*/
              , #{vstAkHh} AS VST_AK_HH /*방문요청시간*/
@@ -413,7 +410,7 @@
                  WHERE 1=1
                    AND PRTNR_NO = FN_SVPD_LOCARA_PRTNR_01(TRIM(T3.NEW_ADR_ZIP), PDCT_PD_CD, #{newSvBizDclsfCd}, NVL(#{vstRqdt}, TO_CHAR(SYSDATE, 'YYYYMMDD')))
                    AND OG_TP_CD = 'W06') AS SV_CNR_OG_ID /*서비스센터조직ID*/
-             , #{mtrStatCd} AS MTR_STAT_CD /*자료상태코드*/
+             , #{dtaStatCd} AS MTR_STAT_CD /*자료상태코드*/
              , A.PDCT_PD_CD AS PD_CD /*상품코드*/
              , C0.PD_GD_CD AS PD_GD_CD /*상품등급코드*/
              , T8.PD_PRP_VAL01 AS PD_USWY_CD /*상품용도코드*/
@@ -479,9 +476,6 @@
             ON T8.PD_CD = A.SV_PD_CD /*서비스상품코드*/
            AND T8.PD_EXTS_PRP_GRP_CD = 'SCHD' /*상품확장속성그룹코드 : AFS AS, PART AS부품, SCHD 일정관리*/
            AND T8.DTA_DL_YN = 'N'
-         INNER JOIN TB_OGBS_PRTNR_BAS O /*파트너기본*/
-            ON  O.PRTNR_NO = C1.SELL_PRTNR_NO
-           AND O.DTA_DL_YN = 'N'
          WHERE 1=1
            AND A.CNTR_NO = #{cntrNo}
            AND A.CNTR_SN = #{cntrSn}
@@ -1119,8 +1113,8 @@
     </update>
     <update id="updateInstallationObjectKey">
         UPDATE TB_SVPD_CST_SVAS_IST_OJ_IZ
-           SET CST_SV_ASN_NO = (CASE WHEN #{dtaStatCd} = '3' THEN '' ELSE #{asnCstSvAsnNo})
+           SET CST_SV_ASN_NO = (CASE WHEN #{dtaStatCd} = '3' THEN '' ELSE #{asnCstSvAsnNo} END)
               <include refid="COMMON.updateSystemField"/>
-         WHERE AS_IST_OJ_NO = #{AS_IST_OJ_NO}
+         WHERE AS_IST_OJ_NO = #{newAsIstOjNo}
     </update>
 </mapper>

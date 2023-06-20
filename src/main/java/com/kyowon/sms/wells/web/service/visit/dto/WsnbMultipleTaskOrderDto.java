@@ -50,7 +50,7 @@ public class WsnbMultipleTaskOrderDto {
         String payNm, /* 입금자명 */
         String partList, /* 자재코드,수량,금액 | 자재코드,수량,금액 | ~~~ */
         String userId,
-        String ogTpCd
+        String rcpOgTpCd
     ) {}
 
 }
