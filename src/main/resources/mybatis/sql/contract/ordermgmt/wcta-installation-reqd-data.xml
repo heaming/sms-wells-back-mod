@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaInstallationReqdDtInMapper">
+
+    <update id="updateInstallReqdDt">
+        UPDATE TB_SSCT_CNTR_WELLS_DTL
+        <set>
+            <if test='@MybatisUtils@isNotEmpty(istDt)'>IST_DT = #{istDt},</if>
+            <if test='@MybatisUtils@isNotEmpty(reqdDt)'>REQD_DT = #{reqdDt}</if>
+        </set>
+        <include refid="COMMON.updateSystemField"/>
+        WHERE CNTR_NO = #{cntrNo}
+          AND CNTR_SN = #{cntrSn}
+    </update>
+
+    <update id="updateContractWellsDetailHist">
+        UPDATE TB_SSCT_CNTR_WELLS_DCH_HIST /* 계약WELLS상세변경이력 */
+           SET HIST_END_DTM             = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')  /* 이력종료일시 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO                  = #{cntrNo}                  /* 계약번호 */
+           AND CNTR_SN                  = #{cntrSn}                  /* 계약일련번호 */
+           AND HIST_END_DTM             = '99991231235959'           /* 이력종료일시 */
+    </update>
+
+    <insert id="insertContractWellsDetailHist">
+        INSERT INTO TB_SSCT_CNTR_WELLS_DCH_HIST (  /* 계약WELLS상세변경이력 */
+              CNTR_NO                  /* 계약번호 */
+            , CNTR_SN                  /* 계약일련번호 */
+            , HIST_STRT_DTM            /* 이력시작일시 */
+            , HIST_END_DTM             /* 이력종료일시 */
+            , FRISU_BFSVC_PTRM_UNIT_CD /* 무상BS기간단위코드 */
+            , FRISU_BFSVC_PTRM_N       /* 무상BS기간수 */
+            , FRISU_AS_PTRM_UNIT_CD    /* 무상AS기간단위코드 */
+            , FRISU_AS_PTRM_N          /* 무상AS기간수 */
+            , IST_DT                   /* 설치일자 */
+            , REQD_DT                  /* 철거일자 */
+            , CPS_DT                   /* 보상일자 */
+            , PRM_APY_DV_CD            /* 선납적용구분코드 */
+            , PRM_PTRM_MCN             /* 선납기간개월수 */
+            , SELL_EV_CD               /* 판매행사코드 */
+            , BFSVC_BZS_DV_CD          /* BS업체구분코드 */
+            , SPLY_BZS_DV_CD           /* 조달업체구분코드 */
+            , OCO_CPS_BZS_DV_CD        /* 타사보상업체구분코드 */
+            , HCR_DV_CD                /* 홈케어구분코드 */
+            , FMMB_N                   /* 가구원수 */
+            , FRISU_RCVRY_TP_CD        /* 무상복구유형코드 */
+            , IST_PLC_TP_CD            /* 설치장소유형코드 */
+            , WRFR_IST_MTH_CD          /* 정수기설치방법코드 */
+            , WTQLTY_TST_YN            /* 수질검사여부 */
+            , SRCWT_TP_CD              /* 상수원유형코드 */
+            , WPRS_ITST_TP_CD          /* 수압강도유형코드 */
+            , USE_ELECT_TP_CD          /* 사용전력유형코드 */
+            , TBHS_EYN                 /* 튜빙호수유무 */
+            , STVLV_EYN                /* 지수전유무 */
+            , KUMON_ITRDT_DV_CD        /* 구몬소개구분코드 */
+            , KUMON_CST_IDK_VAL        /* 구몬고객식별키값 */
+            , KUMON_RCOMR_IDK_VAL      /* 구몬소개자식별키값 */
+            , OTSD_LK_DRM_VAL          /* 외부연계식별값 */
+            , FRISU_MSH_CRT_YN         /* 무상멤버십생성여부 */
+            , IST_MM_BIL_MTHD_TP_CD    /* 설치월청구방식유형코드 */
+            , CO_IST_DV_CD             /* 회사설치구분코드 */
+            , CO_IST_MNGT_DV_CD        /* 회사설치관리구분코드 */
+            , CO_IST_USWY_CD           /* 회사설치용도코드 */
+            , IST_AK_ARTC_MO_CN        /* 설치요청사항메모내용 */
+            , SCON_CN                  /* 특약내용 */
+            , DTA_DL_YN                /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+       SELECT CNTR_NO                  /* 계약번호 */
+            , CNTR_SN                  /* 계약일련번호 */
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') /* 이력시작일시 */
+            , '99991231235959'         /* 이력종료일시 */
+            , FRISU_BFSVC_PTRM_UNIT_CD /* 무상BS기간단위코드 */
+            , FRISU_BFSVC_PTRM_N       /* 무상BS기간수 */
+            , FRISU_AS_PTRM_UNIT_CD    /* 무상AS기간단위코드 */
+            , FRISU_AS_PTRM_N          /* 무상AS기간수 */
+            , IST_DT                   /* 설치일자 */
+            , REQD_DT                  /* 철거일자 */
+            , CPS_DT                   /* 보상일자 */
+            , PRM_APY_DV_CD            /* 선납적용구분코드 */
+            , PRM_PTRM_MCN             /* 선납기간개월수 */
+            , SELL_EV_CD               /* 판매행사코드 */
+            , BFSVC_BZS_DV_CD          /* BS업체구분코드 */
+            , SPLY_BZS_DV_CD           /* 조달업체구분코드 */
+            , OCO_CPS_BZS_DV_CD        /* 타사보상업체구분코드 */
+            , HCR_DV_CD                /* 홈케어구분코드 */
+            , FMMB_N                   /* 가구원수 */
+            , FRISU_RCVRY_TP_CD        /* 무상복구유형코드 */
+            , IST_PLC_TP_CD            /* 설치장소유형코드 */
+            , WRFR_IST_MTH_CD          /* 정수기설치방법코드 */
+            , WTQLTY_TST_YN            /* 수질검사여부 */
+            , SRCWT_TP_CD              /* 상수원유형코드 */
+            , WPRS_ITST_TP_CD          /* 수압강도유형코드 */
+            , USE_ELECT_TP_CD          /* 사용전력유형코드 */
+            , TBHS_EYN                 /* 튜빙호수유무 */
+            , STVLV_EYN                /* 지수전유무 */
+            , KUMON_ITRDT_DV_CD        /* 구몬소개구분코드 */
+            , KUMON_CST_IDK_VAL        /* 구몬고객식별키값 */
+            , KUMON_RCOMR_IDK_VAL      /* 구몬소개자식별키값 */
+            , OTSD_LK_DRM_VAL          /* 외부연계식별값 */
+            , FRISU_MSH_CRT_YN         /* 무상멤버십생성여부 */
+            , IST_MM_BIL_MTHD_TP_CD    /* 설치월청구방식유형코드 */
+            , CO_IST_DV_CD             /* 회사설치구분코드 */
+            , CO_IST_MNGT_DV_CD        /* 회사설치관리구분코드 */
+            , CO_IST_USWY_CD           /* 회사설치용도코드 */
+            , IST_AK_ARTC_MO_CN        /* 설치요청사항메모내용 */
+            , SCON_CN                  /* 특약내용 */
+            , DTA_DL_YN                /* 데이터삭제여부 */
+              <include refid="COMMON.insertSystemFieldValue" />
+         FROM TB_SSCT_CNTR_WELLS_DTL
+        WHERE CNTR_NO = #{cntrNo}
+          AND CNTR_SN = #{cntrSn}
+    </insert>
+
+
+
+</mapper>
