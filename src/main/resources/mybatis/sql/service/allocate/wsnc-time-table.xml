@@ -42,13 +42,15 @@
              , F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', P4.PD_PRP_VAL20) AS PD_GRP_NM
              , C2.CNTR_PD_STRTDT AS CNTR_DT
              , C1.COPN_DV_CD -- 법인격구분코드 (1개인, 2법인)
+             , CASE WHEN C5.OJ_DTL_CNTR_NO IS NULL THEN '03'
+                    ELSE (CASE WHEN #{sellDate} > TO_CHAR(SYSDATE + 40, 'YYYYMM')  THEN '02' ELSE '01' END ) END AS SDING_COMBIN --LCST09
           FROM TB_SSCT_CNTR_BAS C1
          INNER JOIN TB_SSCT_CNTR_DTL C2
             ON C1.CNTR_NO = C2.CNTR_NO
          INNER JOIN TB_SSCT_CNTR_ADR_REL C3
             ON C2.CNTR_NO = C3.DTL_CNTR_NO
            AND C2.CNTR_SN = C3.DTL_CNTR_SN
-           AND C3.ADRPC_TP_CD IN ('2', '3')
+           AND C3.ADRPC_TP_CD IN ('2', '3') -- 계약지유형(1:계약주소, 2:배달주소, 3:설치주소)
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C4
             ON C3.CNTR_ADRPC_ID = C4.CNTR_ADRPC_ID
@@ -56,7 +58,7 @@
             ON C4.ADR_ID = A1.ADR_ID
          INNER JOIN TB_PDBS_PD_REL P1
             ON C2.BASE_PD_CD = P1.BASE_PD_CD
-           AND P1.PD_REL_TP_CD IN ('05', '18')
+           AND P1.PD_REL_TP_CD IN ('05', '18') -- 상품관계유형(05: 기준-제품, 18:정기BS제품)
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN P1.VL_STRT_DTM AND P1.VL_END_DTM
          INNER JOIN TB_PDBS_PD_BAS P2
             ON P1.BASE_PD_CD = P2.PD_CD
@@ -65,6 +67,12 @@
          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P4
             ON P1.OJ_PD_CD = P4.PD_CD
            AND P4.PD_EXTS_PRP_GRP_CD = 'PART'
+          LEFT OUTER JOIN TB_SSCT_CNTR_REL C5
+            ON C5.BASE_DTL_CNTR_NO = C2.CNTR_NO
+           AND C5.BASE_DTL_CNTR_SN = C2.CNTR_sn
+           AND C5.CNTR_REL_DTL_CD = '216' /*모종결합*/
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C5.VL_STRT_DTM AND C5.VL_END_DTM
+           AND C5.DTA_DL_YN = 'N'
          WHERE C2.CNTR_NO = #{cntrNo}
            AND C2.CNTR_SN = #{cntrSn}
     </select>

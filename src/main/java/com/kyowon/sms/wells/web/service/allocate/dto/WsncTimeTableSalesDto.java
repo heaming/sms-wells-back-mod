@@ -33,7 +33,9 @@ public class WsncTimeTableSalesDto {
         String returnUrl,
         String userId,
         String mkCo,
-        String baseYm
+        String baseYm,
+        String seq, // P_IN_GB + P_WRK_GB + P_WRK_DT + LEFTPAD(P_SEQ, 8,"0")
+        String cstSvAsnNo
     ) {}
 
     @ApiModel(value = "WsncTimeTableSalesDto-FindRes")
@@ -66,6 +68,7 @@ public class WsncTimeTableSalesDto {
 
         String sidingYn,// 모종 여부
         String spayYn,// 일시불여부
+        String seq,// P_IN_GB + P_WRK_GB + P_WRK_DT + LEFTPAD(P_SEQ, 8,"0")
 
         List<String> offDays,
         List<WsncTimeTableSidingDaysDvo> sidingDays, // list2
