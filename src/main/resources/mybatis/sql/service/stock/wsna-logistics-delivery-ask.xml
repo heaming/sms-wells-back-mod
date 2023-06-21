@@ -1,18 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!---
- ****************************************************************************************************
- * 프로그램 개요
- ****************************************************************************************************
- 1. 모듈 : SNA (재고관리)
- 2. 프로그램 ID : W-SV-S-0091 AS 물류배송요청 서비스 (HQ 생성로직)
- 3. 작성자 : SaeRomI.Kim
- 4. 작성일 : 2023.05.31
- ****************************************************************************************************
- * 프로그램 설명
- ****************************************************************************************************
- - 물량배정 물품을 배송요청하기 위해 배송인터페이스 테이블에 출고배송요청 정보를 저장한다.
- ****************************************************************************************************
--->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsDeliveryAskMapper">
 
@@ -98,6 +84,7 @@
                    ON D4.BASE_YM   = D2.APY_YM
                   AND D4.OG_ID     = D2.OG_ID
                   AND D4.OG_TP_CD  = D2.OG_TP_CD
+                  AND D4.DTA_DL_YN = 'N'
                 INNER JOIN TB_OGBS_OG_BAS D5                  /* 조직기본 */
                    ON D5.OG_ID     = D2.OG_ID
                   AND D5.OG_TP_CD  = D2.OG_TP_CD
@@ -106,7 +93,6 @@
                   AND D2.DTA_DL_YN     = 'N'
                   AND D2.WARE_USE_YN   = 'Y'            /* 사용중인 창고 */
                   AND D3.DTA_DL_YN     = 'N'
-                  AND D4.DTA_DL_YN     = 'N'
                   AND D5.DTA_DL_YN     = 'N'
                   AND D1.OSTR_AK_WARE_DV_CD LIKE '3%'   /* 입고대상창고 */
                   AND D1.OSTR_OJ_WARE_DV_CD LIKE '1%'   /* 출고대상창고 */
@@ -233,6 +219,7 @@
                    ON D5.BASE_YM   = D4.APY_YM
                   AND D5.OG_ID     = D4.OG_ID
                   AND D5.OG_TP_CD  = D4.OG_TP_CD
+                  AND D5.DTA_DL_YN = 'N'
                 INNER JOIN TB_OGBS_OG_BAS D6                  /* 조직기본 */
                    ON D6.OG_ID     = D4.OG_ID
                   AND D6.OG_TP_CD  = D4.OG_TP_CD
@@ -240,7 +227,6 @@
                   AND D3.DTA_DL_YN   = 'N'
                   AND D4.DTA_DL_YN   = 'N'
                   AND D4.WARE_USE_YN = 'Y'
-                  AND D5.DTA_DL_YN   = 'N'
                   AND D6.DTA_DL_YN   = 'N'
                   AND D1.LLORDT      = TO_CHAR(SYSDATE, 'YYYYMMDD')
                   AND D1.LLIFNO      = ( SELECT MAX(LLIFNO)
