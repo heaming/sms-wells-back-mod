@@ -39,8 +39,8 @@
               , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
               , '99991231235959'
               , CNTR_DTL_STAT_CD
-              , CNTR_DTL_STAT_CH_RSON_CD
-              , CNTR_DTL_STAT_CH_MO_CN
+              , ''
+              , CNTR_CH_DTL_AK_CN
               , 'N'
               <include refid="COMMON.insertSystemFieldValue" />
            FROM TB_SSCT_CNTR_DTL
