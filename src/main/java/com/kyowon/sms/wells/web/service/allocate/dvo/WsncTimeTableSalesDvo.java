@@ -24,7 +24,7 @@ public class WsncTimeTableSalesDvo {
     String wrkDt;
     String dataStatCd; // P_DATA_STUS
     String basePdCd;
-    String lcst09;
+    String sdingCombin; //lcst09
     String newAdrZip;
     String sowDay;
     String returnUrl;
