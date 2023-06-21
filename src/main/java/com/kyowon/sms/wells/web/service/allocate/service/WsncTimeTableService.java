@@ -64,7 +64,8 @@ public class WsncTimeTableService {
         String cntrNo = req.cntrNo(); // W20222324935
         String cntrSn = req.cntrSn(); // 1
         String svDvCd = StringUtil.nvl(req.svDvCd(), ""); // dataGb
-        String wrkDt = req.wrkDt(); // P_WRK_DT
+        //wrkDt는 무조건 오늘 날자(홍세기 매니저님 전달)
+        String wrkDt = DateUtil.getNowDayString(); // req.wrkDt(); // P_WRK_DT
         String dataStatCd = req.dataStatCd(); //DATA_STUS
         String svBizDclsfCd = req.svBizDclsfCd(); // wrkTypDtl
         //String userId = req.userId();
@@ -96,18 +97,8 @@ public class WsncTimeTableService {
             sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 5);
         }
 
-        //            if (gbCd.equals("C") || gbCd.equals("W")) {
-        //                sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 1);
-        //            }
-        //            if (dataStus.equals("1") && sellDate.equals(wrkDt)) {
-        //                sellDate = DateUtil.addDays(sellDate, 5);
-        //            }
-
-        //            if (StringUtil.isNotEmpty(sidingCd) && !sidingCd.equals("999")) {
-        //                basePdCd = sidingCd;
-        //            }
-
-        WsncTimeTableCntrDvo contractDvo = mapper.selectContract(cntrNo, cntrSn, sellDate).orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
+        WsncTimeTableCntrDvo contractDvo = mapper.selectContract(cntrNo, cntrSn, sellDate)
+            .orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
         basePdCd = contractDvo.getBasePdCd();
         pdctPdCd = contractDvo.getPdctPdCd();
         newAdrZip = contractDvo.getAdrZip();
@@ -158,7 +149,6 @@ public class WsncTimeTableService {
 
         boolean isHcr = "Y".equals(productDvo.getHcrYn());
 
-
         // Cubig CC 홈케어 조회용 타임테이블 http://ccwells.kyowon.co.kr/obm/obm0800/obm0800.jsp
         // KSS접수와 동일하게 하기위해 (백현아 K 요청)
         // Cubig CC DATA_GB 변경할수 없음.
@@ -199,20 +189,17 @@ public class WsncTimeTableService {
 
         //-----------------------------------------------------------------------------------------
 
-        // 책임지역 담당자 찾기
-        // selectTimeAssign_v2_step1
+        // 책임지역 담당자 찾기 selectTimeAssign_v2_step1
         rpbLocaraPsicDvo = mapper.selectRpbLocaraPsic(paramDvo); // step1_with
         paramDvo.setPrtnrNo(rpbLocaraPsicDvo.getIchrPrtnrNo());
         paramDvo.setLocalGb(rpbLocaraPsicDvo.getRpbLocaraCd());
         paramDvo.setVstDowValCd(rpbLocaraPsicDvo.getVstDowValCd());
         paramDvo.setOgTpCd(rpbLocaraPsicDvo.getOgTpCd());
 
-        // 담당자 정보 표시 (왼쪽)
-        // selectTimeAssign_v2_step2
+        // 담당자 정보 표시 selectTimeAssign_v2_step2
         psicDataDvos = mapper.selectPsicData(rpbLocaraPsicDvo); // left_info
 
-        // 시간표시
-        // selectTimeAssign_v2_step3
+        // 시간표시 selectTimeAssign_v2_step3
         rpbLocaraPsicDvo.setEmpTWrkCnt(mapper.selectEmpTWrkCnt(rpbLocaraPsicDvo));
         rpbLocaraPsicDvo.setDegWrkCnt(mapper.selectDegWrkCnt(rpbLocaraPsicDvo));
         rpbLocaraPsicDvo.setWkHhCd(mapper.selectWkHhCd(rpbLocaraPsicDvo));
@@ -251,9 +238,8 @@ public class WsncTimeTableService {
         result.setDataStatCd(dataStatCd);
         result.setSvBizDclsfCd(svBizDclsfCd);
         result.setBasePdCd(basePdCd);
-        //result.setUserId(userId);
         result.setSowDay(sowDay);//pajong_day
-        result.setLcst09(sdingCombin);
+        result.setSdingCombin(sdingCombin);
         result.setReturnUrl(returnUrl);
         result.setMkCo(paramDvo.getMkCo());//bypass
         result.setPrtnrNo(paramDvo.getPrtnrNo());
@@ -262,8 +248,9 @@ public class WsncTimeTableService {
         result.setSidingYn(sidingYn); // 모종여부
         result.setSpayYn(spayYn); // 일시불여부
 
-        result.setSeq(StringUtils.leftPad(StringUtil.nvl(req.seq(),"1"), 8, "0"));
-        result.setCstSvAsnNo(StringUtil.nvl(req.cstSvAsnNo(),""));
+        // 00000001
+        result.setSeq(StringUtils.leftPad(StringUtil.nvl(req.seq(), "1"), 8, "0"));
+        result.setCstSvAsnNo(StringUtil.nvl(req.cstSvAsnNo(), ""));
 
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
         result.setUserId(session.getEmployeeIDNumber());
@@ -287,43 +274,30 @@ public class WsncTimeTableService {
                 result.getArrPm2().add(smPmNtDvo);
             } else
                 result.getArrNt().add(smPmNtDvo);
-
         }
 
-        log.debug("baesYm: {}", result.getBaseYm());
-        log.debug("NewAdrZip: {}", result.getNewAdrZip());
+        log.debug("baesYm:            {}", result.getBaseYm());
+        log.debug("NewAdrZip:         {}", result.getNewAdrZip());
         log.debug("CurDateTimeString: {}", result.getCurDateTimeString());
-        log.debug("SellDate: {}", result.getSellDate());
-        log.debug("ChnlDvCd: {}", result.getChnlDvCd());
-        log.debug("CntrNo: {}", result.getCntrNo());
-        log.debug("CntrSn: {}", result.getCntrSn());
-        log.debug("inflwChnl: {}", result.getInflwChnl());
-        log.debug("WrkDt: {}", result.getWrkDt());
-        log.debug("DataStatCd: {}", result.getDataStatCd());
-        log.debug("SvBizDclsfCd: {}", result.getSvBizDclsfCd());
-        log.debug("BasePdCd: {}", result.getBasePdCd());
-        log.debug("UserId: {}", result.getUserId());
-        log.debug("SowDay: {}", result.getSowDay());
-        log.debug("Lcst09: {}", result.getLcst09());
-        log.debug("returnUrl: {}", result.getReturnUrl());
-        log.debug("MkCo: {}", result.getMkCo());
-        log.debug("prtnrNo: {}", result.getPrtnrNo());
-
-        log.debug(
-            "offDays: {}", result.getOffDays() != null ? result.getOffDays().toArray().toString() : "offDays is null"
-        );
-        log.debug(
-            "psicDatas: {}",
-            result.getPsicDatas() != null ? result.getPsicDatas().toString() : "psicDatas is null"
-        );
-        log.debug(
-            "sidingDays: {}",
-            result.getSidingDays() != null ? result.getSidingDays().toString() : "sidingDays is null"
-        );
-        log.debug(
-            "disableDays: {}",
-            result.getDisableDays() != null ? result.getDisableDays().toString() : "disableDays is null"
-        );
+        log.debug("SellDate:          {}", result.getSellDate());
+        log.debug("ChnlDvCd:          {}", result.getChnlDvCd());
+        log.debug("CntrNo:            {}", result.getCntrNo());
+        log.debug("CntrSn:            {}", result.getCntrSn());
+        log.debug("inflwChnl:         {}", result.getInflwChnl());
+        log.debug("WrkDt:             {}", result.getWrkDt());
+        log.debug("DataStatCd:        {}", result.getDataStatCd());
+        log.debug("SvBizDclsfCd:      {}", result.getSvBizDclsfCd());
+        log.debug("BasePdCd:          {}", result.getBasePdCd());
+        log.debug("UserId:            {}", result.getUserId());
+        log.debug("SowDay:            {}", result.getSowDay());
+        log.debug("Lcst09:            {}", result.getSdingCombin());
+        log.debug("returnUrl:         {}", result.getReturnUrl());
+        log.debug("MkCo:              {}", result.getMkCo());
+        log.debug("prtnrNo:           {}", result.getPrtnrNo());
+        log.debug("offDays:           {}", result.getOffDays());
+        log.debug("psicDatas:         {}", result.getPsicDatas());
+        log.debug("sidingDays:        {}", result.getSidingDays());
+        log.debug("disableDays:       {}", result.getDisableDays());
 
         return converter.mapSalesDvoToRes(result);
     }

@@ -1018,7 +1018,7 @@
                 SELECT LISTAGG(BASE_PD_CD, ',') WITHIN GROUP (ORDER BY BASE_PD_CD) AS BASE_PD_CDS
                   FROM (
                         SELECT DISTINCT B.BASE_PD_CD
-                          FROM TB_PDBS_LVLH_CSTMW_FILT_BASE A
+                          FROM TB_PDBS_LVLH_CSTMW_FILT_BAS A
                          INNER JOIN TB_PDBS_PD_REL B
                             ON OJ_PD_CD = A.PDCT_PD_CD
                            AND PD_REL_TP_CD = '05'
