@@ -32,8 +32,6 @@ public interface WsnbMultipleTaskOrderMapper {
 
     WsnbMultipleTaskOrderDvo selectAsIstOjIzKey(WsnbMultipleTaskOrderDvo dvo);
 
-    int insertInstallationObjectError(WsnbMultipleTaskOrderDvo dvo);
-
     String selectMexnoEncr(String userId);
 
     int insertInstallationObject(WsnbMultipleTaskOrderDvo dvo);

@@ -220,59 +220,6 @@
                  END) AS NEW_REQ
           FROM DUAL
     </select>
-
-    <insert id="insertInstallationObjectError">
-        INSERT INTO TB_SVPD_CST_SVAS_IST_OJ_ERR_IZ
-             ( AS_IST_OJ_NO
-             , SV_BIZ_HCLSF_CD
-             , WK_DT
-             , CNTR_NO
-             , CNTR_SN
-             , MTR_STAT_CD
-             , SV_BIZ_DCLSF_CD
-             , WK_APY_DT
-             , WK_APY_HH
-             , URGT_YN
-             , VST_RQDT
-             , VST_AK_HH
-             , SMS_FW_YN
-             , SV_ET_AMT
-             , DP_DV_CD
-             , CNSL_TP_HCLSF_CD
-             , CNSL_TP_MCLSF_CD
-             , CNSL_TP_LCLSF_CD
-             , RCP_SV_BIZ_DCLSF_CD
-             , CNSL_MO_CN
-             , RCPDT
-             , RCP_HH
-             , DTA_DL_YN
-             <include refid="COMMON.insertSystemField" />)
-        VALUES (
-               #{newAsIstOjNo}
-             , #{newSvBizHclsfCd}
-             , #{newRcpdt}
-             , #{cntrNo}
-             , #{cntrSn}
-             , #{dtaStatCd}
-             , #{newSvBizDclsfCd}
-             , TO_CHAR(SYSDATE,'YYYYMMDD')
-             , TO_CHAR(SYSDATE,'HH24MISS')
-             , #{urgtYn}
-             , #{vstRqdt}
-             , #{vstAkHh}
-             , #{smsFwYn}
-             , NVL(#{svEtAmt},0)
-             , #{dpDvCd}
-             , #{cnslTpHclsfCd}
-             , #{cnslTpMclsfCd}
-             , #{cnslTpLclsfCd}
-             , #{cnslDtlpTpCd}
-             , REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
-             , TO_CHAR(SYSDATE,'YYYYMMDD')
-             , TO_CHAR(SYSDATE,'HH24MISS')
-             , 'N'
-             <include refid="COMMON.insertSystemFieldValue" /> )
-    </insert>
     <select id="selectMexnoEncr" resultType="String">
             SELECT MEXNO_ENCR
               FROM TB_OGBS_PRTNR_BAS

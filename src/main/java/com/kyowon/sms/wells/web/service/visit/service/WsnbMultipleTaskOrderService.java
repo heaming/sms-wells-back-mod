@@ -244,13 +244,7 @@ public class WsnbMultipleTaskOrderService {
 
         /* 정보 변경이 아니라면 오더 생성 */
         if (!(StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "7"))) {
-            /* 받아온 접수키가 존재하는데 P_DATA_STUS 수정(2)이나 취소(3)가 아닌경우 에러 로그 TB_SVPD_CST_SVAS_IST_OJ_ERR_IZ에 저장 */
-            if (!SnServiceConst.IN_CHNL_DV_CD_CST.equals(dvo.getInChnlDvCd().trim())
-                && StringUtils.isNotEmpty(dvo.getAsIstOjNo())
-                && SnServiceConst.DTA_STAT_CD_NEW.equals(dvo.getDtaStatCd())) {
-                processCount += mapper.insertInstallationObjectError(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_ERR_IZ */
-            } else if (SnServiceConst.DTA_STAT_CD_NEW.equals(dvo.getDtaStatCd())) {
-
+            if (SnServiceConst.DTA_STAT_CD_NEW.equals(dvo.getDtaStatCd())) {
                 dvo.setMexnoEncr(mapper.selectMexnoEncr(dvo.getUserId())); /* 전화번호 가운데 복호화 */
                 processCount += mapper.insertInstallationObject(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
             } else if (SnServiceConst.DTA_STAT_CD_MOD.equals(dvo.getDtaStatCd())) {
