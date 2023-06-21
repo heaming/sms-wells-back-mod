@@ -60,7 +60,7 @@ public interface WsncTimeTableMapper {
         String newAdrZip, String pdctPdCd, String svBizDclsfCd, String sellDate, String vstGb
     );
 
-    WsncTimeTableRpbLocaraPsicDvo selectRpbLocaraPsic(WsncTimeTableSalesParamDvo dvo);
+    Optional<WsncTimeTableRpbLocaraPsicDvo> selectRpbLocaraPsic(WsncTimeTableSalesParamDvo dvo);
 
     WsncTimeTablePsicDataDvo selectPsicData(WsncTimeTableRpbLocaraPsicDvo dvo);
 

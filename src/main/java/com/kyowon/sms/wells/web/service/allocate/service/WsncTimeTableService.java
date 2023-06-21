@@ -23,9 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 /**
  *
  *
- * W-MP-U-0186P01 타임테이블 일정선택
- *
- *
  * @author gs.piit122 김동엽
  * @since 2023-05-08
  */
@@ -190,7 +187,8 @@ public class WsncTimeTableService {
         //-----------------------------------------------------------------------------------------
 
         // 책임지역 담당자 찾기 selectTimeAssign_v2_step1
-        rpbLocaraPsicDvo = mapper.selectRpbLocaraPsic(paramDvo); // step1_with
+        rpbLocaraPsicDvo = mapper.selectRpbLocaraPsic(paramDvo)
+            .orElseThrow(() -> new BizException("해당일자에 책임지역 담당자가 없습니다"));; // step1_with
         paramDvo.setPrtnrNo(rpbLocaraPsicDvo.getIchrPrtnrNo());
         paramDvo.setLocalGb(rpbLocaraPsicDvo.getRpbLocaraCd());
         paramDvo.setVstDowValCd(rpbLocaraPsicDvo.getVstDowValCd());
@@ -289,6 +287,7 @@ public class WsncTimeTableService {
         log.debug("SvBizDclsfCd:      {}", result.getSvBizDclsfCd());
         log.debug("BasePdCd:          {}", result.getBasePdCd());
         log.debug("UserId:            {}", result.getUserId());
+        log.debug("RcpOgTpCd:         {}", result.getRcpOgTpCd());
         log.debug("SowDay:            {}", result.getSowDay());
         log.debug("Lcst09:            {}", result.getSdingCombin());
         log.debug("returnUrl:         {}", result.getReturnUrl());
