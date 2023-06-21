@@ -61,8 +61,8 @@
      <insert id="insertCntrDetailChangeHist">
         INSERT INTO TB_SSCT_CNTR_DCH_HIST (  /* 계약상세변경이력 */
               CNTR_NO             /* 계약번호 */
-            , HIST_STRT_DTM       /* 이력시작일시 */
             , CNTR_SN             /* 계약일련번호 */
+            , HIST_STRT_DTM       /* 이력시작일시 */
             , HIST_END_DTM        /* 이력종료일시 */
             , BASE_PD_CD          /* 기준상품코드 */
             , HGR_PD_CD           /* 상위상품코드 */
