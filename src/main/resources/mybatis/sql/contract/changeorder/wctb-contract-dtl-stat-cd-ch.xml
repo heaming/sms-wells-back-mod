@@ -42,7 +42,7 @@
               , CNTR_DTL_STAT_CH_RSON_CD
               , CNTR_DTL_STAT_CH_MO_CN
               , 'N'
-              <include refid="COMMON.insertSystemFieldValue" />
+              <include refid="COMMON.insertSystemFieldValue" /> )
            FROM TB_SSCT_CNTR_DTL
           WHERE CNTR_NO = #{cntrNo}
             AND CNTR_SN = #{cntrSn}
