@@ -56,10 +56,11 @@
             ON C3.CNTR_ADRPC_ID = C4.CNTR_ADRPC_ID
          INNER JOIN TB_GBCO_ADR_BAS A1
             ON C4.ADR_ID = A1.ADR_ID
-         INNER JOIN TB_PDBS_PD_REL P1
-            ON C2.BASE_PD_CD = P1.BASE_PD_CD
+         INNER JOIN TB_SSCT_CNTR_PD_REL P1
+            ON TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN P1.VL_STRT_DTM AND P1.VL_END_DTM
            AND P1.PD_REL_TP_CD IN ('05', '18') -- 상품관계유형(05: 기준-제품, 18:정기BS제품)
-           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN P1.VL_STRT_DTM AND P1.VL_END_DTM
+           AND P1.CNTR_NO = C2.CNTR_NO
+           AND P1.CNTR_SN = C2.CNTR_SN
          INNER JOIN TB_PDBS_PD_BAS P2
             ON P1.BASE_PD_CD = P2.PD_CD
          INNER JOIN TB_PDBS_PD_BAS P3
@@ -166,7 +167,7 @@
                          INNER JOIN TB_SVPD_SV_RSTR_CNDT_DTL C  /* 서비스제약조건상세 */
                             ON B.RSTR_CNDT_ID = C.RSTR_CNDT_ID
                            AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN
-                           AND C.CHNL_APY_DV_VAL = '%'||#{chnlDvCd}||'%' /* 채널적용구분값 */
+                           AND C.CHNL_APY_DV_VAL = #{chnlDvCd} /* 채널적용구분값 */
                          WHERE B.RSTR_CNDT_ID = 'TC002'
                            AND ROWNUM = 1
                      ) B
