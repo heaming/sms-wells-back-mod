@@ -1153,7 +1153,7 @@
              , LOC.AM_WRK_CNT
              , LOC.PM_WRK_CNT
              , #{wrkCnt} AS T_WRK_CNT
-             , RSB_DV_CD -- AC025_EMP_OR --EGER_RSB_CD -- EGER_RSB_CD
+             , OG1.RSB_DV_CD -- AC025_EMP_OR --EGER_RSB_CD -- EGER_RSB_CD
              , OG3.LOCARA_TNO -- 지역전화번호
              , OG3.EXNO_ENCR -- 전화국번호암호화
              , OG3.IDV_TNO -- 개별전화번호
@@ -1165,6 +1165,7 @@
              , OG4.CRAL_LOCARA_TNO AS SJ_HP1
              , OG4.MEXNO_ENCR AS SJ_HP2
              , OG4.CRAL_IDV_TNO AS SJ_HP3
+             , F_CMZ_CD_NM('TNT_WELLS', 'ROL_DV_CD', OG5.ROL_DV_CD, 'ko') AS ROL_DV_NM2
              , #{vstDowVal} AS VST_DOW_VAL -- AC146_VST_CYCL
              , #{vstPos} AS VST_POS
              , #{rstrCndtUseYn} AS RSTR_CNDT_USE_YN -- AC146_TTB_USE
@@ -1258,6 +1259,10 @@
                                     WHERE LOC_BAS.RPB_LOCARA_CD = #{rpbLocaraCd}
                                       AND LOC_BAS.WK_GRP_CD = #{wkGrpCd})
                             WHERE RN = 1) LOC ON 1=1
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ OG5
+            ON OG5.BASE_YM = OG1.BASE_YM
+           AND OG5.OG_TP_CD = OG2.OG_TP_CD
+           AND OG5.PRTNR_NO = OG2.HOO_PRTNR_NO
          WHERE OG1.PRTNR_NO = #{ichrPrtnrNo}
            AND OG1.OG_TP_CD = 'W06'
            AND OG1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
