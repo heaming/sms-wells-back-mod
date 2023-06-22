@@ -10,6 +10,7 @@ public class WsncTimeTablePsicDataDvo {
     String sellDate; // ac221CfrmDt;
     String iscgubNm;
     String rolDvNm;
+    String rolDvNm2;
     String sjHp1;
     String sjHp2;
     String sjHp3;
