@@ -104,7 +104,7 @@
              , RCP_MO_CN --접수내용
              , ACDN_CAUS_CN --사고원인 /* 사고정보 */
              , CST_DMD_CN --고객요구
-            -- TODO:진행상태에 해당하는 컬럼 확인필요.
+             , CPS_DV_CD
              , FSH_DT
              , F_CMZ_CD_NM(#{session.tenantId}, 'CPS_PRGS_CD', CPS_PRGS_CD, #{session.langId}) AS CPS_PRGS_NM
              , AGR_DOC_FW_YN
@@ -137,6 +137,7 @@
              , EST_IZ                  = #{estIz}
              , AGR_IZ                  = #{agrIz}
              , TOT_RDU_AMT             = ${totRduAmt}
+             , CPS_DV_CD               = ${cpsDvCd}
              <include refid="COMMON.updateSystemField"/>
          WHERE ACDN_RCP_ID = #{acdnRcpId}
     </update>

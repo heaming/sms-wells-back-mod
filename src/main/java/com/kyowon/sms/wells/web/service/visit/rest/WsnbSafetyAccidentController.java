@@ -36,8 +36,9 @@ public class WsnbSafetyAccidentController {
     }
 
     @ApiOperation(value = "안전사고 상세 조회", notes = "선택한 안전사고의 상세정보를 조회한다.")
-    @GetMapping("/detail")
+    @GetMapping("/{acdnRcpId}")
     public FindRes getSafetyAccident(
+        @PathVariable
         String acdnRcpId
     ) {
         return service.getSafetyAccident(acdnRcpId);
@@ -54,4 +55,5 @@ public class WsnbSafetyAccidentController {
             .processCount(service.editSafetyAccident(dto))
             .build();
     }
+
 }
