@@ -1,0 +1,144 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbSafetyAccidentMapper">
+
+    <select id="selectSafetyAccidents" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbSafetyAccidentDvo">
+        SELECT CNTR_NO --계약상세번호
+             , CNTR_SN
+             , CST_NM --고객명
+             , ACDN_RCP_ID
+             , ACDN_RCP_NM --제목
+             , ACDN_DTM --사고일시
+             , AGR_DOC_RCV_YN --합의서수신여부
+             , PD_NM --제품명
+             , IST_ADR --설치주소
+             , IST_DTL_ADR --설치상세주소
+             , IST_REFER_ADR --설치참고주소
+             , CPS_PRGS_CD --보상진행 TODO:공통코드 등록된 후 수정.
+             , FST_RGST_USR_ID --등록자
+             , FSH_DT --완료여부
+             , VST_DT --방문일자
+             , LOCARA_TNO --전화번호
+             , EXNO_ENCR
+             , IDV_TNO
+             , CRAL_LOCARA_TNO --휴대전화번호
+             , MEXNO_ENCR
+             , CRAL_IDV_TNO
+             , SL_DT --매출일
+             , FST_RGST_DTM --등록일시
+             , RCP_MO_CN --접수내용
+             , ACDN_CAUS_CN --사고원인
+             , CST_DMD_CN --고객요구
+             , ACDN_RS_CN --결과
+             , FNL_MDFC_DTM --수정일자
+             , RPTR_NM --보고자
+             , SV_CNR_NM --센터명
+             , BRCH_NM --지점명
+             , IMPTA_RSON_CD --귀책여부
+             , TOT_CPS_AMT --총보상액
+             , KW_CPS_AMT --교원부담
+             , INSRCO_CPS_AMT --보험사부담
+          FROM TB_SVPD_ACDN_DOAN_IZ
+         WHERE 1=1
+           AND DTA_DL_YN = 'N'
+           AND CNTR_NO IS NOT NULL
+<!--           AND VSTDT BETWEEN ${vstDtFrom} AND ${vstDtTo}-->
+        <if test='@MybatisUtils@isNotEmpty(svCnrOgId)'>
+           AND SV_CNR_OG_ID = ${svCnrOgId}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cstNm)'>
+           AND CST_NM LIKE '%' || ${cstNm} || '%'
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = ${cntrsSn}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(pdNm)'>
+           AND PD_NM LIKE '%' || ${pdNm} || '%'
+        </if>
+        <if test='@MybatisUtils@equals(device, "W")'>
+            <if test='@MybatisUtils@isNotEmpty(acdnRcpNm)'>
+              AND ACDN_RCP_NM LIKE '%' || ${acdnRcpNm} || '%'
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(cpsPrgsCd)'>
+              AND CPS_PRGS_CD = ${cpsPrgsCd}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(imptaRsonCd)'>
+              AND IMPTA_RSON_CD = ${imptaRsonCd}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(totCpsAmt)'>
+              AND TOT_CPS_AMT = ${totCpsAmt}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(rgstDtmFrom) and @MybatisUtils@isNotEmpty(rgstDtmTo)'>
+              AND FST_RGST_DTM BETWEEN ${rgstDtmFrom} AND ${rgstDtmTo}
+            </if>
+            <if test='@MybatisUtils@equals(fshDtYn, "N") and @MybatisUtils@isNotEmpty(fshDtFrom) and @MybatisUtils@isNotEmpty(fshDtTo)'>
+              AND FSH_DT BETWEEN ${fshDtFrom} AND ${fshDtTo}
+            </if>
+        </if>
+    </select>
+
+    <select id="selectSafetyAccident" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbSafetyAccidentDvo">
+        SELECT CNTR_NO /*계약정보*/
+             , CNTR_SN
+             , CST_NM
+             , PD_NM
+             , ACDN_RCP_ID
+             , ACDN_RCP_NM
+             , IST_ADR
+             , IST_DTL_ADR
+             , IST_REFER_ADR
+             , LOCARA_TNO --전화번호
+             , EXNO_ENCR
+             , IDV_TNO
+             , CRAL_LOCARA_TNO --휴대전화번호
+             , MEXNO_ENCR
+             , CRAL_IDV_TNO
+             , SL_DT --매출일
+             , RCPDT --접수일
+             , VST_DT --방문일
+             , SV_CNR_NM --센터명
+             , BRCH_NM --지점명
+             , CNRLD_NM --센터장명
+             , IST_LCT_DTL_CN --위치
+             , F_CMZ_CD_NM(#{session.tenantId}, 'AS_IMPTA_RSON_CD', IMPTA_RSON_CD, #{session.langId}) AS IMPTA_RSON_NM  --귀책사유
+             , RCP_MO_CN --접수내용
+             , ACDN_CAUS_CN --사고원인 /* 사고정보 */
+             , CST_DMD_CN --고객요구
+             , CPS_DV_CD
+             , FSH_DT
+             , F_CMZ_CD_NM(#{session.tenantId}, 'CPS_PRGS_CD', CPS_PRGS_CD, #{session.langId}) AS CPS_PRGS_NM
+             , AGR_DOC_FW_YN
+             , NVL(TOT_CPS_AMT,0) AS TOT_CPS_AMT
+             , NVL(KW_CPS_AMT,0) AS KW_CPS_AMT
+             , NVL(INSRCO_CPS_AMT,0) AS INSRCO_CPS_AMT
+             , PSIC_NM --보상담당자
+             , VST_IZ
+             , DAMG_IZ
+             , EST_IZ
+             , AGR_IZ
+             , NVL(TOT_RDU_AMT,0) AS TOT_RDU_AMT
+        FROM TB_SVPD_ACDN_DOAN_IZ
+       WHERE 1=1
+         AND ACDN_RCP_ID = #{acdnRcpId}
+         AND DTA_DL_YN = 'N'
+    </select>
+
+    <update id="updateSafetyAccident">
+        UPDATE TB_SVPD_ACDN_DOAN_IZ
+           SET FSH_DT                  = #{fshDt}
+             , CPS_PRGS_CD             = #{cpsPrgsCd}
+             , INSRCO_CPS_AMT          = ${insrcoCpsAmt}
+             , AGR_DOC_FW_YN           = #{agrDocFwYn}
+             , TOT_CPS_AMT             = ${totCpsAmt}
+             , KW_CPS_AMT              = ${kwCpsAmt}
+             , PSIC_NM                 = #{psicNm}
+             , VST_IZ                  = #{vstIz}
+             , DAMG_IZ                 = #{damgIz}
+             , EST_IZ                  = #{estIz}
+             , AGR_IZ                  = #{agrIz}
+             , TOT_RDU_AMT             = ${totRduAmt}
+             , CPS_DV_CD               = ${cpsDvCd}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE ACDN_RCP_ID = #{acdnRcpId}
+    </update>
+</mapper>
