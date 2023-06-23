@@ -35,8 +35,8 @@ public class WsnbSafetyAccidentController {
         return service.getSafetyAccidents(dto, pageInfo);
     }
 
-    @ApiOperation(value = "안전사고 단건 조회", notes = "선택한 안전사고 정보를 조회한다.")
-    @GetMapping("/acdnRcpId")
+    @ApiOperation(value = "안전사고 상세 조회", notes = "선택한 안전사고의 상세정보를 조회한다.")
+    @GetMapping("/detail")
     public FindRes getSafetyAccident(
         String acdnRcpId
     ) {
