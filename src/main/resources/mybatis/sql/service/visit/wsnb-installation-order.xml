@@ -79,6 +79,15 @@
              <include refid="COMMON.insertSystemFieldValue" />)
     </insert>
 
+    <delete id="deleteSvExcnIz">
+         UPDATE TB_SVPD_CST_SV_EXCN_IZ /* 고객서비스수행내역 */
+            SET DTA_DL_YN = 'Y'
+                <include refid="COMMON.updateSystemField"/>
+          WHERE 1 = 1
+            AND CNTR_NO = #{cntrNo}
+            AND CNTR_SN = ${cntrSn}
+    </delete>
+
     <delete id="deleteIstAsnIz">
         UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ /* 고객서비스AS설치배정내역 */
            SET DTA_DL_YN = 'Y'
@@ -91,9 +100,37 @@
     <delete id="deleteIstOjIz">
         UPDATE TB_SVPD_CST_SVAS_IST_OJ_IZ /* 고객서비스AS설치대상내역 */
            SET DTA_DL_YN = 'Y'
+               <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
            AND CNTR_NO = #{cntrNo}
            AND CNTR_SN = ${cntrSn}
+    </delete>
+
+    <delete id="deleteSdingSppPlan">
+        UPDATE TB_SVPD_SDING_SPP_PLAN_IZ /* 모종배송계획내역 */
+           SET DTA_DL_YN = 'Y'
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO          = #{cntrNo}       /* 계약번호 */
+           AND CNTR_SN          = ${cntrSn}       /* 계약일련번호 */
+           AND SV_BIZ_HCLSF_CD  = #{svBizHclsfCd} /* 서비스업무대분류코드 */
+           AND SV_BIZ_DCLSF_CD  = #{svBizDclsfCd} /* 서비스업무세분류코드 */
+           AND SPP_ORD_NO       = #{sppOrdNo}     /* 배송주문번호 */
+           AND SPP_PLAN_SN      = ${sppPlanSn}    /* 배송계획일련번호 */
+    </delete>
+
+    <delete id="deleteSdingSppExpIz">
+        UPDATE TB_SVPD_SDING_SPP_EXP_IZ /* 모종배송예정내역 */
+           SET DTA_DL_YN = 'Y'
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO          = #{cntrNo}       /* 계약번호 */
+           AND CNTR_SN          = ${cntrSn}       /* 계약일련번호 */
+           AND SV_BIZ_HCLSF_CD  = #{svBizHclsfCd} /* 서비스업무대분류코드 */
+           AND SV_BIZ_DCLSF_CD  = #{svBizDclsfCd} /* 서비스업무세분류코드 */
+           AND SPP_ORD_NO       = #{sppOrdNo}     /* 배송주문번호 */
+           AND SPP_PLAN_SN      = ${sppPlanSn}    /* 배송계획일련번호 */
+           AND SDING_SN         = ${sdingSn}      /* 모종일련번호 */
     </delete>
 
 </mapper>

@@ -33,7 +33,8 @@ public class WsnbInstallationOrderController {
         SaveReq dto
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.saveInstallationOrder(dto))
+            .processCount(1)
+            .data(service.saveInstallationOrder(dto))
             .build();
     }
 
