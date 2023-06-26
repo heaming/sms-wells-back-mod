@@ -115,7 +115,7 @@
     <update id="updateInstallOrderReqDt">
         UPDATE TB_SSCT_CNTR_DTL
         <set>
-            <if test='@MybatisUtils@isNotEmpty(sppDuedt)'>REQD_DT = #{sppDuedt}</if>
+            <if test='@MybatisUtils@isNotEmpty(sppDuedt)'>SPP_DUEDT = #{sppDuedt}</if>
         </set>
         <include refid="COMMON.updateSystemField"/>
         WHERE CNTR_NO = #{cntrNo}
