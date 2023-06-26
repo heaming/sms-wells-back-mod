@@ -41,10 +41,9 @@ public class WsnaMonthlyItemStocksService {
      * 월별품목재고내역 등록
      * @param reqDvo
      * @return
-     * @throws ParseException
      */
     @Transactional
-    public int saveMonthlyStock(WsnaMonthlyItemStocksReqDvo reqDvo) throws ParseException {
+    public int saveMonthlyStock(WsnaMonthlyItemStocksReqDvo reqDvo) {
 
         WsnaMonthlyItemStocksDvo dvo = this.converter.mapWsnaMonthlyItemStocksReqDvoToWsnaMonthlyItemStocksDvo(reqDvo);
 
@@ -2859,10 +2858,9 @@ public class WsnaMonthlyItemStocksService {
      * 월별 품목재고내역 삭제
      * @param reqDvo
      * @return
-     * @throws ParseException
      */
     @Transactional
-    public int removeMonthlyStock(WsnaMonthlyItemStocksReqDvo reqDvo) throws ParseException {
+    public int removeMonthlyStock(WsnaMonthlyItemStocksReqDvo reqDvo) {
         int processCount = 0;
         WsnaMonthlyItemStocksDvo dvo = this.converter.mapWsnaMonthlyItemStocksReqDvoToWsnaMonthlyItemStocksDvo(reqDvo);
 

@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.stock.converter.WsnaItemStockItemizationConverter;
 import com.kyowon.sms.wells.web.service.stock.dto.WsnaItemStockItemizationDto;
@@ -20,7 +21,6 @@ import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <pre>
@@ -42,7 +42,7 @@ public class WsnaItemStockItemizationService {
     private final WsnaMonthlyItemStocksService monthlyItemService;
 
     @Transactional
-    public int createStock(WsnaItemStockItemizationReqDvo reqDvo) throws ParseException {
+    public int createStock(WsnaItemStockItemizationReqDvo reqDvo) {
 
         WsnaItemStockItemizationDvo dvo = this.converter
             .mapWsnaItemStockItemizationReqDvoToWsnaItemStockItemizationDvo(reqDvo);
@@ -807,7 +807,7 @@ public class WsnaItemStockItemizationService {
     }
 
     @Transactional
-    public int removeStock(WsnaItemStockItemizationReqDvo reqDvo) throws ParseException {
+    public int removeStock(WsnaItemStockItemizationReqDvo reqDvo) {
         WsnaItemStockItemizationDvo dvo = this.converter
             .mapWsnaItemStockItemizationReqDvoToWsnaItemStockItemizationDvo(reqDvo);
 
