@@ -38,7 +38,7 @@ public interface WsnbMultipleTaskOrderMapper {
 
     int updateInstallationObject(WsnbInstallationObjectSaveDvo dvo);
 
-    int updateInstallationObjectDtaStatCd(WsnbMultipleTaskOrderDvo dvo);
+    int updateInstallationObjectMtrStatCd(WsnbMultipleTaskOrderDvo dvo);
 
     int deleteAsPutItem(WsnbMultipleTaskOrderDvo dvo);
 

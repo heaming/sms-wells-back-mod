@@ -76,9 +76,9 @@ public class SnServiceConst {
     public static final String SAP_SAVE_LCT_CD = "21082082";
 
     //자료상태코드(dtaStatCd) 값 세팅 (1:신규, 2: 수정, 3: 삭제)
-    public static final String DTA_STAT_CD_NEW = "1";
-    public static final String DTA_STAT_CD_MOD = "2";
-    public static final String DTA_STAT_CD_DEL = "3";
+    public static final String MTR_STAT_CD_NEW = "1";
+    public static final String MTR_STAT_CD_MOD = "2";
+    public static final String MTR_STAT_CD_DEL = "3";
     //입력채널구분코드(IN_CHNL_DV_CD) 값 세팅
     //CubigCC
     public static final String IN_CHNL_DV_CD_CST = "1";
@@ -96,6 +96,9 @@ public class SnServiceConst {
     // 서비스업무대분류코드 SV_BIZ_HCLSF_CD "4" (홈케어)
     public static final String SV_BIZ_HCLSF_CD_HOME_CARE = "4";
 
+    // 서비스업무대분류코드 SV_BIZ_HCLSF_CD "7" (정보변경)
+    public static final String SV_BIZ_HCLSF_CD_INFO_CHANGE = "7";
+
     // 서비스업무대분류코드 SV_BIZ_HCLSF_CD "9" (삭제)
     public static final String SV_BIZ_HCLSF_CD_DEL = "9";
 
@@ -105,10 +108,31 @@ public class SnServiceConst {
     // 서비스업무중분류코드 SV_BIZ_MCLSF_CD "41" (신규)
     public static final String SV_BIZ_MCLSF_CD_NEW = "41";
 
+    // 서비스업무소분류코드 SV_BIZ_LCLSF_CD "331" (분리)
+    public static final String SV_BIZ_LCLSF_CD_SEP = "331";
+
+    // 서비스업무소분류코드 SV_BIZ_LCLSF_CD "332" (재설치)
+    public static final String SV_BIZ_LCLSF_CD_REINSTALL = "332";
+
     // 상품그룹코드(PG_GRP_CD) "11" (웰스팜모종)
     public static final String PG_GRP_CD_WELLS_SEEDING = "11";
 
     // 상품그룹코드(PG_GRP_CD) "92" (웰스팜)
     public static final String PG_GRP_CD_WELLS_FARM = "92";
+
+    /**
+     * 계약상세상태코드
+     */
+    // 계약취소 "303"
+    public static final String CNTR_DTL_STAT_CD_CANCEL = "303";
+
+    /**
+     * 계약관계상세코드
+     */
+    // 모종결합 "216"
+    public static final String CNTR_REL_DTL_CD_SDING_COMBI = "216";
+
+    // 홈케어멤버십 "221"
+    public static final String CNTR_REL_DTL_CD_HOMECARE_MEMBERSHIP = "221";
 
 }

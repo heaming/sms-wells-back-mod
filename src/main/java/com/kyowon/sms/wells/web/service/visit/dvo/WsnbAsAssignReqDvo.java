@@ -16,7 +16,7 @@ import lombok.Setter;
 public class WsnbAsAssignReqDvo {
     String svBizHclsfCd;
     String svBizDclsfCd;
-    String dtaStatCd;
+    String mtrStatCd;
     String wkAcpteDt;
     String wkAcpteStatCd;
     String wkPrgsStatCd;
