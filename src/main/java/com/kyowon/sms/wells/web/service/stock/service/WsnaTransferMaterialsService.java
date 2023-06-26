@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.service.stock.service;
 
-import java.text.ParseException;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -52,10 +51,9 @@ public class WsnaTransferMaterialsService {
     /**
      * 물량이동 수불 데이터 처리
      * @param dvo   (필수) 물량이동 request dvo
-     * @throws ParseException 품목재고내역 Date Parsing Exception
      */
     @Transactional
-    public void saveTransferMaterials(WsnaTransferMaterialsReqDvo dvo) throws ParseException {
+    public void saveTransferMaterials(WsnaTransferMaterialsReqDvo dvo) {
 
         // 유효성 체크
         ValidAssert.notNull(dvo);
@@ -122,10 +120,9 @@ public class WsnaTransferMaterialsService {
     /**
      * 품목 입/출고 처리
      * @param dvo   (필수) 품목 입/출고 dvo
-     * @throws ParseException 품목재고내역 Date Parsing Exception
      */
     @Transactional
-    public void saveItmIostMaterials(WsnaTransferMaterialsIostDvo dvo) throws ParseException {
+    public void saveItmIostMaterials(WsnaTransferMaterialsIostDvo dvo) {
         ValidAssert.notNull(dvo);
 
         String itmOstrNo = dvo.getItmOstrNo();
@@ -259,10 +256,9 @@ public class WsnaTransferMaterialsService {
     /**
      * 상위 창고 물량이동 처리
      * @param dvo   (필수) 상위 창고정보 dvo
-     * @throws ParseException 품목재고내역 Date Parsing Exception
      */
     @Transactional
-    public void saveTransferMaterialsForHgr(WsnaTransferMaterialsHgrDvo dvo) throws ParseException {
+    public void saveTransferMaterialsForHgr(WsnaTransferMaterialsHgrDvo dvo) {
 
         ValidAssert.notNull(dvo);
         ValidAssert.hasText(dvo.getItmStrNo());
@@ -327,11 +323,9 @@ public class WsnaTransferMaterialsService {
      * 입고 상위창고 -> 입고창고 출고처리
      * @param dvo       (필수) 상위 창고정보 dvo
      * @param dataDvo   (필수) 물량이동 상세 data dvo
-     * @throws ParseException 품목재고내역 Date Parsing Exception
      */
     @Transactional
-    public void saveOutOfMaterials(WsnaTransferMaterialsHgrDvo dvo, WsnaTransferMaterialsDataDvo dataDvo)
-        throws ParseException {
+    public void saveOutOfMaterials(WsnaTransferMaterialsHgrDvo dvo, WsnaTransferMaterialsDataDvo dataDvo) {
 
         ValidAssert.notNull(dvo);
         ValidAssert.hasText(dvo.getItmStrNo());
