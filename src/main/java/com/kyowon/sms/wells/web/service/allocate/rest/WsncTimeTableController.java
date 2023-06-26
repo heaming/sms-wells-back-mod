@@ -36,7 +36,7 @@ public class WsncTimeTableController {
         @ApiImplicitParam(name = "inflwChnl", value = "", paramType = "query"), // P_IN_GB
         @ApiImplicitParam(name = "svDvCd", value = "", paramType = "query"), // P_DATA_GB
         @ApiImplicitParam(name = "wrkDt", value = "", paramType = "query"), // P_WRK_DT
-        @ApiImplicitParam(name = "dataStatCd", value = "", paramType = "query"), // P_DATA_STUS
+        @ApiImplicitParam(name = "mtrStatCd", value = "", paramType = "query"), // P_DATA_STUS
         @ApiImplicitParam(name = "svBizDclsfCd", value = "", paramType = "query"), // P_WRK_TYP_DTL
         @ApiImplicitParam(name = "empId", value = "", paramType = "query"), // P_USER_ID
         @ApiImplicitParam(name = "basePdCd", value = "", paramType = "query"), // P_GDS_CD

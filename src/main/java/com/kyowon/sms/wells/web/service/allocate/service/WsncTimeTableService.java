@@ -63,7 +63,7 @@ public class WsncTimeTableService {
         String svDvCd = StringUtil.nvl(req.svDvCd(), ""); // dataGb
         //wrkDt는 무조건 오늘 날자(홍세기 매니저님 전달)
         String wrkDt = DateUtil.getNowDayString(); // req.wrkDt(); // P_WRK_DT
-        String dataStatCd = req.dataStatCd(); //DATA_STUS
+        String mtrStatCd = req.mtrStatCd(); //DATA_STUS
         String svBizDclsfCd = req.svBizDclsfCd(); // wrkTypDtl
         //String userId = req.userId();
         String returnUrl = req.returnUrl();
@@ -234,7 +234,7 @@ public class WsncTimeTableService {
         result.setCntrSn(cntrSn);
         result.setInflwChnl(paramDvo.getInflwChnl());//bypass
         result.setWrkDt(wrkDt);
-        result.setDataStatCd(dataStatCd);
+        result.setDataStatCd(mtrStatCd);
         result.setSvBizDclsfCd(svBizDclsfCd);
         result.setBasePdCd(basePdCd);
         result.setSowDay(sowDay);//pajong_day
@@ -384,7 +384,7 @@ public class WsncTimeTableService {
 
         // 모종인지 확인
         if ("Y".equals(sidingYn)) {
-
+            String sdingCombin = contractDvo.getSdingCombin();
         }
         //
         //        log.debug("cntrNo:{}", cntrNo);

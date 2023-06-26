@@ -112,6 +112,8 @@
     <select id="selectSidingDays" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo">
         SELECT SUBSTR(VST_DT,1,4)||'-'||SUBSTR(VST_DT,5,2)||'-'||SUBSTR(VST_DT,7,2) AS ABL_DAYS
              , SDING_QTY AS SUM_CNT
+             , SUBSTR(VST_DT,1,4)||'-'||SUBSTR(VST_DT, 5, 2)||'-'||SUBSTR(VST_DT, 7, 2)||'T'|| '00:00:00' AS ST
+             , SUBSTR(VST_DT,1,4)||'-'||SUBSTR(VST_DT, 5, 2)||'-'||SUBSTR(VST_DT, 7, 2)||'T'|| '00:00:00' AS ED
           FROM (SELECT VST_DT
                      , SDING_QTY
                   FROM TB_SVPD_DCBY_SDING_QTY_IZ

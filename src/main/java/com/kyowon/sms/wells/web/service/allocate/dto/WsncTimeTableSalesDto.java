@@ -29,7 +29,7 @@ public class WsncTimeTableSalesDto {
         String inflwChnl,
         String basePdCd, // GDS_CD
         String wrkDt,
-        String dataStatCd, // DATA_STUS
+        String mtrStatCd, // DATA_STUS
         String returnUrl,
         String userId,
         String mkCo,
@@ -52,7 +52,7 @@ public class WsncTimeTableSalesDto {
         String empId,
         String curDateTimeString,
         String wrkDt,
-        String dataStatCd, // P_DATA_STUS
+        String mtrStatCd, // P_DATA_STUS
         String basePdCd,
         String lcst09,
         String newAdrZip,
