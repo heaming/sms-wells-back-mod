@@ -55,7 +55,7 @@ public class WsncTimeTableService {
         WsncTimeTablePsicDataDvo psicDataDvos = null;
         List<WsncTimeTableAssignTimeDvo> assignTimeDvos = null;
 
-        WsncTimeTableSalesParamDvo paramDvo = converter.mapSalesParamReqToDvo(req);
+        WsncTimeTableParamDvo paramDvo = converter.mapSalesParamReqToDvo(req);
 
         String chnlDvCd = StringUtil.isEmpty(req.chnlDvCd()) ? "K" : req.chnlDvCd();
         String cntrNo = req.cntrNo(); // W20222324935
@@ -95,7 +95,7 @@ public class WsncTimeTableService {
         }
 
         WsncTimeTableCntrDvo contractDvo = mapper.selectContract(cntrNo, cntrSn, sellDate)
-            .orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
+            .orElseThrow(() -> new BizException("MSG_ALT_NO_CONTRACT_FOUND"));
         basePdCd = contractDvo.getBasePdCd();
         pdctPdCd = contractDvo.getPdctPdCd();
         newAdrZip = contractDvo.getAdrZip();
@@ -104,7 +104,8 @@ public class WsncTimeTableService {
         sellDscDbCd = contractDvo.getSellDscDbCd();
         sdingCombin = contractDvo.getSdingCombin(); // lcst09
 
-        WsncTimeTableProductDvo productDvo = mapper.selectProduct(basePdCd, pdctPdCd);
+        WsncTimeTableProductDvo productDvo = mapper.selectProduct(basePdCd, pdctPdCd)
+            .orElseThrow(() -> new BizException("MSG_ALT_NO_PRODUCT_FOUND"));
         sidingYn = productDvo.getSidingYn();
         spayYn = "3".equals(productDvo.getRglrSppPrcDvCd()) ? "Y" : "N"; // 일시불여부
         //------------------------------------------------------
@@ -188,7 +189,7 @@ public class WsncTimeTableService {
 
         // 책임지역 담당자 찾기 selectTimeAssign_v2_step1
         rpbLocaraPsicDvo = mapper.selectRpbLocaraPsic(paramDvo)
-            .orElseThrow(() -> new BizException("해당일자에 책임지역 담당자가 없습니다"));
+            .orElseThrow(() -> new BizException("MSG_ALT_NO_PSIC_FOUND"));
         ; // step1_with
         paramDvo.setPrtnrNo(rpbLocaraPsicDvo.getIchrPrtnrNo());
         paramDvo.setLocalGb(rpbLocaraPsicDvo.getRpbLocaraCd());
@@ -325,6 +326,7 @@ public class WsncTimeTableService {
     * */
     protected WsncTimeTableSchdChoDto.FindRes getSchdCho(WsncTimeTableSchdChoDto.FindReq req) {
 
+        WsncTimeTableSchdChoDvo result = new WsncTimeTableSchdChoDvo();
         // -------------------------------------------------
         // 고객검색-> 신규AS등록 -> 방문일자 선택
         // ## getMonthAsSchedule ##
@@ -340,40 +342,26 @@ public class WsncTimeTableService {
         // ORD_SEQ     = null
         // -------------------------------------------------
 
-        //        WsncTimeTableSalesDvo result = new WsncTimeTableSalesDvo();
-        //
         String cntrNo = req.cntrNo();
         String cntrSn = req.cntrSn();
         String chnlDvCd = req.chnlDvCd();
-        String sellDate = req.sellDate();
+        String sellDate = StringUtil.nvl(req.sellDate(), DateUtil.getNowDayString());
         String svDvCd = "M".equals(chnlDvCd) /*매니저*/ ? "3" /*A/S*/ : StringUtil.nvl(req.svDvCd(), "");
         String svBizDclsfCd = req.svBizDclsfCd(); // 3110
 
         String prtnrNo = req.prtnrNo(); // 1251831
         //
-        //        WsncTimeTableCustDetailDvo custDetail = mapper.selectCustDetail(cntrNo);
-        //        if (custDetail == null) {
-        //            throw new BizException("MSG_ALT_NO_DATA");
-        //        }
         WsncTimeTableCntrDvo contractDvo = mapper.selectContract(cntrNo, cntrSn, sellDate)
-            .orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
+            .orElseThrow(() -> new BizException("MSG_ALT_NO_CONTRACT_FOUND"));
         String basePdCd = contractDvo.getBasePdCd();
         String pdctPdCd = contractDvo.getPdctPdCd();
         String contDt = contractDvo.getCntrDt();
         String newAdrZip = contractDvo.getAdrZip();
+        String rpbLocaraCd = "";
 
-        WsncTimeTableProductDvo productDvo = mapper.selectProduct(basePdCd, pdctPdCd);
+        WsncTimeTableProductDvo productDvo = mapper.selectProduct(basePdCd, pdctPdCd)
+        .orElseThrow(() -> new BizException("MSG_ALT_NO_PRODUCT_FOUND"));
         String sidingYn = productDvo.getSidingYn();
-        //
-        //        String zip = StringUtil.isNotEmpty(req.newAdrZip()) ? req.newAdrZip() : custDetail.getZip(); // 12249
-        //        String contDt = custDetail.getCntrDt(); // 20220308
-        //        String pdCd = custDetail.getPdCd(); // WM02100828
-        //
-        //        String basePdCd = StringUtil.isEmpty(req.basePdCd()) ? custDetail.getSaleCd() : req.basePdCd(); // WP02110409, WP05160110
-        //
-        //        String addGb = mapper.selectItemcode(cntrNo);
-        //
-        //        String svDvCd = chnlDvCd.equals("M") ? "3" : req.svDvCd();
         //
         String empId = "";
         if ("3".equals(svDvCd)) {
@@ -384,52 +372,33 @@ public class WsncTimeTableService {
 
         // 모종인지 확인
         if ("Y".equals(sidingYn)) {
-            String sdingCombin = contractDvo.getSdingCombin();
+            result.setSidingDay(this.mapper
+                .selectSidingDaysForSpay(contractDvo.getSdingCombin(), sellDate, basePdCd, svDvCd, pdctPdCd, cntrNo));
+            result.setMonthSchedule(mapper.selectMonthSchedule(empId));
         }
-        //
-        //        log.debug("cntrNo:{}", cntrNo);
-        //        log.debug("gbCd:{}", chnlDvCd);
-        //        log.debug("sellDate:{}", sellDate);
-        //        log.debug("svBizDclsfCd:{}", svBizDclsfCd);
-        //        log.debug("prtnrNo:{}", prtnrNo);
-        //
-        //        String framYn = mapper.selectFarmYn(basePdCd, svDvCd);
-        //
-        //        if (StringUtil.null2str(framYn).equals("Y")) {
-        //            result.setList(mapper.selectSidingDaysKiwim(basePdCd));
-        //            result.setOrdCnt(mapper.selectMonthSchedule(prtnrNo));
-        //        }
-        //
-        //        result.setDiableDays(
-        //            mapper.selectDiableDays(
-        //                addGb,
-        //                sellDate,
-        //                "Y",
-        //                zip,
-        //                basePdCd,
-        //                "",
-        //                svDvCd,
-        //                contDt,
-        //                chnlDvCd,
-        //                svBizDclsfCd,
-        //                empId,
-        //                "",
-        //                "",
-        //                "",
-        //                ""
-        //            )
-        //        );
-        //
-        //        result.setZip(zip);
-        //        result.setSvBizDclsfCd(svBizDclsfCd);
-        //        result.setChnlDvCd(chnlDvCd);
-        //        result.setSvDvCd(svDvCd);
-        //        result.setCntrNo(cntrNo);
-        //        result.setSelDate(sellDate);
-        //        result.setSaleCd(basePdCd);
-        //
-        //        return result;
-        return null;
+
+        WsncTimeTableParamDvo paramDvo = new WsncTimeTableParamDvo();
+        paramDvo.setChnlDvCd(chnlDvCd);
+        paramDvo.setNewAdrZip(newAdrZip);
+        paramDvo.setBasePdCd(basePdCd);
+        paramDvo.setPrtnrNo(empId);
+        paramDvo.setSvDvCd(svDvCd);
+        paramDvo.setLocalGb(rpbLocaraCd);
+        List<WsncTimeTableDisableDaysDvo> disableDayDvos = mapper.selectDisableDays(paramDvo);
+        result.setDisableDay(disableDayDvos);
+
+        result.setNewAdrZip(newAdrZip);
+        result.setSvBizDclsfCd(svBizDclsfCd);
+        result.setChnlDvCd(chnlDvCd);
+        result.setSvDvCd(svDvCd);
+        result.setCntrNo(cntrNo);
+        result.setCntrSn(cntrSn);
+        result.setSellDate(sellDate);
+        result.setOrdDt(req.ordDt());
+        result.setOrdSeq(req.ordSeq());
+        result.setEmpId(empId);
+        result.setBasePdCd(basePdCd);
+        return converter.mapSchdChoDvoToRes(result);
     }
 
     /**

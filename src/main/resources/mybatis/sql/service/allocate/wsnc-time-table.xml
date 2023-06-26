@@ -120,14 +120,14 @@
                  WHERE SDING_PKG_CD = (SELECT SDING_PKG_CD
                                          FROM TB_SVPD_SDING_PKG_ITM_IZ
                                         WHERE SDING_PKG_CD NOT LIKE '@%'
-                                          AND PD_CD = #{basePdCd})
+                                          AND SDING_PD_CD = #{basePdCd})
                    AND SDING_QTY > 0
                    AND VST_DT >= TO_CHAR(SYSDATE + 3 , 'YYYYMMDD')  /** 이희준매니저님 D+3 적용요청 **/
 
          )
     </select>
 
-    <!--<select id="selectMonthSchedule" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableMonthScheduleDvo">
+    <select id="selectMonthSchedule" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableMonthScheduleDvo">
         SELECT
           '배정: ' || (COUNT(1) - NVL(SUM(CASE WHEN VST_CNFM_HH BETWEEN '010000'  AND '040000' THEN 1 END),0)) || ' | ' ||  '미배정: ' || NVL(SUM(CASE WHEN VST_CNFM_HH BETWEEN '010000'  AND '040000' THEN 1 END),0)  AS TITLE
              ,  SUBSTR(VST_CNFMDT,1,4)||'-'||SUBSTR(VST_CNFMDT, 5, 2)||'-'||SUBSTR(VST_CNFMDT, 7, 2)||'T'|| '00:00:00' AS ST
@@ -152,7 +152,7 @@
                            AND WK_CAN_RSON_CD IS NULL)
          GROUP BY VST_CNFMDT
          ORDER BY VST_CNFMDT
-    </select>-->
+    </select>
 
     <select id="selectDisableDays" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDisableDaysDvo">
         SELECT DISTINCT /*DISABLE_DAYS,*/ DISABLE_FULDAYS, MAX(MSG) AS TC_MSG
@@ -267,8 +267,8 @@
                                AND B.RSTR_CNDT_SN = C.RSTR_CNDT_SN/* 서비스제약조건상세 */
                              WHERE B.RSTR_CNDT_ID = 'TC031'
                                AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */
-                               <if test='@MybatisUtils@isNotEmpty(localGb)'>
-                               AND RSTR_CNDT_VAL1 = #{localGb}
+                               <if test='@MybatisUtils@isNotEmpty(rpbLocaraCd)'>
+                               AND RSTR_CNDT_VAL1 = #{rpbLocaraCd}
                                </if>
                                /* 지역구분 */
                                AND INSTR(RSTR_CNDT_VAL1, #{svBizDclsfCd}) > 0 /* 작업유형상세 */
@@ -997,19 +997,19 @@
                      WHEN (PHLD_YN) = 'Y' THEN '해당일 방문불가'
                      WHEN VST_DOW_VAL = '000' THEN '방문가능' /*방문요일값*/
                      WHEN INSTR(VST_DOW_VAL, DOW_DV_CD) = 0 THEN '해당일 방문불가' /*요일구분코드*/
-                     WHEN T3.WK_GRP_CD = '10' AND P.ASN_BLC_YN = 'Y' THEN '해당일 방문불가' /*배정차단여부*/
+                     WHEN T3.WK_GRP_CD = '10' AND P.EGER_WRK_STAT_CD != '000' THEN '해당일 방문불가' /*배정차단여부*/
                      ELSE '방문가능'
                 END) AS VST_POS
-             , (CASE WHEN T3.WK_GRP_CD IN ('20', '30') AND P.BIZ_AGNT_PRTNR_NO IS NOT NULL THEN 'N'
-                     WHEN T3.WK_GRP_CD = '10' AND P.ASN_BLC_YN = 'Y'
+             , (CASE WHEN T3.WK_GRP_CD IN ('20', '30') AND P.PRTNR_NO IS NOT NULL THEN 'N'
+                     WHEN T3.WK_GRP_CD = '10' AND P.EGER_WRK_STAT_CD != '000'
                      THEN 'N'
                      ELSE T3.RSTR_CNDT_USE_YN /*제약조건사용여부*/
                 END) AS RSTR_CNDT_USE_YN
              , (CASE WHEN T3.UDSN_USE_YN != 'Y' OR T3.UDSN_USE_YN IS NULL THEN 'N'
                      WHEN T3.UDSN_USE_YN = 'Y' AND T3.WK_GRP_CD = '10' AND #{inflwChnl} = '1' THEN 'Y'
                      WHEN T3.UDSN_USE_YN = 'Y' AND T3.VST_DOW_VAL LIKE '8%' THEN 'Y'
-                     WHEN T3.WK_GRP_CD IN ('20', '30') AND P.ASN_BLC_YN = 'Y' THEN 'N'
-                     WHEN T3.WK_GRP_CD = '10' AND P.ASN_BLC_YN = 'Y' THEN 'N'
+                     WHEN T3.WK_GRP_CD IN ('20', '30') AND P.EGER_WRK_STAT_CD != '000' THEN 'N'
+                     WHEN T3.WK_GRP_CD = '10' AND P.EGER_WRK_STAT_CD != '000' THEN 'N'
                      ELSE T3.UDSN_USE_YN
                 END) AS UDSN_USE_YN /*미지정사용여부*/
              , FN_SVPD_WRK_CT_TOT_01(#{sellDate}, #{svBizDclsfCd}) AS WRK_CNT /*전체 작업 건수 합*/
@@ -1062,9 +1062,11 @@
           LEFT JOIN T_CMZ_CD_D D /*지역 방문 주기*/
             ON CD_ID = 'LOCARA_VST_PRD_CD'
            AND CD_VLD_VAL = VST_DOW_VAL
-          LEFT JOIN TB_OGPS_PRTNR_DNL_MNGT_IZ P /*파트너근태관리내역*/
-            ON BIZ_AGNT_PRTNR_NO = T4.PRTNR_NO
-           AND #{sellDate} BETWEEN STRTDT AND ENDDT
+          LEFT JOIN TB_OGPS_EGER_ATDC_IZ P /*파트너근태관리내역*/
+            ON P.PRTNR_NO = T4.PRTNR_NO
+           AND P.OG_TP_CD = T4.OG_TP_CD
+           and EGER_WRK_STAT_CD = '000'
+           AND WRK_DT = #{sellDate}
          WHERE T1.EMD_SN = (SELECT MAX(EMD_SN) FROM TB_SVPD_EGER_ASN_ADR_IZ WHERE NEW_ADR_ZIP = T1.NEW_ADR_ZIP)
            AND T2.ADR_ODR_NO = (SELECT MAX(ADR_ODR_NO)
                                  FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ

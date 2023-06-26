@@ -17,7 +17,9 @@ public class WsncTimeTableSchdChoDto {
         String sellDate,
         String svDvCd,
         String svBizDclsfCd,
-        String prtnrNo
+        String prtnrNo,
+        String ordDt,
+        String ordSeq
     ) {}
 
     @ApiModel(value = "WsncTimeTableMngtASMonthDto-FindRes")

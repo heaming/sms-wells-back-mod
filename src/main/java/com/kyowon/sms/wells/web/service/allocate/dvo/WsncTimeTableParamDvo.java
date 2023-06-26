@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class WsncTimeTableSalesParamDvo {
+public class WsncTimeTableParamDvo {
 
     // --------------------------------------------------
     // 1:설치
