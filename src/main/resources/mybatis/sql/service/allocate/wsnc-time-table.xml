@@ -112,6 +112,8 @@
     <select id="selectSidingDays" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo">
         SELECT SUBSTR(VST_DT,1,4)||'-'||SUBSTR(VST_DT,5,2)||'-'||SUBSTR(VST_DT,7,2) AS ABL_DAYS
              , SDING_QTY AS SUM_CNT
+             , SUBSTR(VST_DT,1,4)||'-'||SUBSTR(VST_DT, 5, 2)||'-'||SUBSTR(VST_DT, 7, 2)||'T'|| '00:00:00' AS ST
+             , SUBSTR(VST_DT,1,4)||'-'||SUBSTR(VST_DT, 5, 2)||'-'||SUBSTR(VST_DT, 7, 2)||'T'|| '00:00:00' AS ED
           FROM (SELECT VST_DT
                      , SDING_QTY
                   FROM TB_SVPD_DCBY_SDING_QTY_IZ
@@ -1064,7 +1066,7 @@
             ON BIZ_AGNT_PRTNR_NO = T4.PRTNR_NO
            AND #{sellDate} BETWEEN STRTDT AND ENDDT
          WHERE T1.EMD_SN = (SELECT MAX(EMD_SN) FROM TB_SVPD_EGER_ASN_ADR_IZ WHERE NEW_ADR_ZIP = T1.NEW_ADR_ZIP)
-           AND T2.LOCARA_SN = (SELECT MAX(LOCARA_SN)
+           AND T2.ADR_ODR_NO = (SELECT MAX(ADR_ODR_NO)
                                  FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ
                                 WHERE FR2P_LGLD_CD = T2.FR2P_LGLD_CD
                                   AND CTPV_NM = T2.CTPV_NM

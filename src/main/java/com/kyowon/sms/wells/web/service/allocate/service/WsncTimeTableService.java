@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncTimeTableConverter;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableAsMonthDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSchdChoDto;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSalesDto;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncTimeTableMapper;
 import com.sds.sflex.common.utils.DateUtil;
@@ -35,7 +35,7 @@ public class WsncTimeTableService {
     private final WsncTimeTableConverter converter;
 
     /**
-     * 타임테이블 조회(판매) 팝업
+     * 타임테이블 조회(판매)
      *
      * @programId W-SV-U-0062M01
      * @param req : 조회파라메터
@@ -63,7 +63,7 @@ public class WsncTimeTableService {
         String svDvCd = StringUtil.nvl(req.svDvCd(), ""); // dataGb
         //wrkDt는 무조건 오늘 날자(홍세기 매니저님 전달)
         String wrkDt = DateUtil.getNowDayString(); // req.wrkDt(); // P_WRK_DT
-        String dataStatCd = req.dataStatCd(); //DATA_STUS
+        String mtrStatCd = req.mtrStatCd(); //DATA_STUS
         String svBizDclsfCd = req.svBizDclsfCd(); // wrkTypDtl
         //String userId = req.userId();
         String returnUrl = req.returnUrl();
@@ -188,7 +188,8 @@ public class WsncTimeTableService {
 
         // 책임지역 담당자 찾기 selectTimeAssign_v2_step1
         rpbLocaraPsicDvo = mapper.selectRpbLocaraPsic(paramDvo)
-            .orElseThrow(() -> new BizException("해당일자에 책임지역 담당자가 없습니다"));; // step1_with
+            .orElseThrow(() -> new BizException("해당일자에 책임지역 담당자가 없습니다"));
+        ; // step1_with
         paramDvo.setPrtnrNo(rpbLocaraPsicDvo.getIchrPrtnrNo());
         paramDvo.setLocalGb(rpbLocaraPsicDvo.getRpbLocaraCd());
         paramDvo.setVstDowValCd(rpbLocaraPsicDvo.getVstDowValCd());
@@ -233,7 +234,7 @@ public class WsncTimeTableService {
         result.setCntrSn(cntrSn);
         result.setInflwChnl(paramDvo.getInflwChnl());//bypass
         result.setWrkDt(wrkDt);
-        result.setDataStatCd(dataStatCd);
+        result.setDataStatCd(mtrStatCd);
         result.setSvBizDclsfCd(svBizDclsfCd);
         result.setBasePdCd(basePdCd);
         result.setSowDay(sowDay);//pajong_day
@@ -316,11 +317,13 @@ public class WsncTimeTableService {
     }
 
     /**
+    * 타임테이블 일정선택
+    *
     * @programId W-MP-U-0186P01
     * @see "nosession_mng_as_month.do"
     *
     * */
-    protected WsncTimeTableAsMonthDto.FindRes noSessionMngtASMonth(WsncTimeTableAsMonthDto.FindReq req) {
+    protected WsncTimeTableSchdChoDto.FindRes getSchdCho(WsncTimeTableSchdChoDto.FindReq req) {
 
         // -------------------------------------------------
         // 고객검색-> 신규AS등록 -> 방문일자 선택
@@ -339,16 +342,28 @@ public class WsncTimeTableService {
 
         //        WsncTimeTableSalesDvo result = new WsncTimeTableSalesDvo();
         //
-        //        String cntrNo = req.cntrNo(); // W20222324935
-        //        String chnlDvCd = req.chnlDvCd(); // M (C, K, M, P, W)
-        //        String selDate = req.sellDate(); // 20230512
-        //        String svBizDclsfCd = req.svBizDclsfCd(); // 3110
-        //        String prtnrNo = req.prtnrNo(); // 1251831
+        String cntrNo = req.cntrNo();
+        String cntrSn = req.cntrSn();
+        String chnlDvCd = req.chnlDvCd();
+        String sellDate = req.sellDate();
+        String svDvCd = "M".equals(chnlDvCd) /*매니저*/ ? "3" /*A/S*/ : StringUtil.nvl(req.svDvCd(), "");
+        String svBizDclsfCd = req.svBizDclsfCd(); // 3110
+
+        String prtnrNo = req.prtnrNo(); // 1251831
         //
         //        WsncTimeTableCustDetailDvo custDetail = mapper.selectCustDetail(cntrNo);
         //        if (custDetail == null) {
         //            throw new BizException("MSG_ALT_NO_DATA");
         //        }
+        WsncTimeTableCntrDvo contractDvo = mapper.selectContract(cntrNo, cntrSn, sellDate)
+            .orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
+        String basePdCd = contractDvo.getBasePdCd();
+        String pdctPdCd = contractDvo.getPdctPdCd();
+        String contDt = contractDvo.getCntrDt();
+        String newAdrZip = contractDvo.getAdrZip();
+
+        WsncTimeTableProductDvo productDvo = mapper.selectProduct(basePdCd, pdctPdCd);
+        String sidingYn = productDvo.getSidingYn();
         //
         //        String zip = StringUtil.isNotEmpty(req.newAdrZip()) ? req.newAdrZip() : custDetail.getZip(); // 12249
         //        String contDt = custDetail.getCntrDt(); // 20220308
@@ -360,16 +375,21 @@ public class WsncTimeTableService {
         //
         //        String svDvCd = chnlDvCd.equals("M") ? "3" : req.svDvCd();
         //
-        //        String empId = "";
-        //        if (StringUtil.isNotEmpty(svDvCd) && svDvCd.equals("3")) {
-        //            empId = mapper.selectLocalEmpinfo(zip, svBizDclsfCd, selDate, basePdCd);
-        //        } else {
-        //            empId = prtnrNo;
-        //        }
+        String empId = "";
+        if ("3".equals(svDvCd)) {
+            empId = mapper.selectFnSvpdLocaraPrtnr01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate);
+        } else {
+            empId = prtnrNo;
+        }
+
+        // 모종인지 확인
+        if ("Y".equals(sidingYn)) {
+            String sdingCombin = contractDvo.getSdingCombin();
+        }
         //
         //        log.debug("cntrNo:{}", cntrNo);
         //        log.debug("gbCd:{}", chnlDvCd);
-        //        log.debug("sellDate:{}", selDate);
+        //        log.debug("sellDate:{}", sellDate);
         //        log.debug("svBizDclsfCd:{}", svBizDclsfCd);
         //        log.debug("prtnrNo:{}", prtnrNo);
         //
@@ -383,7 +403,7 @@ public class WsncTimeTableService {
         //        result.setDiableDays(
         //            mapper.selectDiableDays(
         //                addGb,
-        //                selDate,
+        //                sellDate,
         //                "Y",
         //                zip,
         //                basePdCd,
@@ -405,7 +425,7 @@ public class WsncTimeTableService {
         //        result.setChnlDvCd(chnlDvCd);
         //        result.setSvDvCd(svDvCd);
         //        result.setCntrNo(cntrNo);
-        //        result.setSelDate(selDate);
+        //        result.setSelDate(sellDate);
         //        result.setSaleCd(basePdCd);
         //
         //        return result;
