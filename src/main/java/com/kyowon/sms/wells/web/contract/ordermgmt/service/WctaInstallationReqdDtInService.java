@@ -38,5 +38,20 @@ public class WctaInstallationReqdDtInService {
 
         return resultCount;
     }
+
+    public int saveInstallOrderReqDt(String cntrNo, String cntrSn, String sppDuedt) {
+        ValidAssert.hasText(cntrNo);
+        ValidAssert.hasText(cntrSn);
+        BizAssert.isFalse(StringUtils.isEmpty(sppDuedt), "MSG_ALT_NO_APPY_TARGET_DATA");
+
+        int resultCount = mapper.updateInstallOrderReqDt( cntrNo, cntrSn, sppDuedt) ;
+
+        if(resultCount > 0){
+            mapper.updateContractDetailHist(cntrNo, cntrSn);
+            mapper.insertContractDetailHist(cntrNo, cntrSn);
+        }
+
+        return resultCount;
+    }
 }
 
