@@ -76,11 +76,11 @@ public class WsnbMultipleTaskOrderInterfaceService {
      * @return CreateOrderRes
      */
     private CreateOrderRes createInstallOrder(WsnbMultipleTaskOrderInterfaceDvo install) throws Exception {
-        WsnbMultipleTaskOrderDvo multiTaskOrderDvo = this.convertInterfaceDvoToDvo(install);
+        WsnbMultipleTaskOrderDvo multiTaskOrderDvo = converter.convertInterfaceDvoToDvo(install);
 
         // W-SV-S-0001 [설치/AS/BS/홈케어 서비스 작업 오더] 호출
         String asIstOjNo = installationOrderService.saveInstallationOrderByDvo(multiTaskOrderDvo);
-        return CreateOrderRes.builder().asIstOjNo(asIstOjNo).build();
+        return new CreateOrderRes(asIstOjNo);
     }
 
     /**
@@ -89,7 +89,7 @@ public class WsnbMultipleTaskOrderInterfaceService {
      * @return CreateOrderRes
      */
     private CreateOrderRes createSeparateOrder(WsnbMultipleTaskOrderInterfaceDvo separate) throws Exception {
-        WsnbMultipleTaskOrderDvo multiTaskOrderDvo = this.convertInterfaceDvoToDvo(separate);
+        WsnbMultipleTaskOrderDvo multiTaskOrderDvo = converter.convertInterfaceDvoToDvo(separate);
 
         // 1. W-SV-S-0012 [다건 작업오더, 정보변경 처리] 호출
         String asIstOjNo = taskOrderService.saveMultipleTaskOrders(multiTaskOrderDvo);
@@ -97,7 +97,7 @@ public class WsnbMultipleTaskOrderInterfaceService {
         // 2. 정보변경 처리
         this.editContract(multiTaskOrderDvo, separate);
 
-        return CreateOrderRes.builder().asIstOjNo(asIstOjNo).build();
+        return new CreateOrderRes(asIstOjNo);
     }
 
     /**
@@ -105,7 +105,7 @@ public class WsnbMultipleTaskOrderInterfaceService {
      * @return CreateOrderRes
      */
     private CreateOrderRes createEtcOrder(WsnbMultipleTaskOrderInterfaceDvo etc) throws Exception {
-        WsnbMultipleTaskOrderDvo multiTaskOrderDvo = this.convertInterfaceDvoToDvo(etc);
+        WsnbMultipleTaskOrderDvo multiTaskOrderDvo = converter.convertInterfaceDvoToDvo(etc);
 
         // 1. W-SV-S-0012 [다건 작업오더, 정보변경 처리] 호출
         String asIstOjNo = taskOrderService.saveMultipleTaskOrders(multiTaskOrderDvo);
@@ -116,7 +116,7 @@ public class WsnbMultipleTaskOrderInterfaceService {
             this.editContract(multiTaskOrderDvo, etc);
         }
 
-        return CreateOrderRes.builder().asIstOjNo(asIstOjNo).build();
+        return new CreateOrderRes(asIstOjNo);
     }
 
     /**
@@ -145,33 +145,6 @@ public class WsnbMultipleTaskOrderInterfaceService {
 
         // 2. 계약주소 업데이트
         contractInstallService.editContractInstall(converter.mapDvoToContractSaveReq(multiTaskOrderDvo));
-    }
-
-    private WsnbMultipleTaskOrderDvo convertInterfaceDvoToDvo(WsnbMultipleTaskOrderInterfaceDvo dvo) {
-        WsnbMultipleTaskOrderDvo multiTaskOrderDvo = new WsnbMultipleTaskOrderDvo();
-        multiTaskOrderDvo.setInChnlDvCd(dvo.getInChnlDvCd());
-        multiTaskOrderDvo.setSvBizHclsfCd(dvo.getSvBizHclsfCd());
-        multiTaskOrderDvo.setRcpdt(dvo.getRcpdt());
-        multiTaskOrderDvo.setAsIstOjNo(dvo.getAsIstOjNo());
-        multiTaskOrderDvo.setMtrStatCd(dvo.getMtrStatCd());
-        multiTaskOrderDvo.setSvBizDclsfCd(dvo.getSvBizDclsfCd());
-        multiTaskOrderDvo.setCntrNo(dvo.getCntrNo());
-        multiTaskOrderDvo.setCntrSn(dvo.getCntrSn());
-        multiTaskOrderDvo.setVstRqdt(dvo.getVstRqdt());
-        multiTaskOrderDvo.setVstAkHh(dvo.getVstAkHh());
-        multiTaskOrderDvo.setUrgtYn(dvo.getUrgtYn());
-        multiTaskOrderDvo.setSmsFwYn(dvo.getSmsFwYn());
-        multiTaskOrderDvo.setSvEtAmt(Integer.parseInt(dvo.getSvEtAmt()));
-        multiTaskOrderDvo.setDpDvCd(dvo.getDpDvCd());
-        multiTaskOrderDvo.setCnslTpHclsfCd(dvo.getCnslTpHclsfCd());
-        multiTaskOrderDvo.setCnslTpMclsfCd(dvo.getCnslTpMclsfCd());
-        multiTaskOrderDvo.setCnslTpLclsfCd(dvo.getCnslTpLclsfCd());
-        multiTaskOrderDvo.setCnslDtlpTpCd(dvo.getCnslDtlpTpCd());
-        multiTaskOrderDvo.setCnslMoCn(dvo.getCnslMoCn());
-        multiTaskOrderDvo.setCstCnrRefriDvCd(dvo.getAsRefriDvCd());
-        multiTaskOrderDvo.setPartList(dvo.getPrchsMatList());
-        multiTaskOrderDvo.setUserId(dvo.getRegUserId());
-        return multiTaskOrderDvo;
     }
 
 }

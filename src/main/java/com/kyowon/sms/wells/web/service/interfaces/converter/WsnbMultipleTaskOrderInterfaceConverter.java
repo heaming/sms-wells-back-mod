@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.interfaces.converter;
 import java.util.List;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractInstallDto.SaveReq;
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbMultipleTaskOrderInterfaceDto.CreateOrderReq;
@@ -23,5 +24,10 @@ public interface WsnbMultipleTaskOrderInterfaceConverter {
     List<WsnbMultipleTaskOrderInterfaceDvo> mapAllCreateOrderReqToDvos(List<CreateOrderReq> dtos);
 
     SaveReq mapDvoToContractSaveReq(WsnbMultipleTaskOrderDvo multiTaskOrderDvo);
+
+    @Mapping(source = "asRefriDvCd", target = "cstCnrRefriDvCd")
+    @Mapping(source = "prchsMatList", target = "partList")
+    @Mapping(source = "regUserId", target = "userId")
+    WsnbMultipleTaskOrderDvo convertInterfaceDvoToDvo(WsnbMultipleTaskOrderInterfaceDvo install);
 
 }

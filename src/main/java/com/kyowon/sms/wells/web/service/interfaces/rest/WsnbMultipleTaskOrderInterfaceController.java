@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @Api(tags = SnServiceConst.REST_INTERFACE_DOC_V1 + ": A/S, 분리, 재설치 및 설치정보 변경 등록")
-@RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/multiple-request-registration")
+@RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/work-orders")
 @RequiredArgsConstructor
 @Validated
 public class WsnbMultipleTaskOrderInterfaceController {

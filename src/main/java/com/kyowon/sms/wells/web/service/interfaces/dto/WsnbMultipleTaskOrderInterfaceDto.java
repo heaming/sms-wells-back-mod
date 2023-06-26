@@ -42,7 +42,7 @@ public class WsnbMultipleTaskOrderInterfaceDto {
         @JsonProperty("SMS_FW_YN")
         String smsFwYn, // SMS발송여부
         @JsonProperty("SV_ET_AMT")
-        String svEtAmt, // 서비스예상금액 (필터판매 작업일 경우 엔지니어가 고객으로부터 받아야 할 금액)
+        int svEtAmt, // 서비스예상금액 (필터판매 작업일 경우 엔지니어가 고객으로부터 받아야 할 금액)
         @JsonProperty("DP_DV_CD")
         String dpDvCd, // 입금구분코드 (1: 선불, 2: 후불 (AS-IS 에서 필터판매 오더는 무조건 유상으로 처리하고 AC211_ACC_AMT 금액을 표시 해주므로 이 필드는 사용 안 하고 있음))
         @JsonProperty("CNSL_TP_HCLSF_CD")

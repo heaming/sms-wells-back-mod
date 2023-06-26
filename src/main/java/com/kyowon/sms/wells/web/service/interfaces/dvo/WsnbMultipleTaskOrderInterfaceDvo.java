@@ -27,7 +27,7 @@ public class WsnbMultipleTaskOrderInterfaceDvo {
     String vstAkHh; // 방문요청시간
     String urgtYn; // 긴급여부
     String smsFwYn; // SMS발송여부
-    String svEtAmt; // 서비스예상금액
+    int svEtAmt; // 서비스예상금액
     String dpDvCd; // 입금구분코드
     String cnslTpHclsfCd; // 상담유형대분류코드
     String cnslTpMclsfCd; // 상담유형중분류코드
