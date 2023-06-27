@@ -33,7 +33,8 @@ public class WsnbMultipleTaskOrderController {
         SaveReq dto
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.saveMultipleTaskOrders(dto))
+            .data(service.saveMultipleTaskOrders(dto))
+            .processCount(1)
             .build();
     }
 

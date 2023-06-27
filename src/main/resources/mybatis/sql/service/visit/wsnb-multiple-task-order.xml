@@ -184,7 +184,7 @@
     <select id="selectAsIstOjIzKey" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo">
         SELECT TRIM(#{inChnlDvCd}) AS NEW_IN_CHNL_DV_CD
              , TRIM(#{svBizHclsfCd}) AS NEW_SV_BIZ_HCLSF_CD
-             , (CASE WHEN TRIM(#{inChnlDvCd}) IN ('3', '4') AND #{dtaStatCd} IN ('2','3') AND #{rcpdt} IS NULL THEN (SELECT I1.RCPDT
+             , (CASE WHEN TRIM(#{inChnlDvCd}) IN ('3', '4') AND #{mtrStatCd} IN ('2','3') AND #{rcpdt} IS NULL THEN (SELECT I1.RCPDT
                                                                                                                        FROM TB_SVPD_CST_SVAS_IST_OJ_IZ I1
                                                                                                                       INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ I2
                                                                                                                          ON I1.CST_SV_ASN_NO = I2.CST_SV_ASN_NO
@@ -201,7 +201,7 @@
                      WHEN #{rcpdt} IS NULL THEN TO_CHAR(SYSDATE, 'YYYYMMDD')
                      ELSE #{rcpdt}
                  END) AS NEW_RCPDT
-             , (CASE WHEN TRIM(#{inChnlDvCd}) IN ('3','4') AND #{dtaStatCd} IN ('2','3') AND #{asIstOjNo} IS NULL THEN (SELECT SUBSTR(I1.AS_IST_OJ_NO,14)
+             , (CASE WHEN TRIM(#{inChnlDvCd}) IN ('3','4') AND #{mtrStatCd} IN ('2','3') AND #{asIstOjNo} IS NULL THEN (SELECT SUBSTR(I1.AS_IST_OJ_NO,14)
                                                                                                                           FROM TB_SVPD_CST_SVAS_IST_OJ_IZ I1
                                                                                                                          INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ I2
                                                                                                                             ON I1.CST_SV_ASN_NO = I2.CST_SV_ASN_NO
@@ -255,7 +255,7 @@
                    AND PRTNR_NO = FN_SVPD_LOCARA_PRTNR_01(TRIM(T3.NEW_ADR_ZIP), A2.PDCT_PD_CD, #{newSvBizDclsfCd}, NVL(#{vstRqdt}, TO_CHAR(SYSDATE, 'YYYYMMDD')))
                    AND OG_TP_CD = 'W06'
                ) AS SV_CNR_OG_ID /*서비스센터조직ID*/
-             , #{dtaStatCd} AS MTR_STAT_CD /*자료상태코드*/
+             , #{mtrStatCd} AS MTR_STAT_CD /*자료상태코드*/
              , A2.PDCT_PD_CD AS PDCT_PD_CD /*상품코드*/
              , C0.PD_GD_CD AS PD_GD_CD /*상품등급코드*/
              , T8.PD_PRP_VAL01 AS PD_USWY_CD /*상품용도코드*/
@@ -357,7 +357,7 @@
                  WHERE 1=1
                    AND PRTNR_NO = FN_SVPD_LOCARA_PRTNR_01(TRIM(T3.NEW_ADR_ZIP), PDCT_PD_CD, #{newSvBizDclsfCd}, NVL(#{vstRqdt}, TO_CHAR(SYSDATE, 'YYYYMMDD')))
                    AND OG_TP_CD = 'W06') AS SV_CNR_OG_ID /*서비스센터조직ID*/
-             , #{dtaStatCd} AS MTR_STAT_CD /*자료상태코드*/
+             , #{mtrStatCd} AS MTR_STAT_CD /*자료상태코드*/
              , A.PDCT_PD_CD AS PD_CD /*상품코드*/
              , C0.PD_GD_CD AS PD_GD_CD /*상품등급코드*/
              , T8.PD_PRP_VAL01 AS PD_USWY_CD /*상품용도코드*/
@@ -444,7 +444,7 @@
              , DP_DV_CD            = #{dpDvCd}             /* 입금구분코드 */
              , SV_ET_AMT           = #{svEtAmt}            /* 서비스예상금액 */
              , SV_CNR_OG_ID        = #{svCnrOgId}          /* 서비스센터조직ID */
-             , MTR_STAT_CD         = #{dtaStatCd}          /* 자료상태코드 */
+             , MTR_STAT_CD         = #{mtrStatCd}          /* 자료상태코드 */
              , PD_CD               = #{pdctPdCd}               /* 상품코드 */
              , PD_GD_CD            = #{pdGdCd}             /* 상품등급코드 */
              , PD_USWY_CD          = #{pdUswyCd}           /* 상품용도코드 */
@@ -456,9 +456,9 @@
          WHERE 1 = 1
            AND AS_IST_OJ_NO        = #{asIstOjNo}          /* AS설치대상번호 */
     </update>
-    <update id="updateInstallationObjectDtaStatCd">
+    <update id="updateInstallationObjectMtrStatCd">
         UPDATE TB_SVPD_CST_SVAS_IST_OJ_IZ
-           SET MTR_STAT_CD = #{dtaStatCd}
+           SET MTR_STAT_CD = #{mtrStatCd}
               <include refid="COMMON.updateSystemField"/>
          WHERE AS_IST_OJ_NO   = #{newAsIstOjNo}
     </update>
@@ -537,13 +537,13 @@
              )
     </insert>
     <select id="selectCustomerServiceAssignNo" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo">
-        SELECT (CASE WHEN #{dtaStatCd} IN ('2', '3') THEN SUBSTR(CST_SV_ASN_NO, 1, 1)
+        SELECT (CASE WHEN #{mtrStatCd} IN ('2', '3') THEN SUBSTR(CST_SV_ASN_NO, 1, 1)
                     ELSE #{newSvBizHclsfCd}
                  END) AS ASN_SV_BIZ_HCLSF_CD
-             , (CASE WHEN #{dtaStatCd} IN ('2', '3') THEN SUBSTR(CST_SV_ASN_NO, 2, 8)
+             , (CASE WHEN #{mtrStatCd} IN ('2', '3') THEN SUBSTR(CST_SV_ASN_NO, 2, 8)
                     ELSE TO_CHAR(SYSDATE, 'YYYYMMDD')
                 END) AS ASN_DT
-             , (CASE WHEN #{dtaStatCd} IN ('2', '3') THEN SUBSTR(CST_SV_ASN_NO, 10)
+             , (CASE WHEN #{mtrStatCd} IN ('2', '3') THEN SUBSTR(CST_SV_ASN_NO, 10)
                     ELSE LPAD(SQ_SVPD_CST_SVAS_IST_ASN_IZ$CST_SV_ASN_NO.NEXTVAL,10,'0')
                 END) AS ASN_REQ
           FROM TB_SVPD_CST_SVAS_IST_OJ_IZ
@@ -1061,7 +1061,7 @@
     </update>
     <update id="updateInstallationObjectKey">
         UPDATE TB_SVPD_CST_SVAS_IST_OJ_IZ
-           SET CST_SV_ASN_NO = (CASE WHEN #{dtaStatCd} = '3' THEN '' ELSE #{asnCstSvAsnNo} END)
+           SET CST_SV_ASN_NO = (CASE WHEN #{mtrStatCd} = '3' THEN '' ELSE #{asnCstSvAsnNo} END)
               <include refid="COMMON.updateSystemField"/>
          WHERE AS_IST_OJ_NO = #{newAsIstOjNo}
     </update>

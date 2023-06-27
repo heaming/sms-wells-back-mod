@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.visit.dvo;
 
 import com.sds.sflex.system.config.annotation.DBDecField;
 
+import com.sds.sflex.system.config.annotation.DBEncField;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,7 +22,7 @@ public class WsnbMultipleTaskOrderDvo {
     String asIstOjNo; /* AS설치대상번호 */
     String svBizHclsfCd; /* 서비스업무대분류코드 */
     String rcpdt; /* 접수일자 */
-    String dtaStatCd; /* 자료상태코드 */
+    String mtrStatCd; /* 자료상태코드 */
     String svBizDclsfCd; /* 서비스업무세분류코드 */
     String urgtYn; /* 긴급여부 */
     String vstRqdt; /* 방문요청일자 */
@@ -57,7 +58,7 @@ public class WsnbMultipleTaskOrderDvo {
     /* service애서 만들어주는 값 */
     String newSvBizDclsfCd; /* 서비스업무세분류코드(V_WRK_TYP_DTL) */
     String newWkAcpteStatCd; /* V_CFRM_STUS_WRK */
-    String newDtaStatCd; /* V_DATA_STUS */
+    String newMtrStatCd; /* V_DATA_STUS */
     String newWkAcpteDt; /* V_AC221_CFRM_DT */
     String newWkPrgsStatCd; /* V_AC221_PROC_STUS */
     String newRcgvpKnm; /* V_CUST_NM */
@@ -93,4 +94,12 @@ public class WsnbMultipleTaskOrderDvo {
     String saleNm; /* GET_GOODS_NAME_SALE_CD(TRIM(V_SALE_CD)) */
     String pdSize; /* GET_ST101_SIZE */
 
+    /* 계약정보 업데이트용 */
+    String adrId;
+    String cralLocaraTno;
+    String mexno;
+    String cralIdvTno;
+    String locaraTno;
+    String exno;
+    String idvTno;
 }

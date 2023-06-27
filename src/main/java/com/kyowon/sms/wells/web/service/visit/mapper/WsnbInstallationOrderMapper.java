@@ -28,6 +28,8 @@ public interface WsnbInstallationOrderMapper {
 
     WsnbTaskProgStatDvo selectTaskProgStat(String cntrNo, String cntrSn);
 
+    int deleteSvExcnIz(String cntrNo, String cntrSn);
+
     int deleteIstAsnIz(String cntrNo, String cntrSn);
 
     int deleteIstOjIz(String cntrNo, String cntrSn);
@@ -35,5 +37,9 @@ public interface WsnbInstallationOrderMapper {
     List<WsnbOjContractDvo> selectOjContract(WsnbOjContractDvo dvo);
 
     List<String> selectSeedingCstSvAsnNos(String cntrNo, String cntrSn);
+
+    int deleteSdingSppPlan(WsnbMultipleTaskOrderDvo dvo);
+
+    int deleteSdingSppExpIz(WsnbMultipleTaskOrderDvo dvo);
 
 }
