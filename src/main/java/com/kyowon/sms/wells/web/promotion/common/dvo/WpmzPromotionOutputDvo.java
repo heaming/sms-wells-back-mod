@@ -30,8 +30,6 @@ public class WpmzPromotionOutputDvo {
     private String ackmtRt;             /* 인정금액(P) */
     private String stdFeeAmt;           /* 기준수수료 */
     private String feeFxamYn;           /* 수수료정액여부 */
-    private String fgptChoGrpCd;        /* 사은품선택그룹 */
-    private String fgptChoCd;           /* 사은품선택 */
     private String prmDupPrmitYn;       /* 선납중복허용여부 */
     private String pmotNapdPsbYn;       /* 프로모션미적용가능여부 */
     private String pmotRstrOjCd;        /* 프로모션제약대상 */
