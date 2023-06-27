@@ -426,6 +426,7 @@
          WHERE 1=1
            AND A.CNTR_NO = #{cntrNo}
            AND A.CNTR_SN = #{cntrSn}
+           AND ROWNUM = 1 /* 데이터 불안정해 중복건 발생할 수 있어 임시조치. */
     </insert>
     <update id="updateInstallationObject">
         UPDATE TB_SVPD_CST_SVAS_IST_OJ_IZ /* 고객서비스AS설치대상내역 */
