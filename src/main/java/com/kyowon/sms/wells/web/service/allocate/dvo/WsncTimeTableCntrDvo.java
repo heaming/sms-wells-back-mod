@@ -1,8 +1,5 @@
 package com.kyowon.sms.wells.web.service.allocate.dvo;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,7 +8,7 @@ import lombok.Setter;
 public class WsncTimeTableCntrDvo {
     String cntrNo;
     String cntrSn;
-    String adrZip;
+    String newAdrZip;
     String basePdCd;
     String basePdNm;
     String pdctPdCd;

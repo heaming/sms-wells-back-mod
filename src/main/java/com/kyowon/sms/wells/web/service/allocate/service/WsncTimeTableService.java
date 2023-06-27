@@ -98,7 +98,7 @@ public class WsncTimeTableService {
             .orElseThrow(() -> new BizException("MSG_ALT_NO_CONTRACT_FOUND"));
         basePdCd = contractDvo.getBasePdCd();
         pdctPdCd = contractDvo.getPdctPdCd();
-        newAdrZip = contractDvo.getAdrZip();
+        newAdrZip = contractDvo.getNewAdrZip();
         contDt = contractDvo.getCntrDt();
         copnDvCd = contractDvo.getCopnDvCd();
         sellDscDbCd = contractDvo.getSellDscDbCd();
@@ -318,13 +318,13 @@ public class WsncTimeTableService {
     }
 
     /**
-    * 타임테이블 일정선택
+    * 타임테이블 시간선택(일정변경)
     *
     * @programId W-MP-U-0186P01
     * @see "nosession_mng_as_month.do"
     *
     * */
-    protected WsncTimeTableSchdChoDto.FindRes getSchdCho(WsncTimeTableSchdChoDto.FindReq req) {
+    public WsncTimeTableSchdChoDto.FindRes getSchdCho(WsncTimeTableSchdChoDto.FindReq req) {
 
         WsncTimeTableSchdChoDvo result = new WsncTimeTableSchdChoDvo();
         // -------------------------------------------------
@@ -356,11 +356,11 @@ public class WsncTimeTableService {
         String basePdCd = contractDvo.getBasePdCd();
         String pdctPdCd = contractDvo.getPdctPdCd();
         String contDt = contractDvo.getCntrDt();
-        String newAdrZip = contractDvo.getAdrZip();
+        String newAdrZip = StringUtil.nvl(req.newAdrZip(), contractDvo.getNewAdrZip());
         String rpbLocaraCd = "";
 
         WsncTimeTableProductDvo productDvo = mapper.selectProduct(basePdCd, pdctPdCd)
-        .orElseThrow(() -> new BizException("MSG_ALT_NO_PRODUCT_FOUND"));
+            .orElseThrow(() -> new BizException("MSG_ALT_NO_PRODUCT_FOUND"));
         String sidingYn = productDvo.getSidingYn();
         //
         String empId = "";
@@ -372,8 +372,10 @@ public class WsncTimeTableService {
 
         // 모종인지 확인
         if ("Y".equals(sidingYn)) {
-            result.setSidingDay(this.mapper
-                .selectSidingDaysForSpay(contractDvo.getSdingCombin(), sellDate, basePdCd, svDvCd, pdctPdCd, cntrNo));
+            result.setSidingDay(
+                this.mapper
+                    .selectSidingDaysForSpay(contractDvo.getSdingCombin(), sellDate, basePdCd, svDvCd, pdctPdCd, cntrNo)
+            );
             result.setMonthSchedule(mapper.selectMonthSchedule(empId));
         }
 
@@ -385,7 +387,10 @@ public class WsncTimeTableService {
         paramDvo.setSvDvCd(svDvCd);
         paramDvo.setLocalGb(rpbLocaraCd);
         List<WsncTimeTableDisableDaysDvo> disableDayDvos = mapper.selectDisableDays(paramDvo);
-        result.setDisableDay(disableDayDvos);
+        result.setDisableDays(disableDayDvos);
+
+        List<WsncTimeTableDaysDvo> days = mapper.selectTimeTableDates(req.baseYm());
+        result.setDays(days);
 
         result.setNewAdrZip(newAdrZip);
         result.setSvBizDclsfCd(svBizDclsfCd);
