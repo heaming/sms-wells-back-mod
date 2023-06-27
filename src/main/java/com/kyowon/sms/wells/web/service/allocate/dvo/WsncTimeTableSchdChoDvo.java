@@ -21,7 +21,8 @@ public class WsncTimeTableSchdChoDvo {
     String empId;
     String basePdCd;
 
+    List<WsncTimeTableDaysDvo> days;
     List<WsncTimeTableSidingDaysDvo> sidingDay;
     List<WsncTimeTableMonthScheduleDvo> monthSchedule;
-    List<WsncTimeTableDisableDaysDvo> disableDay;
+    List<WsncTimeTableDisableDaysDvo> disableDays;
 }

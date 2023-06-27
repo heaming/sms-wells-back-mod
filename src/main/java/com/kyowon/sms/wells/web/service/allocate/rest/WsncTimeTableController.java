@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.allocate.rest;
 
 import java.text.ParseException;
 
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSchdChoDto;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,6 +49,25 @@ public class WsncTimeTableController {
     public WsncTimeTableSalesDto.FindRes getTmeAssignSales(WsncTimeTableSalesDto.FindReq req)
         throws ParseException {
         return service.getTmeAssignSales(req);
+    }
+
+
+        @ApiOperation(value = "타임테이블 일정선택")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "cntrSn", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "chnlDvCd", value = "", paramType = "query"), // GB_CD
+        @ApiImplicitParam(name = "sellDate", value = "", paramType = "query"), // P_IN_GB
+        @ApiImplicitParam(name = "svDvCd", value = "", paramType = "query"), // P_DATA_GB
+        @ApiImplicitParam(name = "svBizDclsfCd", value = "", paramType = "query"), // P_WRK_DT
+        @ApiImplicitParam(name = "prtnrNo", value = "", paramType = "query"), // P_DATA_STUS
+        @ApiImplicitParam(name = "ordDt", value = "", paramType = "query"), // P_WRK_TYP_DTL
+        @ApiImplicitParam(name = "ordSeq", value = "", paramType = "query"), // P_USER_ID
+    })
+    @GetMapping("/schd-cho")
+    public WsncTimeTableSchdChoDto.FindRes getSchdCho(WsncTimeTableSchdChoDto.FindReq req)
+        throws ParseException {
+        return service.getSchdCho(req);
     }
 
 

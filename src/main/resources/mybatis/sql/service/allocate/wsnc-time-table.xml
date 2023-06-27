@@ -33,7 +33,7 @@
     <select id="selectContract" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableCntrDvo">
         SELECT C2.CNTR_NO
              , C2.CNTR_SN
-             , A1.NEW_ADR_ZIP AS ADR_ZIP -- 우편번호
+             , A1.NEW_ADR_ZIP -- 우편번호
              , C2.BASE_PD_CD -- 기준상품코드
              , P2.PD_NM AS BASE_PD_NM -- 기준상품코드
              , P1.OJ_PD_CD AS PDCT_PD_CD-- 제품상품코드
