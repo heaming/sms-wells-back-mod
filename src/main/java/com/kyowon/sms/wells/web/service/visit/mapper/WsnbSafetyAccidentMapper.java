@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.mapper;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbSafetyAccidentDto.SearchReq;
@@ -14,7 +16,13 @@ public interface WsnbSafetyAccidentMapper {
 
     PagingResult<WsnbSafetyAccidentDvo> selectSafetyAccidents(SearchReq dto, PageInfo pageInfo);
 
+    List<WsnbSafetyAccidentDvo> selectSafetyAccidents(SearchReq dto);
+
     WsnbSafetyAccidentDvo selectSafetyAccident(String acdnRcpId);
 
     int updateSafetyAccident(WsnbSafetyAccidentDvo dvo);
+
+    int updateSafetyAccidentBiztalk(WsnbSafetyAccidentDvo dvo);
+
+    int updateSafetyAccidentSign(WsnbSafetyAccidentDvo dvo);
 }

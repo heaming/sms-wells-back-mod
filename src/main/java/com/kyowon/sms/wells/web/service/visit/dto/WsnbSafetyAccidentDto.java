@@ -1,10 +1,11 @@
 package com.kyowon.sms.wells.web.service.visit.dto;
 
+import javax.validation.constraints.NotBlank;
+
 import com.sds.sflex.common.utils.StringUtil;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
-
-import javax.validation.constraints.NotBlank;
 
 public class WsnbSafetyAccidentDto {
 
@@ -13,6 +14,8 @@ public class WsnbSafetyAccidentDto {
         String device, /* 접속화면 */
         String vstDt, /* as센터명 */
         String svcCnrId, /* 제품명 */
+        String vstDtFrom,
+        String vstDtTo,
         String searchType, /* 검색조건 */
         String cstNm, /* 고객명 */
         String cntrNo, /* 계약번호 */
@@ -26,7 +29,8 @@ public class WsnbSafetyAccidentDto {
         String rgstDtmTo,
         String fshDtFrom,
         String fshDtTo,
-        String fshDtYn /* 완료여부제외여부 */
+        String fshDtYn, /* 완료여부제외여부 */
+        String acdnRcpNm
     ) {}
 
     @ApiModel(value = "WsnbSafetyAccidentDto-SearchRes")
@@ -36,22 +40,26 @@ public class WsnbSafetyAccidentDto {
         String cntrNo,
         String cntrSn,
         String cstNm,
-        String acdnDtm,
-        String agrDocRcvYn,
+        String rcpdt,
+        String acdnDtm, //사고일시
+        String agrDocRcvYn, //합의서수신여부
         String pdNm,
         String istAdr,
         String istDtlAdr,
         String istReferAdr,
         String cpsPrgsCd,
+        String cpsPrgsNm,
         String fstRgstUsrId,
         String fshDt,
         String vstDt,
         String locaraTno,
         String exnoEncr,
         String idvTno,
+        String tno,
         String cralLocaraTno,
         String mexnoEncr,
         String cralIdvTno,
+        String mpno,
         String slDt,
         String fstRgstDtm,
         String rcpMoCn,
@@ -60,14 +68,25 @@ public class WsnbSafetyAccidentDto {
         String acdnRsCn,
         String fnlMdfcDtm,
         String rptrNm,
-        String svCnrOgId,
+        String svCnrNm,
         String brchNm,
         String imptaRsonCd,
+        String imptaRsonNm,
         int totCpsAmt,
         int kwCpsAmt,
         int insrcoCpsAmt
 
-    ) {}
+    ) {
+        public SearchRes {
+            if (StringUtil.isNotBlank(locaraTno) && StringUtil.isNotBlank(exnoEncr)
+                && StringUtil.isNotBlank(idvTno)) {
+                tno = locaraTno + "-" + exnoEncr + "-" + idvTno;
+            } else if (StringUtil.isNotBlank(locaraTno) && StringUtil.isNotBlank(idvTno)) {
+                tno = locaraTno + "-" + idvTno;
+            }
+            mpno = cralLocaraTno + "-" + mexnoEncr + "-" + cralIdvTno;
+        }
+    }
 
     @ApiModel(value = "WsnbSafetyAccidentDto-FindRes")
     public record FindRes(
@@ -76,6 +95,7 @@ public class WsnbSafetyAccidentDto {
         String cntrNo,
         String cntrSn,
         String cstNm,
+        String pdCd,
         String pdNm,
         String istAdr,
         String istDtlAdr,
@@ -91,6 +111,7 @@ public class WsnbSafetyAccidentDto {
         String slDt,
         String rcpdt,
         String vstDt,
+        String acdnDtm, //사고일시
         String svCnrNm,
         String brchNm,
         String cnrldNm,
@@ -111,7 +132,17 @@ public class WsnbSafetyAccidentDto {
         String damgIz,
         String estIz,
         String agrIz,
-        int totRduAmt
+        int totRduAmt,
+        String cpsDvCd,
+        String cstSignCn,
+        String maasBirthdate,
+        String maasFnm,
+        String fmlRelDvNm1,
+        String rfndAcnoEncr,
+        String rfndBnkNm,
+        String rfndAcownNm,
+        String fmlRelDvNm2,
+        String wrteDt
     ) {
         public FindRes {
             if (StringUtil.isNotBlank(locaraTno) && StringUtil.isNotBlank(exnoEncr)
@@ -125,7 +156,7 @@ public class WsnbSafetyAccidentDto {
     }
 
     @Builder
-    @ApiModel(value = "WsncOutsourcedpdAsReceiptDto-EditReq")
+    @ApiModel(value = "WsnbSafetyAccidentDto-EditReq")
     public record EditReq(
         @NotBlank
         String acdnRcpId,
@@ -143,88 +174,37 @@ public class WsnbSafetyAccidentDto {
         int totRduAmt
     ) {}
 
-    //    @ApiModel(value = "WsncOutsourcedpdAsReceiptDto-BiztalkReq")
-    //    public record BiztalkReq(
-    //        String cnrNm, /* as센터명 */
-    //        String svCnrTno, /* as센터연락처 */
-    //        @NotBlank
-    //        String cstTno /* 고객전화번호 */
-    //    ) {}
-    //
-    //    @ApiModel(value = "WsncOutsourcedpdAsReceiptDto-RemoveReceiptIzReq")
-    //    public record RemoveReceiptIzReq(
-    //        int rcpSn /* 접수일련번호 */
-    //    ) {}
-    //    @Builder
-    //    @ApiModel(value = "WsncOutsourcedpdAsReceiptDto-SaveReceiptIzReq")
-    //    public record SaveReceiptIzReq(
-    //        @NotBlank
-    //        String rowState, /* 상태 */
-    //        @NotBlank
-    //        int rcpSn, /* 접수일련번호 */
-    //        int svCnrSn, /* 서비스센터일련번호 */
-    //        String pdNm /* 제품명 */
-    //    ) {}
-    //
-    //    @ApiModel(value = "WsncOutsourcedpdAsReceiptDto-SearchReceiptBzReq")
-    //    public record SearchReceiptBzReq(
-    //        String cnrNm /* as센터명 */
-    //    ) {}
-    //
-    //    @ApiModel(value = "WsncOutsourcedpdAsReceiptDto-SearchReceiptBzRes")
-    //    public record SearchReceiptBzRes(
-    //        int svCnrSn,
-    //        String svCnrNm, /* 서비스센터명 */
-    //        String svCnrLocaraTno, /* 서비스센터지역전화번호 */
-    //        String svCnrExnoEncr, /* 서비스센터전화국번호 */
-    //        String svCnrIdvTno, /* 서비스센터개별전화번호 */
-    //        String svCnrTno, /* 전화번호 tot */
-    //        String svCnrZip, /* 서비스센터우편번호 */
-    //        String svCnrAdr, /* 서비스센터주소 */
-    //        String svCnrDtlAdr, /* 서비스센터상세주소 */
-    //        String svCnrIchrPrtnrNm /* 서비스센터담당파트너명 */
-    //    ) {
-    //        public SearchReceiptBzRes {
-    //            if (StringUtil.isNotBlank(svCnrLocaraTno) && StringUtil.isNotBlank(svCnrExnoEncr)
-    //                && StringUtil.isNotBlank(svCnrIdvTno)) {
-    //                svCnrTno = svCnrLocaraTno + "-" + svCnrExnoEncr + "-" + svCnrIdvTno;
-    //            } else if (StringUtil.isNotBlank(svCnrLocaraTno) && StringUtil.isNotBlank(svCnrIdvTno)) {
-    //                svCnrTno = svCnrLocaraTno + "-" + svCnrIdvTno;
-    //            }
-    //        }
-    //    }
-    //
-    //    @ApiModel(value = "WsncOutsourcedpdAsReceiptDto-RemoveReceiptBzReq")
-    //    public record RemoveReceiptBzReq(
-    //        int svCnrSn /* 서비스센터일련번호 */
-    //    ) {}
-    //
-    //    @Builder
-    //    @ApiModel(value = "WsncOutsourcedpdAsReceiptDto-SaveReceiptBzReq")
-    //    public record SaveReceiptBzReq(
-    //        @NotBlank
-    //        String rowState, /* 상태 */
-    //        int svCnrSn, /* 서비스센터일련번호 */
-    //        String svCnrNm, /* 서비스센터명 */
-    //        String svCnrLocaraTno, /* 서비스센터지역전화번호 */
-    //        String svCnrExnoEncr, /* 서비스센터전화국번호 */
-    //        String svCnrIdvTno, /* 서비스센터개별전화번호 */
-    //        String svCnrTno, /* 서비스센터전화번호Tot */
-    //        String svCnrZip, /* 서비스센터우편번호 */
-    //        String svCnrAdr, /* 서비스센터주소 */
-    //        String svCnrDtlAdr, /* 서비스센터상세주소 */
-    //        String svCnrIchrPrtnrNm /* 서비스센터담당파트너명 */
-    //    ) {
-    //        public SaveReceiptBzReq {
-    //            String[] tno = StringUtils.split(svCnrTno, "-");
-    //            if (tno.length == 3) {
-    //                svCnrLocaraTno = tno[0];
-    //                svCnrExnoEncr = tno[1];
-    //                svCnrIdvTno = tno[2];
-    //            } else if (tno.length == 2) {
-    //                svCnrLocaraTno = tno[0];
-    //                svCnrIdvTno = tno[1];
-    //            }
-    //        }
-    //    }
+    @Builder
+    @ApiModel(value = "WsnbSafetyAccidentDto-BiztalkReq")
+    public record BiztalkReq(
+        @NotBlank
+        String acdnRcpId,
+        String fmlRelDvCd1,
+        String etcCn1,
+        String fmlRelDvCd2,
+        String etcCn2,
+        String maasFnm,
+        String maasBirthdate,
+        String maasMpno,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno,
+        String rfndAcnoEncr,
+        String rfndBnkCd,
+        String rfndAcownNm,
+        String agrDocFwYn,
+        String rcpdt,
+        int totCpsAmt,
+        @NotBlank
+        String mpno,
+        String cstNm
+    ) {}
+
+    @Builder
+    @ApiModel(value = "WsnbSafetyAccidentDto-EditSignReq")
+    public record EditSignReq(
+        @NotBlank
+        String acdnRcpId,
+        String wrteDt
+    ) {}
 }
