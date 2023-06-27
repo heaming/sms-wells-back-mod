@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaWarehouseCloseCheckMapper">
+    <select id="selectPrtnrNoInfo" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaWarehouseCloseCheckDvo">
+        SELECT T1.OG_TP_CD
+             , T1.PRTNR_NO
+          FROM TB_OGBS_MM_PRTNR_IZ T1
+         WHERE 1 = 1
+           AND T1.PRTNR_NO = #{prtnrNo}
+           AND T1.OG_TP_CD = #{ogTpCd}
+           AND T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+
+
+    </select>
+
+    <select id="selectMmtCountCloseCheck" resultType="java.lang.Integer">
+          SELECT COUNT(*)
+            FROM TB_SVST_ITM_STR_IZ T1
+           INNER JOIN TB_SVST_MCBY_WARE_IZ T2
+              ON T1.WARE_MNGT_PRTNR_NO = T2.WARE_MNGT_PRTNR_NO
+             AND T1.WARE_MNGT_PRTNR_OG_TP_CD = T2.OG_TP_CD
+             AND T1.STR_WARE_NO = T2.WARE_NO
+           INNER JOIN TB_SVST_CST_SV_ITM_STOC_IZ T3
+              ON T3.WARE_NO = T1.STR_WARE_NO
+             AND T3.ITM_PD_CD = T1.ITM_PD_CD
+           WHERE 1 = 1
+             AND T2.WARE_MNGT_PRTNR_NO = #{prtnrNo}
+             AND T2.OG_TP_CD = #{ogTpCd}
+             AND T2.APY_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+             AND T3.MMT_STOC_A_GD_QTY > 0
+    </select>
+
+    <select id="selectPitmCountCloseCheck" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+          FROM TB_SVST_MCITM_STOC_IZ T1
+         INNER JOIN TB_SVST_MCBY_WARE_IZ T2
+            ON T1.BASE_YM = T2.APY_YM
+           AND T1.WARE_NO = T2.WARE_NO
+           AND T1.WARE_MNGT_PRTNR_NO = T2.WARE_MNGT_PRTNR_NO
+           AND T1.OG_TP_CD = T2.OG_TP_CD
+         WHERE 1 = 1
+           AND T1.WARE_MNGT_PRTNR_NO = #{prtnrNo}
+           AND T1.OG_TP_CD = #{ogTpCd}
+           AND T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T1.PITM_STOC_A_GD_QTY > 0
+           AND T1.PITM_STOC_B_GD_QTY > 0
+           AND T1.PITM_STOC_E_GD_QTY > 0
+           AND T1.PITM_STOC_R_GD_QTY > 0
+
+    </select>
+
+    <select id="selectMngtCountCloseCheck" resultType="java.lang.Integer">
+      SELECT COUNT(*)
+        FROM TB_SVPD_CST_SV_EXCN_IZ T1
+       WHERE 1 = 1
+         AND T1.CNTR_DTL_STAT_CD IN('101', '201', '202', '203')
+         AND T1.MNGT_PRTNR_NO = #{prtnrNo}
+         AND T1.MNGT_PRTNR_OG_TP_CD = #{ogTpCd}
+
+    </select>
+    <select id="selectBfsvcCountCloseCheck" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
+         WHERE 1 = 1
+           AND T1.ASN_PSIC_PRTNR_NO = #{prtnrNo}
+           AND T1.ASN_OJ_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T1.ASN_PSIC_PRTNR_OG_TP_CD = #{ogTpCd}
+
+     </select>
+
+
+
+</mapper>
