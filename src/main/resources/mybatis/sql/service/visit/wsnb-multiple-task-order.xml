@@ -49,7 +49,7 @@
     <select id="selectAsAssignByPk" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbAsAssignReqDvo">
         SELECT S2.SV_BIZ_HCLSF_CD
              , S2.SV_BIZ_DCLSF_CD
-             , S2.MTR_STAT_CD AS DTA_STAT_CD
+             , S2.MTR_STAT_CD AS MTR_STAT_CD
              , S1.WK_ACPTE_STAT_CD
              , S1.VST_CNFMDT AS WK_ACPTE_DT
              , S1.WK_PRGS_STAT_CD
