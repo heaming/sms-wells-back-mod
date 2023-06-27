@@ -43,6 +43,7 @@ public class WsncTimeTableSchdChoDto {
         String ordSeq,
         String empId,
         String basePdCd,
+        String sidingYn,
 
         List<WsncTimeTableDaysDvo> days,
         List<WsncTimeTableSidingDaysDvo> sidingDay,
