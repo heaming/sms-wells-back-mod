@@ -57,6 +57,10 @@ public class WsnbMultipleTaskOrderService {
 
     public String saveMultipleTaskOrders(WsnbMultipleTaskOrderDvo dvo) throws Exception {
 
+        if ("00000000".equals(dvo.getAsIstOjNo().substring(10))) {
+            dvo.setAsIstOjNo(null);
+        }
+
         /* 계약 관련 정보 */
         WsnbContractReqDvo contractReqDvo = mapper.selectContract(dvo.getCntrNo(), dvo.getCntrSn());
         /* 계약 관련 정보 before */
