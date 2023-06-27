@@ -13,7 +13,7 @@ import lombok.Builder;
  * @author hyewon.kim 김혜원
  * @since 2023.06.26
  */
-public class WsnbMultipleTaskOrderInterfaceDto {
+public class WsnbWorkOrderInterfaceDto {
 
     @ApiModel(value = "WsnbMultipleTaskOrderInterfaceDto-CreateOrderReq")
     public record CreateOrderReq(

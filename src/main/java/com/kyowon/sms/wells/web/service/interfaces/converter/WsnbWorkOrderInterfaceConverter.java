@@ -6,8 +6,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractInstallDto.SaveReq;
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbMultipleTaskOrderInterfaceDto.CreateOrderReq;
-import com.kyowon.sms.wells.web.service.interfaces.dvo.WsnbMultipleTaskOrderInterfaceDvo;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbWorkOrderInterfaceDto.CreateOrderReq;
+import com.kyowon.sms.wells.web.service.interfaces.dvo.WsnbWorkOrderInterfaceDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo;
 
 /**
@@ -19,15 +19,15 @@ import com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo;
  * @since 2023.06.26
  */
 @Mapper(componentModel = "spring")
-public interface WsnbMultipleTaskOrderInterfaceConverter {
+public interface WsnbWorkOrderInterfaceConverter {
 
-    List<WsnbMultipleTaskOrderInterfaceDvo> mapAllCreateOrderReqToDvos(List<CreateOrderReq> dtos);
+    List<WsnbWorkOrderInterfaceDvo> mapAllCreateOrderReqToDvos(List<CreateOrderReq> dtos);
 
     SaveReq mapDvoToContractSaveReq(WsnbMultipleTaskOrderDvo multiTaskOrderDvo);
 
     @Mapping(source = "asRefriDvCd", target = "cstCnrRefriDvCd")
     @Mapping(source = "prchsMatList", target = "partList")
     @Mapping(source = "regUserId", target = "userId")
-    WsnbMultipleTaskOrderDvo convertInterfaceDvoToDvo(WsnbMultipleTaskOrderInterfaceDvo install);
+    WsnbMultipleTaskOrderDvo convertInterfaceDvoToDvo(WsnbWorkOrderInterfaceDvo install);
 
 }

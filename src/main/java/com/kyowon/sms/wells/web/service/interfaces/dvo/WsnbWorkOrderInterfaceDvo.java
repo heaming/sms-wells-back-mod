@@ -13,7 +13,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class WsnbMultipleTaskOrderInterfaceDvo {
+public class WsnbWorkOrderInterfaceDvo {
 
     String inChnlDvCd; // 입력채널구분코드
     String svBizHclsfCd; // 서비스업무대분류코드

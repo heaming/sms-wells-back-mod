@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbMultipleTaskOrderInterfaceDto.CreateOrderReq;
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbMultipleTaskOrderInterfaceDto.CreateOrderRes;
-import com.kyowon.sms.wells.web.service.interfaces.service.WsnbMultipleTaskOrderInterfaceService;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbWorkOrderInterfaceDto.CreateOrderReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbWorkOrderInterfaceDto.CreateOrderRes;
+import com.kyowon.sms.wells.web.service.interfaces.service.WsnbWorkOrderInterfaceService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 
@@ -24,9 +24,9 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping(SnServiceConst.REST_INTERFACE_URL_V1 + "/work-orders")
 @RequiredArgsConstructor
 @Validated
-public class WsnbMultipleTaskOrderInterfaceController {
+public class WsnbWorkOrderInterfaceController {
 
-    private final WsnbMultipleTaskOrderInterfaceService service;
+    private final WsnbWorkOrderInterfaceService service;
 
     @ApiOperation(value = "A/S, 분리, 재설치 및 설치정보 변경 등록 작업 오더 생성", notes = "타시스템(교원웰스, 고객센터, KMEMBERS)에서 다건의 A/S, 분리, 재설치 서비스 작업 오더 생성을 위해 사용한다.")
     public EaiWrapper createMultipleTaskOrders(

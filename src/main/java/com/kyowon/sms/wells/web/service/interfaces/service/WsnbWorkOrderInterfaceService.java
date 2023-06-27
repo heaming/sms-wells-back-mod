@@ -12,10 +12,10 @@ import com.kyowon.sflex.common.common.dvo.FormatAddressDvo;
 import com.kyowon.sflex.common.common.service.SujiewonService;
 import com.kyowon.sflex.common.zcommon.constants.CmSujiewonConst;
 import com.kyowon.sms.wells.web.contract.interfaces.service.WctiContractInstallService;
-import com.kyowon.sms.wells.web.service.interfaces.converter.WsnbMultipleTaskOrderInterfaceConverter;
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbMultipleTaskOrderInterfaceDto.CreateOrderReq;
-import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbMultipleTaskOrderInterfaceDto.CreateOrderRes;
-import com.kyowon.sms.wells.web.service.interfaces.dvo.WsnbMultipleTaskOrderInterfaceDvo;
+import com.kyowon.sms.wells.web.service.interfaces.converter.WsnbWorkOrderInterfaceConverter;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbWorkOrderInterfaceDto.CreateOrderReq;
+import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbWorkOrderInterfaceDto.CreateOrderRes;
+import com.kyowon.sms.wells.web.service.interfaces.dvo.WsnbWorkOrderInterfaceDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbInstallationOrderService;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbMultipleTaskOrderService;
@@ -34,9 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WsnbMultipleTaskOrderInterfaceService {
+public class WsnbWorkOrderInterfaceService {
 
-    private final WsnbMultipleTaskOrderInterfaceConverter converter;
+    private final WsnbWorkOrderInterfaceConverter converter;
 
     private final SujiewonService sujiewonService;
 
@@ -48,10 +48,10 @@ public class WsnbMultipleTaskOrderInterfaceService {
 
     @Transactional
     public List<CreateOrderRes> createMultipleTaskOrders(List<CreateOrderReq> dtos) throws Exception {
-        List<WsnbMultipleTaskOrderInterfaceDvo> orders = converter.mapAllCreateOrderReqToDvos(dtos);
+        List<WsnbWorkOrderInterfaceDvo> orders = converter.mapAllCreateOrderReqToDvos(dtos);
         List<CreateOrderRes> orderRes = new ArrayList<>();
 
-        for (WsnbMultipleTaskOrderInterfaceDvo order : orders) {
+        for (WsnbWorkOrderInterfaceDvo order : orders) {
 
             if (order.getSvBizDclsfCd().startsWith(SV_BIZ_MCLSF_CD_IST)) { // 1. 설치 요청
                 CreateOrderRes res = this.createInstallOrder(order);
@@ -75,7 +75,7 @@ public class WsnbMultipleTaskOrderInterfaceService {
      * @param install
      * @return CreateOrderRes
      */
-    private CreateOrderRes createInstallOrder(WsnbMultipleTaskOrderInterfaceDvo install) throws Exception {
+    private CreateOrderRes createInstallOrder(WsnbWorkOrderInterfaceDvo install) throws Exception {
         WsnbMultipleTaskOrderDvo multiTaskOrderDvo = converter.convertInterfaceDvoToDvo(install);
 
         // W-SV-S-0001 [설치/AS/BS/홈케어 서비스 작업 오더] 호출
@@ -88,7 +88,7 @@ public class WsnbMultipleTaskOrderInterfaceService {
      * @param separate
      * @return CreateOrderRes
      */
-    private CreateOrderRes createSeparateOrder(WsnbMultipleTaskOrderInterfaceDvo separate) throws Exception {
+    private CreateOrderRes createSeparateOrder(WsnbWorkOrderInterfaceDvo separate) throws Exception {
         WsnbMultipleTaskOrderDvo multiTaskOrderDvo = converter.convertInterfaceDvoToDvo(separate);
 
         // 1. W-SV-S-0012 [다건 작업오더, 정보변경 처리] 호출
@@ -104,7 +104,7 @@ public class WsnbMultipleTaskOrderInterfaceService {
      * 기타 오더 생성 (계약주소 업데이트)
      * @return CreateOrderRes
      */
-    private CreateOrderRes createEtcOrder(WsnbMultipleTaskOrderInterfaceDvo etc) throws Exception {
+    private CreateOrderRes createEtcOrder(WsnbWorkOrderInterfaceDvo etc) throws Exception {
         WsnbMultipleTaskOrderDvo multiTaskOrderDvo = converter.convertInterfaceDvoToDvo(etc);
 
         // 1. W-SV-S-0012 [다건 작업오더, 정보변경 처리] 호출
@@ -125,7 +125,7 @@ public class WsnbMultipleTaskOrderInterfaceService {
      * @param ifDvo
      * @throws Exception
      */
-    private void editContract(WsnbMultipleTaskOrderDvo multiTaskOrderDvo, WsnbMultipleTaskOrderInterfaceDvo ifDvo)
+    private void editContract(WsnbMultipleTaskOrderDvo multiTaskOrderDvo, WsnbWorkOrderInterfaceDvo ifDvo)
         throws Exception {
         // 1. 수지원넷 주소정제
         FormatAddressDvo formatAddress = sujiewonService.getFormattedAddress(
