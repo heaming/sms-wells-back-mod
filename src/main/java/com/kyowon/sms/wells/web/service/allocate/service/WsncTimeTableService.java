@@ -264,7 +264,7 @@ public class WsncTimeTableService {
             time = assignTime.getTm();
             smPmNtDvo.setTime(time.substring(0, 2) + ":" + time.substring(2, 4));
             smPmNtDvo.setCnt(assignTime.getWrkCnt());
-            smPmNtDvo.setAblYn(assignTime.getWrkChk2());
+            smPmNtDvo.setEnableYn(assignTime.getWrkChk2());
 
             if (Integer.valueOf(time) >= 10000 && Integer.valueOf(time) < 50000) {
                 result.getArrSm().add(smPmNtDvo);
@@ -470,7 +470,7 @@ public class WsncTimeTableService {
             time = assignTime.getTm();
             smPmNtDvo.setTime(time.substring(0, 2) + ":" + time.substring(2, 4));
             smPmNtDvo.setCnt(assignTime.getWrkCnt());
-            smPmNtDvo.setAblYn(assignTime.getWrkChk2());
+            smPmNtDvo.setEnableYn(assignTime.getWrkChk2());
 
             if (Integer.valueOf(time) >= 10000 && Integer.valueOf(time) < 50000) {
                 result.getArrSm().add(smPmNtDvo);
