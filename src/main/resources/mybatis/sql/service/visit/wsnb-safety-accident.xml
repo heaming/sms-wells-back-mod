@@ -5,6 +5,7 @@
         SELECT CNTR_NO --계약상세번호
              , CNTR_SN
              , CST_NM --고객명
+             , RCPDT --접수일
              , ACDN_RCP_ID
              , ACDN_RCP_NM --제목
              , ACDN_DTM --사고일시
@@ -13,7 +14,8 @@
              , IST_ADR --설치주소
              , IST_DTL_ADR --설치상세주소
              , IST_REFER_ADR --설치참고주소
-             , CPS_PRGS_CD --보상진행 TODO:공통코드 등록된 후 수정.
+             , CPS_PRGS_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'CPS_PRGS_CD', CPS_PRGS_CD, #{session.langId}) AS CPS_PRGS_NM
              , FST_RGST_USR_ID --등록자
              , FSH_DT --완료여부
              , VST_DT --방문일자
@@ -33,46 +35,46 @@
              , RPTR_NM --보고자
              , SV_CNR_NM --센터명
              , BRCH_NM --지점명
-             , IMPTA_RSON_CD --귀책여부
+             , IMPTA_RSON_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'IMPTA_RSON_CD', IMPTA_RSON_CD, #{session.langId}) AS IMPTA_RSON_NM
              , TOT_CPS_AMT --총보상액
              , KW_CPS_AMT --교원부담
              , INSRCO_CPS_AMT --보험사부담
           FROM TB_SVPD_ACDN_DOAN_IZ
          WHERE 1=1
            AND DTA_DL_YN = 'N'
-           AND CNTR_NO IS NOT NULL
-<!--           AND VSTDT BETWEEN ${vstDtFrom} AND ${vstDtTo}-->
+           AND VST_DT BETWEEN #{vstDtFrom} AND #{vstDtTo}
         <if test='@MybatisUtils@isNotEmpty(svCnrOgId)'>
-           AND SV_CNR_OG_ID = ${svCnrOgId}
+           AND SV_CNR_OG_ID = #{svCnrOgId}
         </if>
         <if test='@MybatisUtils@isNotEmpty(cstNm)'>
-           AND CST_NM LIKE '%' || ${cstNm} || '%'
+           AND CST_NM LIKE '%' || #{cstNm} || '%'
         </if>
         <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
            AND CNTR_NO = #{cntrNo}
-           AND CNTR_SN = ${cntrsSn}
+           AND CNTR_SN = #{cntrsSn}
         </if>
         <if test='@MybatisUtils@isNotEmpty(pdNm)'>
-           AND PD_NM LIKE '%' || ${pdNm} || '%'
+           AND PD_NM LIKE '%' || #{pdNm} || '%'
         </if>
         <if test='@MybatisUtils@equals(device, "W")'>
             <if test='@MybatisUtils@isNotEmpty(acdnRcpNm)'>
-              AND ACDN_RCP_NM LIKE '%' || ${acdnRcpNm} || '%'
+              AND ACDN_RCP_NM LIKE '%' || #{acdnRcpNm} || '%'
             </if>
             <if test='@MybatisUtils@isNotEmpty(cpsPrgsCd)'>
-              AND CPS_PRGS_CD = ${cpsPrgsCd}
+              AND CPS_PRGS_CD = #{cpsPrgsCd}
             </if>
             <if test='@MybatisUtils@isNotEmpty(imptaRsonCd)'>
-              AND IMPTA_RSON_CD = ${imptaRsonCd}
+              AND IMPTA_RSON_CD = #{imptaRsonCd}
             </if>
             <if test='@MybatisUtils@isNotEmpty(totCpsAmt)'>
               AND TOT_CPS_AMT = ${totCpsAmt}
             </if>
             <if test='@MybatisUtils@isNotEmpty(rgstDtmFrom) and @MybatisUtils@isNotEmpty(rgstDtmTo)'>
-              AND FST_RGST_DTM BETWEEN ${rgstDtmFrom} AND ${rgstDtmTo}
+              AND FST_RGST_DTM BETWEEN #{rgstDtmFrom} AND #{rgstDtmTo}
             </if>
             <if test='@MybatisUtils@equals(fshDtYn, "N") and @MybatisUtils@isNotEmpty(fshDtFrom) and @MybatisUtils@isNotEmpty(fshDtTo)'>
-              AND FSH_DT BETWEEN ${fshDtFrom} AND ${fshDtTo}
+              AND FSH_DT BETWEEN #{fshDtFrom} AND #{fshDtTo}
             </if>
         </if>
     </select>
@@ -81,6 +83,7 @@
         SELECT CNTR_NO /*계약정보*/
              , CNTR_SN
              , CST_NM
+             , PD_CD
              , PD_NM
              , ACDN_RCP_ID
              , ACDN_RCP_NM
@@ -96,11 +99,12 @@
              , SL_DT --매출일
              , RCPDT --접수일
              , VST_DT --방문일
+             , ACDN_DTM -- 사고일시
              , SV_CNR_NM --센터명
              , BRCH_NM --지점명
              , CNRLD_NM --센터장명
              , IST_LCT_DTL_CN --위치
-             , F_CMZ_CD_NM(#{session.tenantId}, 'AS_IMPTA_RSON_CD', IMPTA_RSON_CD, #{session.langId}) AS IMPTA_RSON_NM  --귀책사유
+             , F_CMZ_CD_NM(#{session.tenantId}, 'IMPTA_RSON_CD', IMPTA_RSON_CD, #{session.langId}) AS IMPTA_RSON_NM  --귀책사유
              , RCP_MO_CN --접수내용
              , ACDN_CAUS_CN --사고원인 /* 사고정보 */
              , CST_DMD_CN --고객요구
@@ -117,6 +121,15 @@
              , EST_IZ
              , AGR_IZ
              , NVL(TOT_RDU_AMT,0) AS TOT_RDU_AMT
+             , CST_SIGN_CN AS SIGN_CN
+             , MAAS_BRYY_MMDD AS MAAS_BIRTH_DATE
+             , MAAS_FNM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'CST_REL_CD', FML_REL_DV_CD1, #{session.langId}) AS FML_REL_DV_NM1
+             , RFND_ACNO_ENCR
+             , RFND_ACOWN_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'BNK_CD', RFND_BNK_CD, #{session.langId}) AS RFND_BNK_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'CST_REL_CD', FML_REL_DV_CD2, #{session.langId}) AS FML_REL_DV_NM2
+             , NVL(WRTE_DT,TO_CHAR(SYSDATE, 'YYYYMMDD')) AS WRTE_DT
         FROM TB_SVPD_ACDN_DOAN_IZ
        WHERE 1=1
          AND ACDN_RCP_ID = #{acdnRcpId}
@@ -141,4 +154,31 @@
              <include refid="COMMON.updateSystemField"/>
          WHERE ACDN_RCP_ID = #{acdnRcpId}
     </update>
+    <update id="updateSafetyAccidentBiztalk">
+        UPDATE TB_SVPD_ACDN_DOAN_IZ
+           SET FML_REL_DV_CD1       = #{fmlRelDvCd1}
+             , ETC_CN1              = #{etcCn1}
+             , FML_REL_DV_CD2       = #{fmlRelDvCd2}
+             , ETC_CN2              = #{etcCn2}
+             , MAAS_FNM             = #{maasFnm}
+             , MAAS_BRYY_MMDD       = #{maasBirthdate}
+             , MAAS_CRAL_LOCARA_TNO = #{cralLocaraTno}
+             , MAAS_MEXNO_ENCR      = #{mexnoEncr}
+             , MAAS_CRAL_IDV_TNO    = #{cralIdvTno}
+             , RFND_ACNO_ENCR       = #{rfndAcnoEncr}
+             , RFND_BNK_CD          = #{rfndBnkCd}
+             , RFND_ACOWN_NM        = #{rfndAcownNm}
+             , AGR_DOC_FW_YN        = #{agrDocFwYn}
+             , AGR_DOC_FW_DTM       = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             <include refid="COMMON.updateSystemField"/>
+         WHERE ACDN_RCP_ID = #{acdnRcpId}
+    </update>
+    <update id="updateSafetyAccidentSign">
+        UPDATE TB_SVPD_ACDN_DOAN_IZ
+           SET WRTE_DT       = #{wrteDt}
+             , CST_SIGN_CN   = #{cstSignCn}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE ACDN_RCP_ID = #{acdnRcpId}
+    </update>
+
 </mapper>

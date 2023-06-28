@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.visit.dvo;
 
+import com.sds.sflex.system.config.annotation.DBDecField;
 import com.sds.sflex.system.config.annotation.DBEncField;
 
 import lombok.Getter;
@@ -16,6 +17,7 @@ public class WsnbSafetyAccidentDvo {
     String cstNm;
     String acdnDtm;
     String agrDocRcvYn;
+    String pdCd;
     String pdNm;
     String istAdr;
     String istDtlAdr;
@@ -25,10 +27,12 @@ public class WsnbSafetyAccidentDvo {
     String fshDt;
     String vstDt;
     String locaraTno;
+    @DBDecField
     @DBEncField
     String exnoEncr;
     String idvTno;
     String cralLocaraTno;
+    @DBDecField
     @DBEncField
     String mexnoEncr;
     String cralIdvTno;
@@ -58,4 +62,22 @@ public class WsnbSafetyAccidentDvo {
     String estIz;
     String agrIz;
     int totRduAmt;
+    String cpsDvCd;
+    String fmlRelDvCd1;
+    String etcCn1;
+    String fmlRelDvCd2;
+    String etcCn2;
+    String maasFnm;
+    String maasBirthdate;
+    String maasMpno;
+    String rfndAcnoEncr;
+    String rfndBnkCd;
+    String rfndAcownNm;
+    String mpno;
+    byte[] signCn;
+    String cstSignCn;
+    String fmlRelDvNm1;
+    String rfndBnkNm;
+    String fmlRelDvNm2;
+    String wrteDt;
 }

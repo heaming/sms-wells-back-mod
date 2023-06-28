@@ -4,9 +4,7 @@ import java.util.List;
 
 import org.mapstruct.Mapper;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbSafetyAccidentDto.EditReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbSafetyAccidentDto.FindRes;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbSafetyAccidentDto.SearchRes;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbSafetyAccidentDto.*;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbSafetyAccidentDvo;
 import com.sds.sflex.system.config.datasource.PagingResult;
 
@@ -25,7 +23,15 @@ public interface WsnbSafetyAccidentConverter {
         List<WsnbSafetyAccidentDvo> dvos
     );
 
+    List<SearchRes> mapDvosToSearchRes(
+        List<WsnbSafetyAccidentDvo> dvos
+    );
+
     FindRes mapWsnbSafetyAccidentDvoToFindRes(WsnbSafetyAccidentDvo dvo);
 
     WsnbSafetyAccidentDvo mapEditReqToWsnbSafetyAccidentDvo(EditReq dto);
+
+    WsnbSafetyAccidentDvo mapBiztalkReqToWsnbSafetyAccidentDvo(BiztalkReq dto);
+
+    WsnbSafetyAccidentDvo mapEditSignReqToWsnbSafetyAccidentDvo(EditSignReq dto);
 }
