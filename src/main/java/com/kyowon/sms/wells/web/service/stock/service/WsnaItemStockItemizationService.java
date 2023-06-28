@@ -15,9 +15,13 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaMonthlyItemStocksDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksReqDvo;
+import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemStockItemizationMapper;
+import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
+import com.sds.sflex.common.common.service.EaiInterfaceService;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
+import com.sds.sflex.system.config.validation.ValidAssert;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +44,11 @@ public class WsnaItemStockItemizationService {
     private final WsnaItemStockItemizationConverter converter;
 
     private final WsnaMonthlyItemStocksService monthlyItemService;
+
+    private final EaiInterfaceService interfaceService;
+
+    // 실시간 재고조회 URI
+    private static final String EAI_CBDO1007 = "/C/BD/EAI_CBDO1007/req";
 
     @Transactional
     public int createStock(WsnaItemStockItemizationReqDvo reqDvo) {
@@ -1752,5 +1761,22 @@ public class WsnaItemStockItemizationService {
             vo.getQty()
         );
         return reqDto;
+    }
+
+    /**
+     * 실시간 등급조회 서비스
+     * @param itmPdCd   (필수) 품목상품코드
+     * @return
+     */
+    public RealTimeGradeStockResIvo getRealTimeGradeStock(String itmPdCd) {
+        ValidAssert.hasText(itmPdCd);
+
+        RealTimeGradeStockResIvo req = new RealTimeGradeStockResIvo();
+        req.setSapPlntCd(SnServiceConst.SAP_PLNT_CD);
+        req.setSapSaveLctCd(SnServiceConst.SAP_SAVE_LCT_CD);
+        req.setItmPdCd(itmPdCd);
+
+        return this.interfaceService
+            .post(EAI_CBDO1007, req, RealTimeGradeStockResIvo.class);
     }
 }
