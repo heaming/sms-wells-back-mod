@@ -355,7 +355,6 @@ public class WsncTimeTableService {
             .orElseThrow(() -> new BizException("MSG_ALT_NO_CONTRACT_FOUND"));
         String basePdCd = contractDvo.getBasePdCd();
         String pdctPdCd = contractDvo.getPdctPdCd();
-        String contDt = contractDvo.getCntrDt();
         String newAdrZip = StringUtil.nvl(req.newAdrZip(), contractDvo.getNewAdrZip());
         String rpbLocaraCd = "";
 
@@ -403,6 +402,7 @@ public class WsncTimeTableService {
         result.setOrdSeq(req.ordSeq());
         result.setEmpId(empId);
         result.setBasePdCd(basePdCd);
+        result.setSidingYn(sidingYn);
         return converter.mapSchdChoDvoToRes(result);
     }
 
