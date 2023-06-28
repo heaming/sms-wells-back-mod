@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.allocate.service;
 import java.text.ParseException;
 import java.util.List;
 
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableTimeChoDto;
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import com.sds.sflex.system.config.context.SFLEXContextHolder;
 import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
@@ -90,7 +91,7 @@ public class WsncTimeTableService {
             sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 5);
         }
 
-        if (sellDate == null || sellDate.equals("")) {
+        if (StringUtil.isEmpty(req.sellDate())) {
             sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 5);
         }
 
@@ -103,6 +104,7 @@ public class WsncTimeTableService {
         copnDvCd = contractDvo.getCopnDvCd();
         sellDscDbCd = contractDvo.getSellDscDbCd();
         sdingCombin = contractDvo.getSdingCombin(); // lcst09
+        String cstSvAsnNo = StringUtil.isNotEmpty(req.cstSvAsnNo()) ? req.cstSvAsnNo() : contractDvo.getCstSvAsnNo();
 
         WsncTimeTableProductDvo productDvo = mapper.selectProduct(basePdCd, pdctPdCd)
             .orElseThrow(() -> new BizException("MSG_ALT_NO_PRODUCT_FOUND"));
@@ -181,16 +183,16 @@ public class WsncTimeTableService {
         paramDvo.setExYn("");
         paramDvo.setContDt(contDt);
         paramDvo.setCopnDvCd(copnDvCd);
-        paramDvo.setCopnDvCd(copnDvCd);
         paramDvo.setSellDscDbCd(sellDscDbCd);
         paramDvo.setBasePdCd(basePdCd);
+        paramDvo.setCstSvAsnNo(cstSvAsnNo);
 
         //-----------------------------------------------------------------------------------------
 
         // 책임지역 담당자 찾기 selectTimeAssign_v2_step1
         rpbLocaraPsicDvo = mapper.selectRpbLocaraPsic(paramDvo)
             .orElseThrow(() -> new BizException("MSG_ALT_NO_PSIC_FOUND"));
-        ; // step1_with
+        // step1_with
         paramDvo.setPrtnrNo(rpbLocaraPsicDvo.getIchrPrtnrNo());
         paramDvo.setLocalGb(rpbLocaraPsicDvo.getRpbLocaraCd());
         paramDvo.setVstDowValCd(rpbLocaraPsicDvo.getVstDowValCd());
@@ -409,8 +411,82 @@ public class WsncTimeTableService {
     /**
     * @see "nosession_as_timeAssign.do"
     * */
-    protected WsncTimeTableSalesDvo noSessionAsTimeAssign() {
-        return null;
+    public WsncTimeTableTimeChoDto.FindRes getTimeCho(WsncTimeTableTimeChoDto.FindReq req) {
+
+        String cntrNo = req.cntrNo();
+        String cntrSn = req.cntrSn();
+        String chnlDvCd = req.chnlDvCd();
+        String sellDate = StringUtil.nvl(req.sellDate(), DateUtil.getNowDayString());
+        String svDvCd = "M".equals(chnlDvCd) /*매니저*/ ? "3" /*A/S*/ : StringUtil.nvl(req.svDvCd(), "");
+        String svBizDclsfCd = req.svBizDclsfCd(); // 3110
+        String pdctPdCd = req.pdctPdCd();
+        String basePdCd = req.basePdCd();
+        String hcrYn = req.hcrYn(); // add_gb
+        String newAdrZip = req.newAdrZip();
+        String prtnrNo01 = mapper.selectFnSvpdLocaraPrtnr01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate);
+        String prtnrNoBS01 = mapper.selectFnSvpdLocaraPrtnrBs01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate, mapper.selectVstDvCd(req.cstSvAsnNo()));
+        String prtnrNoOwr01 = mapper.selectFnSvpdLocaraPrtnrOwr01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate);
+        String cstSvAsnNo = req.cstSvAsnNo();
+
+        WsncTimeTableParamDvo paramDvo = converter.mapTimeChoParamReqToDvo(req);
+        paramDvo.setChnlDvCd(chnlDvCd);
+        paramDvo.setSellDate(sellDate);
+        paramDvo.setNewAdrZip(newAdrZip);
+        paramDvo.setSvDvCd(svDvCd);
+        paramDvo.setCntrNo(cntrNo);
+        paramDvo.setCntrSn(cntrSn);
+        paramDvo.setInflwChnl(paramDvo.getInflwChnl());
+        paramDvo.setSvBizDclsfCd(svBizDclsfCd);
+        paramDvo.setPdctPdCd(pdctPdCd);
+        paramDvo.setPrtnrNo01(prtnrNo01);
+        paramDvo.setPrtnrNoBS01(prtnrNoBS01);
+        paramDvo.setPrtnrNoOwr01(prtnrNoOwr01);
+        paramDvo.setHcrYn(hcrYn);
+        paramDvo.setBasePdCd(basePdCd);
+        paramDvo.setCstSvAsnNo(cstSvAsnNo);
+
+        WsncTimeTableRpbLocaraPsicDvo rpbLocaraPsicDvo = mapper.selectRpbLocaraPsic(paramDvo)
+            .orElseThrow(() -> new BizException("MSG_ALT_NO_PSIC_FOUND"));
+        paramDvo.setPrtnrNo(rpbLocaraPsicDvo.getIchrPrtnrNo());
+        paramDvo.setLocalGb(rpbLocaraPsicDvo.getRpbLocaraCd());
+        paramDvo.setVstDowValCd(rpbLocaraPsicDvo.getVstDowValCd());
+        paramDvo.setOgTpCd(rpbLocaraPsicDvo.getOgTpCd());
+
+        // 담당자 정보 표시 selectTimeAssign_v2_step2
+        WsncTimeTablePsicDataDvo psicDataDvos = mapper.selectPsicData(rpbLocaraPsicDvo); // left_info
+
+        // 시간표시 selectTimeAssign_v2_step3
+        rpbLocaraPsicDvo.setEmpTWrkCnt(mapper.selectEmpTWrkCnt(rpbLocaraPsicDvo));
+        rpbLocaraPsicDvo.setDegWrkCnt(mapper.selectDegWrkCnt(rpbLocaraPsicDvo));
+        rpbLocaraPsicDvo.setWkHhCd(mapper.selectWkHhCd(rpbLocaraPsicDvo));
+        List<WsncTimeTableAssignTimeDvo> assignTimeDvos = mapper.selectAssignTime(rpbLocaraPsicDvo); // list1
+
+        WsncTimeTableTimeChoDvo result = new WsncTimeTableTimeChoDvo();
+
+        String time = "";
+        for (WsncTimeTableAssignTimeDvo assignTime : assignTimeDvos) {
+
+            WsncTimeTableSmPmNtDvo smPmNtDvo = new WsncTimeTableSmPmNtDvo();
+            time = assignTime.getTm();
+            smPmNtDvo.setTime(time.substring(0, 2) + ":" + time.substring(2, 4));
+            smPmNtDvo.setCnt(assignTime.getWrkCnt());
+            smPmNtDvo.setAblYn(assignTime.getWrkChk2());
+
+            if (Integer.valueOf(time) >= 10000 && Integer.valueOf(time) < 50000) {
+                result.getArrSm().add(smPmNtDvo);
+            } else if (Integer.valueOf(time) > 80000 && Integer.valueOf(time) < 140000) {
+                result.getArrAm().add(smPmNtDvo);
+            } else if (Integer.valueOf(time) >= 140000 && Integer.valueOf(time) < 180000) {
+                result.getArrPm1().add(smPmNtDvo);
+            } else if (Integer.valueOf(time) >= 180000 && Integer.valueOf(time) <= 190000) {
+                result.getArrPm2().add(smPmNtDvo);
+            } else
+                result.getArrNt().add(smPmNtDvo);
+        }
+
+        result.setAssignTimes(assignTimeDvos); // list1
+        result.setPsicDatas(psicDataDvos); // lef_info
+        return converter.mapTimeChoDvoToRes(result);
     }
 
     /**

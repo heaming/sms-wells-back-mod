@@ -77,4 +77,5 @@ public class WsncTimeTableParamDvo {
 
     String lcst09; // ???
     String vstGb; // ???
+    String cstSvAsnNo;
 }

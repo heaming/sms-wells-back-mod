@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.allocate.rest;
 import java.text.ParseException;
 
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSchdChoDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableTimeChoDto;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,8 +52,7 @@ public class WsncTimeTableController {
         return service.getTmeAssignSales(req);
     }
 
-
-        @ApiOperation(value = "타임테이블 일정선택")
+    @ApiOperation(value = "타임테이블 일정선택")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "", paramType = "query"),
@@ -70,8 +70,15 @@ public class WsncTimeTableController {
         return service.getSchdCho(req);
     }
 
+    @ApiOperation(value = "타임테이블 시간선택")
+    @ApiImplicitParams(value = {
+    })
+    @GetMapping("/time-cho")
+    public WsncTimeTableTimeChoDto.FindRes getTimeCho(WsncTimeTableTimeChoDto.FindReq req)
+        throws ParseException {
+        return service.getTimeCho(req);
+    }
 
     //getSchdCho
-
 
 }

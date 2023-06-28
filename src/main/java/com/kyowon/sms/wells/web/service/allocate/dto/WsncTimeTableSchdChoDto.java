@@ -15,7 +15,7 @@ W-MP-U-0186P01
 */
 public class WsncTimeTableSchdChoDto {
 
-    @ApiModel(value = "WsncTimeTableMngtASMonthDto-FindReq")
+    @ApiModel(value = "WsncTimeTableSchdChoDto-FindReq")
     public record FindReq(
         String cntrNo,
         String cntrSn,
@@ -30,7 +30,7 @@ public class WsncTimeTableSchdChoDto {
         String baseYm
     ) {}
 
-    @ApiModel(value = "WsncTimeTableMngtASMonthDto-FindRes")
+    @ApiModel(value = "WsncTimeTableSchdChoDto-FindRes")
     public record FindRes(
         String newAdrZip,
         String svBizDclsfCd,
