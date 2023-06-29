@@ -1,0 +1,24 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsnbWorkOrderInterfaceMapper">
+
+    <select id="selectContractAdr" resultType="java.lang.String">
+        SELECT C4.ADR_ID
+          FROM TB_SSCT_CNTR_BAS C1 /* 계약기본 */
+         INNER JOIN TB_SSCT_CNTR_DTL C2 /* 계약상세 */
+            ON C2.CNTR_NO = C1.CNTR_NO
+           AND C2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADR_REL C3 /* 계약주소관계 */
+            ON C2.CNTR_NO = C3.DTL_CNTR_NO
+           AND C2.CNTR_SN = C3.DTL_CNTR_SN
+           AND C3.ADRPC_TP_CD = '3'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
+           AND C3.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C4 /* 계약주소지기본 */
+            ON C3.CNTR_ADRPC_ID = C4.CNTR_ADRPC_ID
+         WHERE 1 = 1
+           AND C2.CNTR_NO = #{cntrNo}
+           AND C2.CNTR_SN = ${cntrSn}
+           AND ROWNUM = 1
+    </select>
+
+</mapper>
