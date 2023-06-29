@@ -44,6 +44,7 @@
              , C1.COPN_DV_CD -- 법인격구분코드 (1개인, 2법인)
              , CASE WHEN C5.OJ_DTL_CNTR_NO IS NULL THEN '03'
                     ELSE (CASE WHEN #{sellDate} > TO_CHAR(SYSDATE + 40, 'YYYYMM')  THEN '02' ELSE '01' END ) END AS SDING_COMBIN --LCST09
+             , C6.CST_SV_ASN_NO
           FROM TB_SSCT_CNTR_BAS C1
          INNER JOIN TB_SSCT_CNTR_DTL C2
             ON C1.CNTR_NO = C2.CNTR_NO
@@ -74,6 +75,10 @@
            AND C5.CNTR_REL_DTL_CD = '216' /*모종결합*/
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C5.VL_STRT_DTM AND C5.VL_END_DTM
            AND C5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ C6
+            ON C6.CNTR_NO = C2.CNTR_NO
+           AND C6.CNTR_SN = C2.CNTR_SN
+           AND C6.ASN_OJ_YM = SUBSTR(#{sellDate}, 0, 6)
          WHERE C2.CNTR_NO = #{cntrNo}
            AND C2.CNTR_SN = #{cntrSn}
     </select>
@@ -1050,8 +1055,8 @@
            AND WK_GRP_CD = FN_SVPD_WRK_GRP_01(#{pdctPdCd}, #{svBizDclsfCd}, #{sellDate})
            </if>
 
-         INNER JOIN TB_OGBS_MM_PRTNR_IZ T4
-            ON T4.DTA_DL_YN = 'N' /*월파트너내역*/
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ T4 /*월파트너내역*/
+            ON T4.DTA_DL_YN = 'N'
            AND T4.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND T4.OG_TP_CD = T3.ICHR_PRTNR_OG_TP_CD
            AND T4.PRTNR_NO = T3.ICHR_PRTNR_NO
@@ -1481,6 +1486,12 @@
 
     <select id="selectWkHhCd" resultType="java.lang.String">
       SELECT FN_SVPD_GD_WRK_T_03(#{rpbLocaraCd}, #{wkGrpCd}, #{sellDate}) FROM DUAL
+    </select>
+
+    <select id="selectVstDvCd" resultType="java.lang.String">
+      SELECT C1.VST_DV_CD
+        FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ C1
+       WHERE C1.CST_SV_ASN_NO = #{cstSvAsnNo}
     </select>
 
 </mapper>

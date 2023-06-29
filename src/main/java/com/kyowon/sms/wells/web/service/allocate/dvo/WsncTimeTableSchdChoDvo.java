@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.dvo;
 
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSchdChoDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,9 +21,10 @@ public class WsncTimeTableSchdChoDvo {
     String ordSeq;
     String empId;
     String basePdCd;
+    String sidingYn;
 
-    List<WsncTimeTableDaysDvo> days;
-    List<WsncTimeTableSidingDaysDvo> sidingDay;
-    List<WsncTimeTableMonthScheduleDvo> monthSchedule;
-    List<WsncTimeTableDisableDaysDvo> disableDays;
+    List<WsncTimeTableSchdChoDto.TimeTableDays> days;
+    List<WsncTimeTableSchdChoDto.SidingDays> sidingDay;
+    List<WsncTimeTableSchdChoDto.MonthSchedule> monthSchedule;
+    List<WsncTimeTableSchdChoDto.DisableDays> disableDays;
 }

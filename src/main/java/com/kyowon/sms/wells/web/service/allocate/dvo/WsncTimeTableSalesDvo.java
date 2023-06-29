@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.dvo;
 
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSchdChoDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -42,17 +43,17 @@ public class WsncTimeTableSalesDvo {
     String cstSvAsnNo;
 
     List<String> offDays;
-    List<WsncTimeTableSidingDaysDvo> sidingDays; // list2 abledays
-    List<WsncTimeTableDisableDaysDvo> disableDays;
-    WsncTimeTablePsicDataDvo psicDatas; // left_info
+    List<WsncTimeTableSchdChoDto.SidingDays> sidingDays; // list2 abledays
+    List<WsncTimeTableSchdChoDto.DisableDays> disableDays;
+    WsncTimeTableSchdChoDto.PsicData psicDatas; // left_info
     // List<WsncTimeTableAssignTimeDvo> assignTimeDvos; // list1
 
     List<WsncTimeTableDaysDvo> days;
 
-    List<WsncTimeTableSmPmNtDvo> arrSm = new ArrayList<WsncTimeTableSmPmNtDvo>();
-    List<WsncTimeTableSmPmNtDvo> arrAm = new ArrayList<WsncTimeTableSmPmNtDvo>();
-    List<WsncTimeTableSmPmNtDvo> arrPm1 = new ArrayList<WsncTimeTableSmPmNtDvo>();
-    List<WsncTimeTableSmPmNtDvo> arrPm2 = new ArrayList<WsncTimeTableSmPmNtDvo>();
-    List<WsncTimeTableSmPmNtDvo> arrNt = new ArrayList<WsncTimeTableSmPmNtDvo>();
+    List<WsncTimeTableSchdChoDto.SmPmNt> arrSm = new ArrayList<WsncTimeTableSchdChoDto.SmPmNt>();
+    List<WsncTimeTableSchdChoDto.SmPmNt> arrAm = new ArrayList<WsncTimeTableSchdChoDto.SmPmNt>();
+    List<WsncTimeTableSchdChoDto.SmPmNt> arrPm1 = new ArrayList<WsncTimeTableSchdChoDto.SmPmNt>();
+    List<WsncTimeTableSchdChoDto.SmPmNt> arrPm2 = new ArrayList<WsncTimeTableSchdChoDto.SmPmNt>();
+    List<WsncTimeTableSchdChoDto.SmPmNt> arrNt = new ArrayList<WsncTimeTableSchdChoDto.SmPmNt>();
 
 }
