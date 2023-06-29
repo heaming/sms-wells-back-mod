@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import io.swagger.annotations.ApiModel;
 
+import javax.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +17,7 @@ public class WsncTimeTableTimeChoDto {
     @ApiModel(value = "WsncTimeTableTimeChoDto-FindReq")
     public record FindReq(
         String newAdrZip,
+        @NotBlank
         String cntrNo,
         String cntrSn,
         String chnlDvCd,
@@ -28,6 +30,7 @@ public class WsncTimeTableTimeChoDto {
         String prtnrNo,
         String ordDt,
         String ordSeq,
+        @NotBlank
         String baseYm,
         String cstSvAsnNo
     ) {}
@@ -35,7 +38,7 @@ public class WsncTimeTableTimeChoDto {
     @ApiModel(value = "WsncTimeTableTimeChoDto-FindRes")
     public record FindRes(
         WsncTimeTablePsicDataDvo psicDatas, // left_info
-        List<WsncTimeTableAssignTimeDvo> assignTimes, // list1
+        List<WsncTimeTableTimeChoDto.AssignTime> assignTimes, // list1
         List<WsncTimeTableSmPmNtDvo> arrSm,
         List<WsncTimeTableSmPmNtDvo> arrAm,
         List<WsncTimeTableSmPmNtDvo> arrPm1,
@@ -43,4 +46,29 @@ public class WsncTimeTableTimeChoDto {
         List<WsncTimeTableSmPmNtDvo> arrNt
     ) {}
 
+    @ApiModel(value = "WsncTimeTableTimeChoDto-AssignTime")
+    public record AssignTime(
+        String vstDt,
+        String empId,
+        String tm,
+        String wrkCnt,
+        String wrkTCnt,
+        String wrkCCnt,
+        String wrkTChk,
+        String wrkTRn,
+        String wrkNextChk,
+        String wrkNextChk2,
+        String wrkChk2,
+        String wrkChk1Rn,
+        String empTWrkCnt,
+        String degWrkCnt,
+        String tWrkCnt
+    ) {}
+
+    @ApiModel(value = "WsncTimeTableTimeChoDto-SmPmNt")
+    public record SmPmNt(
+        String time,
+        String cnt,
+        String enableYn
+    ) {}
 }

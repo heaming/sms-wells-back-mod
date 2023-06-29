@@ -223,10 +223,10 @@ public class WsncTimeTableService {
         result.getArrNt().clear();
 
         //result.setAssignTimeDvos(assignTimeDvos); // list1 = assignTimeDvos
-        result.setPsicDatas(psicDataDvos); // left_info = psicDatas
-        result.setSidingDays(sidingDayDvos); // list2 = sidingDays
+        result.setPsicDatas(converter.mapPsicDatasDvoToDto(psicDataDvos)); // left_info = psicDatas
+        result.setSidingDays(converter.mapSidingDaysDvoToDto(sidingDayDvos)); // list2 = sidingDays
         result.setOffDays(offDays); // offdays = offDays
-        result.setDisableDays(disableDayDvos); // diabledays = disableDays
+        result.setDisableDays(converter.mapDisableDaysDvoToDto(disableDayDvos)); // diabledays = disableDays
 
         result.setSvDvCd(svDvCd);
         result.setNewAdrZip(newAdrZip);
@@ -267,15 +267,15 @@ public class WsncTimeTableService {
             smPmNtDvo.setEnableYn(assignTime.getWrkChk2());
 
             if (Integer.valueOf(time) >= 10000 && Integer.valueOf(time) < 50000) {
-                result.getArrSm().add(smPmNtDvo);
+                result.getArrSm().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
             } else if (Integer.valueOf(time) > 80000 && Integer.valueOf(time) < 140000) {
-                result.getArrAm().add(smPmNtDvo);
+                result.getArrAm().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
             } else if (Integer.valueOf(time) >= 140000 && Integer.valueOf(time) < 180000) {
-                result.getArrPm1().add(smPmNtDvo);
+                result.getArrPm1().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
             } else if (Integer.valueOf(time) >= 180000 && Integer.valueOf(time) < 200000) {
-                result.getArrPm2().add(smPmNtDvo);
+                result.getArrPm2().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
             } else
-                result.getArrNt().add(smPmNtDvo);
+                result.getArrNt().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
         }
 
         log.debug("baesYm:            {}", result.getBaseYm());
@@ -374,10 +374,14 @@ public class WsncTimeTableService {
         // 모종인지 확인
         if ("Y".equals(sidingYn)) {
             result.setSidingDay(
-                this.mapper
-                    .selectSidingDaysForSpay(contractDvo.getSdingCombin(), sellDate, basePdCd, svDvCd, pdctPdCd, cntrNo)
+                converter.mapSidingDaysDvoToDto(
+                    this.mapper
+                        .selectSidingDaysForSpay(
+                            contractDvo.getSdingCombin(), sellDate, basePdCd, svDvCd, pdctPdCd, cntrNo
+                        )
+                )
             );
-            result.setMonthSchedule(mapper.selectMonthSchedule(empId));
+            result.setMonthSchedule(converter.mapMonthScheduleDvoToDto(mapper.selectMonthSchedule(empId)));
         }
 
         WsncTimeTableParamDvo paramDvo = new WsncTimeTableParamDvo();
@@ -388,10 +392,11 @@ public class WsncTimeTableService {
         paramDvo.setSvDvCd(svDvCd);
         paramDvo.setLocalGb(rpbLocaraCd);
         List<WsncTimeTableDisableDaysDvo> disableDayDvos = mapper.selectDisableDays(paramDvo);
-        result.setDisableDays(disableDayDvos);
+        result.setDisableDays(converter.mapDisableDaysDvoToDto(disableDayDvos));
 
+        //        List<WsncTimeTableDaysDvo> days = mapper.selectTimeTableDates(req.baseYm());
         List<WsncTimeTableDaysDvo> days = mapper.selectTimeTableDates(req.baseYm());
-        result.setDays(days);
+        result.setDays(converter.mapDaysDvoToDto(days));
 
         result.setNewAdrZip(newAdrZip);
         result.setSvBizDclsfCd(svBizDclsfCd);
@@ -424,7 +429,9 @@ public class WsncTimeTableService {
         String hcrYn = req.hcrYn(); // add_gb
         String newAdrZip = req.newAdrZip();
         String prtnrNo01 = mapper.selectFnSvpdLocaraPrtnr01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate);
-        String prtnrNoBS01 = mapper.selectFnSvpdLocaraPrtnrBs01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate, mapper.selectVstDvCd(req.cstSvAsnNo()));
+        String prtnrNoBS01 = mapper.selectFnSvpdLocaraPrtnrBs01(
+            newAdrZip, pdctPdCd, svBizDclsfCd, sellDate, mapper.selectVstDvCd(req.cstSvAsnNo())
+        );
         String prtnrNoOwr01 = mapper.selectFnSvpdLocaraPrtnrOwr01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate);
         String cstSvAsnNo = req.cstSvAsnNo();
 
@@ -473,18 +480,18 @@ public class WsncTimeTableService {
             smPmNtDvo.setEnableYn(assignTime.getWrkChk2());
 
             if (Integer.valueOf(time) >= 10000 && Integer.valueOf(time) < 50000) {
-                result.getArrSm().add(smPmNtDvo);
+                result.getArrSm().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
             } else if (Integer.valueOf(time) > 80000 && Integer.valueOf(time) < 140000) {
-                result.getArrAm().add(smPmNtDvo);
+                result.getArrAm().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
             } else if (Integer.valueOf(time) >= 140000 && Integer.valueOf(time) < 180000) {
-                result.getArrPm1().add(smPmNtDvo);
+                result.getArrPm1().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
             } else if (Integer.valueOf(time) >= 180000 && Integer.valueOf(time) <= 190000) {
-                result.getArrPm2().add(smPmNtDvo);
+                result.getArrPm2().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
             } else
-                result.getArrNt().add(smPmNtDvo);
+                result.getArrNt().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
         }
 
-        result.setAssignTimes(assignTimeDvos); // list1
+        result.setAssignTimes(converter.mapAssignTimeDvoToDto(assignTimeDvos)); // list1
         result.setPsicDatas(psicDataDvos); // lef_info
         return converter.mapTimeChoDvoToRes(result);
     }

@@ -4,8 +4,11 @@ import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDaysDvo;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDisableDaysDvo;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableMonthScheduleDvo;
 import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo;
+import com.sds.sflex.common.docs.dto.AttachFileDto;
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 /*
@@ -17,6 +20,7 @@ public class WsncTimeTableSchdChoDto {
 
     @ApiModel(value = "WsncTimeTableSchdChoDto-FindReq")
     public record FindReq(
+        @NotBlank
         String cntrNo,
         String cntrSn,
         String chnlDvCd,
@@ -27,6 +31,7 @@ public class WsncTimeTableSchdChoDto {
         String ordDt,
         String ordSeq,
         String newAdrZip,
+        @NotBlank
         String baseYm
     ) {}
 
@@ -45,10 +50,93 @@ public class WsncTimeTableSchdChoDto {
         String basePdCd,
         String sidingYn,
 
-        List<WsncTimeTableDaysDvo> days,
-        List<WsncTimeTableSidingDaysDvo> sidingDay,
-        List<WsncTimeTableMonthScheduleDvo> monthSchedule,
-        List<WsncTimeTableDisableDaysDvo> disableDays
+        List<WsncTimeTableSchdChoDto.TimeTableDays> days,
+        List<WsncTimeTableSchdChoDto.SidingDays> sidingDay,
+        List<WsncTimeTableSchdChoDto.MonthSchedule> monthSchedule,
+        List<WsncTimeTableSchdChoDto.DisableDays> disableDays
+    ) {}
+
+    @ApiModel(value = "WsncTimeTableSchdChoDto-TimeTableDays")
+    public record TimeTableDays(
+        String baseY, /* 기준연도 */
+        String baseMm, /* 기준월 */
+        String baseD, /* 기준일 */
+        String dowDvCd, /* 요일구분코드 */
+        String dfYn, /* 휴무여부 */
+        String phldYn, /* 공휴일여부 */
+        String rmkCn/* 비고내용 */
+    ) {}
+
+    @ApiModel(value = "WsncTimeTableSchdChoDto-SidingDays")
+    public record SidingDays(
+        String title,
+        String sumCnt,
+        String st,
+        String ed,
+        String w3th,
+        String ablDays,
+        String sowDay
+    ) {}
+
+    @ApiModel(value = "WsncTimeTableSchdChoDto-MonthSchedule")
+    public record MonthSchedule(
+        String title,
+        String st,
+        String ed
+    ) {}
+
+    @ApiModel(value = "WsncTimeTableSchdChoDto-DisableDays")
+    public record DisableDays(
+        String disableDays,
+        String disableFuldays,
+        String tcMsg
+    ) {}
+
+    @ApiModel(value = "WsncTimeTableSchdChoDto-SmPmNt")
+    public record SmPmNt(
+        String time,
+        String cnt,
+        String enableYn
+    ) {}
+
+    @ApiModel(value = "WsncTimeTableSchdChoDto-PsicData")
+    public record PsicData(
+        String prtnrNo,
+        String sellDate,
+        String iscgubNm,
+        String rolDvNm,
+        String rolDvNm2,
+        String sjHp1,
+        String sjHp2,
+        String sjHp3,
+        String rpbLocaraCd,
+        String ogNm,
+        String ogId,
+        String prtnrKnm,
+        String prtnrKnm2,
+        String vstDowVal,
+        String degNm,
+        String instCnt,
+        String bsCnt,
+        String asCnt,
+        String satWrkYn,
+        String dfYn,
+        String dowDvCd,
+        String fr2pLgldCd,
+        String rstrCndtUseYn,
+        String udsnUseYn,
+        String vstPos,
+        String rsbDvCd,
+        String amWrkCnt,
+        String pmWrkCnt,
+        String tWrkCnt,
+        String empPic,
+        String locaraTno,
+        String exnoEncr,
+        String idvTno,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno
     ) {}
 
 }
