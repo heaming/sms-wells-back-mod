@@ -71,4 +71,6 @@ public interface WsncTimeTableMapper {
     String selectWkHhCd(WsncTimeTableRpbLocaraPsicDvo dvo);
 
     List<String> selectOffDays(WsncTimeTableParamDvo dvo);
+
+    String selectVstDvCd(String cstSvAsnNo);
 }

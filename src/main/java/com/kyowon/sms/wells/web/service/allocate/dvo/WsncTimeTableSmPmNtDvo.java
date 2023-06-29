@@ -1,7 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.dvo;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 @Setter
@@ -9,5 +8,5 @@ import lombok.Setter;
 public class WsncTimeTableSmPmNtDvo {
     String time;
     String cnt;
-    String ablYn;
+    String enableYn;
 }
