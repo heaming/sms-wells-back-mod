@@ -875,7 +875,7 @@ public class WsnaItemStockItemizationService {
             log.info("WsnaItemStockItemizationDvo STEP04 -> ", endOstrDate);
         } else {
             // 최종출고일자 >= 최근일자 = 최종출고일자
-            endOstrDate = dateFormat.format(fnlOstrDate);
+            endOstrDate = fnlOstrDate;
             log.info("WsnaItemStockItemizationDvo STEP05 -> ", endOstrDate);
         }
         /*작업구분이 입력(D)일때 */
