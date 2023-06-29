@@ -16,6 +16,7 @@ import com.kyowon.sms.wells.web.service.interfaces.converter.WsnbWorkOrderInterf
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbWorkOrderInterfaceDto.CreateOrderReq;
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbWorkOrderInterfaceDto.CreateOrderRes;
 import com.kyowon.sms.wells.web.service.interfaces.dvo.WsnbWorkOrderInterfaceDvo;
+import com.kyowon.sms.wells.web.service.interfaces.mapper.WsnbWorkOrderInterfaceMapper;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbInstallationOrderService;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbMultipleTaskOrderService;
@@ -35,6 +36,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class WsnbWorkOrderInterfaceService {
+
+    private final WsnbWorkOrderInterfaceMapper mapper;
 
     private final WsnbWorkOrderInterfaceConverter converter;
 
@@ -127,6 +130,9 @@ public class WsnbWorkOrderInterfaceService {
      */
     private void editContract(WsnbMultipleTaskOrderDvo multiTaskOrderDvo, WsnbWorkOrderInterfaceDvo ifDvo)
         throws Exception {
+        // 0. 기존 계약 주소 조회
+        String oldAdrId = mapper.selectContractAdr(ifDvo);
+
         // 1. 수지원넷 주소정제
         FormatAddressDvo formatAddress = sujiewonService.getFormattedAddress(
             ifDvo.getIstAdr() + " " + ifDvo.getIstDtlAdr(), CmSujiewonConst.FORMAT_TYPE_ROAD_ADDRESS
@@ -135,16 +141,19 @@ public class WsnbWorkOrderInterfaceService {
         log.info("=== Sujiewon formatAddress ===");
         log.info(formatAddress.toString());
 
-        multiTaskOrderDvo.setAdrId(formatAddress.getAdrId());
-        multiTaskOrderDvo.setCralLocaraTno(ifDvo.getMtcmco());
-        multiTaskOrderDvo.setMexno(ifDvo.getCphonIdvTno1());
-        multiTaskOrderDvo.setCralIdvTno(ifDvo.getCphonIdvTno2());
-        multiTaskOrderDvo.setLocaraTno(ifDvo.getLocaraTno());
-        multiTaskOrderDvo.setExno(ifDvo.getIdvTno1());
-        multiTaskOrderDvo.setIdvTno(ifDvo.getIdvTno2());
+        // 2. 계약주소 업데이트 (기존 계약 ADR_ID와 다른 경우에만 업데이트)
+        if (!formatAddress.getAdrId().equals(oldAdrId)) {
+            multiTaskOrderDvo.setAdrId(formatAddress.getAdrId());
+            multiTaskOrderDvo.setCralLocaraTno(ifDvo.getMtcmco());
+            multiTaskOrderDvo.setMexno(ifDvo.getCphonIdvTno1());
+            multiTaskOrderDvo.setCralIdvTno(ifDvo.getCphonIdvTno2());
+            multiTaskOrderDvo.setLocaraTno(ifDvo.getLocaraTno());
+            multiTaskOrderDvo.setExno(ifDvo.getIdvTno1());
+            multiTaskOrderDvo.setIdvTno(ifDvo.getIdvTno2());
 
-        // 2. 계약주소 업데이트
-        contractInstallService.editContractInstall(converter.mapDvoToContractSaveReq(multiTaskOrderDvo));
+            contractInstallService.editContractInstall(converter.mapDvoToContractSaveReq(multiTaskOrderDvo));
+        }
+
     }
 
 }
