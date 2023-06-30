@@ -11,8 +11,8 @@ import lombok.Setter;
 @Getter
 public class WsncTimeTableTimeChoDvo {
 
-    WsncTimeTablePsicDataDvo psicDatas; // left_info
-    List<WsncTimeTableTimeChoDto.AssignTime> assignTimes; // list1
+    WsncTimeTableTimeChoDto.psicData psicDatas;
+    List<WsncTimeTableTimeChoDto.AssignTime> assignTimes;
 
     List<WsncTimeTableTimeChoDto.SmPmNt> arrSm = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();
     List<WsncTimeTableTimeChoDto.SmPmNt> arrAm = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();

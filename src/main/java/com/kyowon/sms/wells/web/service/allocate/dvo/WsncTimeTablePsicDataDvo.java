@@ -1,10 +1,13 @@
 package com.kyowon.sms.wells.web.service.allocate.dvo;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Setter
 @Getter
+@Builder
 public class WsncTimeTablePsicDataDvo {
     String prtnrNo;//ac021EmpId;
     String sellDate; // ac221CfrmDt;
@@ -34,7 +37,9 @@ public class WsncTimeTablePsicDataDvo {
     String rsbDvCd; // ac025EmpOr;
     String amWrkCnt;
     String pmWrkCnt;
-    String tWrkCnt;
+    //--------------------------
+    String totalWrkCnt;
+    //--------------------------
     String empPic;
     String locaraTno;
     String exnoEncr;

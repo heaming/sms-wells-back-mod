@@ -13,7 +13,7 @@ public class WsncTimeTableRpbLocaraPsicDvo {
     String ogNm;
     String ichrPrtnrNo;
     String prtnrKnm;
-    String inGb;
+    String inflwChnl;
     String chnlDvCd;
     String satWrkYn;
     String dfYn;

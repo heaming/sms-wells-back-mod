@@ -2,9 +2,9 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 import javax.validation.constraints.NotBlank;
-import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -30,14 +30,12 @@ public class WsncTimeTableTimeChoDto {
         String prtnrNo,
         String ordDt,
         String ordSeq,
-        @NotBlank
-        String baseYm,
         String cstSvAsnNo
     ) {}
 
     @ApiModel(value = "WsncTimeTableTimeChoDto-FindRes")
     public record FindRes(
-        WsncTimeTablePsicDataDvo psicDatas, // left_info
+        WsncTimeTableTimeChoDto.psicData psicDatas, // left_info
         List<WsncTimeTableTimeChoDto.AssignTime> assignTimes, // list1
         List<WsncTimeTableSmPmNtDvo> arrSm,
         List<WsncTimeTableSmPmNtDvo> arrAm,
@@ -68,7 +66,61 @@ public class WsncTimeTableTimeChoDto {
     @ApiModel(value = "WsncTimeTableTimeChoDto-SmPmNt")
     public record SmPmNt(
         String time,
-        String cnt,
-        String enableYn
+        String wrkCnt,
+        String enableYn,
+        String wrkTCnt,
+        String wrkCCnt,
+        String wrkTChk,
+        String wrkTRn,
+        String wrkNextChk,
+        String wrkNextChk2,
+        String wrkChk2,
+        String wrkChk1Rn,
+        String empTWrkCnt,
+        String degWrkCnt,
+        String totalWrkCnt
+    ) {}
+
+    @Builder
+    @ApiModel(value = "WsncTimeTableTimeChoDto-psicDatas")
+    public record psicData(
+        String prtnrNo, //ac021EmpId;
+        String sellDate, // ac221CfrmDt;
+        String iscgubNm,
+        String rolDvNm,
+        String rolDvNm2,
+        String sjHp1,
+        String sjHp2,
+        String sjHp3,
+        String rpbLocaraCd, // ac146LocalGb;
+        String ogNm, // ac125DeptNm;
+        String ogId, // ac125DeptCd;
+        String prtnrKnm, // ac021EmpNm;
+        String prtnrKnm2, // ac021EmpNm1;
+        String vstDowVal, // ac146VstCycl
+        String degNm,
+        String instCnt,
+        String bsCnt,
+        String asCnt,
+        String satWrkYn, // ac146Sat13WrkYn;
+        String dfYn, // co160OffdayGb;
+        String dowDvCd, // co160Days;
+        String fr2pLgldCd, // ac112AdmCd;
+        String rstrCndtUseYn, // ac146TtbUse;
+        String udsnUseYn, // ac146UaUse;
+        String vstPos,
+        String rsbDvCd, // ac025EmpOr;
+        String amWrkCnt,
+        String pmWrkCnt,
+        //--------------------------
+        String totalWrkCnt,
+        //--------------------------
+        String empPic,
+        String locaraTno,
+        String exnoEncr,
+        String idvTno,
+        String cralLocaraTno,
+        String mexnoEncr,
+        String cralIdvTno
     ) {}
 }

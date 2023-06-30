@@ -223,7 +223,7 @@ public class WsncTimeTableService {
         result.getArrNt().clear();
 
         //result.setAssignTimeDvos(assignTimeDvos); // list1 = assignTimeDvos
-        result.setPsicDatas(converter.mapPsicDatasDvoToDto(psicDataDvos)); // left_info = psicDatas
+        result.setPsicDatas(converter.mapSchdPsicDatasDvoToDto(psicDataDvos)); // left_info = psicDatas
         result.setSidingDays(converter.mapSidingDaysDvoToDto(sidingDayDvos)); // list2 = sidingDays
         result.setOffDays(offDays); // offdays = offDays
         result.setDisableDays(converter.mapDisableDaysDvoToDto(disableDayDvos)); // diabledays = disableDays
@@ -263,7 +263,18 @@ public class WsncTimeTableService {
             WsncTimeTableSmPmNtDvo smPmNtDvo = new WsncTimeTableSmPmNtDvo();
             time = assignTime.getTm();
             smPmNtDvo.setTime(time.substring(0, 2) + ":" + time.substring(2, 4));
-            smPmNtDvo.setCnt(assignTime.getWrkCnt());
+            smPmNtDvo.setWrkCnt(assignTime.getWrkCnt());
+            smPmNtDvo.setWrkTCnt(assignTime.getWrkTCnt());
+            smPmNtDvo.setWrkCCnt(assignTime.getWrkCCnt());
+            smPmNtDvo.setWrkTChk(assignTime.getWrkTChk());
+            smPmNtDvo.setWrkTRn(assignTime.getWrkTRn());
+            smPmNtDvo.setWrkNextChk(assignTime.getWrkNextChk());
+            smPmNtDvo.setWrkNextChk2(assignTime.getWrkNextChk2());
+            smPmNtDvo.setWrkChk2(assignTime.getWrkChk2());
+            smPmNtDvo.setWrkChk1Rn(assignTime.getWrkChk1Rn());
+            smPmNtDvo.setEmpTWrkCnt(assignTime.getEmpTWrkCnt());
+            smPmNtDvo.setDegWrkCnt(assignTime.getDegWrkCnt());
+            smPmNtDvo.setTWrkCnt(assignTime.getTWrkCnt());
             smPmNtDvo.setEnableYn(assignTime.getWrkChk2());
 
             if (Integer.valueOf(time) >= 10000 && Integer.valueOf(time) < 50000) {
@@ -475,8 +486,20 @@ public class WsncTimeTableService {
 
             WsncTimeTableSmPmNtDvo smPmNtDvo = new WsncTimeTableSmPmNtDvo();
             time = assignTime.getTm();
+
             smPmNtDvo.setTime(time.substring(0, 2) + ":" + time.substring(2, 4));
-            smPmNtDvo.setCnt(assignTime.getWrkCnt());
+            smPmNtDvo.setWrkCnt(assignTime.getWrkCnt());
+            smPmNtDvo.setWrkTCnt(assignTime.getWrkTCnt());
+            smPmNtDvo.setWrkCCnt(assignTime.getWrkCCnt());
+            smPmNtDvo.setWrkTChk(assignTime.getWrkTChk());
+            smPmNtDvo.setWrkTRn(assignTime.getWrkTRn());
+            smPmNtDvo.setWrkNextChk(assignTime.getWrkNextChk());
+            smPmNtDvo.setWrkNextChk2(assignTime.getWrkNextChk2());
+            smPmNtDvo.setWrkChk2(assignTime.getWrkChk2());
+            smPmNtDvo.setWrkChk1Rn(assignTime.getWrkChk1Rn());
+            smPmNtDvo.setEmpTWrkCnt(assignTime.getEmpTWrkCnt());
+            smPmNtDvo.setDegWrkCnt(assignTime.getDegWrkCnt());
+            smPmNtDvo.setTWrkCnt(assignTime.getTWrkCnt());
             smPmNtDvo.setEnableYn(assignTime.getWrkChk2());
 
             if (Integer.valueOf(time) >= 10000 && Integer.valueOf(time) < 50000) {
@@ -491,8 +514,13 @@ public class WsncTimeTableService {
                 result.getArrNt().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
         }
 
-        result.setAssignTimes(converter.mapAssignTimeDvoToDto(assignTimeDvos)); // list1
-        result.setPsicDatas(psicDataDvos); // lef_info
+        log.debug("----------------------------");
+        log.debug("[KDY] totalWrkCnt=" + psicDataDvos.getTotalWrkCnt());
+        log.debug("[KDY] totalWrkCnt=" + converter.mapTimePsicDatasDvoToDto(psicDataDvos).totalWrkCnt());
+        log.debug("----------------------------");
+
+        result.setAssignTimes(converter.mapAssignTimeDvoToDto(assignTimeDvos));
+        result.setPsicDatas(converter.mapTimePsicDatasDvoToDto(psicDataDvos));
         return converter.mapTimeChoDvoToRes(result);
     }
 
