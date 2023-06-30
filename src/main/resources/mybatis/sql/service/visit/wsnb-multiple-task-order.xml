@@ -231,7 +231,7 @@
         SELECT #{newAsIstOjNo} AS AS_IST_OJ_NO
              , #{newSvBizDclsfCd} AS SV_BIZ_DCLSF_CD
              , (CASE WHEN #{newInChnlDvCd} = '1' THEN TRIM(#{urgtYn})  /*고객센터 접수건은 고객센터에서 내려준 값 사용*/
-                     ELSE (SELECT DECODE(PRTNR_CLSF_CD,'1','3','2') /*긴급여부 :  0 정상설치 1 당일긴급(SMS)  2 ENG  3 웰스매니저 4 고객요청 */
+                     ELSE (SELECT NVL(MAX(DECODE(PRTNR_CLSF_CD,'10','3','2')), '0') /*긴급여부 :  0 정상설치 1 당일긴급(SMS)  2 ENG  3 웰스매니저 4 고객요청 */
                               FROM TB_OGBS_PRTNR_BAS
                              WHERE 1=1
                                AND PRTNR_NO = #{userId}
@@ -263,14 +263,7 @@
              , (CASE WHEN #{newInChnlDvCd} = '1' THEN REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
                      WHEN #{newInChnlDvCd} = '2' THEN
                           REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '') ||
-                          (SELECT CASE WHEN PRTNR_CLSF_CD = '1' THEN CHR(13) || CHR(10) || PRTNR_KNM || 'WM(' || CRAL_LOCARA_TNO ||'-'|| #{mexnoEncr} ||'-'|| CRAL_IDV_TNO || ')'
-                                       WHEN PRTNR_CLSF_CD = '2' THEN CHR(13) || CHR(10) || PRTNR_KNM || 'ENG(' || CRAL_LOCARA_TNO ||'-'|| #{mexnoEncr} ||'-'|| CRAL_IDV_TNO || ')'
-                                       ELSE CHR(13) || CHR(10) || PRTNR_KNM || '(' || CRAL_LOCARA_TNO ||'-'|| #{mexnoEncr} ||'-'|| CRAL_IDV_TNO || ')'
-                                   END
-                             FROM TB_OGBS_PRTNR_BAS A
-                            WHERE 1=1
-                              AND A.PRTNR_NO = #{userId}
-                              AND A.OG_TP_CD = #{rcpOgTpCd}
+                          (
                           )
                      WHEN #{newInChnlDvCd} = '3' THEN (CASE WHEN #{newSvBizDclsfCd} IN ('1121', '1122')
                                                             THEN F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_DCLSF_CD', #{newSvBizDclsfCd}, #{session.langId}) || ': ' || SUBSTR(TRIM(#{cntrNoB}), 1, 4) || '-' || SUBSTR(TRIM(#{cntrNoB}), 5) || ' '  ||
@@ -333,7 +326,7 @@
              , TO_CHAR(SYSDATE,'YYYYMMDD') AS FNL_RCPDT /*최종접수일자*/
              , TO_CHAR(SYSDATE,'HH24MISS') AS FNL_RCP_HH /*최종접수시간*/
              , (CASE WHEN #{newInChnlDvCd} = '1' THEN TRIM(#{urgtYn})  /*고객센터 접수건은 고객센터에서 내려준 값 사용*/
-                     ELSE (SELECT DECODE(PRTNR_CLSF_CD,'1','3','2') /*긴급여부 :  0 정상설치 1 당일긴급(SMS)  2 ENG  3 웰스매니저 4 고객요청 */
+                     ELSE (SELECT NVL(MAX(DECODE(PRTNR_CLSF_CD,'10','3','2')), '0') /*긴급여부 :  0 정상설치 1 당일긴급(SMS)  2 ENG  3 웰스매니저 4 고객요청 */
                               FROM TB_OGBS_PRTNR_BAS
                              WHERE 1=1
                                AND PRTNR_NO = #{userId}
