@@ -53,7 +53,7 @@
              , FNL_MDFC_DEPT_ID
         )
         SELECT AS_IST_OJ_NO
-             , FNL_MDFC_DTM AS HIST_CH_DTM
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS HIST_CH_DTM
              , CNTR_NO
              , CNTR_SN
              , CNTR_CST_NO
@@ -159,7 +159,7 @@
              , FNL_MDFC_DEPT_ID
         )
         SELECT CST_SV_ASN_NO
-             , FNL_MDFC_DTM AS HIST_CH_DTM
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS HIST_CH_DTM
              , CNTR_NO
              , CNTR_SN
              , CNTR_CST_NO
