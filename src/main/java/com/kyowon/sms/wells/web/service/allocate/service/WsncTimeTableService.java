@@ -32,16 +32,18 @@ public class WsncTimeTableService {
     private final WsncTimeTableMapper mapper;
     private final WsncTimeTableConverter converter;
 
-
     /**
      * 타임테이블 조회(판매)
+     * 타임테이블 조회(CC)
      *
-     * @programId W-SV-U-0062M01
+     * @programId W-SV-U-0062M01, W-MT-U-0188M01, W-MP-U-0188M01, W-SV-U-0034M01
      * @param req : 조회파라메터
      * @return 조회결과
      */
     /**
     * @see "timeAssign.do GET"
+    * @see "timeAssign_test.do"
+    *
     * */
     public WsncTimeTableDto.FindRes getTmeAssign(WsncTimeTableDto.FindTimeAssignReq req)
         throws ParseException {
@@ -62,11 +64,19 @@ public class WsncTimeTableService {
         dvo.setSeq(StringUtils.leftPad(StringUtil.nvl(req.seq(), "1"), 8, "0"));
         String sellDate = StringUtil.isEmpty(dvo.getSellDate()) ? DateUtil.getNowDayString() : dvo.getSellDate();
 
+        // CubicCC
+        if ("C".equals(dvo.getChnlDvCd()) && StringUtil.isEmpty(req.sellDate())) {
+            dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 1));
+        }
+
+        // 홈케어
         if (dvo.getSvDvCd().equals("4")) {
             dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 1));
         }
 
-        if (dvo.getSvDvCd().equals("1") && (sellDate == null || sellDate.equals(dvo.getWrkDt()))) {
+        // 설치 && (sellDate is null or selldate == wrkDt)
+        if (dvo.getSvDvCd().equals("1") && (StringUtil.isEmpty(sellDate)
+            || StringUtil.nvl(sellDate, "").equals(StringUtil.nvl(dvo.getWrkDt(), "")))) {
             dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 5));
         }
 
@@ -80,7 +90,7 @@ public class WsncTimeTableService {
         dvo.setBasePdCd(contractDvo.getBasePdCd());
         dvo.setPdctPdCd(contractDvo.getPdctPdCd());
         dvo.setNewAdrZip(contractDvo.getNewAdrZip());
-        dvo.setContDt(contractDvo.getCntrDt());
+        dvo.setContDt("C".equals(dvo.getChnlDvCd()) ? DateUtil.getNowDayString() : contractDvo.getCntrDt());
         dvo.setCopnDvCd(contractDvo.getCopnDvCd());
         dvo.setSellDscDbCd(contractDvo.getSellDscDbCd());
         dvo.setSdingCombin(contractDvo.getSdingCombin()); // lcst0);
@@ -134,12 +144,12 @@ public class WsncTimeTableService {
         // KSS접수와 동일하게 하기위해 (백현아 K 요청)
         // Cubig CC DATA_GB 변경할수 없음.
         // 상품코드로 접수구분과 DATA_GB 변경
-        if (dvo.isHcr() && "C".equals(dvo.getChnlDvCd()) && "1".equals(dvo.getSvDvCd())
+        /*if (dvo.isHcr() && "C".equals(dvo.getChnlDvCd()) && "1".equals(dvo.getSvDvCd())
             && (StringUtil.isEmpty(dvo.getReturnUrl()))) {
             dvo.setChnlDvCd("W");
             dvo.setSvDvCd("4");
             dvo.setReturnUrl("http://ccwells.kyowon.co.kr/obm/obm0800/obm0800.jsp");
-        }
+        }*/
 
         String prtnrNo01 = mapper.selectFnSvpdLocaraPrtnr01(dvo);
         String prtnrNoBS01 = mapper.selectFnSvpdLocaraPrtnrBs01(dvo);

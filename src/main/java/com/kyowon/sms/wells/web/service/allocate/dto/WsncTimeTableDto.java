@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 import io.swagger.annotations.ApiModel;
 
@@ -140,7 +141,7 @@ public class WsncTimeTableDto {
         String lcst09,
         String vstGb,
         String cstSvAsnNo,
-        String sdingCombin,
+        String sdingCombin, // LCST09
         String sidingYn,
         String spayYn,
         String sowDay,
@@ -158,7 +159,30 @@ public class WsncTimeTableDto {
         List<WsncTimeTableDto.SmPmNt> pmTimes1,
         List<WsncTimeTableDto.SmPmNt> pmTimes2,
         List<WsncTimeTableDto.SmPmNt> ntTimes
-    ) {}
+    ) {
+        @Override
+        public String inflwChnl() {
+            if (StringUtil.isEmpty(inflwChnl)) {
+                String inflwChnlTmp = "";
+                switch (chnlDvCd) {
+                    case "C":
+                        inflwChnlTmp = "1";
+                        break;
+                    case "W":
+                        inflwChnlTmp = "2";
+                        break;
+                    case "K":
+                        inflwChnlTmp = "3";
+                        break;
+                    case "P":
+                        inflwChnlTmp = "2";
+                        break;
+                }
+                return inflwChnlTmp;
+            }
+            return inflwChnl;
+        }
+    }
 
     @ApiModel(value = "WsncTimeTableDto-SidingDays")
     public record SidingDays(
