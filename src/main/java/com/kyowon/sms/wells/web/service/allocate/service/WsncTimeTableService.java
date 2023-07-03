@@ -1,23 +1,22 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
-import java.text.ParseException;
-import java.util.List;
-
+import com.kyowon.sms.wells.web.service.allocate.converter.WsncTimeTableConverter;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto;
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;
-import com.sds.sflex.system.config.context.SFLEXContextHolder;
-import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
-
-import com.kyowon.sms.wells.web.service.allocate.converter.WsncTimeTableConverter;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncTimeTableMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.exception.BizException;
+
+import java.text.ParseException;
+import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
 
 /**
  *
@@ -33,9 +32,6 @@ public class WsncTimeTableService {
     private final WsncTimeTableMapper mapper;
     private final WsncTimeTableConverter converter;
 
-    //    public WsncTimeTableSalesDto.FindRes getTmeAssign(WsncTimeTableSalesDto.FindReq req)
-    //        throws ParseException {
-    //    }
 
     /**
      * 타임테이블 조회(판매)
@@ -56,15 +52,10 @@ public class WsncTimeTableService {
         dvo.getPmTimes1().clear();
         dvo.getPmTimes2().clear();
         dvo.getNtTimes().clear();
-        dvo.getSidingDays().clear();
-        dvo.getOffDays().clear();
-        dvo.getDisableDays().clear();
-        dvo.setPsic(null);
-        dvo.getDays().clear();
 
         WsncTimeTableRpbLocaraPsicDvo rpbLocaraPsic = null;
         List<WsncTimeTableSidingDaysDvo> sidingDays = null;
-        WsncTimeTablePsicDvo psics = null;
+        WsncTimeTablePsicDvo psic = null;
         List<WsncTimeTableAssignTimeDvo> assignTimes = null;
 
         // 00000001
@@ -173,7 +164,7 @@ public class WsncTimeTableService {
         dvo.setOgTpCd(rpbLocaraPsic.getOgTpCd());
 
         // 담당자 정보 표시 selectTimeAssign_v2_step2
-        psics = mapper.selectPsics(rpbLocaraPsic); // left_info
+        psic = mapper.selectPsic(rpbLocaraPsic); // left_info
 
         // 시간표시 selectTimeAssign_v2_step3
         rpbLocaraPsic.setEmpTWrkCnt(mapper.selectEmpTWrkCnt(rpbLocaraPsic));
@@ -181,8 +172,8 @@ public class WsncTimeTableService {
         rpbLocaraPsic.setWkHhCd(mapper.selectWkHhCd(rpbLocaraPsic));
         assignTimes = mapper.selectAssignTimes(rpbLocaraPsic); // list1
 
-        dvo.setDays(mapper.selectTimeTableDates(req.baseYm()));
-        dvo.setPsic(converter.mapPsicsDvoToDto(psics)); // left_info = psics
+        dvo.setDays(converter.mapDaysDvoToDto(mapper.selectTimeTableDates(req.baseYm())));
+        dvo.setPsic(converter.mapPsicDvoToDto(psic)); // left_info = psics
         dvo.setSidingDays(converter.mapSidingDaysDvoToDto(sidingDays)); // list2 = sidingDays
         dvo.setOffDays(mapper.selectOffDays(dvo)); // offdays = offDays
         dvo.setDisableDays(converter.mapDisableDaysDvoToDto(mapper.selectDisableDays(dvo))); // diabledays = disableDays
@@ -239,11 +230,6 @@ public class WsncTimeTableService {
         dvo.getPmTimes1().clear();
         dvo.getPmTimes2().clear();
         dvo.getNtTimes().clear();
-        dvo.getSidingDays().clear();
-        dvo.getOffDays().clear();
-        dvo.getDisableDays().clear();
-        dvo.setPsic(null);
-        dvo.getDays().clear();
         // -------------------------------------------------
         // 고객검색-> 신규AS등록 -> 방문일자 선택
         // ## getMonthAsSchedule ##
@@ -287,7 +273,7 @@ public class WsncTimeTableService {
 
         List<WsncTimeTableDisableDaysDvo> disableDayDvos = mapper.selectDisableDays(dvo);
         dvo.setDisableDays(converter.mapDisableDaysDvoToDto(disableDayDvos));
-        dvo.setDays(mapper.selectTimeTableDates(req.baseYm()));
+        dvo.setDays(converter.mapDaysDvoToDto(mapper.selectTimeTableDates(req.baseYm())));
 
         return converter.mapSchdChoDvoToRes(dvo);
     }
@@ -314,7 +300,7 @@ public class WsncTimeTableService {
         dvo.setOgTpCd(rpbLocaraPsic.getOgTpCd());
 
         // 담당자 정보 표시 selectTimeAssign_v2_step2
-        WsncTimeTablePsicDvo psic = mapper.selectPsics(rpbLocaraPsic); // left_info
+        WsncTimeTablePsicDvo psic = mapper.selectPsic(rpbLocaraPsic); // left_info
 
         // 시간표시 selectTimeAssign_v2_step3
         rpbLocaraPsic.setEmpTWrkCnt(mapper.selectEmpTWrkCnt(rpbLocaraPsic));
@@ -343,7 +329,10 @@ public class WsncTimeTableService {
         }
 
         dvo.setAssignTimes(converter.mapAssignTimeDvoToDto(assignTimes));
-        dvo.setPsic(converter.mapPsicsDvoToDto(psic));
+        dvo.setPsic(converter.mapPsicDvoToDto(psic));
+
+        log.debug("[KDY]" + dvo.getPsic().vstPos());
+
         return converter.mapTimeChoDvoToRes(dvo);
     }
 

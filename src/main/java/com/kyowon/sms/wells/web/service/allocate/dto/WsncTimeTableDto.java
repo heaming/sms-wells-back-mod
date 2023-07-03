@@ -6,6 +6,8 @@ import com.sds.sflex.system.config.validation.validator.ValidDate;
 import io.swagger.annotations.ApiModel;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import java.util.ArrayList;
 import java.util.List;
 
 /*타임테이블 조회(판매)*/
@@ -98,57 +100,65 @@ public class WsncTimeTableDto {
 
     @ApiModel(value = "WsncTimeTableDto-FindRes")
     public record FindRes(
-        String baseYm,
-        String dowDvCd,
-        String svBizDclsfCd, //wrkTypDtl
-        String inflwChnl, // inflwChnl
-        String chnlDvCd, //gbCd
-        String svDvCd, //dataGb
+        String svDvCd,
+        String chnlDvCd,
+        String sellDate,
+        String newAdrZip,
         String cntrNo,
         String cntrSn,
-        String sellDate,
-        String empId,
-        String curDateTimeString,
-        String wrkDt,
-        String mtrStatCd, // P_DATA_STUS
+        String inflwChnl,
         String basePdCd,
-        String lcst09,
-        String newAdrZip,
-        String sowDay,
-        String returnUrl,
-        String mkCo,
-
-        String userId,
-        String rcpOgTpCd,
-
+        String pdctPdCd,
         String prtnrNo,
+        String prtnrNo01,
+        String prtnrNoBS01,
+        String prtnrNoOwr01,
+        String empId,
+        String hcrYn,
+        String mtrStatCd,
+        String basePdCdList,
+        String exYn,
+        String contDt,
+        String wrkDt,
         String ogTpCd,
-
-        String sidingYn, // 모종 여부
-        String spayYn, // 일시불여부
-        String seq, // P_IN_GB + P_WRK_GB + P_WRK_DT + LEFTPAD(P_SEQ, 8,"0")
+        String rcpOgTpCd,
+        String userId,
+        String dataStatCd,
+        String returnUrl,
+        String baseYm,
+        String seq,
+        String localGb,
+        String mkCo,
+        String vstDowValCd,
+        String basePdNm,
+        String pdctPdNm,
+        String pdGrpCd,
+        String pdGrpNm,
+        String cntrDt,
+        String copnDvCd,
+        String sellDscDbCd,
+        String lcst09,
+        String vstGb,
+        String cstSvAsnNo,
         String sdingCombin,
-
+        String sidingYn,
+        String spayYn,
+        String sowDay,
+        String rpbLocaraCd,
+        boolean isHcr,
         List<String> offDays,
-        List<WsncTimeTableSidingDaysDvo> sidingDays, // list2
-        List<WsncTimeTableDisableDaysDvo> disableDays, // diabledays
-        WsncTimeTablePsicDvo psics, // left_info
-        List<WsncTimeTableAssignTimeDvo> assignTimeDvos, // list1
-
-        List<WsncTimeTableDaysDvo> days,
-        List<WsncTimeTableSmPmNtDvo> smTimes,
-        List<WsncTimeTableSmPmNtDvo> amTimes,
-        List<WsncTimeTableSmPmNtDvo> pmTimes1,
-        List<WsncTimeTableSmPmNtDvo> pmTimes2,
-        List<WsncTimeTableSmPmNtDvo> ntTimes
-
-    ) {
-        public FindRes {
-            psics.setExnoEncr(DbEncUtil.dec(psics.getExnoEncr()));
-            psics.setMexnoEncr(DbEncUtil.dec(psics.getMexnoEncr()));
-            psics.setSjHp2(DbEncUtil.dec(psics.getSjHp2()));
-        }
-    }
+        List<WsncTimeTableDto.SidingDays> sidingDays,
+        List<WsncTimeTableDto.DisableDays> disableDays,
+        WsncTimeTableDto.Psic psic,
+        List<WsncTimeTableDto.AssignTime> assignTimes,
+        List<WsncTimeTableDto.Days> days,
+        List<WsncTimeTableDto.MonthSchedule> monthSchedules,
+        List<WsncTimeTableDto.SmPmNt> smTimes,
+        List<WsncTimeTableDto.SmPmNt> amTimes,
+        List<WsncTimeTableDto.SmPmNt> pmTimes1,
+        List<WsncTimeTableDto.SmPmNt> pmTimes2,
+        List<WsncTimeTableDto.SmPmNt> ntTimes
+    ) {}
 
     @ApiModel(value = "WsncTimeTableDto-SidingDays")
     public record SidingDays(
@@ -175,8 +185,8 @@ public class WsncTimeTableDto {
         String ed
     ) {}
 
-    @ApiModel(value = "WsncTimeTableDto-PsicData")
-    public record Psics(
+    @ApiModel(value = "WsncTimeTableDto-Psics")
+    public record Psic(
         String prtnrNo,
         String sellDate,
         String iscgubNm,
@@ -213,7 +223,22 @@ public class WsncTimeTableDto {
         String cralLocaraTno,
         String mexnoEncr,
         String cralIdvTno
-    ) {}
+    ) {
+        @Override
+        public String exnoEncr() {
+            return DbEncUtil.dec(exnoEncr);
+        }
+
+        @Override
+        public String mexnoEncr() {
+            return DbEncUtil.dec(mexnoEncr);
+        }
+
+        @Override
+        public String sjHp2() {
+            return DbEncUtil.dec(sjHp2);
+        }
+    }
 
     @ApiModel(value = "WsncTimeTableDto-SmPmNt")
     public record SmPmNt(

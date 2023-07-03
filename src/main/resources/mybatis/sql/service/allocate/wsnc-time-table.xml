@@ -1,7 +1,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncTimeTableMapper">
 
-    <select id='selectTimeTableDates' resultType="java.lang.String">
+    <select id='selectTimeTableDates' resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDaysDvo">
         WITH TB_CAL AS (
           SELECT TO_CHAR(FIRST_DAY + LEVEL - 1, 'D') DAYS
                , TO_CHAR(FIRST_DAY + LEVEL - 1, 'YYYYMMDD') BASE_YMD
@@ -968,15 +968,15 @@
          ORDER BY W3TH
     </select>
 
-    <select id="selectFnSvpdLocaraPrtnr01" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDvo">
+    <select id="selectFnSvpdLocaraPrtnr01" resultType="java.lang.String">
       SELECT FN_SVPD_LOCARA_PRTNR_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{svBizDclsfCd}, #{sellDate}) FROM DUAL
     </select>
 
-    <select id="selectFnSvpdLocaraPrtnrOwr01" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDvo">
+    <select id="selectFnSvpdLocaraPrtnrOwr01" resultType="java.lang.String">
       SELECT FN_SVPD_LOCARA_PRTNR_OWR_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{svBizDclsfCd}, #{sellDate}) FROM DUAL
     </select>
 
-    <select id="selectFnSvpdLocaraPrtnrBs01" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDvo">
+    <select id="selectFnSvpdLocaraPrtnrBs01" resultType="java.lang.String">
       SELECT FN_SVPD_LOCARA_PRTNR_BS_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{svBizDclsfCd}, #{sellDate}, #{vstGb}) FROM DUAL
     </select>
 
@@ -1149,7 +1149,7 @@
            </if>
     </select>
 
-    <select id="selectPsics" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTablePsicDvo">
+    <select id="selectPsic" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTablePsicDvo">
         SELECT OG1.PRTNR_NO -- AS AC021_EMP_ID
              , 'http://kiwi-m.kyowon.co.kr/KIWI-M/upload_file/upload_file/' || OG1.PRTNR_NO || '.jpg' AS EMP_PIC
              , #{sellDate} AS SELL_DATE--AC221_CFRM_DT
@@ -1432,7 +1432,7 @@
          ORDER BY TM
     </select>
 
-    <select id="selectOffDays" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDvo">
+    <select id="selectOffDays" resultType="java.lang.String">
         SELECT CLD.BASE_Y || CLD.BASE_MM || CLD.BASE_D || ICHR_PRTNR_NO AS HS_OFF_DAYS
           FROM TB_OGPS_EGER_VCN_IZ /*엔지니어휴가내역*/ /*LC_ATTEND_AT210TB 근태사유 관리*/ AT210
          INNER JOIN TB_OGBS_MM_PRTNR_IZ /*파트너기본*/ /*LC_ALLOCATE_AC021TB 인사마스타*/ AC021
@@ -1475,19 +1475,19 @@
            AND AT210.VCN_STRT_DT > TO_CHAR(SYSDATE, 'YYYYMMDD')
     </select>
 
-    <select id="selectEmpTWrkCnt" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDvo">
+    <select id="selectEmpTWrkCnt" resultType="java.lang.String">
       SELECT FN_SVPD_PRTNR_WRK_T_01(#{sellDate}, #{ichrPrtnrNo}) FROM DUAL
     </select>
 
-    <select id="selectDegWrkCnt" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDvo">
+    <select id="selectDegWrkCnt" resultType="java.lang.String">
       SELECT FN_SVPD_RPB_LOCARA_ASN_CT_01(#{rpbLocaraCd}, #{wkGrpCd}, #{sellDate}) FROM DUAL
     </select>
 
-    <select id="selectWkHhCd" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDvo">
+    <select id="selectWkHhCd" resultType="java.lang.String">
       SELECT FN_SVPD_GD_WRK_T_03(#{rpbLocaraCd}, #{wkGrpCd}, #{sellDate}) FROM DUAL
     </select>
 
-    <select id="selectVstDvCd" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDvo">
+    <select id="selectVstDvCd" resultType="java.lang.String">
       SELECT C1.VST_DV_CD
         FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ C1
        WHERE C1.CST_SV_ASN_NO = #{cstSvAsnNo}

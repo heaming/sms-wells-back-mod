@@ -20,8 +20,6 @@ public interface WsncTimeTableConverter {
 
     WsncTimeTableDvo mapTimeChoReqToDvo(WsncTimeTableDto.FindTimeChoReq req);
 
-    //List<WsncTimeTableDto.TimeTableDays> mapDaysDvoToDto(List<WsncTimeTableDaysDvo> dvo);
-
     List<WsncTimeTableDto.SidingDays> mapSidingDaysDvoToDto(List<WsncTimeTableSidingDaysDvo> dvo);
 
     List<WsncTimeTableDto.DisableDays> mapDisableDaysDvoToDto(List<WsncTimeTableDisableDaysDvo> dvo);
@@ -34,8 +32,10 @@ public interface WsncTimeTableConverter {
 
     WsncTimeTableDto.SmPmNt mapSmPmNtDvoToTimDto(WsncTimeTableSmPmNtDvo dvo);
 
-    WsncTimeTableDto.Psics mapPsicsDvoToDto(WsncTimeTablePsicDvo dvo);
+    WsncTimeTableDto.Psic mapPsicDvoToDto(WsncTimeTablePsicDvo dvo);
 
     WsncTimeTableSmPmNtDvo mapAssignTimeDvoToSmPmNtDvo(WsncTimeTableAssignTimeDvo dvo);
+
+    List<WsncTimeTableDto.Days> mapDaysDvoToDto(List<WsncTimeTableDaysDvo> dvos);
 
 }

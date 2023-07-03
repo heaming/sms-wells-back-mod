@@ -36,9 +36,7 @@ public class WsncTimeTablePsicDvo {
     String rsbDvCd; // ac025EmpOr;
     String amWrkCnt;
     String pmWrkCnt;
-    //--------------------------
     String totalWrkCnt;
-    //--------------------------
     String empPic;
     String locaraTno;
     String exnoEncr;

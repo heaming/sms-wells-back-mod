@@ -121,7 +121,7 @@ public class WsncTimeTableDvo {
     List<String> offDays;
     List<WsncTimeTableDto.SidingDays> sidingDays; // list2 abledays
     List<WsncTimeTableDto.DisableDays> disableDays;
-    WsncTimeTableDto.Psics psic; // left_info
+    WsncTimeTableDto.Psic psic; // left_info
     List<WsncTimeTableDto.AssignTime> assignTimes;
 
     List<WsncTimeTableDto.Days> days;
