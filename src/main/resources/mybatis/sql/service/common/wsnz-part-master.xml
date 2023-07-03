@@ -7,16 +7,16 @@
              , REL.BASE_PD_CD AS SALE_CD
              -- 제품과 기준상품코드의 관계 = 1:N
              , BAS1.PD_NM     AS SALE_CD_NM
-        FROM TB_PDBS_PD_BAS BAS
-                 INNER JOIN TB_PDBS_PD_REL REL
-                            ON BAS.PD_CD = REL.OJ_PD_CD
-                                AND REL.PD_REL_TP_CD = '05'
-                                AND REL.DTA_DL_YN = 'N'
-                                AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
-                 INNER JOIN TB_PDBS_PD_BAS BAS1
-                            ON REL.BASE_PD_CD = BAS1.PD_CD
-                                AND BAS1.DTA_DL_YN = 'N'
-        WHERE BAS.DTA_DL_YN = 'N'
+          FROM TB_PDBS_PD_BAS BAS
+         INNER JOIN TB_PDBS_PD_REL REL
+            ON BAS.PD_CD = REL.OJ_PD_CD
+           AND REL.PD_REL_TP_CD = '05'
+           AND REL.DTA_DL_YN = 'N'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+         INNER JOIN TB_PDBS_PD_BAS BAS1
+            ON REL.BASE_PD_CD = BAS1.PD_CD
+           AND BAS1.DTA_DL_YN = 'N'
+         WHERE BAS.DTA_DL_YN = 'N'
         -- 예시
         -------------------------------------------------------------------------------
         -- PD_CD      PD_NM                SALE_CD     SALE_CD_NM
@@ -45,10 +45,11 @@
              , T1.PD_LCLSF_ID                                                    AS SVPD_LCLSF_ID /*상품소분류ID*/
              , T1.PD_DCLSF_ID                                                    AS SVPD_DCLSF_ID /*상품세분류ID*/
              , T1.SELL_TP_CD                                                     AS SVPD_SELL_TP_CD /*판매유형코드*/
-             , CASE
-                   WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') >= NVL(t1.RVPY_STRTDT, '19000101') AND
-                        TO_CHAR(SYSDATE, 'YYYYMMDD') <= NVL(t1.RVPY_ENDDT, '99991231') THEN 'Y'
-                   ELSE 'N' END                                                  AS SVPD_USE_YN
+             , CASE WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') >= NVL(t1.RVPY_STRTDT, '19000101')
+                         AND TO_CHAR(SYSDATE, 'YYYYMMDD') <= NVL(t1.RVPY_ENDDT, '99991231')
+                    THEN 'Y'
+                    ELSE 'N'
+               END                                                               AS SVPD_USE_YN
              , T1.RVPY_STRTDT                                                    AS SVPD_APLD_FR
              , T1.RVPY_ENDDT                                                     AS SVPD_APLD_TO
              , T1.SAP_MAT_CD                                                     AS SVPD_SAP_CD
@@ -90,17 +91,17 @@
              , T2.PD_PRP_VAL32                                                   AS SVPD_SERVICE_USE_YN
              , T2.PD_PRP_VAL36                                                   AS SVPD_PART_GR
              , T2.PD_PRP_VAL37                                                   AS SVPD_HMCR_USE_YN
-      ]]>
-      FROM TB_PDBS_PD_BAS T1
-                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
-                            ON T1.PD_CD = T2.PD_CD
-                                AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
-                                AND T2.DTA_DL_YN = 'N'
-                 LEFT OUTER JOIN T_CMD_ATTH_FILE_D T3
-                                 ON T1.IMG_APN_FILE_ID = T3.ATTH_DOC_ID
-                                     AND T3.TENANT_ID = 'TNT_WELLS'
-                                     AND T3.DEL_YN = 'N'
-        WHERE T1.PD_TP_CD = 'M'
-          AND T1.DTA_DL_YN = 'N'
+        ]]>
+          FROM TB_PDBS_PD_BAS T1
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+            ON T1.PD_CD = T2.PD_CD
+           AND T2.PD_EXTS_PRP_GRP_CD = 'PART'
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN T_CMD_ATTH_FILE_D T3
+            ON T1.IMG_APN_FILE_ID = T3.ATTH_DOC_ID
+           AND T3.TENANT_ID = 'TNT_WELLS'
+           AND T3.DEL_YN = 'N'
+         WHERE T1.PD_TP_CD = 'M'
+           AND T1.DTA_DL_YN = 'N'
     </sql>
 </mapper>
