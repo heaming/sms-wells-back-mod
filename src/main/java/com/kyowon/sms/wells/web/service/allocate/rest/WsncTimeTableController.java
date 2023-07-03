@@ -49,7 +49,7 @@ public class WsncTimeTableController {
     @GetMapping("/sales")
     public WsncTimeTableSalesDto.FindRes getTmeAssignSales(WsncTimeTableSalesDto.FindReq req)
         throws ParseException {
-        return service.getTmeAssignSales(req);
+        return service.getTmeAssign(req);
     }
 
     @ApiOperation(value = "타임테이블 일정선택")
@@ -65,18 +65,18 @@ public class WsncTimeTableController {
         @ApiImplicitParam(name = "ordSeq", value = "", paramType = "query"), // P_USER_ID
     })
     @GetMapping("/schedule-choice")
-    public WsncTimeTableSchdChoDto.FindRes getSchdCho(WsncTimeTableSchdChoDto.FindReq req)
+    public WsncTimeTableSchdChoDto.FindRes getScheduleChoice(WsncTimeTableSchdChoDto.FindReq req)
         throws ParseException {
-        return service.getSchdCho(req);
+        return service.getScheduleChoice(req);
     }
 
     @ApiOperation(value = "타임테이블 시간선택")
     @ApiImplicitParams(value = {
     })
     @GetMapping("/time-choice")
-    public WsncTimeTableTimeChoDto.FindRes getTimeCho(WsncTimeTableTimeChoDto.FindReq req)
+    public WsncTimeTableTimeChoDto.FindRes getTimeChoice(WsncTimeTableTimeChoDto.FindReq req)
         throws ParseException {
-        return service.getTimeCho(req);
+        return service.getTimeChoice(req);
     }
 
     //getSchdCho

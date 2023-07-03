@@ -37,11 +37,11 @@ public class WsncTimeTableTimeChoDto {
     public record FindRes(
         Psics psics, // left_info
         List<WsncTimeTableTimeChoDto.AssignTime> assignTimes, // list1
-        List<WsncTimeTableSmPmNtDvo> arrSm,
-        List<WsncTimeTableSmPmNtDvo> arrAm,
-        List<WsncTimeTableSmPmNtDvo> arrPm1,
-        List<WsncTimeTableSmPmNtDvo> arrPm2,
-        List<WsncTimeTableSmPmNtDvo> arrNt
+        List<WsncTimeTableSmPmNtDvo> smTimes,
+        List<WsncTimeTableSmPmNtDvo> amTimes,
+        List<WsncTimeTableSmPmNtDvo> pmTimes1,
+        List<WsncTimeTableSmPmNtDvo> pmTimes2,
+        List<WsncTimeTableSmPmNtDvo> ntTimes
     ) {}
 
     @ApiModel(value = "WsncTimeTableTimeChoDto-AssignTime")

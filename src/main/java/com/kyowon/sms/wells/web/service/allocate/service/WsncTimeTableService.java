@@ -35,6 +35,11 @@ public class WsncTimeTableService {
     private final WsncTimeTableMapper mapper;
     private final WsncTimeTableConverter converter;
 
+
+//    public WsncTimeTableSalesDto.FindRes getTmeAssign(WsncTimeTableSalesDto.FindReq req)
+//        throws ParseException {
+//    }
+
     /**
      * 타임테이블 조회(판매)
      *
@@ -45,7 +50,7 @@ public class WsncTimeTableService {
     /**
     * @see "timeAssign.do GET"
     * */
-    public WsncTimeTableSalesDto.FindRes getTmeAssignSales(WsncTimeTableSalesDto.FindReq req)
+    public WsncTimeTableSalesDto.FindRes getTmeAssign(WsncTimeTableSalesDto.FindReq req)
         throws ParseException {
 
         log.debug("----------------------------------- 타임테이블 조회(판매) -----------------------------------------");
@@ -300,7 +305,7 @@ public class WsncTimeTableService {
     * @see "nosession_mng_as_month.do"
     *
     * */
-    public WsncTimeTableSchdChoDto.FindRes getSchdCho(WsncTimeTableSchdChoDto.FindReq req) {
+    public WsncTimeTableSchdChoDto.FindRes getScheduleChoice(WsncTimeTableSchdChoDto.FindReq req) {
 
         WsncTimeTableSchdChoDvo result = new WsncTimeTableSchdChoDvo();
         // -------------------------------------------------
@@ -390,7 +395,7 @@ public class WsncTimeTableService {
     /**
     * @see "nosession_as_timeAssign.do"
     * */
-    public WsncTimeTableTimeChoDto.FindRes getTimeCho(WsncTimeTableTimeChoDto.FindReq req) {
+    public WsncTimeTableTimeChoDto.FindRes getTimeChoice(WsncTimeTableTimeChoDto.FindReq req) {
 
         String cntrNo = req.cntrNo();
         String cntrSn = req.cntrSn();
