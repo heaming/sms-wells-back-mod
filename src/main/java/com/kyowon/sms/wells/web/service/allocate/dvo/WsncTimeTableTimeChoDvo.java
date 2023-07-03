@@ -3,7 +3,7 @@ package com.kyowon.sms.wells.web.service.allocate.dvo;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableTimeChoDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,12 +11,12 @@ import lombok.Setter;
 @Getter
 public class WsncTimeTableTimeChoDvo {
 
-    WsncTimeTableTimeChoDto.Psics psics;
-    List<WsncTimeTableTimeChoDto.AssignTime> assignTimes;
+    WsncTimeTableDto.Psics psics;
+    List<WsncTimeTableDto.AssignTime> assignTimes;
 
-    List<WsncTimeTableTimeChoDto.SmPmNt> smTimes = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();
-    List<WsncTimeTableTimeChoDto.SmPmNt> amTimes = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();
-    List<WsncTimeTableTimeChoDto.SmPmNt> pmTimes1 = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();
-    List<WsncTimeTableTimeChoDto.SmPmNt> pmTimes2 = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();
-    List<WsncTimeTableTimeChoDto.SmPmNt> ntTimes = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();
+    List<WsncTimeTableDto.SmPmNt> smTimes = new ArrayList<WsncTimeTableDto.SmPmNt>();
+    List<WsncTimeTableDto.SmPmNt> amTimes = new ArrayList<WsncTimeTableDto.SmPmNt>();
+    List<WsncTimeTableDto.SmPmNt> pmTimes1 = new ArrayList<WsncTimeTableDto.SmPmNt>();
+    List<WsncTimeTableDto.SmPmNt> pmTimes2 = new ArrayList<WsncTimeTableDto.SmPmNt>();
+    List<WsncTimeTableDto.SmPmNt> ntTimes = new ArrayList<WsncTimeTableDto.SmPmNt>();
 }

@@ -2,14 +2,12 @@ package com.kyowon.sms.wells.web.service.allocate.rest;
 
 import java.text.ParseException;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSchdChoDto;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableTimeChoDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSalesDto;
 import com.kyowon.sms.wells.web.service.allocate.service.WsncTimeTableService;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 
@@ -47,7 +45,7 @@ public class WsncTimeTableController {
         @ApiImplicitParam(name = "returnurl", value = "", paramType = "query"), // returnurl
     })
     @GetMapping("/sales")
-    public WsncTimeTableSalesDto.FindRes getTmeAssignSales(WsncTimeTableSalesDto.FindReq req)
+    public WsncTimeTableDto.FindRes getTmeAssignSales(WsncTimeTableDto.FindTimeAssignReq req)
         throws ParseException {
         return service.getTmeAssign(req);
     }
@@ -65,7 +63,7 @@ public class WsncTimeTableController {
         @ApiImplicitParam(name = "ordSeq", value = "", paramType = "query"), // P_USER_ID
     })
     @GetMapping("/schedule-choice")
-    public WsncTimeTableSchdChoDto.FindRes getScheduleChoice(WsncTimeTableSchdChoDto.FindReq req)
+    public WsncTimeTableDto.FindRes getScheduleChoice(WsncTimeTableDto.FindScheChoReq req)
         throws ParseException {
         return service.getScheduleChoice(req);
     }
@@ -74,7 +72,7 @@ public class WsncTimeTableController {
     @ApiImplicitParams(value = {
     })
     @GetMapping("/time-choice")
-    public WsncTimeTableTimeChoDto.FindRes getTimeChoice(WsncTimeTableTimeChoDto.FindReq req)
+    public WsncTimeTableDto.FindRes getTimeChoice(WsncTimeTableDto.FindTimeChoReq req)
         throws ParseException {
         return service.getTimeChoice(req);
     }
