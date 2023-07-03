@@ -1,12 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.dto;
 
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDaysDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDisableDaysDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableMonthScheduleDvo;
-import com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo;
-import com.sds.sflex.common.docs.dto.AttachFileDto;
 import io.swagger.annotations.ApiModel;
-import lombok.Builder;
 
 import javax.validation.constraints.NotBlank;
 import java.util.List;
@@ -95,8 +89,19 @@ public class WsncTimeTableSchdChoDto {
     @ApiModel(value = "WsncTimeTableSchdChoDto-SmPmNt")
     public record SmPmNt(
         String time,
-        String cnt,
-        String enableYn
+        String wrkCnt,
+        String enableYn,
+        String wrkTCnt,
+        String wrkCCnt,
+        String wrkTChk,
+        String wrkTRn,
+        String wrkNextChk,
+        String wrkNextChk2,
+        String wrkChk2,
+        String wrkChk1Rn,
+        String empTWrkCnt,
+        String degWrkCnt,
+        String totalWrkCnt
     ) {}
 
     @ApiModel(value = "WsncTimeTableSchdChoDto-PsicData")

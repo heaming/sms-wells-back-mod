@@ -11,12 +11,12 @@ import lombok.Setter;
 @Getter
 public class WsncTimeTableTimeChoDvo {
 
-    WsncTimeTablePsicDataDvo psicDatas; // left_info
-    List<WsncTimeTableTimeChoDto.AssignTime> assignTimes; // list1
+    WsncTimeTableTimeChoDto.Psics psics;
+    List<WsncTimeTableTimeChoDto.AssignTime> assignTimes;
 
-    List<WsncTimeTableTimeChoDto.SmPmNt> arrSm = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();
-    List<WsncTimeTableTimeChoDto.SmPmNt> arrAm = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();
-    List<WsncTimeTableTimeChoDto.SmPmNt> arrPm1 = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();
-    List<WsncTimeTableTimeChoDto.SmPmNt> arrPm2 = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();
-    List<WsncTimeTableTimeChoDto.SmPmNt> arrNt = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();
+    List<WsncTimeTableTimeChoDto.SmPmNt> smTimes = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();
+    List<WsncTimeTableTimeChoDto.SmPmNt> amTimes = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();
+    List<WsncTimeTableTimeChoDto.SmPmNt> pmTimes1 = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();
+    List<WsncTimeTableTimeChoDto.SmPmNt> pmTimes2 = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();
+    List<WsncTimeTableTimeChoDto.SmPmNt> ntTimes = new ArrayList<WsncTimeTableTimeChoDto.SmPmNt>();
 }

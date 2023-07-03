@@ -991,7 +991,7 @@
              , T3.ICHR_PRTNR_NO
              , PRTNR_KNM /*파트너한글명*/
              , T4.OG_TP_CD
-             , #{inflwChnl} AS IN_GB
+             , #{inflwChnl} AS INFLW_CHNL -- IN_GB, inGb
              , #{chnlDvCd} AS CHNL_DV_CD
              , NVL(TRIM(SAT_WRK_YN), 'N') AS SAT_WRK_YN /*토요일근무여부*/
              , NVL(TRIM(DF_YN), 'N') AS DF_YN /*휴무여부*/
@@ -1022,8 +1022,7 @@
              , VST_DOW_VAL AS VST_DOW_VAL_CD
              , #{svBizDclsfCd} AS SV_BIZ_DCLSF_CD
              , #{pdctPdCd} AS PDCT_PD_CD
-             , (
-                SELECT LISTAGG(BASE_PD_CD, ',') WITHIN GROUP (ORDER BY BASE_PD_CD) AS BASE_PD_CDS
+             , (SELECT LISTAGG(BASE_PD_CD, ',') WITHIN GROUP (ORDER BY BASE_PD_CD) AS BASE_PD_CDS
                   FROM (
                         SELECT DISTINCT B.BASE_PD_CD
                           FROM TB_PDBS_LVLH_CSTMW_FILT_BAS A
@@ -1161,7 +1160,7 @@
              , LOC.DEG_NM
              , LOC.AM_WRK_CNT
              , LOC.PM_WRK_CNT
-             , #{wrkCnt} AS T_WRK_CNT
+             , #{wrkCnt} AS TOTAL_WRK_CNT
              , OG1.RSB_DV_CD -- AC025_EMP_OR --EGER_RSB_CD -- EGER_RSB_CD
              , OG3.LOCARA_TNO -- 지역전화번호
              , OG3.EXNO_ENCR -- 전화국번호암호화
@@ -1282,8 +1281,8 @@
              , EMP_ID /*담당자*/
              , TM /*시간*/
              , WRK_CNT /*해당 시간 작업건수*/
-             , WRK_T_CNT /*현재 순번 이전까지 총 작업건수*/
-             , WRK_C_CNT /*연속으로 등록된 작업건수 합*/
+             , WRK_T_CNT /*현재 순번 이전까지 총 작업건수*/ -- 지정 합
+             , WRK_C_CNT /*연속으로 등록된 작업건수 합*/ -- 총건(지정+미지정)
              , WRK_T_CHK /*해당지역등급 가능 시간대*/
              , WRK_T_RN /*해당지역등급 가능 시간대 순번*/
              , WRK_NEXT_CHK /*건수 계산 하여 막아야 할 다음 시간대 순번*/

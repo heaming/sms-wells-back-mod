@@ -45,15 +45,15 @@ public class WsncTimeTableSalesDvo {
     List<String> offDays;
     List<WsncTimeTableSchdChoDto.SidingDays> sidingDays; // list2 abledays
     List<WsncTimeTableSchdChoDto.DisableDays> disableDays;
-    WsncTimeTableSchdChoDto.PsicData psicDatas; // left_info
+    WsncTimeTableSchdChoDto.PsicData psics; // left_info
     // List<WsncTimeTableAssignTimeDvo> assignTimeDvos; // list1
 
     List<WsncTimeTableDaysDvo> days;
 
-    List<WsncTimeTableSchdChoDto.SmPmNt> arrSm = new ArrayList<WsncTimeTableSchdChoDto.SmPmNt>();
-    List<WsncTimeTableSchdChoDto.SmPmNt> arrAm = new ArrayList<WsncTimeTableSchdChoDto.SmPmNt>();
-    List<WsncTimeTableSchdChoDto.SmPmNt> arrPm1 = new ArrayList<WsncTimeTableSchdChoDto.SmPmNt>();
-    List<WsncTimeTableSchdChoDto.SmPmNt> arrPm2 = new ArrayList<WsncTimeTableSchdChoDto.SmPmNt>();
-    List<WsncTimeTableSchdChoDto.SmPmNt> arrNt = new ArrayList<WsncTimeTableSchdChoDto.SmPmNt>();
+    List<WsncTimeTableSchdChoDto.SmPmNt> smTimes = new ArrayList<WsncTimeTableSchdChoDto.SmPmNt>();
+    List<WsncTimeTableSchdChoDto.SmPmNt> amTimes = new ArrayList<WsncTimeTableSchdChoDto.SmPmNt>();
+    List<WsncTimeTableSchdChoDto.SmPmNt> pmTimes1 = new ArrayList<WsncTimeTableSchdChoDto.SmPmNt>();
+    List<WsncTimeTableSchdChoDto.SmPmNt> pmTimes2 = new ArrayList<WsncTimeTableSchdChoDto.SmPmNt>();
+    List<WsncTimeTableSchdChoDto.SmPmNt> ntTimes = new ArrayList<WsncTimeTableSchdChoDto.SmPmNt>();
 
 }
