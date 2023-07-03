@@ -64,7 +64,7 @@ public class WsncTimeTableController {
         @ApiImplicitParam(name = "ordDt", value = "", paramType = "query"), // P_WRK_TYP_DTL
         @ApiImplicitParam(name = "ordSeq", value = "", paramType = "query"), // P_USER_ID
     })
-    @GetMapping("/schd-cho")
+    @GetMapping("/schedule-choice")
     public WsncTimeTableSchdChoDto.FindRes getSchdCho(WsncTimeTableSchdChoDto.FindReq req)
         throws ParseException {
         return service.getSchdCho(req);
@@ -73,7 +73,7 @@ public class WsncTimeTableController {
     @ApiOperation(value = "타임테이블 시간선택")
     @ApiImplicitParams(value = {
     })
-    @GetMapping("/time-cho")
+    @GetMapping("/time-choice")
     public WsncTimeTableTimeChoDto.FindRes getTimeCho(WsncTimeTableTimeChoDto.FindReq req)
         throws ParseException {
         return service.getTimeCho(req);

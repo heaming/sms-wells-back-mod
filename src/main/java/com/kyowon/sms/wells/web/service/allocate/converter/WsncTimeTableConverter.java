@@ -34,6 +34,6 @@ public interface WsncTimeTableConverter {
     WsncTimeTableTimeChoDto.SmPmNt mapSmPmNtDvoToTimDto(WsncTimeTableSmPmNtDvo dvo);
 
     WsncTimeTableSchdChoDto.PsicData mapSchdPsicDatasDvoToDto(WsncTimeTablePsicDataDvo dvo);
-    WsncTimeTableTimeChoDto.psicData mapTimePsicDatasDvoToDto(WsncTimeTablePsicDataDvo dvo);
+    WsncTimeTableTimeChoDto.Psics mapTimePsicDatasDvoToDto(WsncTimeTablePsicDataDvo dvo);
 
 }
