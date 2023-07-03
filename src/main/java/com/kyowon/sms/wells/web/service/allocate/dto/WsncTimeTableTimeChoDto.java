@@ -35,7 +35,7 @@ public class WsncTimeTableTimeChoDto {
 
     @ApiModel(value = "WsncTimeTableTimeChoDto-FindRes")
     public record FindRes(
-        Psics psicDatas, // left_info
+        Psics psics, // left_info
         List<WsncTimeTableTimeChoDto.AssignTime> assignTimes, // list1
         List<WsncTimeTableSmPmNtDvo> arrSm,
         List<WsncTimeTableSmPmNtDvo> arrAm,
@@ -82,7 +82,7 @@ public class WsncTimeTableTimeChoDto {
     ) {}
 
     @Builder
-    @ApiModel(value = "WsncTimeTableTimeChoDto-psicDatas")
+    @ApiModel(value = "WsncTimeTableTimeChoDto-psics")
     public record Psics(
         String prtnrNo, //ac021EmpId;
         String sellDate, // ac221CfrmDt;

@@ -223,7 +223,7 @@ public class WsncTimeTableService {
         result.getNtTimes().clear();
 
         //result.setAssignTimeDvos(assignTimeDvos); // list1 = assignTimeDvos
-        result.setPsicDatas(converter.mapSchdPsicDatasDvoToDto(psicDataDvos)); // left_info = psicDatas
+        result.setPsics(converter.mapSchdPsicsDvoToDto(psicDataDvos)); // left_info = psics
         result.setSidingDays(converter.mapSidingDaysDvoToDto(sidingDayDvos)); // list2 = sidingDays
         result.setOffDays(offDays); // offdays = offDays
         result.setDisableDays(converter.mapDisableDaysDvoToDto(disableDayDvos)); // diabledays = disableDays
@@ -465,7 +465,7 @@ public class WsncTimeTableService {
         }
 
         result.setAssignTimes(converter.mapAssignTimeDvoToDto(assignTimeDvos));
-        result.setPsics(converter.mapTimePsicDatasDvoToDto(psicDataDvos));
+        result.setPsics(converter.mapTimePsicsDvoToDto(psicDataDvos));
         return converter.mapTimeChoDvoToRes(result);
     }
 

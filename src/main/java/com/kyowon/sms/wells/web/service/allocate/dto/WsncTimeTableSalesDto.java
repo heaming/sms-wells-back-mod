@@ -74,7 +74,7 @@ public class WsncTimeTableSalesDto {
         List<String> offDays,
         List<WsncTimeTableSidingDaysDvo> sidingDays, // list2
         List<WsncTimeTableDisableDaysDvo> disableDays, // diabledays
-        WsncTimeTablePsicDataDvo psicDatas, // left_info
+        WsncTimeTablePsicDataDvo psics, // left_info
         // List<WsncTimeTableAssignTimeDvo> assignTimeDvos, // list1
 
         List<WsncTimeTableDaysDvo> days,
@@ -86,9 +86,9 @@ public class WsncTimeTableSalesDto {
 
     ) {
         public FindRes {
-            psicDatas.setExnoEncr(DbEncUtil.dec(psicDatas.getExnoEncr()));
-            psicDatas.setMexnoEncr(DbEncUtil.dec(psicDatas.getMexnoEncr()));
-            psicDatas.setSjHp2(DbEncUtil.dec(psicDatas.getSjHp2()));
+            psics.setExnoEncr(DbEncUtil.dec(psics.getExnoEncr()));
+            psics.setMexnoEncr(DbEncUtil.dec(psics.getMexnoEncr()));
+            psics.setSjHp2(DbEncUtil.dec(psics.getSjHp2()));
         }
     }
 
