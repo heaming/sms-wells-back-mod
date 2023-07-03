@@ -260,22 +260,9 @@ public class WsncTimeTableService {
 
         for (WsncTimeTableAssignTimeDvo assignTime : assignTimeDvos) {
 
-            WsncTimeTableSmPmNtDvo smPmNtDvo = new WsncTimeTableSmPmNtDvo();
+            WsncTimeTableSmPmNtDvo smPmNtDvo = converter.mapAssignTimeDvoToSmPmNtDvo(assignTime);
             time = assignTime.getTm();
             smPmNtDvo.setTime(time.substring(0, 2) + ":" + time.substring(2, 4));
-            smPmNtDvo.setWrkCnt(assignTime.getWrkCnt());
-            smPmNtDvo.setWrkTCnt(assignTime.getWrkTCnt());
-            smPmNtDvo.setWrkCCnt(assignTime.getWrkCCnt());
-            smPmNtDvo.setWrkTChk(assignTime.getWrkTChk());
-            smPmNtDvo.setWrkTRn(assignTime.getWrkTRn());
-            smPmNtDvo.setWrkNextChk(assignTime.getWrkNextChk());
-            smPmNtDvo.setWrkNextChk2(assignTime.getWrkNextChk2());
-            smPmNtDvo.setWrkChk2(assignTime.getWrkChk2());
-            smPmNtDvo.setWrkChk1Rn(assignTime.getWrkChk1Rn());
-            smPmNtDvo.setEmpTWrkCnt(assignTime.getEmpTWrkCnt());
-            smPmNtDvo.setDegWrkCnt(assignTime.getDegWrkCnt());
-            smPmNtDvo.setTWrkCnt(assignTime.getTWrkCnt());
-            smPmNtDvo.setEnableYn(assignTime.getWrkChk2());
 
             if (Integer.valueOf(time) >= 10000 && Integer.valueOf(time) < 50000) {
                 result.getSmTimes().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
@@ -460,23 +447,10 @@ public class WsncTimeTableService {
         String time = "";
         for (WsncTimeTableAssignTimeDvo assignTime : assignTimeDvos) {
 
-            WsncTimeTableSmPmNtDvo smPmNtDvo = new WsncTimeTableSmPmNtDvo();
+            WsncTimeTableSmPmNtDvo smPmNtDvo = converter.mapAssignTimeDvoToSmPmNtDvo(assignTime);
             time = assignTime.getTm();
 
             smPmNtDvo.setTime(time.substring(0, 2) + ":" + time.substring(2, 4));
-            smPmNtDvo.setWrkCnt(assignTime.getWrkCnt());
-            smPmNtDvo.setWrkTCnt(assignTime.getWrkTCnt());
-            smPmNtDvo.setWrkCCnt(assignTime.getWrkCCnt());
-            smPmNtDvo.setWrkTChk(assignTime.getWrkTChk());
-            smPmNtDvo.setWrkTRn(assignTime.getWrkTRn());
-            smPmNtDvo.setWrkNextChk(assignTime.getWrkNextChk());
-            smPmNtDvo.setWrkNextChk2(assignTime.getWrkNextChk2());
-            smPmNtDvo.setWrkChk2(assignTime.getWrkChk2());
-            smPmNtDvo.setWrkChk1Rn(assignTime.getWrkChk1Rn());
-            smPmNtDvo.setEmpTWrkCnt(assignTime.getEmpTWrkCnt());
-            smPmNtDvo.setDegWrkCnt(assignTime.getDegWrkCnt());
-            smPmNtDvo.setTWrkCnt(assignTime.getTWrkCnt());
-            smPmNtDvo.setEnableYn(assignTime.getWrkChk2());
 
             if (Integer.valueOf(time) >= 10000 && Integer.valueOf(time) < 50000) {
                 result.getSmTimes().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
