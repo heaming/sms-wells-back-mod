@@ -135,4 +135,52 @@ public class SnServiceConst {
     // 홈케어멤버십 "221"
     public static final String CNTR_REL_DTL_CD_HOMECARE_MEMBERSHIP = "221";
 
+    /** 유상서비스 결제정보 생성 시 요청진행상태코드 - 수납 요청정보 "1" */
+    public static final String REQ_PRGS_STAT_RECEIVE = "1";
+
+    /** 유상서비스 결제정보 생성 시 요청진행상태코드 - 신용카드 결제정보 "2" */
+    public static final String REQ_PRGS_STAT_CRDCD_STLM = "2";
+
+    /** 유상서비스 결제정보 생성 시 요청진행상태코드 - 신용카드 카드사 입금정보 "3" */
+    public static final String REQ_PRGS_STAT_CDCO_DP = "3";
+
+    /** 유상서비스 결제정보 생성 시 요청진행상태코드 - 신용카드 가상계좌 입금정보 "4" */
+    public static final String REQ_PRGS_STAT_VAC_DP = "4";
+
+    /** 결제진행상태코드 - 청구실패 "02" */
+    public static final String STLM_PRGS_STAT_CD_FAIL = "02";
+
+    /** 결제진행상태코드 - 청구승인 "03" */
+    public static final String STLM_PRGS_STAT_CD_APR = "03";
+
+    /** 결제진행상태코드 - 일부결제 "04" */
+    public static final String STLM_PRGS_STAT_CD_PRTN = "04";
+
+    /** 결제진행상태코드 - 결제완료 "05" */
+    public static final String STLM_PRGS_STAT_CD_FSH = "05";
+
+    /** 합산청구상태코드 - 대기 "01" */
+    public static final String ADP_BIL_STAT_CD_STNB = "01";
+
+    /** 합산청구상태코드 - 진행중 "02" */
+    public static final String ADP_BIL_STAT_CD_PRGS = "02";
+
+    /** 합산청구상태코드 - 완료 "03" */
+    public static final String ADP_BIL_STAT_CD_FSH = "03";
+
+    /** 승인구분코드 - 신용승인 "0100" */
+    public static final String APR_DV_CD_CRD_APR = "0100";
+
+    /** 승인구분코드 - 신용취소 "0200" */
+    public static final String APR_DV_CD_CRD_CAN = "0200";
+
+    /** 승인구분코드 - 현금승인 "0110" */
+    public static final String APR_DV_CD_CSH_APR = "0110";
+
+    /** 승인구분코드 - 현금취소 "0210" */
+    public static final String APR_DV_CD_CSH_CAN = "0210";
+
+    /** 결제구분코드 - 합산청구 "01" */
+    public static final String STLM_DV_CD_ADP_BIL = "01";
+
 }
