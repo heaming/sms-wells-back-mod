@@ -18,12 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-/**
- *
- *
- * @author gs.piit122 김동엽
- * @since 2023-05-08
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -32,19 +26,6 @@ public class WsncTimeTableService {
     private final WsncTimeTableMapper mapper;
     private final WsncTimeTableConverter converter;
 
-    /**
-     * 타임테이블 조회(판매)
-     * 타임테이블 조회(CC)
-     *
-     * @programId W-SV-U-0062M01, W-MT-U-0188M01, W-MP-U-0188M01, W-SV-U-0034M01
-     * @param req : 조회파라메터
-     * @return 조회결과
-     */
-    /**
-    * @see "timeAssign.do GET"
-    * @see "timeAssign_test.do"
-    *
-    * */
     public WsncTimeTableDto.FindRes getTmeAssign(WsncTimeTableDto.FindTimeAssignReq req)
         throws ParseException {
 
@@ -55,10 +36,10 @@ public class WsncTimeTableService {
         dvo.getPmTimes2().clear();
         dvo.getNtTimes().clear();
 
-        WsncTimeTableRpbLocaraPsicDvo rpbLocaraPsic = null;
+        WsncTimeTableRpbLocaraPsicDvo rpbLocaraPsic;
         List<WsncTimeTableSidingDaysDvo> sidingDays = null;
-        WsncTimeTablePsicDvo psic = null;
-        List<WsncTimeTableAssignTimeDvo> assignTimes = null;
+        WsncTimeTablePsicDvo psic;
+        List<WsncTimeTableAssignTimeDvo> assignTimes;
 
         // 00000001
         dvo.setSeq(StringUtils.leftPad(StringUtil.nvl(req.seq(), "1"), 8, "0"));
@@ -138,6 +119,8 @@ public class WsncTimeTableService {
 
         }
 
+        dvo.setSellDate(sellDate);
+
         dvo.setHcr("Y".equals(productDvo.getHcrYn()));
 
         // Cubig CC 홈케어 조회용 타임테이블 http://ccwells.kyowon.co.kr/obm/obm0800/obm0800.jsp
@@ -191,20 +174,23 @@ public class WsncTimeTableService {
         dvo.setUserId(session.getEmployeeIDNumber());
         dvo.setRcpOgTpCd(session.getOgTpCd());
 
-        String time = null;
+        String time;
+        int iTime;
         for (WsncTimeTableAssignTimeDvo assignTime : assignTimes) {
 
             WsncTimeTableSmPmNtDvo smPmNtDvo = converter.mapAssignTimeDvoToSmPmNtDvo(assignTime);
             time = assignTime.getTm();
             smPmNtDvo.setTime(time.substring(0, 2) + ":" + time.substring(2, 4));
 
-            if (Integer.parseInt(time) >= 10000 && Integer.parseInt(time) < 50000) {
+            iTime = Integer.parseInt(time);
+
+            if (iTime >= 10000 && iTime < 50000) {
                 dvo.getSmTimes().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
-            } else if (Integer.parseInt(time) > 80000 && Integer.parseInt(time) < 140000) {
+            } else if (iTime > 80000 && iTime < 140000) {
                 dvo.getAmTimes().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
-            } else if (Integer.parseInt(time) >= 140000 && Integer.parseInt(time) < 180000) {
+            } else if (iTime >= 140000 && iTime < 180000) {
                 dvo.getPmTimes1().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
-            } else if (Integer.parseInt(time) >= 180000 && Integer.parseInt(time) < 200000) {
+            } else if (iTime >= 180000 && iTime < 200000) {
                 dvo.getPmTimes2().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
             } else
                 dvo.getNtTimes().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
@@ -213,25 +199,6 @@ public class WsncTimeTableService {
         return converter.mapTimeAssignDvoToRes(dvo);
     }
 
-    /**
-    * @see "nosession_timeAssign.do"
-    * */
-    protected void noSessionTimeAssign() {}
-
-    /**
-    * @see "timeAssign.do > getTimeAssign_post_v2"
-    * */
-    protected void timeAssignWellsKmembers() {
-
-    }
-
-    /**
-    * 타임테이블 시간선택(일정변경)
-    *
-    * @programId W-MP-U-0186P01
-    * @see "nosession_mng_as_month.do"
-    *
-    * */
     public WsncTimeTableDto.FindRes getScheduleChoice(WsncTimeTableDto.FindScheChoReq req) {
 
         WsncTimeTableDvo dvo = converter.mapScheChoReqToDvo(req);
@@ -288,9 +255,6 @@ public class WsncTimeTableService {
         return converter.mapSchdChoDvoToRes(dvo);
     }
 
-    /**
-    * @see "nosession_as_timeAssign.do"
-    * */
     public WsncTimeTableDto.FindRes getTimeChoice(WsncTimeTableDto.FindTimeChoReq req) {
 
         WsncTimeTableDvo dvo = converter.mapTimeChoReqToDvo(req);
@@ -318,7 +282,8 @@ public class WsncTimeTableService {
         rpbLocaraPsic.setWkHhCd(mapper.selectWkHhCd(rpbLocaraPsic));
         List<WsncTimeTableAssignTimeDvo> assignTimes = mapper.selectAssignTimes(rpbLocaraPsic); // list1
 
-        String time = "";
+        String time;
+        int iTime;
         for (WsncTimeTableAssignTimeDvo assignTime : assignTimes) {
 
             WsncTimeTableSmPmNtDvo smPmNtDvo = converter.mapAssignTimeDvoToSmPmNtDvo(assignTime);
@@ -326,13 +291,15 @@ public class WsncTimeTableService {
 
             smPmNtDvo.setTime(time.substring(0, 2) + ":" + time.substring(2, 4));
 
-            if (Integer.valueOf(time) >= 10000 && Integer.valueOf(time) < 50000) {
+            iTime = Integer.parseInt(time);
+
+            if (iTime >= 10000 && iTime < 50000) {
                 dvo.getSmTimes().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
-            } else if (Integer.valueOf(time) > 80000 && Integer.valueOf(time) < 140000) {
+            } else if (iTime > 80000 && iTime < 140000) {
                 dvo.getAmTimes().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
-            } else if (Integer.valueOf(time) >= 140000 && Integer.valueOf(time) < 180000) {
+            } else if (iTime >= 140000 && iTime < 180000) {
                 dvo.getPmTimes1().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
-            } else if (Integer.valueOf(time) >= 180000 && Integer.valueOf(time) <= 190000) {
+            } else if (iTime >= 180000 && iTime <= 190000) {
                 dvo.getPmTimes2().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
             } else
                 dvo.getNtTimes().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
@@ -341,15 +308,6 @@ public class WsncTimeTableService {
         dvo.setAssignTimes(converter.mapAssignTimeDvoToDto(assignTimes));
         dvo.setPsic(converter.mapPsicDvoToDto(psic));
 
-        log.debug("[KDY]" + dvo.getPsic().vstPos());
-
         return converter.mapTimeChoDvoToRes(dvo);
-    }
-
-    /**
-    * @see "nosession_bsnext_timeAssign"
-    * */
-    protected void noSessionBsTimeAssign() {
-
     }
 }
