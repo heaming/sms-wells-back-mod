@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.service.allocate.dto;
 
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;
+import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
@@ -13,6 +14,34 @@ import java.util.List;
 
 /*타임테이블 조회(판매)*/
 public class WsncTimeTableDto {
+
+    public static String defineInflwChnl(String chnlDvCd) {
+
+        // in_gb
+
+        String inflwChnlTmp = "";
+        switch (chnlDvCd) {
+            case "C": // CubicCC(CustomerCenter)
+                inflwChnlTmp = "1";
+                break;
+            case "W": // 웰스 홈페이지
+                inflwChnlTmp = "4";
+                break;
+            case "K": // KSS
+                inflwChnlTmp = "3";
+                break;
+            case "P": // K-MEMBERS
+                inflwChnlTmp = "5";
+                break;
+            case "I": // 엔지니어
+            case "E": // 엔지니어
+            case "M": // 매니저
+            case "B": // BS(엔지니어)
+                inflwChnlTmp = "0";
+                break;
+        }
+        return inflwChnlTmp;
+    }
 
     @ApiModel(value = "WsncTimeTableDto-FindTimeAssignReq")
     public record FindTimeAssignReq(
@@ -39,7 +68,21 @@ public class WsncTimeTableDto {
         String baseYm,
         String seq, // P_IN_GB + P_WRK_GB + P_WRK_DT + LEFTPAD(P_SEQ, 8,"0")
         String cstSvAsnNo
-    ) {}
+    ) {
+
+        @Override
+        public String wrkDt() {
+            return DateUtil.getNowDayString();
+        }
+
+        @Override
+        public String inflwChnl() {
+            if (StringUtil.isEmpty(inflwChnl)) {
+                return defineInflwChnl(chnlDvCd);
+            }
+            return inflwChnl;
+        }
+    }
 
     @ApiModel(value = "WsncTimeTableDto-FindScheChoReq")
     public record FindScheChoReq(
@@ -68,7 +111,20 @@ public class WsncTimeTableDto {
         String cstSvAsnNo,
         String prtnrNo,
         String newAdrZip
-    ) {}
+    ) {
+        @Override
+        public String wrkDt() {
+            return DateUtil.getNowDayString();
+        }
+
+        @Override
+        public String inflwChnl() {
+            if (StringUtil.isEmpty(inflwChnl)) {
+                return defineInflwChnl(chnlDvCd);
+            }
+            return inflwChnl;
+        }
+    }
 
     @ApiModel(value = "WsncTimeTableDto-FindTimeChoReq")
     public record FindTimeChoReq(
@@ -97,7 +153,20 @@ public class WsncTimeTableDto {
         String cstSvAsnNo,
         String prtnrNo,
         String newAdrZip
-    ) {}
+    ) {
+        @Override
+        public String wrkDt() {
+            return DateUtil.getNowDayString();
+        }
+
+        @Override
+        public String inflwChnl() {
+            if (StringUtil.isEmpty(inflwChnl)) {
+                return defineInflwChnl(chnlDvCd);
+            }
+            return inflwChnl;
+        }
+    }
 
     @ApiModel(value = "WsncTimeTableDto-FindRes")
     public record FindRes(
@@ -161,24 +230,14 @@ public class WsncTimeTableDto {
         List<WsncTimeTableDto.SmPmNt> ntTimes
     ) {
         @Override
+        public String wrkDt() {
+            return DateUtil.getNowDayString();
+        }
+
+        @Override
         public String inflwChnl() {
             if (StringUtil.isEmpty(inflwChnl)) {
-                String inflwChnlTmp = "";
-                switch (chnlDvCd) {
-                    case "C":
-                        inflwChnlTmp = "1";
-                        break;
-                    case "W":
-                        inflwChnlTmp = "2";
-                        break;
-                    case "K":
-                        inflwChnlTmp = "3";
-                        break;
-                    case "P":
-                        inflwChnlTmp = "2";
-                        break;
-                }
-                return inflwChnlTmp;
+                return defineInflwChnl(chnlDvCd);
             }
             return inflwChnl;
         }
@@ -209,7 +268,7 @@ public class WsncTimeTableDto {
         String ed
     ) {}
 
-    @ApiModel(value = "WsncTimeTableDto-Psics")
+    @ApiModel(value = "WsncTimeTableDto-Psic")
     public record Psic(
         String prtnrNo,
         String sellDate,

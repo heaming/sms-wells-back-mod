@@ -36,6 +36,17 @@ public class WsncTimeTableService {
         dvo.getPmTimes2().clear();
         dvo.getNtTimes().clear();
 
+        log.debug("-------------------------------");
+        log.debug("CntrNo: " + dvo.getCntrNo());
+        log.debug("CntrSn: " + dvo.getCntrSn());
+        log.debug("SellDate: " + dvo.getSellDate());
+        log.debug("wrkDt: " + dvo.getWrkDt());
+        log.debug("SvDvCd: " + dvo.getSvDvCd());
+        log.debug("ChnlDvCd: " + dvo.getChnlDvCd());
+        log.debug("InflwChnl: " + dvo.getInflwChnl());
+        log.debug("BaseYm: " + dvo.getBaseYm());
+        log.debug("-------------------------------");
+
         WsncTimeTableRpbLocaraPsicDvo rpbLocaraPsic;
         List<WsncTimeTableSidingDaysDvo> sidingDays = null;
         WsncTimeTablePsicDvo psic;
@@ -45,7 +56,15 @@ public class WsncTimeTableService {
         dvo.setSeq(StringUtils.leftPad(StringUtil.nvl(req.seq(), "1"), 8, "0"));
         String sellDate = StringUtil.isEmpty(dvo.getSellDate()) ? DateUtil.getNowDayString() : dvo.getSellDate();
 
-        // CubicCC
+        // 웰스 홈페이지, K-MEMBERS
+        if (("K".equals(dvo.getChnlDvCd()) || "W".equals(dvo.getChnlDvCd())) && StringUtil.isEmpty(req.sellDate())) {
+
+            log.debug("week: " + DateUtil.getWeek(DateUtil.getNowDayString()));
+
+            dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 1));
+        }
+
+        // CubicCC (CustomerCenter)
         if ("C".equals(dvo.getChnlDvCd()) && StringUtil.isEmpty(req.sellDate())) {
             dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 1));
         }
