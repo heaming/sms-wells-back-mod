@@ -1,41 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncAsTransferMapper">
-    <select id="selectEngineers" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncAsTransferDto$Engineer">
-        SELECT DISTINCT P1.PRTNR_NO AS CODE_ID
-             , P1.PRTNR_KNM AS CODE_NAME
-             , P1.OG_ID
-             , P1.OG_NM
-          FROM TB_OGBS_MM_PRTNR_IZ P1
-         WHERE 1=1
-           <if test='@MybatisUtils@isNotEmpty(loginPrtnrNo)'>
-           AND P1.OG_ID = (SELECT OG_ID
-                             FROM TB_OGBS_MM_PRTNR_IZ
-                            WHERE 1=1
-                              AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')
-                              AND PRTNR_NO  = #{loginPrtnrNo}
-                              AND DTA_DL_YN = 'N'
-                              AND OG_TP_CD IN ('W03', 'W06')
-                          )
-           </if>
-           <if test='@MybatisUtils@isNotEmpty(ogId)'>
-           AND P1.OG_ID = #{ogId}
-           </if>
-           AND P1.BZ_STAT_CD = '1'
-         ORDER BY P1.PRTNR_KNM
-    </select>
-    <select id="selectCenters" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncAsTransferDto$Center">
-        SELECT OG_ID AS CODE_ID
-             , OG_NM AS CODE_NAME
-          FROM TB_OGBS_MM_OG_IZ
-         WHERE 1=1
-           AND CLO_DT IS NULL
-           AND OG_ID != '79999'
-           AND BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-         ORDER BY CODE_NAME
-    </select>
     <select id="selectAsTransferPages" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsTransferDvo">
-        SELECT I1.CNTR_NO
+        SELECT I1.CST_SV_ASN_NO
+             , I1.CNTR_NO
              , I1.CNTR_SN
              , T3.RCGVP_KNM
              , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', D1.SELL_TP_CD, #{session.langId}) AS SELL_TP_NM
@@ -77,44 +45,42 @@
              , (SELECT OG_NM
                   FROM TB_OGBS_MM_PRTNR_IZ
                  WHERE 1=1
-                   AND PRTNR_NO  = I1.ICHR_PRTNR_NO
-                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')
-                   AND OG_TP_CD  = I1.ICHR_OG_TP_CD
+                   AND PRTNR_NO  = TI1.BFCH_ICHR_PRTNR_NO
+                   AND BASE_YM   = SUBSTR(TI1.TF_RQDT,1,6)
+                   AND OG_TP_CD  = TI1.BFCH_ICHR_PRTNR_OG_TP_CD
                    AND DTA_DL_YN = 'N'
                 ) AS BFCH_BLG_NM
-             , I1.ICHR_PRTNR_NO AS BFCH_EMPNO
+             , TI1.BFCH_ICHR_PRTNR_NO AS BFCH_EMPNO
+             , (SELECT PRTNR_KNM
+                  FROM TB_OGBS_MM_PRTNR_IZ
+                 WHERE 1=1
+                   AND PRTNR_NO  = TI1.BFCH_ICHR_PRTNR_NO
+                   AND BASE_YM   = SUBSTR(TI1.TF_RQDT,1,6)
+                   AND OG_TP_CD  = TI1.BFCH_ICHR_PRTNR_OG_TP_CD
+                   AND DTA_DL_YN = 'N'
+                ) AS BFCH_FNM
+             , I1.SV_CNR_OG_ID AS AFCH_BLG_CD_ORIGIN
+             , I1.ICHR_PRTNR_NO AS AFCH_EMPNO_ORIGIN
              , (SELECT PRTNR_KNM
                   FROM TB_OGBS_MM_PRTNR_IZ
                  WHERE 1=1
                    AND PRTNR_NO  = I1.ICHR_PRTNR_NO
-                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND BASE_YM   = SUBSTR(I1.EGER_ASN_DT,1,6)
                    AND OG_TP_CD  = I1.ICHR_OG_TP_CD
                    AND DTA_DL_YN = 'N'
-                ) AS BFCH_FNM
-             , (SELECT OG_NM
-                  FROM TB_OGBS_MM_PRTNR_IZ
-                 WHERE 1=1
-                   AND PRTNR_NO  = TI1.AFCH_ICHR_PRTNR_NO
-                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')
-                   AND OG_TP_CD  = TI1.AFCH_ICHR_PRTNR_OG_TP_CD
-                   AND DTA_DL_YN = 'N'
-                ) AS AFCH_BLG_NM
-             , TI1.AFCH_ICHR_PRTNR_NO AS AFCH_EMPNO
-             , (SELECT PRTNR_KNM
-                  FROM TB_OGBS_MM_PRTNR_IZ
-                 WHERE 1=1
-                   AND PRTNR_NO  = TI1.AFCH_ICHR_PRTNR_NO
-                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')
-                   AND OG_TP_CD  = TI1.AFCH_ICHR_PRTNR_OG_TP_CD
-                   AND DTA_DL_YN = 'N'
-                ) AS AFCH_FNM
+                ) AS AFCH_FNM_ORIGIN
+             , I1.ICHR_OG_TP_CD AS AFCH_OG_TP_CD_ORIGIN
+             , I1.SV_CNR_OG_ID AS AFCH_BLG_CD
+             , I1.ICHR_PRTNR_NO AS AFCH_EMPNO
+             , I1.ICHR_PRTNR_NO AS AFCH_FNM
+             , I1.ICHR_OG_TP_CD AS AFCH_OG_TP_CD
              , TI1.TF_CNFMDT AS TF_DT
              , F_CMZ_CD_NM(#{session.tenantId}, 'MTR_STAT_CD', TI1.TF_AK_RSON_CD, #{session.langId}) AS TF_RSON_NM
              , (SELECT OG_NM
                   FROM TB_OGBS_MM_PRTNR_IZ
                  WHERE 1=1
                    AND PRTNR_NO  = TI1.TF_AK_PRTNR_NO
-                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND BASE_YM   = SUBSTR(TI1.TF_CNFMDT,1,6)
                    AND OG_TP_CD  = TI1.TF_AK_PRTNR_OG_TP_CD
                    AND DTA_DL_YN = 'N'
                 ) AS TF_BLG_NM
@@ -122,7 +88,7 @@
                   FROM TB_OGBS_MM_PRTNR_IZ
                  WHERE 1=1
                    AND PRTNR_NO  = TI1.TF_AK_PRTNR_NO
-                   AND BASE_YM   = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND BASE_YM   = SUBSTR(TI1.TF_CNFMDT,1,6)
                    AND OG_TP_CD  = TI1.TF_AK_PRTNR_OG_TP_CD
                    AND DTA_DL_YN = 'N'
                 ) AS TF_FNM
@@ -164,18 +130,21 @@
            AND I1.CNTR_SN   = D1.CNTR_SN
            AND D1.DTA_DL_YN = 'N'
          INNER JOIN TB_SVPD_EGER_ASN_ADR_IZ E1
-            ON E1.EMD_SN      = (SELECT MAX(EMD_SN)
+            ON E1.NEW_ADR_ZIP = AB1.NEW_ADR_ZIP
+           AND E1.EMD_SN      = (SELECT MAX(EMD_SN)
                                    FROM TB_SVPD_EGER_ASN_ADR_IZ
                                   WHERE NEW_ADR_ZIP = AB1.NEW_ADR_ZIP)
            AND E1.DTA_DL_YN   = 'N'
            AND E1.NEW_ADR_ZIP = AB1.NEW_ADR_ZIP
           LEFT OUTER JOIN TB_SVPD_ASN_RS_TF_IZ TI1
-            ON TI1.TF_SN = (SELECT MAX(TF_SN)
+            ON TI1.CST_SV_ASN_NO = I1.CST_SV_ASN_NO
+           AND TI1.TF_SN = (SELECT MAX(TF_SN)
                              FROM TB_SVPD_ASN_RS_TF_IZ
                             WHERE CST_SV_ASN_NO = I1.CST_SV_ASN_NO
                            )
            AND TI1.DTA_DL_YN = 'N'
-         WHERE 1=1
+         WHERE I1.DTA_DL_YN = 'N'
+           AND I1.WK_PRGS_STAT_CD = '00'
         <if test='@MybatisUtils@isNotEmpty(svCnrOgId)'>
            AND I1.SV_CNR_OG_ID = #{svCnrOgId}
         </if>
@@ -183,10 +152,10 @@
            AND I1.ICHR_PRTNR_NO = #{ichrPrtnrNo}
         </if>
         <if test='@MybatisUtils@isNotEmpty(assignDateFrom)'>
-           AND SUBSTR(I1.FST_RGST_DTM,1,8) <![CDATA[>=]]> #{assignDateFrom}
+           AND SUBSTR(I1.ASN_DT,1,8) <![CDATA[>=]]> #{assignDateFrom}
         </if>
         <if test='@MybatisUtils@isNotEmpty(assignDateTo)'>
-           AND SUBSTR(I1.FST_RGST_DTM,1,8) <![CDATA[<=]]> #{assignDateTo}
+           AND SUBSTR(I1.ASN_DT,1,8) <![CDATA[<=]]> #{assignDateTo}
         </if>
         <if test='@MybatisUtils@isNotEmpty(vstCnfmdt)'>
            AND I1.VST_CNFMDT = #{vstCnfmdt}
@@ -210,22 +179,115 @@
     </select>
 
     <insert id="insertAssignResultTransferIz">
-        SELECT 1 FROM DUAL
+        INSERT INTO TB_SVPD_ASN_RS_TF_IZ
+             ( CST_SV_ASN_NO
+             , ASN_TF_DV_CD
+             , TF_SN
+             , TF_STAT_CD
+             , TF_RQDT
+             , TF_AK_RSON_CD
+             , TF_AK_PRTNR_OG_TP_CD
+             , TF_AK_PRTNR_NO
+             , TF_CNFMDT
+             , TF_CNFM_PRTNR_OG_TP_CD
+             , TF_CNFM_PRTNR_NO
+             , TF_AK_RMK_CN
+             , BFCH_ICHR_BRCH_OG_ID
+             , BFCH_MNGR_DV_CD
+             , BFCH_ICHR_PRTNR_OG_TP_CD
+             , BFCH_ICHR_PRTNR_NO
+             , AFCH_ICHR_BRCH_OG_ID
+             , AFCH_MNGR_DV_CD
+             , AFCH_ICHR_PRTNR_OG_TP_CD
+             , AFCH_ICHR_PRTNR_NO
+             , MNGER_RGLVL_DV_CD
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />)
+        VALUES
+             ( #{cstSvAsnNo}
+             , '111'
+             , (SELECT NVL((SELECT MAX(TF_SN) + 1
+                  FROM TB_SVPD_ASN_RS_TF_IZ
+                 WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
+               ), 1) FROM DUAL)
+             , ''
+             , TO_CHAR(sysdate, 'YYYYMMDD')
+             , '01'
+             , ''
+             , #{session.employeeIDNumber}
+             , TO_CHAR(sysdate, 'YYYYMMDD')
+             , #{session.ogTpCd}
+             , #{session.employeeIDNumber}
+             , ''
+             , #{afchBlgCdOrigin}
+             , '2'
+             , #{afchOgTpCdOrigin}
+             , #{afchEmpnoOrigin}
+             , #{afchBlgCd}
+             , '2'
+             , #{afchOgTpCd}
+             , #{afchEmpno}
+             , ''
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+             )
     </insert>
 
-    <select id="selectCntrNoByPdCd" resultType="String">
-        SELECT 1 FROM DUAL
+    <select id="selectFarmCodeCount" resultType="int">
+        SELECT COUNT(1)
+          FROM TB_PDBS_PD_ECOM_PRP_DTL
+         WHERE 1=1
+           AND PD_CD = #{basePdCd}
+           AND PD_PRP_VAL20 IN ('11','92')
+    </select>
+    <select id="selectAssignByPk" resultType="int">
+        SELECT COUNT(1)
+          FROM TB_SVPD_CST_SVAS_IST_OJ_IZ I1
+         INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ I2
+            ON I1.CST_SV_ASN_NO   = I2.CST_SV_ASN_NO
+           AND I2.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND I1.CNTR_NO         = #{cntrNo}
+           AND I2.WK_PRGS_STAT_CD = '00'
+           AND I1.CST_SV_ASN_NO   = #{cstSvAsnNo}
+           AND I2.ICHR_PRTNR_NO   != #{afchEmpno}
+           AND I1.DTA_DL_YN = 'N'
     </select>
 
-    <select id="selectAssignByCntrNo" resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncAsTransferDto$SearchRes">
-        SELECT 1 FROM DUAL
+    <select id="selectFarmShippings" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncAsTransferDvo">
+        SELECT A1.CNTR_NO
+             , A1.CNTR_SN
+             , A1.CST_SV_ASN_NO
+          FROM TB_SVPD_CST_SVAS_IST_OJ_IZ I1
+         INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ I2
+            ON I1.CST_SV_ASN_NO   = I2.CST_SV_ASN_NO
+           AND I2.DTA_DL_YN       = 'N'
+         WHERE 1=1
+           AND I1.CNTR_NO         = #{cntrNo}
+           AND I2.WK_PRGS_STAT_CD = '00'
+           AND I1.CST_SV_ASN_NO   = #{cstSvAsnNo}
+           AND I2.ICHR_PRTNR_NO   != #{afchEmpno}
+           AND I1.DTA_DL_YN       = 'N'
     </select>
 
     <update id="updateInstallationAssignIz">
-        SELECT 1 FROM DUAL
+        UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ
+           SET EGER_ASN_DT    = TO_CHAR(SYSDATE, 'YYYYMMDD')
+             , EGER_ASN_HH    = TO_CHAR(SYSDATE, 'HH24MISS')
+             , SV_CNR_OG_ID   = #{afchBlgCd}
+             , ICHR_OG_TP_CD  = #{afchOgTpCd}
+             , ICHR_PRTNR_NO  = #{afchEmpno}
+         WHERE 1=1
+           AND CST_SV_ASN_NO  = #{cstSvAsnNo}
     </update>
 
     <update id="updateSeedingShippingPlanIz">
-        SELECT 1 FROM DUAL
+        UPDATE TB_SVPD_SDING_SPP_PLAN_IZ
+           SET WK_PRTNR_NO = #{afchEmpno}
+         WHERE 1=1
+           AND SPP_ORD_NO  = #{sppOrdNo}
+           AND SPP_PLAN_SN = #{sppPlanSn}
+           AND CNTR_NO     = #{cntrNo}
+           AND CNTR_SN     = #{cntrSn}
     </update>
 </mapper>
