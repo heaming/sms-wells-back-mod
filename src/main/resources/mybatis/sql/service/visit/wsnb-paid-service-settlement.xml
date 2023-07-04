@@ -32,7 +32,7 @@
            AND CST_SV_ASN_NO = #{cstSvAsnNo} /* 고객서비스배정번호 */
     </update>
 
-    <insert id="insertSvCsDpIz">
+    <insert id="mergeSvCsDpIz">
         MERGE INTO TB_SVPD_SV_CS_DP_IZ T1 /* 서비스비용입금내역 */
         USING (SELECT #{cntrNo} AS CNTR_NO             /* 계약번호 */
                     , ${cntrSn} AS CNTR_SN             /* 계약일련번호 */
@@ -136,7 +136,7 @@
             <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
 
-    <insert id="insertSvCsCrdcdPcsIz">
+    <insert id="mergeSvCsCrdcdPcsIz">
         MERGE INTO TB_SVPD_SV_CS_CRDCD_PCS_IZ T1 /* 서비스비용신용카드처리내역 */
         USING (SELECT #{csBilNo} AS CS_BIL_NO              /* 비용청구번호 */
                     , NVL(TO_NUMBER(#{csBilSn}), NULL) AS CS_BIL_SN   /* 비용청구일련번호 */
@@ -213,7 +213,7 @@
             <include refid="COMMON.insertSystemFieldValue" /> )
     </insert>
 
-    <insert id="insertSvCsVacPcsIz">
+    <insert id="mergeSvCsVacPcsIz">
         MERGE INTO TB_SVPD_SV_CS_VAC_PCS_IZ T1 /* 서비스비용가상계좌처리내역 */
         USING (SELECT #{csBilNo} AS CS_BIL_NO                       /* 비용청구번호 */
                     , NVL(TO_NUMBER(#{csBilSn}), NULL) AS CS_BIL_SN /* 비용청구일련번호 */

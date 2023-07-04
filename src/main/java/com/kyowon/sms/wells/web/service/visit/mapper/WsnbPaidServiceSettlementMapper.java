@@ -21,10 +21,10 @@ public interface WsnbPaidServiceSettlementMapper {
 
     int updateSvCsBilIz(WsnbPaidServiceSettlementDvo dvo);
 
-    int insertSvCsDpIz(WsnbPaidServiceSettlementDvo dvo);
+    int mergeSvCsDpIz(WsnbPaidServiceSettlementDvo dvo);
 
-    int insertSvCsCrdcdPcsIz(WsnbPaidServiceSettlementDvo dvo);
+    int mergeSvCsCrdcdPcsIz(WsnbPaidServiceSettlementDvo dvo);
 
-    int insertSvCsVacPcsIz(WsnbPaidServiceSettlementDvo dvo);
+    int mergeSvCsVacPcsIz(WsnbPaidServiceSettlementDvo dvo);
 
 }

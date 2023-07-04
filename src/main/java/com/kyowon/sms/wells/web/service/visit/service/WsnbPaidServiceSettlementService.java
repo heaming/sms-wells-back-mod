@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbPaidServiceSettlementConverter;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbPaidServiceSettlementDto;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbPaidServiceSettlementDto.SaveCreditCardReq;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbPaidServiceSettlementDto.SaveReq;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbPaidServiceSettlementDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbPaidServiceSettlementMapper;
@@ -41,7 +40,7 @@ public class WsnbPaidServiceSettlementService {
         String reqPrgsStatCd = dto.reqPrgsStatCd(); // 요청진행상태코드
 
         if (REQ_PRGS_STAT_RECEIVE.equals(reqPrgsStatCd)) { // 1. 수납요청정보 생성
-            WsnbPaidServiceSettlementDvo costDepositDvo = converter.mapCostDepositReqToDvo(dto.costDeposit());
+            WsnbPaidServiceSettlementDvo costDepositDvo = converter.mapCostDepositToDvo(dto.costDeposit());
             costDepositDvo.setReqPrgsStatCd(reqPrgsStatCd); // 요청진행상태코드 set
             costDepositDvo.setRveAkNo(dto.rveAkNo()); // 수납요청번호 set
 
@@ -62,8 +61,8 @@ public class WsnbPaidServiceSettlementService {
             this.editAdpBilStatCd(costDepositDvo);
 
         } else if (Arrays.asList(REQ_PRGS_STAT_CRDCD_STLM, REQ_PRGS_STAT_CDCO_DP).contains(reqPrgsStatCd)) { // 2. "2" : 신용카드 계약 결제정보 or "3" : 신용카드 카드사 입금정보
-            WsnbPaidServiceSettlementDvo costDepositDvo = converter.mapCostDepositReqToDvo(dto.costDeposit());
-            WsnbPaidServiceSettlementDvo creditCardDvo = converter.mapCreditCardReqToDvo(dto.creditCard());
+            WsnbPaidServiceSettlementDvo costDepositDvo = converter.mapCostDepositToDvo(dto.costDeposit());
+            WsnbPaidServiceSettlementDvo creditCardDvo = converter.mapCreditCardToDvo(dto.creditCard());
             creditCardDvo.setReqPrgsStatCd(reqPrgsStatCd); // 요청진행상태코드 set
 
             this.saveSvCsDpIz(costDepositDvo); // 서비스비용입금내역 merge
@@ -83,8 +82,8 @@ public class WsnbPaidServiceSettlementService {
             }
 
         } else if (REQ_PRGS_STAT_VAC_DP.equals(reqPrgsStatCd)) { // 4. 가상계좌 입금정보 생성
-            WsnbPaidServiceSettlementDvo costDepositDvo = converter.mapCostDepositReqToDvo(dto.costDeposit());
-            WsnbPaidServiceSettlementDvo virtualAccountDvo = converter.mapVirtualAccountReqToDvo(dto.virtualAccount());
+            WsnbPaidServiceSettlementDvo costDepositDvo = converter.mapCostDepositToDvo(dto.costDeposit());
+            WsnbPaidServiceSettlementDvo virtualAccountDvo = converter.mapVirtualAccountToDvo(dto.virtualAccount());
             virtualAccountDvo.setReqPrgsStatCd(reqPrgsStatCd); // 요청진행상태코드 set
 
             this.saveSvCsDpIz(costDepositDvo); // 서비스비용입금내역 merge
@@ -100,7 +99,7 @@ public class WsnbPaidServiceSettlementService {
      * @param costDepositDvo
      */
     private void saveSvCsDpIz(WsnbPaidServiceSettlementDvo costDepositDvo) {
-        int queryFlag = mapper.insertSvCsDpIz(costDepositDvo);
+        int queryFlag = mapper.mergeSvCsDpIz(costDepositDvo);
         BizAssert.isTrue(queryFlag == 1, "MSG_ALT_TBL_SVE_ERR", new String[] {"TB_SVPD_SV_CS_DP_IZ"});
     }
 
@@ -108,9 +107,9 @@ public class WsnbPaidServiceSettlementService {
      * 서비스비용신용카드처리내역 merge
      * @param dto
      */
-    private void saveSvCsCrdcdPcsIz(SaveCreditCardReq dto) {
-        WsnbPaidServiceSettlementDvo creditCardDvo = converter.mapCreditCardReqToDvo(dto);
-        int queryFlag = mapper.insertSvCsCrdcdPcsIz(creditCardDvo);
+    private void saveSvCsCrdcdPcsIz(WsnbPaidServiceSettlementDto.CreditCard dto) {
+        WsnbPaidServiceSettlementDvo creditCardDvo = converter.mapCreditCardToDvo(dto);
+        int queryFlag = mapper.mergeSvCsCrdcdPcsIz(creditCardDvo);
         BizAssert.isTrue(queryFlag == 1, "MSG_ALT_TBL_SVE_ERR", new String[] {"TB_SVPD_SV_CS_CRDCD_PCS_IZ"});
     }
 
@@ -118,9 +117,9 @@ public class WsnbPaidServiceSettlementService {
      * 서비스비용가상계좌처리내역 merge
      * @param dto
      */
-    private void saveSvCsVacPcsIz(WsnbPaidServiceSettlementDto.SaveVirtualAccountReq dto) {
-        WsnbPaidServiceSettlementDvo virtualAccountDvo = converter.mapVirtualAccountReqToDvo(dto);
-        int queryFlag = mapper.insertSvCsVacPcsIz(virtualAccountDvo);
+    private void saveSvCsVacPcsIz(WsnbPaidServiceSettlementDto.VirtualAccount dto) {
+        WsnbPaidServiceSettlementDvo virtualAccountDvo = converter.mapVirtualAccountToDvo(dto);
+        int queryFlag = mapper.mergeSvCsVacPcsIz(virtualAccountDvo);
         BizAssert.isTrue(queryFlag == 1, "MSG_ALT_TBL_SVE_ERR", new String[] {"TB_SVPD_SV_CS_VAC_PCS_IZ"});
     }
 

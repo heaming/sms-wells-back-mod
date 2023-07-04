@@ -2,9 +2,9 @@ package com.kyowon.sms.wells.web.service.visit.converter;
 
 import org.mapstruct.Mapper;
 
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbPaidServiceSettlementDto.SaveCostDepositReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbPaidServiceSettlementDto.SaveCreditCardReq;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbPaidServiceSettlementDto.SaveVirtualAccountReq;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbPaidServiceSettlementDto.CostDeposit;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbPaidServiceSettlementDto.CreditCard;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbPaidServiceSettlementDto.VirtualAccount;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbPaidServiceSettlementDvo;
 
 /**
@@ -18,10 +18,10 @@ import com.kyowon.sms.wells.web.service.visit.dvo.WsnbPaidServiceSettlementDvo;
 @Mapper(componentModel = "spring")
 public interface WsnbPaidServiceSettlementConverter {
 
-    WsnbPaidServiceSettlementDvo mapCostDepositReqToDvo(SaveCostDepositReq dto);
+    WsnbPaidServiceSettlementDvo mapCostDepositToDvo(CostDeposit dto);
 
-    WsnbPaidServiceSettlementDvo mapCreditCardReqToDvo(SaveCreditCardReq dto);
+    WsnbPaidServiceSettlementDvo mapCreditCardToDvo(CreditCard dto);
 
-    WsnbPaidServiceSettlementDvo mapVirtualAccountReqToDvo(SaveVirtualAccountReq dto);
+    WsnbPaidServiceSettlementDvo mapVirtualAccountToDvo(VirtualAccount dto);
 
 }

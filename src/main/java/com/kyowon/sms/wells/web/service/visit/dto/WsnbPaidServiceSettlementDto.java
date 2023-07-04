@@ -16,21 +16,21 @@ import io.swagger.annotations.ApiModel;
  */
 public class WsnbPaidServiceSettlementDto {
 
-    @ApiModel(value = "WsnbPaidServiceSettlementDto-CreateReq")
+    @ApiModel(value = "WsnbPaidServiceSettlementDto-SaveReq")
     public record SaveReq(
         @NotBlank
         @Pattern(regexp = "^[1|2|3|4]$")
         String reqPrgsStatCd, // 요청진행상태코드
         String rveAkNo, // 수납요청번호
         @NotNull
-        SaveCostDepositReq costDeposit, // 서비스비용입금내역
-        SaveCreditCardReq creditCard, // 서비스비용신용카드처리내역
-        SaveVirtualAccountReq virtualAccount // 서비스비용가상계좌처리내역
+        CostDeposit costDeposit, // 서비스비용입금내역
+        CreditCard creditCard, // 서비스비용신용카드처리내역
+        VirtualAccount virtualAccount // 서비스비용가상계좌처리내역
     ) {}
 
     // 서비스비용입금내역 DTO
-    @ApiModel(value = "WsnbPaidServiceSettlementDto-SaveCostDepositReq")
-    public record SaveCostDepositReq(
+    @ApiModel(value = "WsnbPaidServiceSettlementDto-CostDeposit")
+    public record CostDeposit(
         @NotBlank
         String cntrNo, // 계약번호
         @NotBlank
@@ -61,8 +61,8 @@ public class WsnbPaidServiceSettlementDto {
     ) {}
 
     // 서비스비용신용카드처리내역 DTO
-    @ApiModel(value = "WsnbPaidServiceSettlementDto-SaveCreditCardReq")
-    public record SaveCreditCardReq(
+    @ApiModel(value = "WsnbPaidServiceSettlementDto-CreditCard")
+    public record CreditCard(
         @NotBlank
         String csBilNo, // 비용청구번호
         String csBilSn, // 비용청구일련번호
@@ -84,8 +84,8 @@ public class WsnbPaidServiceSettlementDto {
     ) {}
 
     // 서비스비용가상계좌처리내역 DTO
-    @ApiModel(value = "WsnbPaidServiceSettlementDto-SaveVirtualAccountReq")
-    public record SaveVirtualAccountReq(
+    @ApiModel(value = "WsnbPaidServiceSettlementDto-VirtualAccount")
+    public record VirtualAccount(
         @NotBlank
         String csBilNo, // 비용청구번호
         String csBilSn, // 비용청구일련번호
