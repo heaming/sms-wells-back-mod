@@ -62,9 +62,10 @@
         SELECT COUNT(*)
           FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
          WHERE 1 = 1
-           AND T1.ASN_PSIC_PRTNR_NO = #{prtnrNo}
            AND T1.ASN_OJ_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-           AND T1.ASN_PSIC_PRTNR_OG_TP_CD = #{ogTpCd}
+           AND (T1.ASN_PSIC_PRTNR_OG_TP_CD = #{ogTpCd} AND T1.ASN_PSIC_PRTNR_NO = #{prtnrNo}
+              OR (T1.CNFM_PSIC_PRTNR_OG_TP_CD = #{ogTpCd} AND T1.CNFM_PSIC_PRTNR_NO = #{prtnrNo}))
+           AND T1.VST_PRGS_STAT_CD <![CDATA[ <> ]]> '20'
 
      </select>
 
