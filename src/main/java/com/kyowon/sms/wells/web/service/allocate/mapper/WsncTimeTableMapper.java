@@ -18,59 +18,42 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface WsncTimeTableMapper {
 
-    /**
-     * 타임테이블 일정 조회
-     *
-     * @param req : 조회파라메터
-     * @return 조회결과
-     */
     List<WsncTimeTableDaysDvo> selectTimeTableDates(String baseYm);
 
     //WsncTimeTablePackageDvo selectPackage(String sidingCd, String baePdCd, String cntrNo);
-    Optional<WsncTimeTableCntrDvo> selectContract(String cntrNo, String cntrSn, String sellDate);
+    Optional<WsncTimeTableCntrDvo> selectContract(WsncTimeTableDvo dvo);
 
-    Optional<WsncTimeTableProductDvo> selectProduct(String basePdCd, String pdctPdCd);
+    Optional<WsncTimeTableProductDvo> selectProduct(WsncTimeTableDvo dvo);
 
-    //String selectOjPdCd(String saleCd);
-
-    //List<WsncTimeTableSidingDaysDvo> selectSidingDaysKiwim(String saleCd);
-
-    List<WsncTimeTableSidingDaysDvo> selectSidingDays(String saleCd);//getMojongDays
+    List<WsncTimeTableSidingDaysDvo> selectSidingDays(WsncTimeTableDvo dvo);//getMojongDays
 
     //List<WsncTimeTableMonthScheduleDvo> selectMonthSchedule(String prtnrNo);
 
-    List<WsncTimeTableDisableDaysDvo> selectDisableDays(WsncTimeTableParamDvo dvo);
+    List<WsncTimeTableDisableDaysDvo> selectDisableDays(WsncTimeTableDvo dvo);
 
-    List<WsncTimeTableSidingDaysDvo> selectSidingDaysForSpay(
-        String lcst09,
-        String sellDate,
-        String basePdCd,
-        String dataGb,
-        String lcpkag,
-        String cntrNo
-    );
+    List<WsncTimeTableSidingDaysDvo> selectSidingDaysForSpay(WsncTimeTableDvo dvo);
 
-    List<WsncTimeTableMonthScheduleDvo>selectMonthSchedule(String prtnrNo);
+    List<WsncTimeTableMonthScheduleDvo>selectMonthSchedule(WsncTimeTableDvo dvo);
 
-    String selectFnSvpdLocaraPrtnr01(String newAdrZip, String pdctPdCd, String svBizDclsfCd, String sellDate);
+    String selectFnSvpdLocaraPrtnr01(WsncTimeTableDvo dvo);
 
-    String selectFnSvpdLocaraPrtnrOwr01(String newAdrZip, String pdctPdCd, String svBizDclsfCd, String sellDate);
+    String selectFnSvpdLocaraPrtnrOwr01(WsncTimeTableDvo dvo);
 
-    String selectFnSvpdLocaraPrtnrBs01(
-        String newAdrZip, String pdctPdCd, String svBizDclsfCd, String sellDate, String vstGb
-    );
+    String selectFnSvpdLocaraPrtnrBs01(WsncTimeTableDvo dvo);
 
-    Optional<WsncTimeTableRpbLocaraPsicDvo> selectRpbLocaraPsic(WsncTimeTableParamDvo dvo);
+    Optional<WsncTimeTableRpbLocaraPsicDvo> selectRpbLocaraPsic(WsncTimeTableDvo dvo);
 
-    WsncTimeTablePsicDataDvo selectPsicData(WsncTimeTableRpbLocaraPsicDvo dvo);
+    WsncTimeTablePsicDvo selectPsic(WsncTimeTableRpbLocaraPsicDvo dvo);
 
-    List<WsncTimeTableAssignTimeDvo> selectAssignTime(WsncTimeTableRpbLocaraPsicDvo dvo);
+    List<WsncTimeTableAssignTimeDvo> selectAssignTimes(WsncTimeTableRpbLocaraPsicDvo dvo);
 
     String selectEmpTWrkCnt(WsncTimeTableRpbLocaraPsicDvo dvo);
+
     String selectDegWrkCnt(WsncTimeTableRpbLocaraPsicDvo dvo);
+
     String selectWkHhCd(WsncTimeTableRpbLocaraPsicDvo dvo);
 
-    List<String> selectOffDays(WsncTimeTableParamDvo dvo);
+    List<String> selectOffDays(WsncTimeTableDvo dvo);
 
-    String selectVstDvCd(String cstSvAsnNo);
+    String selectVstDvCd(WsncTimeTableDvo dvo);
 }

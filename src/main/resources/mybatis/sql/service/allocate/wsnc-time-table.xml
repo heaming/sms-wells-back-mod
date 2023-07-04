@@ -1149,7 +1149,7 @@
            </if>
     </select>
 
-    <select id="selectPsicData" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTablePsicDataDvo">
+    <select id="selectPsic" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTablePsicDvo">
         SELECT OG1.PRTNR_NO -- AS AC021_EMP_ID
              , 'http://kiwi-m.kyowon.co.kr/KIWI-M/upload_file/upload_file/' || OG1.PRTNR_NO || '.jpg' AS EMP_PIC
              , #{sellDate} AS SELL_DATE--AC221_CFRM_DT
@@ -1276,7 +1276,7 @@
            AND OG1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
     </select>
 
-    <select id="selectAssignTime" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableAssignTimeDvo">
+    <select id="selectAssignTimes" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableAssignTimeDvo">
         SELECT VST_DT /*방문일자*/
              , EMP_ID /*담당자*/
              , TM /*시간*/

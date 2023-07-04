@@ -1,8 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.converter;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSalesDto;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSchdChoDto;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableTimeChoDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto;
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import org.mapstruct.Mapper;
 
@@ -10,32 +8,34 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface WsncTimeTableConverter {
-    WsncTimeTableSalesDto.FindRes mapSalesDvoToRes(WsncTimeTableSalesDvo dvo);
+    WsncTimeTableDto.FindRes mapTimeAssignDvoToRes(WsncTimeTableDvo dvo);
 
-    WsncTimeTableTimeChoDto.FindRes mapTimeChoDvoToRes(WsncTimeTableTimeChoDvo dvo);
+    WsncTimeTableDto.FindRes mapTimeChoDvoToRes(WsncTimeTableDvo dvo);
 
-    WsncTimeTableSchdChoDto.FindRes mapSchdChoDvoToRes(WsncTimeTableSchdChoDvo dvo);
+    WsncTimeTableDto.FindRes mapSchdChoDvoToRes(WsncTimeTableDvo dvo);
 
-    WsncTimeTableParamDvo mapSalesParamReqToDvo(WsncTimeTableSalesDto.FindReq req);
+    WsncTimeTableDvo mapTimeAssignReqToParamDvo(WsncTimeTableDto.FindTimeAssignReq req);
 
-    WsncTimeTableParamDvo mapTimeChoParamReqToDvo(WsncTimeTableTimeChoDto.FindReq req);
+    WsncTimeTableDvo mapScheChoReqToDvo(WsncTimeTableDto.FindScheChoReq req);
 
-    List<WsncTimeTableSchdChoDto.TimeTableDays> mapDaysDvoToDto(List<WsncTimeTableDaysDvo> dvo);
+    WsncTimeTableDvo mapTimeChoReqToDvo(WsncTimeTableDto.FindTimeChoReq req);
 
-    List<WsncTimeTableSchdChoDto.SidingDays> mapSidingDaysDvoToDto(List<WsncTimeTableSidingDaysDvo> dvo);
+    List<WsncTimeTableDto.SidingDays> mapSidingDaysDvoToDto(List<WsncTimeTableSidingDaysDvo> dvo);
 
-    List<WsncTimeTableSchdChoDto.DisableDays> mapDisableDaysDvoToDto(List<WsncTimeTableDisableDaysDvo> dvo);
+    List<WsncTimeTableDto.DisableDays> mapDisableDaysDvoToDto(List<WsncTimeTableDisableDaysDvo> dvo);
 
-    List<WsncTimeTableSchdChoDto.MonthSchedule> mapMonthScheduleDvoToDto(List<WsncTimeTableMonthScheduleDvo> dvo);
+    List<WsncTimeTableDto.MonthSchedule> mapMonthScheduleDvoToDto(List<WsncTimeTableMonthScheduleDvo> dvo);
 
-    List<WsncTimeTableTimeChoDto.AssignTime> mapAssignTimeDvoToDto(List<WsncTimeTableAssignTimeDvo> dvo);
+    List<WsncTimeTableDto.AssignTime> mapAssignTimeDvoToDto(List<WsncTimeTableAssignTimeDvo> dvo);
 
-    WsncTimeTableSchdChoDto.SmPmNt mapSmPmNtDvoToSchDto(WsncTimeTableSmPmNtDvo dvo);
-    WsncTimeTableTimeChoDto.SmPmNt mapSmPmNtDvoToTimDto(WsncTimeTableSmPmNtDvo dvo);
+    WsncTimeTableDto.SmPmNt mapSmPmNtDvoToSchDto(WsncTimeTableSmPmNtDvo dvo);
 
-    WsncTimeTableSchdChoDto.PsicData mapSchdPsicsDvoToDto(WsncTimeTablePsicDataDvo dvo);
-    WsncTimeTableTimeChoDto.Psics mapTimePsicsDvoToDto(WsncTimeTablePsicDataDvo dvo);
+    WsncTimeTableDto.SmPmNt mapSmPmNtDvoToTimDto(WsncTimeTableSmPmNtDvo dvo);
+
+    WsncTimeTableDto.Psic mapPsicDvoToDto(WsncTimeTablePsicDvo dvo);
 
     WsncTimeTableSmPmNtDvo mapAssignTimeDvoToSmPmNtDvo(WsncTimeTableAssignTimeDvo dvo);
+
+    List<WsncTimeTableDto.Days> mapDaysDvoToDto(List<WsncTimeTableDaysDvo> dvos);
 
 }

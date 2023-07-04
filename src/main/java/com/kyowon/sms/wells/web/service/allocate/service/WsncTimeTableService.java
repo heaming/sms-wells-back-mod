@@ -1,25 +1,22 @@
 package com.kyowon.sms.wells.web.service.allocate.service;
 
-import java.text.ParseException;
-import java.util.List;
-
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableTimeChoDto;
-import com.kyowon.sms.wells.web.service.allocate.dvo.*;
-import com.sds.sflex.system.config.context.SFLEXContextHolder;
-import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
-
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncTimeTableConverter;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSchdChoDto;
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableSalesDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto;
+import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncTimeTableMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.exception.BizException;
+
+import java.text.ParseException;
+import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
 
 /**
  *
@@ -37,260 +34,195 @@ public class WsncTimeTableService {
 
     /**
      * 타임테이블 조회(판매)
+     * 타임테이블 조회(CC)
      *
-     * @programId W-SV-U-0062M01
+     * @programId W-SV-U-0062M01, W-MT-U-0188M01, W-MP-U-0188M01, W-SV-U-0034M01
      * @param req : 조회파라메터
      * @return 조회결과
      */
     /**
     * @see "timeAssign.do GET"
+    * @see "timeAssign_test.do"
+    *
     * */
-    public WsncTimeTableSalesDto.FindRes getTmeAssignSales(WsncTimeTableSalesDto.FindReq req)
+    public WsncTimeTableDto.FindRes getTmeAssign(WsncTimeTableDto.FindTimeAssignReq req)
         throws ParseException {
 
-        log.debug("----------------------------------- 타임테이블 조회(판매) -----------------------------------------");
-        WsncTimeTableSalesDvo result = new WsncTimeTableSalesDvo();
+        WsncTimeTableDvo dvo = converter.mapTimeAssignReqToParamDvo(req);
+        dvo.getSmTimes().clear();
+        dvo.getAmTimes().clear();
+        dvo.getPmTimes1().clear();
+        dvo.getPmTimes2().clear();
+        dvo.getNtTimes().clear();
 
-        WsncTimeTableRpbLocaraPsicDvo rpbLocaraPsicDvo = new WsncTimeTableRpbLocaraPsicDvo();
-        List<WsncTimeTableSidingDaysDvo> sidingDayDvos = null;
-        WsncTimeTablePsicDataDvo psicDataDvos = null;
-        List<WsncTimeTableAssignTimeDvo> assignTimeDvos = null;
+        WsncTimeTableRpbLocaraPsicDvo rpbLocaraPsic = null;
+        List<WsncTimeTableSidingDaysDvo> sidingDays = null;
+        WsncTimeTablePsicDvo psic = null;
+        List<WsncTimeTableAssignTimeDvo> assignTimes = null;
 
-        WsncTimeTableParamDvo paramDvo = converter.mapSalesParamReqToDvo(req);
+        // 00000001
+        dvo.setSeq(StringUtils.leftPad(StringUtil.nvl(req.seq(), "1"), 8, "0"));
+        String sellDate = StringUtil.isEmpty(dvo.getSellDate()) ? DateUtil.getNowDayString() : dvo.getSellDate();
 
-        String chnlDvCd = StringUtil.isEmpty(req.chnlDvCd()) ? "K" : req.chnlDvCd();
-        String cntrNo = req.cntrNo(); // W20222324935
-        String cntrSn = req.cntrSn(); // 1
-        String svDvCd = StringUtil.nvl(req.svDvCd(), ""); // dataGb
-        //wrkDt는 무조건 오늘 날자(홍세기 매니저님 전달)
-        String wrkDt = DateUtil.getNowDayString(); // req.wrkDt(); // P_WRK_DT
-        String mtrStatCd = req.mtrStatCd(); //DATA_STUS
-        String svBizDclsfCd = req.svBizDclsfCd(); // wrkTypDtl
-        //String userId = req.userId();
-        String returnUrl = req.returnUrl();
-
-        String newAdrZip = "";
-        String contDt = "";
-        String sellDate = StringUtil.isEmpty(req.sellDate()) ? DateUtil.getNowDayString() : req.sellDate();
-        String basePdCd = "";
-        String pdctPdCd = "";
-        String sidingYn = "N";
-        String spayYn = "N";
-
-        String sowDay = ""; // PAJONG_DAY
-        String sdingCombin = "";
-        String copnDvCd = ""; //법인격구분 1:개인, 2법인
-        String sellDscDbCd = "";
-        String time = "";
-
-        if (svDvCd.equals("4")) {
-            sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 1);
+        // CubicCC
+        if ("C".equals(dvo.getChnlDvCd()) && StringUtil.isEmpty(req.sellDate())) {
+            dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 1));
         }
 
-        if (svDvCd.equals("1") && (sellDate == null || sellDate.equals(wrkDt))) {
-            sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 5);
+        // 홈케어
+        if (dvo.getSvDvCd().equals("4")) {
+            dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 1));
+        }
+
+        // 설치 && (sellDate is null or selldate == wrkDt)
+        if (dvo.getSvDvCd().equals("1") && (StringUtil.isEmpty(sellDate)
+            || StringUtil.nvl(sellDate, "").equals(StringUtil.nvl(dvo.getWrkDt(), "")))) {
+            dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 5));
         }
 
         if (StringUtil.isEmpty(req.sellDate())) {
-            sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 5);
+            dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 5));
         }
 
-        WsncTimeTableCntrDvo contractDvo = mapper.selectContract(cntrNo, cntrSn, sellDate)
+        WsncTimeTableCntrDvo contractDvo = mapper.selectContract(dvo)
             .orElseThrow(() -> new BizException("MSG_ALT_NO_CONTRACT_FOUND"));
-        basePdCd = contractDvo.getBasePdCd();
-        pdctPdCd = contractDvo.getPdctPdCd();
-        newAdrZip = contractDvo.getNewAdrZip();
-        contDt = contractDvo.getCntrDt();
-        copnDvCd = contractDvo.getCopnDvCd();
-        sellDscDbCd = contractDvo.getSellDscDbCd();
-        sdingCombin = contractDvo.getSdingCombin(); // lcst09
-        String cstSvAsnNo = StringUtil.isNotEmpty(req.cstSvAsnNo()) ? req.cstSvAsnNo() : contractDvo.getCstSvAsnNo();
 
-        WsncTimeTableProductDvo productDvo = mapper.selectProduct(basePdCd, pdctPdCd)
+        dvo.setBasePdCd(contractDvo.getBasePdCd());
+        dvo.setPdctPdCd(contractDvo.getPdctPdCd());
+        dvo.setNewAdrZip(contractDvo.getNewAdrZip());
+        dvo.setContDt("C".equals(dvo.getChnlDvCd()) ? DateUtil.getNowDayString() : contractDvo.getCntrDt());
+        dvo.setCopnDvCd(contractDvo.getCopnDvCd());
+        dvo.setSellDscDbCd(contractDvo.getSellDscDbCd());
+        dvo.setSdingCombin(contractDvo.getSdingCombin()); // lcst0);
+        dvo.setCstSvAsnNo(
+            StringUtil.isNotEmpty(dvo.getCstSvAsnNo()) ? dvo.getCstSvAsnNo() : contractDvo.getCstSvAsnNo()
+        );
+
+        WsncTimeTableProductDvo productDvo = mapper.selectProduct(dvo)
             .orElseThrow(() -> new BizException("MSG_ALT_NO_PRODUCT_FOUND"));
-        sidingYn = productDvo.getSidingYn();
-        spayYn = "3".equals(productDvo.getRglrSppPrcDvCd()) ? "Y" : "N"; // 일시불여부
+        dvo.setSidingYn(productDvo.getSidingYn());
+        dvo.setSpayYn("3".equals(productDvo.getRglrSppPrcDvCd()) ? "Y" : "N"); // 일시불여부
         //------------------------------------------------------
 
         // 모종인지 확인
-        if ("Y".equals(sidingYn)) {
+        if ("Y".equals(dvo.getSidingYn())) {
 
             // 일시불여부
-            if ("Y".equals(spayYn)) {
+            if ("Y".equals(dvo.getSpayYn())) {
 
                 //------------------------------------------------------
                 // getMojongDays_ilsibul
-                sidingDayDvos = this.mapper
-                    .selectSidingDaysForSpay(sdingCombin, sellDate, basePdCd, svDvCd, pdctPdCd, cntrNo);
+                sidingDays = this.mapper.selectSidingDaysForSpay(dvo);
                 //------------------------------------------------------
 
                 boolean isAdd40Days = false;
 
-                for (WsncTimeTableSidingDaysDvo sidingDaysDvo : sidingDayDvos) {
-                    if (sidingDaysDvo.getAblDays().equals(DateUtil.formatDate(sellDate, "-"))) {
+                for (WsncTimeTableSidingDaysDvo sidingDay : sidingDays) {
+                    if (sidingDay.getAblDays().equals(DateUtil.formatDate(sellDate, "-"))) {
                         isAdd40Days = true;
-                        sowDay = sidingDaysDvo.getSowDay();
+                        dvo.setSowDay(sidingDay.getSowDay());
                         break;
                     }
                 }
 
                 if (!isAdd40Days) {
-                    sellDate = sidingDayDvos.get(0).getW3th();
-                    sowDay = sidingDayDvos.get(0).getSowDay();
+                    sellDate = sidingDays.get(0).getW3th();
+                    dvo.setSowDay(sidingDays.get(0).getSowDay());
                 }
                 // 일반모종 타임테이블
             } else {
                 //------------------------------------------------------
-                sidingDayDvos = mapper.selectSidingDays(basePdCd);
+                sidingDays = mapper.selectSidingDays(dvo);
                 //------------------------------------------------------
             }
 
         }
 
-        boolean isHcr = "Y".equals(productDvo.getHcrYn());
+        dvo.setHcr("Y".equals(productDvo.getHcrYn()));
 
         // Cubig CC 홈케어 조회용 타임테이블 http://ccwells.kyowon.co.kr/obm/obm0800/obm0800.jsp
         // KSS접수와 동일하게 하기위해 (백현아 K 요청)
         // Cubig CC DATA_GB 변경할수 없음.
         // 상품코드로 접수구분과 DATA_GB 변경
-        if (isHcr && chnlDvCd.equals("C") && svDvCd.equals("1")
-            && (StringUtil.isEmpty(returnUrl))) {
-            chnlDvCd = "W";
-            svDvCd = "4";
-            returnUrl = "http://ccwells.kyowon.co.kr/obm/obm0800/obm0800.jsp";
-        }
+        /*if (dvo.isHcr() && "C".equals(dvo.getChnlDvCd()) && "1".equals(dvo.getSvDvCd())
+            && (StringUtil.isEmpty(dvo.getReturnUrl()))) {
+            dvo.setChnlDvCd("W");
+            dvo.setSvDvCd("4");
+            dvo.setReturnUrl("http://ccwells.kyowon.co.kr/obm/obm0800/obm0800.jsp");
+        }*/
 
-        String prtnrNo01 = mapper.selectFnSvpdLocaraPrtnr01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate);
-        String prtnrNoBS01 = mapper.selectFnSvpdLocaraPrtnrBs01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate, "");
-        String prtnrNoOwr01 = mapper.selectFnSvpdLocaraPrtnrOwr01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate);
+        String prtnrNo01 = mapper.selectFnSvpdLocaraPrtnr01(dvo);
+        String prtnrNoBS01 = mapper.selectFnSvpdLocaraPrtnrBs01(dvo);
+        String prtnrNoOwr01 = mapper.selectFnSvpdLocaraPrtnrOwr01(dvo);
 
-        /*test*/
-        //prtnrNo01 = StringUtil.nvl(prtnrNo01, "621303");
-
-        paramDvo.setChnlDvCd(chnlDvCd);
-        paramDvo.setSellDate(sellDate);
-        paramDvo.setNewAdrZip(newAdrZip);
-        paramDvo.setSvDvCd(svDvCd);
-        paramDvo.setCntrNo(cntrNo);
-        paramDvo.setCntrSn(cntrSn);
-        paramDvo.setInflwChnl(paramDvo.getInflwChnl());
-        paramDvo.setSvBizDclsfCd(svBizDclsfCd);
-        paramDvo.setPdctPdCd(pdctPdCd);
-        paramDvo.setPrtnrNo01(prtnrNo01);
-        paramDvo.setPrtnrNoBS01(prtnrNoBS01);
-        paramDvo.setPrtnrNoOwr01(prtnrNoOwr01);
-        paramDvo.setHcrYn(productDvo.getHcrYn());
-        paramDvo.setExYn("");
-        paramDvo.setContDt(contDt);
-        paramDvo.setCopnDvCd(copnDvCd);
-        paramDvo.setSellDscDbCd(sellDscDbCd);
-        paramDvo.setBasePdCd(basePdCd);
-        paramDvo.setCstSvAsnNo(cstSvAsnNo);
+        dvo.setPrtnrNo01(prtnrNo01);
+        dvo.setPrtnrNoBS01(prtnrNoBS01);
+        dvo.setPrtnrNoOwr01(prtnrNoOwr01);
+        dvo.setHcrYn(productDvo.getHcrYn());
+        dvo.setExYn("C".equals(dvo.getChnlDvCd()) ? "Y" : "");
 
         //-----------------------------------------------------------------------------------------
 
         // 책임지역 담당자 찾기 selectTimeAssign_v2_step1
-        rpbLocaraPsicDvo = mapper.selectRpbLocaraPsic(paramDvo)
+        rpbLocaraPsic = mapper.selectRpbLocaraPsic(dvo)
             .orElseThrow(() -> new BizException("MSG_ALT_NO_PSIC_FOUND"));
+
         // step1_with
-        paramDvo.setPrtnrNo(rpbLocaraPsicDvo.getIchrPrtnrNo());
-        paramDvo.setLocalGb(rpbLocaraPsicDvo.getRpbLocaraCd());
-        paramDvo.setVstDowValCd(rpbLocaraPsicDvo.getVstDowValCd());
-        paramDvo.setOgTpCd(rpbLocaraPsicDvo.getOgTpCd());
+        dvo.setPrtnrNo(rpbLocaraPsic.getIchrPrtnrNo());
+        dvo.setLocalGb(rpbLocaraPsic.getRpbLocaraCd());
+        dvo.setVstDowValCd(rpbLocaraPsic.getVstDowValCd());
+        dvo.setOgTpCd(rpbLocaraPsic.getOgTpCd());
 
         // 담당자 정보 표시 selectTimeAssign_v2_step2
-        psicDataDvos = mapper.selectPsicData(rpbLocaraPsicDvo); // left_info
+        psic = mapper.selectPsic(rpbLocaraPsic); // left_info
 
         // 시간표시 selectTimeAssign_v2_step3
-        rpbLocaraPsicDvo.setEmpTWrkCnt(mapper.selectEmpTWrkCnt(rpbLocaraPsicDvo));
-        rpbLocaraPsicDvo.setDegWrkCnt(mapper.selectDegWrkCnt(rpbLocaraPsicDvo));
-        rpbLocaraPsicDvo.setWkHhCd(mapper.selectWkHhCd(rpbLocaraPsicDvo));
-        assignTimeDvos = mapper.selectAssignTime(rpbLocaraPsicDvo); // list1
+        rpbLocaraPsic.setEmpTWrkCnt(mapper.selectEmpTWrkCnt(rpbLocaraPsic));
+        rpbLocaraPsic.setDegWrkCnt(mapper.selectDegWrkCnt(rpbLocaraPsic));
+        rpbLocaraPsic.setWkHhCd(mapper.selectWkHhCd(rpbLocaraPsic));
+        assignTimes = mapper.selectAssignTimes(rpbLocaraPsic); // list1
 
-        List<WsncTimeTableDisableDaysDvo> disableDayDvos = mapper.selectDisableDays(paramDvo);
-        List<String> offDays = mapper.selectOffDays(paramDvo);
-
-        //---------------------------------------------------------//
-        result.setBaseYm(req.baseYm());
-
-        List<WsncTimeTableDaysDvo> days = mapper.selectTimeTableDates(req.baseYm());
-        result.setDays(days);
-
-        result.getSmTimes().clear();
-        result.getAmTimes().clear();
-        result.getPmTimes1().clear();
-        result.getPmTimes2().clear();
-        result.getNtTimes().clear();
-
-        //result.setAssignTimeDvos(assignTimeDvos); // list1 = assignTimeDvos
-        result.setPsics(converter.mapSchdPsicsDvoToDto(psicDataDvos)); // left_info = psics
-        result.setSidingDays(converter.mapSidingDaysDvoToDto(sidingDayDvos)); // list2 = sidingDays
-        result.setOffDays(offDays); // offdays = offDays
-        result.setDisableDays(converter.mapDisableDaysDvoToDto(disableDayDvos)); // diabledays = disableDays
-
-        result.setSvDvCd(svDvCd);
-        result.setNewAdrZip(newAdrZip);
-        result.setCurDateTimeString(DateUtil.getNowDayString());
-        result.setSellDate(sellDate);
-        result.setChnlDvCd(chnlDvCd);
-        result.setCntrNo(cntrNo);
-        result.setCntrSn(cntrSn);
-        result.setInflwChnl(paramDvo.getInflwChnl());//bypass
-        result.setWrkDt(wrkDt);
-        result.setDataStatCd(mtrStatCd);
-        result.setSvBizDclsfCd(svBizDclsfCd);
-        result.setBasePdCd(basePdCd);
-        result.setSowDay(sowDay);//pajong_day
-        result.setSdingCombin(sdingCombin);
-        result.setReturnUrl(returnUrl);
-        result.setMkCo(paramDvo.getMkCo());//bypass
-        result.setPrtnrNo(paramDvo.getPrtnrNo());
-        result.setOgTpCd(paramDvo.getOgTpCd());
-
-        result.setSidingYn(sidingYn); // 모종여부
-        result.setSpayYn(spayYn); // 일시불여부
-
-        // 00000001
-        result.setSeq(StringUtils.leftPad(StringUtil.nvl(req.seq(), "1"), 8, "0"));
-        result.setCstSvAsnNo(StringUtil.nvl(req.cstSvAsnNo(), ""));
-
+        dvo.setDays(converter.mapDaysDvoToDto(mapper.selectTimeTableDates(req.baseYm())));
+        dvo.setPsic(converter.mapPsicDvoToDto(psic)); // left_info = psics
+        dvo.setSidingDays(converter.mapSidingDaysDvoToDto(sidingDays)); // list2 = sidingDays
+        dvo.setOffDays(mapper.selectOffDays(dvo)); // offdays = offDays
+        dvo.setDisableDays(converter.mapDisableDaysDvoToDto(mapper.selectDisableDays(dvo))); // diabledays = disableDays
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
-        result.setUserId(session.getEmployeeIDNumber());
-        result.setRcpOgTpCd(session.getOgTpCd());
+        dvo.setUserId(session.getEmployeeIDNumber());
+        dvo.setRcpOgTpCd(session.getOgTpCd());
 
-        for (WsncTimeTableAssignTimeDvo assignTime : assignTimeDvos) {
+        String time = null;
+        for (WsncTimeTableAssignTimeDvo assignTime : assignTimes) {
 
             WsncTimeTableSmPmNtDvo smPmNtDvo = converter.mapAssignTimeDvoToSmPmNtDvo(assignTime);
             time = assignTime.getTm();
             smPmNtDvo.setTime(time.substring(0, 2) + ":" + time.substring(2, 4));
 
-            if (Integer.valueOf(time) >= 10000 && Integer.valueOf(time) < 50000) {
-                result.getSmTimes().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
-            } else if (Integer.valueOf(time) > 80000 && Integer.valueOf(time) < 140000) {
-                result.getAmTimes().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
-            } else if (Integer.valueOf(time) >= 140000 && Integer.valueOf(time) < 180000) {
-                result.getPmTimes1().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
-            } else if (Integer.valueOf(time) >= 180000 && Integer.valueOf(time) < 200000) {
-                result.getPmTimes2().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
+            if (Integer.parseInt(time) >= 10000 && Integer.parseInt(time) < 50000) {
+                dvo.getSmTimes().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
+            } else if (Integer.parseInt(time) > 80000 && Integer.parseInt(time) < 140000) {
+                dvo.getAmTimes().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
+            } else if (Integer.parseInt(time) >= 140000 && Integer.parseInt(time) < 180000) {
+                dvo.getPmTimes1().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
+            } else if (Integer.parseInt(time) >= 180000 && Integer.parseInt(time) < 200000) {
+                dvo.getPmTimes2().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
             } else
-                result.getNtTimes().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
+                dvo.getNtTimes().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
         }
 
-        return converter.mapSalesDvoToRes(result);
+        return converter.mapTimeAssignDvoToRes(dvo);
     }
 
     /**
     * @see "nosession_timeAssign.do"
     * */
-    protected WsncTimeTableSalesDvo noSessionTimeAssign() {
-        return null;
-    }
+    protected void noSessionTimeAssign() {}
 
     /**
     * @see "timeAssign.do > getTimeAssign_post_v2"
     * */
-    protected WsncTimeTableSalesDvo timeAssignWellsKmembers() {
-        return null;
+    protected void timeAssignWellsKmembers() {
+
     }
 
     /**
@@ -300,9 +232,14 @@ public class WsncTimeTableService {
     * @see "nosession_mng_as_month.do"
     *
     * */
-    public WsncTimeTableSchdChoDto.FindRes getSchdCho(WsncTimeTableSchdChoDto.FindReq req) {
+    public WsncTimeTableDto.FindRes getScheduleChoice(WsncTimeTableDto.FindScheChoReq req) {
 
-        WsncTimeTableSchdChoDvo result = new WsncTimeTableSchdChoDvo();
+        WsncTimeTableDvo dvo = converter.mapScheChoReqToDvo(req);
+        dvo.getSmTimes().clear();
+        dvo.getAmTimes().clear();
+        dvo.getPmTimes1().clear();
+        dvo.getPmTimes2().clear();
+        dvo.getNtTimes().clear();
         // -------------------------------------------------
         // 고객검색-> 신규AS등록 -> 방문일자 선택
         // ## getMonthAsSchedule ##
@@ -318,134 +255,71 @@ public class WsncTimeTableService {
         // ORD_SEQ     = null
         // -------------------------------------------------
 
-        String cntrNo = req.cntrNo();
-        String cntrSn = req.cntrSn();
-        String chnlDvCd = req.chnlDvCd();
-        String sellDate = StringUtil.nvl(req.sellDate(), DateUtil.getNowDayString());
-        String svDvCd = "M".equals(chnlDvCd) /*매니저*/ ? "3" /*A/S*/ : StringUtil.nvl(req.svDvCd(), "");
-        String svBizDclsfCd = req.svBizDclsfCd(); // 3110
-
-        String prtnrNo = req.prtnrNo(); // 1251831
-        //
-        WsncTimeTableCntrDvo contractDvo = mapper.selectContract(cntrNo, cntrSn, sellDate)
+        dvo.setSellDate(StringUtil.nvl(req.sellDate(), DateUtil.getNowDayString()));
+        dvo.setSvDvCd("M".equals(dvo.getChnlDvCd()) /*매니저*/ ? "3" /*A/S*/ : StringUtil.nvl(dvo.getSvDvCd(), ""));
+        WsncTimeTableCntrDvo contractDvo = mapper.selectContract(dvo)
             .orElseThrow(() -> new BizException("MSG_ALT_NO_CONTRACT_FOUND"));
-        String basePdCd = contractDvo.getBasePdCd();
-        String pdctPdCd = contractDvo.getPdctPdCd();
-        String newAdrZip = StringUtil.nvl(req.newAdrZip(), contractDvo.getNewAdrZip());
-        String rpbLocaraCd = "";
+        dvo.setBasePdCd(contractDvo.getBasePdCd());
+        dvo.setPdctPdCd(contractDvo.getPdctPdCd());
+        dvo.setNewAdrZip(StringUtil.nvl(req.newAdrZip(), contractDvo.getNewAdrZip()));
+        dvo.setRpbLocaraCd("");
 
-        WsncTimeTableProductDvo productDvo = mapper.selectProduct(basePdCd, pdctPdCd)
+        WsncTimeTableProductDvo productDvo = mapper.selectProduct(dvo)
             .orElseThrow(() -> new BizException("MSG_ALT_NO_PRODUCT_FOUND"));
-        String sidingYn = productDvo.getSidingYn();
-        //
-        String empId = "";
-        if ("3".equals(svDvCd)) {
-            empId = mapper.selectFnSvpdLocaraPrtnr01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate);
-        } else {
-            empId = prtnrNo;
-        }
+        dvo.setSidingYn(productDvo.getSidingYn());
+
+        dvo.setEmpId("3".equals(dvo.getSvDvCd()) ? mapper.selectFnSvpdLocaraPrtnr01(dvo) : dvo.getPrtnrNo());
 
         // 모종인지 확인
-        if ("Y".equals(sidingYn)) {
-            result.setSidingDay(
+        if ("Y".equals(dvo.getSidingYn())) {
+            dvo.setSidingDays(
                 converter.mapSidingDaysDvoToDto(
                     this.mapper
-                        .selectSidingDaysForSpay(
-                            contractDvo.getSdingCombin(), sellDate, basePdCd, svDvCd, pdctPdCd, cntrNo
-                        )
+                        .selectSidingDaysForSpay(dvo)
                 )
             );
-            result.setMonthSchedule(converter.mapMonthScheduleDvoToDto(mapper.selectMonthSchedule(empId)));
+            dvo.setMonthSchedules(converter.mapMonthScheduleDvoToDto(mapper.selectMonthSchedule(dvo)));
         }
 
-        WsncTimeTableParamDvo paramDvo = new WsncTimeTableParamDvo();
-        paramDvo.setChnlDvCd(chnlDvCd);
-        paramDvo.setNewAdrZip(newAdrZip);
-        paramDvo.setBasePdCd(basePdCd);
-        paramDvo.setPrtnrNo(empId);
-        paramDvo.setSvDvCd(svDvCd);
-        paramDvo.setLocalGb(rpbLocaraCd);
-        List<WsncTimeTableDisableDaysDvo> disableDayDvos = mapper.selectDisableDays(paramDvo);
-        result.setDisableDays(converter.mapDisableDaysDvoToDto(disableDayDvos));
+        List<WsncTimeTableDisableDaysDvo> disableDayDvos = mapper.selectDisableDays(dvo);
+        dvo.setDisableDays(converter.mapDisableDaysDvoToDto(disableDayDvos));
+        dvo.setDays(converter.mapDaysDvoToDto(mapper.selectTimeTableDates(req.baseYm())));
 
-        //        List<WsncTimeTableDaysDvo> days = mapper.selectTimeTableDates(req.baseYm());
-        List<WsncTimeTableDaysDvo> days = mapper.selectTimeTableDates(req.baseYm());
-        result.setDays(converter.mapDaysDvoToDto(days));
-
-        result.setNewAdrZip(newAdrZip);
-        result.setSvBizDclsfCd(svBizDclsfCd);
-        result.setChnlDvCd(chnlDvCd);
-        result.setSvDvCd(svDvCd);
-        result.setCntrNo(cntrNo);
-        result.setCntrSn(cntrSn);
-        result.setSellDate(sellDate);
-        result.setOrdDt(req.ordDt());
-        result.setOrdSeq(req.ordSeq());
-        result.setEmpId(empId);
-        result.setBasePdCd(basePdCd);
-        result.setSidingYn(sidingYn);
-        return converter.mapSchdChoDvoToRes(result);
+        return converter.mapSchdChoDvoToRes(dvo);
     }
 
     /**
     * @see "nosession_as_timeAssign.do"
     * */
-    public WsncTimeTableTimeChoDto.FindRes getTimeCho(WsncTimeTableTimeChoDto.FindReq req) {
+    public WsncTimeTableDto.FindRes getTimeChoice(WsncTimeTableDto.FindTimeChoReq req) {
 
-        String cntrNo = req.cntrNo();
-        String cntrSn = req.cntrSn();
-        String chnlDvCd = req.chnlDvCd();
-        String sellDate = StringUtil.nvl(req.sellDate(), DateUtil.getNowDayString());
-        String svDvCd = "M".equals(chnlDvCd) /*매니저*/ ? "3" /*A/S*/ : StringUtil.nvl(req.svDvCd(), "");
-        String svBizDclsfCd = req.svBizDclsfCd(); // 3110
-        String pdctPdCd = req.pdctPdCd();
-        String basePdCd = req.basePdCd();
-        String hcrYn = req.hcrYn(); // add_gb
-        String newAdrZip = req.newAdrZip();
-        String prtnrNo01 = mapper.selectFnSvpdLocaraPrtnr01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate);
-        String prtnrNoBS01 = mapper.selectFnSvpdLocaraPrtnrBs01(
-            newAdrZip, pdctPdCd, svBizDclsfCd, sellDate, mapper.selectVstDvCd(req.cstSvAsnNo())
-        );
-        String prtnrNoOwr01 = mapper.selectFnSvpdLocaraPrtnrOwr01(newAdrZip, pdctPdCd, svBizDclsfCd, sellDate);
-        String cstSvAsnNo = req.cstSvAsnNo();
+        WsncTimeTableDvo dvo = converter.mapTimeChoReqToDvo(req);
 
-        WsncTimeTableParamDvo paramDvo = converter.mapTimeChoParamReqToDvo(req);
-        paramDvo.setChnlDvCd(chnlDvCd);
-        paramDvo.setSellDate(sellDate);
-        paramDvo.setNewAdrZip(newAdrZip);
-        paramDvo.setSvDvCd(svDvCd);
-        paramDvo.setCntrNo(cntrNo);
-        paramDvo.setCntrSn(cntrSn);
-        paramDvo.setInflwChnl(paramDvo.getInflwChnl());
-        paramDvo.setSvBizDclsfCd(svBizDclsfCd);
-        paramDvo.setPdctPdCd(pdctPdCd);
-        paramDvo.setPrtnrNo01(prtnrNo01);
-        paramDvo.setPrtnrNoBS01(prtnrNoBS01);
-        paramDvo.setPrtnrNoOwr01(prtnrNoOwr01);
-        paramDvo.setHcrYn(hcrYn);
-        paramDvo.setBasePdCd(basePdCd);
-        paramDvo.setCstSvAsnNo(cstSvAsnNo);
+        dvo.setSellDate(StringUtil.nvl(dvo.getSellDate(), DateUtil.getNowDayString()));
+        dvo.setSvDvCd("M".equals(dvo.getChnlDvCd()) /*매니저*/ ? "3" /*A/S*/ : StringUtil.nvl(dvo.getSvDvCd(), ""));
 
-        WsncTimeTableRpbLocaraPsicDvo rpbLocaraPsicDvo = mapper.selectRpbLocaraPsic(paramDvo)
+        dvo.setPrtnrNo01(mapper.selectFnSvpdLocaraPrtnr01(dvo));
+        dvo.setPrtnrNoBS01(mapper.selectFnSvpdLocaraPrtnrBs01(dvo));
+        dvo.setPrtnrNoOwr01(mapper.selectFnSvpdLocaraPrtnrOwr01(dvo));
+
+        WsncTimeTableRpbLocaraPsicDvo rpbLocaraPsic = mapper.selectRpbLocaraPsic(dvo)
             .orElseThrow(() -> new BizException("MSG_ALT_NO_PSIC_FOUND"));
-        paramDvo.setPrtnrNo(rpbLocaraPsicDvo.getIchrPrtnrNo());
-        paramDvo.setLocalGb(rpbLocaraPsicDvo.getRpbLocaraCd());
-        paramDvo.setVstDowValCd(rpbLocaraPsicDvo.getVstDowValCd());
-        paramDvo.setOgTpCd(rpbLocaraPsicDvo.getOgTpCd());
+        dvo.setPrtnrNo(rpbLocaraPsic.getIchrPrtnrNo());
+        dvo.setLocalGb(rpbLocaraPsic.getRpbLocaraCd());
+        dvo.setVstDowValCd(rpbLocaraPsic.getVstDowValCd());
+        dvo.setOgTpCd(rpbLocaraPsic.getOgTpCd());
 
         // 담당자 정보 표시 selectTimeAssign_v2_step2
-        WsncTimeTablePsicDataDvo psicDataDvos = mapper.selectPsicData(rpbLocaraPsicDvo); // left_info
+        WsncTimeTablePsicDvo psic = mapper.selectPsic(rpbLocaraPsic); // left_info
 
         // 시간표시 selectTimeAssign_v2_step3
-        rpbLocaraPsicDvo.setEmpTWrkCnt(mapper.selectEmpTWrkCnt(rpbLocaraPsicDvo));
-        rpbLocaraPsicDvo.setDegWrkCnt(mapper.selectDegWrkCnt(rpbLocaraPsicDvo));
-        rpbLocaraPsicDvo.setWkHhCd(mapper.selectWkHhCd(rpbLocaraPsicDvo));
-        List<WsncTimeTableAssignTimeDvo> assignTimeDvos = mapper.selectAssignTime(rpbLocaraPsicDvo); // list1
-
-        WsncTimeTableTimeChoDvo result = new WsncTimeTableTimeChoDvo();
+        rpbLocaraPsic.setEmpTWrkCnt(mapper.selectEmpTWrkCnt(rpbLocaraPsic));
+        rpbLocaraPsic.setDegWrkCnt(mapper.selectDegWrkCnt(rpbLocaraPsic));
+        rpbLocaraPsic.setWkHhCd(mapper.selectWkHhCd(rpbLocaraPsic));
+        List<WsncTimeTableAssignTimeDvo> assignTimes = mapper.selectAssignTimes(rpbLocaraPsic); // list1
 
         String time = "";
-        for (WsncTimeTableAssignTimeDvo assignTime : assignTimeDvos) {
+        for (WsncTimeTableAssignTimeDvo assignTime : assignTimes) {
 
             WsncTimeTableSmPmNtDvo smPmNtDvo = converter.mapAssignTimeDvoToSmPmNtDvo(assignTime);
             time = assignTime.getTm();
@@ -453,26 +327,29 @@ public class WsncTimeTableService {
             smPmNtDvo.setTime(time.substring(0, 2) + ":" + time.substring(2, 4));
 
             if (Integer.valueOf(time) >= 10000 && Integer.valueOf(time) < 50000) {
-                result.getSmTimes().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
+                dvo.getSmTimes().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
             } else if (Integer.valueOf(time) > 80000 && Integer.valueOf(time) < 140000) {
-                result.getAmTimes().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
+                dvo.getAmTimes().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
             } else if (Integer.valueOf(time) >= 140000 && Integer.valueOf(time) < 180000) {
-                result.getPmTimes1().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
+                dvo.getPmTimes1().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
             } else if (Integer.valueOf(time) >= 180000 && Integer.valueOf(time) <= 190000) {
-                result.getPmTimes2().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
+                dvo.getPmTimes2().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
             } else
-                result.getNtTimes().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
+                dvo.getNtTimes().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
         }
 
-        result.setAssignTimes(converter.mapAssignTimeDvoToDto(assignTimeDvos));
-        result.setPsics(converter.mapTimePsicsDvoToDto(psicDataDvos));
-        return converter.mapTimeChoDvoToRes(result);
+        dvo.setAssignTimes(converter.mapAssignTimeDvoToDto(assignTimes));
+        dvo.setPsic(converter.mapPsicDvoToDto(psic));
+
+        log.debug("[KDY]" + dvo.getPsic().vstPos());
+
+        return converter.mapTimeChoDvoToRes(dvo);
     }
 
     /**
     * @see "nosession_bsnext_timeAssign"
     * */
-    protected WsncTimeTableSalesDvo noSessionBsTimeAssign() {
-        return null;
+    protected void noSessionBsTimeAssign() {
+
     }
 }
