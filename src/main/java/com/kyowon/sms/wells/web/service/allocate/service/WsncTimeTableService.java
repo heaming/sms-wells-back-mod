@@ -51,18 +51,20 @@ public class WsncTimeTableService {
                 case "W":
                 case "C":
                     sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 1);
+                    break;
                 default:
                     sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 5);
+                    break;
             }
         }
 
         // 홈케어
-        if (dvo.getSvDvCd().equals("4")) {
+        if ("4".equals(dvo.getSvDvCd())) {
             sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 1);
         }
 
         // 설치 && (sellDate is null or selldate == wrkDt)
-        if (dvo.getSvDvCd().equals("1") && (StringUtil.isEmpty(dvo.getSellDate())
+        if ("1".equals(dvo.getSvDvCd()) && (StringUtil.isEmpty(dvo.getSellDate())
             || StringUtil.nvl(dvo.getSellDate(), "").equals(StringUtil.nvl(dvo.getWrkDt(), "")))) {
             sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 5);
         }
@@ -78,7 +80,7 @@ public class WsncTimeTableService {
         dvo.setContDt("C".equals(dvo.getChnlDvCd()) ? DateUtil.getNowDayString() : contractDvo.getCntrDt());
         dvo.setCopnDvCd(contractDvo.getCopnDvCd());
         dvo.setSellDscDbCd(contractDvo.getSellDscDbCd());
-        dvo.setSdingCombin(contractDvo.getSdingCombin()); // lcst0);
+        dvo.setSdingCombin(contractDvo.getSdingCombin()); // lcst09;
         dvo.setCstSvAsnNo(
             StringUtil.isNotEmpty(dvo.getCstSvAsnNo()) ? dvo.getCstSvAsnNo() : contractDvo.getCstSvAsnNo()
         );
@@ -114,8 +116,8 @@ public class WsncTimeTableService {
                     sellDate = sidingDays.get(0).getW3th();
                     dvo.setSowDay(sidingDays.get(0).getSowDay());
                 }
-                // 일반모종 타임테이블
             } else {
+                // 일반모종 타임테이블
                 //------------------------------------------------------
                 sidingDays = mapper.selectSidingDays(dvo);
                 //------------------------------------------------------
@@ -124,19 +126,7 @@ public class WsncTimeTableService {
         }
 
         dvo.setSellDate(sellDate);
-
         dvo.setHcr("Y".equals(productDvo.getHcrYn()));
-
-        // Cubig CC 홈케어 조회용 타임테이블 http://ccwells.kyowon.co.kr/obm/obm0800/obm0800.jsp
-        // KSS접수와 동일하게 하기위해 (백현아 K 요청)
-        // Cubig CC DATA_GB 변경할수 없음.
-        // 상품코드로 접수구분과 DATA_GB 변경
-        /*if (dvo.isHcr() && "C".equals(dvo.getChnlDvCd()) && "1".equals(dvo.getSvDvCd())
-            && (StringUtil.isEmpty(dvo.getReturnUrl()))) {
-            dvo.setChnlDvCd("W");
-            dvo.setSvDvCd("4");
-            dvo.setReturnUrl("http://ccwells.kyowon.co.kr/obm/obm0800/obm0800.jsp");
-        }*/
 
         String prtnrNo01 = mapper.selectFnSvpdLocaraPrtnr01(dvo);
         String prtnrNoBS01 = mapper.selectFnSvpdLocaraPrtnrBs01(dvo);
@@ -147,8 +137,6 @@ public class WsncTimeTableService {
         dvo.setPrtnrNoOwr01(prtnrNoOwr01);
         dvo.setHcrYn(productDvo.getHcrYn());
         dvo.setExYn("C".equals(dvo.getChnlDvCd()) ? "Y" : "");
-
-        //-----------------------------------------------------------------------------------------
 
         // 책임지역 담당자 찾기 selectTimeAssign_v2_step1
         rpbLocaraPsic = mapper.selectRpbLocaraPsic(dvo)
@@ -212,20 +200,6 @@ public class WsncTimeTableService {
         dvo.getPmTimes1().clear();
         dvo.getPmTimes2().clear();
         dvo.getNtTimes().clear();
-        // -------------------------------------------------
-        // 고객검색-> 신규AS등록 -> 방문일자 선택
-        // ## getMonthAsSchedule ##
-        // ZIPNO1      = 449
-        // ZIPNO2      = 64
-        // GB_CD       = M
-        // SEL_DATE    = 20230512
-        // SALE_CD     = 4770
-        // EMP_ID      = 1251831 -> 로그인한 사용자
-        // DATA_GB     = 3
-        // WRK_TYP_DTL = 3110
-        // ORD_DT      = null
-        // ORD_SEQ     = null
-        // -------------------------------------------------
 
         dvo.setSellDate(StringUtil.nvl(req.sellDate(), DateUtil.getNowDayString()));
         dvo.setSvDvCd("M".equals(dvo.getChnlDvCd()) /*매니저*/ ? "3" /*A/S*/ : StringUtil.nvl(dvo.getSvDvCd(), ""));
@@ -244,12 +218,7 @@ public class WsncTimeTableService {
 
         // 모종인지 확인
         if ("Y".equals(dvo.getSidingYn())) {
-            dvo.setSidingDays(
-                converter.mapSidingDaysDvoToDto(
-                    this.mapper
-                        .selectSidingDaysForSpay(dvo)
-                )
-            );
+            dvo.setSidingDays(converter.mapSidingDaysDvoToDto(this.mapper.selectSidingDaysForSpay(dvo)));
             dvo.setMonthSchedules(converter.mapMonthScheduleDvoToDto(mapper.selectMonthSchedule(dvo)));
         }
 

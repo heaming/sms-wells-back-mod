@@ -94,7 +94,6 @@
              , F_CMZ_CD_NM('TNT_WELLS', 'RGLR_SPP_PRC_DV_CD', P4.PD_PRP_VAL13) AS RGLR_SPP_PRC_DV_NM
              , P5.PD_PRP_VAL20 AS PDCT_PD_GRP_CD -- 상품그룹코드(PD_GRP_CD)
              , F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', P5.PD_PRP_VAL20) AS PDCT_PD_GRP_NM
-             --, CASE WHEN P5.PD_PRP_VAL20 IN ('11', '92') THEN 'Y' ELSE 'N' END SDING_YN -- 모종 여부
              , CASE WHEN P5.PD_PRP_VAL20 = '11' OR (#{svDvCd} != '3' AND P5.PD_PRP_VAL20 = '92') THEN 'Y' ELSE 'N' END SIDING_YN -- 모종 여부
              , CASE WHEN P5.PD_PRP_VAL20 = '10' THEN 'Y' ELSE 'N' END HCR_YN -- 홈케어 여부
           FROM TB_PDBS_PD_BAS P1
@@ -128,7 +127,6 @@
                                           AND SDING_PD_CD = #{basePdCd})
                    AND SDING_QTY > 0
                    AND VST_DT >= TO_CHAR(SYSDATE + 3 , 'YYYYMMDD')  /** 이희준매니저님 D+3 적용요청 **/
-
          )
     </select>
 
@@ -742,13 +740,13 @@
         SELECT SUBSTR(W3TH, 1, 4) || '-' || SUBSTR(W3TH, 5, 2) || '-' || SUBSTR(W3TH, 7, 2) AS ABL_DAYS
              , W3TH
              , SUM(SUM_CNT) AS SUM_CNT
-             , CASE WHEN #{lcst09} = '03' THEN (SELECT CLND.BASE_Y || CLND.BASE_MM || CLND.BASE_D
+             , CASE WHEN #{sdingCombin} = '03' THEN (SELECT CLND.BASE_Y || CLND.BASE_MM || CLND.BASE_D
                                                 FROM TB_SVPD_SV_CLND_BAS CLND /*LC_COMMONCODE_CO160TB*/
                                                WHERE (BASE_Y || BASE_MM || BASE_D BETWEEN TO_CHAR(TO_DATE(W3TH, 'YYYYMMDD') - 35, 'YYYYMMDD') AND W3TH)
                                                  AND DF_YN IS NULL
                                                  AND PHLD_YN IS NULL
                                                  AND ROWNUM = 1)
-                    WHEN #{lcst09} = '02' THEN (SELECT CLND.BASE_Y || CLND.BASE_MM || CLND.BASE_D
+                    WHEN #{sdingCombin} = '02' THEN (SELECT CLND.BASE_Y || CLND.BASE_MM || CLND.BASE_D
                                                 FROM TB_SVPD_SV_CLND_BAS CLND /*LC_COMMONCODE_CO160TB*/
                                                WHERE (CLND.BASE_Y || CLND.BASE_MM || CLND.BASE_D BETWEEN TO_CHAR(TO_DATE(W3TH, 'YYYYMMDD') - 35, 'YYYYMMDD') AND W3TH)
                                                  AND DF_YN IS NULL
@@ -801,7 +799,7 @@
                                            AND REL.BASE_PD_CD = #{basePdCd}) = B.PD_CD
                                    AND (B.PD_GRP_CD = '11' OR (B.PD_GRP_CD = '92' AND #{svDvCd} != '3'))
                             ) V1
-            LEFT OUTER JOIN (
+                      LEFT OUTER JOIN (
                                 SELECT BASE_Y
                                      , BASE_MM
                                      , BASE_D
@@ -934,14 +932,14 @@
                                        AND SV_BIZ_HCLSF_CD = #{svDvCd})
                                  , (SELECT B.BASE_Y || B.BASE_MM || B.BASE_D AS DAYS
                                       FROM TB_SVPD_SV_CLND_BAS B /*LC_COMMONCODE_CO160TB*/
-                                     WHERE B.BASE_Y || B.BASE_MM || B.BASE_D BETWEEN (CASE WHEN #{lcst09} = '03' THEN TO_CHAR(SYSDATE + 40, 'YYYYMMDD')
+                                     WHERE B.BASE_Y || B.BASE_MM || B.BASE_D BETWEEN (CASE WHEN #{sdingCombin} = '03' THEN TO_CHAR(SYSDATE + 40, 'YYYYMMDD')
                                                                                            ELSE (CASE WHEN (SELECT COUNT(1)
                                                                                                               FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*LC_ALLOCATE_AC261TB*//*고객서비스BS배정내역*/
                                                                                                              WHERE ASN_OJ_YM = TO_CHAR(SYSDATE, 'YYYYMM') || '00' AND CNTR_NO = #{cntrNo}) > 0
                                                                                                       THEN TO_CHAR(ADD_MONTHS(SYSDATE, 1), 'YYYYMM') || '01'
                                                                                                       ELSE TO_CHAR(SYSDATE, 'YYYYMMDD')
                                                                                                  END)
-                                                                                      END) AND (CASE WHEN #{lcst09} = '03' THEN TO_CHAR(SYSDATE + 70, 'YYYYMMDD')
+                                                                                      END) AND (CASE WHEN #{sdingCombin} = '03' THEN TO_CHAR(SYSDATE + 70, 'YYYYMMDD')
                                                                                                      ELSE (CASE WHEN (SELECT COUNT(1)
                                                                                                                         FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*LC_ALLOCATE_AC261TB*//*고객서비스BS배정내역*/
                                                                                                                        WHERE ASN_OJ_YM = TO_CHAR(SYSDATE, 'YYYYMM') || '00' AND CNTR_NO = #{cntrNo}) > 0
