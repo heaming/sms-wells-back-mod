@@ -16,31 +16,15 @@ import java.util.List;
 public class WsncTimeTableDto {
 
     public static String defineInflwChnl(String chnlDvCd) {
-
         // in_gb
-
-        String inflwChnlTmp = "";
-        switch (chnlDvCd) {
-            case "C": // CubicCC(CustomerCenter)
-                inflwChnlTmp = "1";
-                break;
-            case "W": // 웰스 홈페이지
-                inflwChnlTmp = "4";
-                break;
-            case "K": // KSS
-                inflwChnlTmp = "3";
-                break;
-            case "P": // K-MEMBERS
-                inflwChnlTmp = "5";
-                break;
-            case "I": // 엔지니어
-            case "E": // 엔지니어
-            case "M": // 매니저
-            case "B": // BS(엔지니어)
-                inflwChnlTmp = "0";
-                break;
-        }
-        return inflwChnlTmp;
+        return StringUtil.decode(
+            chnlDvCd,
+            "C", "1", // CubicCC(CustomerCenter)
+            "W", "4", // 웰스 홈페이지
+            "K", "3", // KSS
+            "P", "5", // K-MEMBERS
+            "0" // I: 엔지니어, E: 엔지니어, M: 매니저, B: BS(엔지니어)
+        );
     }
 
     @ApiModel(value = "WsncTimeTableDto-FindTimeAssignReq")
@@ -69,18 +53,9 @@ public class WsncTimeTableDto {
         String seq, // P_IN_GB + P_WRK_GB + P_WRK_DT + LEFTPAD(P_SEQ, 8,"0")
         String cstSvAsnNo
     ) {
-
-        @Override
-        public String wrkDt() {
-            return DateUtil.getNowDayString();
-        }
-
-        @Override
-        public String inflwChnl() {
-            if (StringUtil.isEmpty(inflwChnl)) {
-                return defineInflwChnl(chnlDvCd);
-            }
-            return inflwChnl;
+        public FindTimeAssignReq {
+            wrkDt = DateUtil.getNowDayString();
+            inflwChnl = StringUtil.isEmpty(inflwChnl) ? defineInflwChnl(chnlDvCd) : inflwChnl;
         }
     }
 
@@ -112,17 +87,9 @@ public class WsncTimeTableDto {
         String prtnrNo,
         String newAdrZip
     ) {
-        @Override
-        public String wrkDt() {
-            return DateUtil.getNowDayString();
-        }
-
-        @Override
-        public String inflwChnl() {
-            if (StringUtil.isEmpty(inflwChnl)) {
-                return defineInflwChnl(chnlDvCd);
-            }
-            return inflwChnl;
+        public FindScheChoReq {
+            wrkDt = DateUtil.getNowDayString();
+            inflwChnl = StringUtil.isEmpty(inflwChnl) ? defineInflwChnl(chnlDvCd) : inflwChnl;
         }
     }
 
@@ -154,17 +121,9 @@ public class WsncTimeTableDto {
         String prtnrNo,
         String newAdrZip
     ) {
-        @Override
-        public String wrkDt() {
-            return DateUtil.getNowDayString();
-        }
-
-        @Override
-        public String inflwChnl() {
-            if (StringUtil.isEmpty(inflwChnl)) {
-                return defineInflwChnl(chnlDvCd);
-            }
-            return inflwChnl;
+        public FindTimeChoReq {
+            wrkDt = DateUtil.getNowDayString();
+            inflwChnl = StringUtil.isEmpty(inflwChnl) ? defineInflwChnl(chnlDvCd) : inflwChnl;
         }
     }
 
@@ -229,17 +188,9 @@ public class WsncTimeTableDto {
         List<WsncTimeTableDto.SmPmNt> pmTimes2,
         List<WsncTimeTableDto.SmPmNt> ntTimes
     ) {
-        @Override
-        public String wrkDt() {
-            return DateUtil.getNowDayString();
-        }
-
-        @Override
-        public String inflwChnl() {
-            if (StringUtil.isEmpty(inflwChnl)) {
-                return defineInflwChnl(chnlDvCd);
-            }
-            return inflwChnl;
+        public FindRes {
+            wrkDt = DateUtil.getNowDayString();
+            inflwChnl = StringUtil.isEmpty(inflwChnl) ? defineInflwChnl(chnlDvCd) : inflwChnl;
         }
     }
 
