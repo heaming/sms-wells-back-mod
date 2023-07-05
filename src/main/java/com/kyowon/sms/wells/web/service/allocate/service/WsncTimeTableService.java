@@ -26,6 +26,33 @@ public class WsncTimeTableService {
     private final WsncTimeTableMapper mapper;
     private final WsncTimeTableConverter converter;
 
+    /*public static String defineSellDate(String chnlDvCd, String svDvCd, String sellDate, String wrkDt)
+        throws ParseException {
+
+        // 설치 && (sellDate is null or selldate == wrkDt)
+        if ("1".equals(svDvCd) && (StringUtil.isEmpty(sellDate)
+            || StringUtil.nvl(sellDate, "").equals(StringUtil.nvl(wrkDt, "")))) {
+            return DateUtil.addDays(DateUtil.getNowDayString(), 5);
+        }
+
+        // 홈케어
+        if ("4".equals(svDvCd)) {
+            return DateUtil.addDays(DateUtil.getNowDayString(), 1);
+        }
+
+        if (StringUtil.isEmpty(sellDate)) {
+            switch (chnlDvCd) {
+                case "K":
+                case "W":
+                case "C":
+                    return DateUtil.addDays(DateUtil.getNowDayString(), 1);
+                default:
+                    return DateUtil.addDays(DateUtil.getNowDayString(), 5);
+            }
+        }
+        return sellDate;
+    }*/
+
     public WsncTimeTableDto.FindRes getTmeAssign(WsncTimeTableDto.FindTimeAssignReq req)
         throws ParseException {
 
@@ -54,19 +81,18 @@ public class WsncTimeTableService {
 
         // 00000001
         dvo.setSeq(StringUtils.leftPad(StringUtil.nvl(req.seq(), "1"), 8, "0"));
-        String sellDate = StringUtil.isEmpty(dvo.getSellDate()) ? DateUtil.getNowDayString() : dvo.getSellDate();
 
-        // 웰스 홈페이지, K-MEMBERS
-        if (("K".equals(dvo.getChnlDvCd()) || "W".equals(dvo.getChnlDvCd())) && StringUtil.isEmpty(req.sellDate())) {
+        String sellDate = dvo.getSellDate();
 
-            log.debug("week: " + DateUtil.getWeek(DateUtil.getNowDayString()));
-
-            dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 1));
-        }
-
-        // CubicCC (CustomerCenter)
-        if ("C".equals(dvo.getChnlDvCd()) && StringUtil.isEmpty(req.sellDate())) {
-            dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 1));
+        if (StringUtil.isEmpty(req.sellDate())) {
+            switch (req.chnlDvCd()) {
+                case "K":
+                case "W":
+                case "C":
+                    dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 1));
+                default:
+                    dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 5));
+            }
         }
 
         // 홈케어
@@ -75,12 +101,8 @@ public class WsncTimeTableService {
         }
 
         // 설치 && (sellDate is null or selldate == wrkDt)
-        if (dvo.getSvDvCd().equals("1") && (StringUtil.isEmpty(sellDate)
-            || StringUtil.nvl(sellDate, "").equals(StringUtil.nvl(dvo.getWrkDt(), "")))) {
-            dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 5));
-        }
-
-        if (StringUtil.isEmpty(req.sellDate())) {
+        if (dvo.getSvDvCd().equals("1") && (StringUtil.isEmpty(dvo.getSellDate())
+            || StringUtil.nvl(dvo.getSellDate(), "").equals(StringUtil.nvl(dvo.getWrkDt(), "")))) {
             dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 5));
         }
 

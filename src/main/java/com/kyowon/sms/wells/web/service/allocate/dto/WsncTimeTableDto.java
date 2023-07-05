@@ -1,21 +1,22 @@
 package com.kyowon.sms.wells.web.service.allocate.dto;
 
-import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 import io.swagger.annotations.ApiModel;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
+import javax.validation.constraints.NotBlank;
+
+@Slf4j
 /*타임테이블 조회(판매)*/
 public class WsncTimeTableDto {
 
-    public static String defineInflwChnl(String chnlDvCd) {
+    private static String defineInflwChnl(String chnlDvCd) {
         // in_gb
         return StringUtil.decode(
             chnlDvCd,
@@ -55,7 +56,7 @@ public class WsncTimeTableDto {
     ) {
         public FindTimeAssignReq {
             wrkDt = DateUtil.getNowDayString();
-            inflwChnl = StringUtil.isEmpty(inflwChnl) ? defineInflwChnl(chnlDvCd) : inflwChnl;
+            inflwChnl = defineInflwChnl(chnlDvCd);
         }
     }
 
@@ -89,7 +90,7 @@ public class WsncTimeTableDto {
     ) {
         public FindScheChoReq {
             wrkDt = DateUtil.getNowDayString();
-            inflwChnl = StringUtil.isEmpty(inflwChnl) ? defineInflwChnl(chnlDvCd) : inflwChnl;
+            inflwChnl = defineInflwChnl(chnlDvCd);
         }
     }
 
@@ -123,7 +124,7 @@ public class WsncTimeTableDto {
     ) {
         public FindTimeChoReq {
             wrkDt = DateUtil.getNowDayString();
-            inflwChnl = StringUtil.isEmpty(inflwChnl) ? defineInflwChnl(chnlDvCd) : inflwChnl;
+            inflwChnl = defineInflwChnl(chnlDvCd);
         }
     }
 
@@ -190,7 +191,7 @@ public class WsncTimeTableDto {
     ) {
         public FindRes {
             wrkDt = DateUtil.getNowDayString();
-            inflwChnl = StringUtil.isEmpty(inflwChnl) ? defineInflwChnl(chnlDvCd) : inflwChnl;
+            inflwChnl = defineInflwChnl(chnlDvCd);
         }
     }
 
