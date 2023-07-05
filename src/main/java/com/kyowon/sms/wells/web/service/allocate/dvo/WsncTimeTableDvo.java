@@ -71,7 +71,7 @@ public class WsncTimeTableDvo {
     String basePdCdList;
     String exYn;
     String contDt;
-    String wrkDt;
+    String wrkDt; // 접수일자(현재)
     String ogTpCd;
     String rcpOgTpCd;
     String userId;

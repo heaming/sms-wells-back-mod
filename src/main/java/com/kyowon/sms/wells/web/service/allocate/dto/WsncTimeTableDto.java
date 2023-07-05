@@ -1,18 +1,32 @@
 package com.kyowon.sms.wells.web.service.allocate.dto;
 
-import com.kyowon.sms.wells.web.service.allocate.dvo.*;
+import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 import io.swagger.annotations.ApiModel;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
+import javax.validation.constraints.NotBlank;
+
+@Slf4j
 /*타임테이블 조회(판매)*/
 public class WsncTimeTableDto {
+
+    private static String defineInflwChnl(String chnlDvCd) {
+        // in_gb
+        return StringUtil.decode(
+            chnlDvCd,
+            "C", "1", // CubicCC(CustomerCenter)
+            "W", "4", // 웰스 홈페이지
+            "K", "3", // KSS
+            "P", "5", // K-MEMBERS
+            "0" // I: 엔지니어, E: 엔지니어, M: 매니저, B: BS(엔지니어)
+        );
+    }
 
     @ApiModel(value = "WsncTimeTableDto-FindTimeAssignReq")
     public record FindTimeAssignReq(
@@ -39,7 +53,31 @@ public class WsncTimeTableDto {
         String baseYm,
         String seq, // P_IN_GB + P_WRK_GB + P_WRK_DT + LEFTPAD(P_SEQ, 8,"0")
         String cstSvAsnNo
-    ) {}
+    ) {
+        public FindTimeAssignReq {
+
+            wrkDt = DateUtil.getNowDayString();
+            inflwChnl = defineInflwChnl(chnlDvCd);
+
+            log.debug("chnlDvCd: {}", chnlDvCd);
+            log.debug("svDvCd: {}", svDvCd);
+            log.debug("sellDate: {}", sellDate);
+            log.debug("svBizDclsfCd: {}", svBizDclsfCd);
+            log.debug("cntrNo: {}", cntrNo);
+            log.debug("cntrSn: {}", cntrSn);
+            log.debug("inflwChnl: {}", inflwChnl);
+            log.debug("basePdCd: {}", basePdCd);
+            log.debug("wrkDt: {}", wrkDt);
+            log.debug("mtrStatCd: {}", mtrStatCd);
+            log.debug("userId: {}", userId);
+            log.debug("mkCo: {}", mkCo);
+            log.debug("baseYm: {}", baseYm);
+            log.debug("seq: {}", seq);
+            log.debug("cstSvAsnNo: {}", cstSvAsnNo);
+            log.debug("returnUrl: {}", returnUrl);
+
+        }
+    }
 
     @ApiModel(value = "WsncTimeTableDto-FindScheChoReq")
     public record FindScheChoReq(
@@ -68,7 +106,31 @@ public class WsncTimeTableDto {
         String cstSvAsnNo,
         String prtnrNo,
         String newAdrZip
-    ) {}
+    ) {
+        public FindScheChoReq {
+            wrkDt = DateUtil.getNowDayString();
+            inflwChnl = defineInflwChnl(chnlDvCd);
+
+            log.debug("chnlDvCd: {}", chnlDvCd);
+            log.debug("svDvCd: {}", svDvCd);
+            log.debug("sellDate: {}", sellDate);
+            log.debug("svBizDclsfCd: {}", svBizDclsfCd);
+            log.debug("cntrNo: {}", cntrNo);
+            log.debug("cntrSn: {}", cntrSn);
+            log.debug("inflwChnl: {}", inflwChnl);
+            log.debug("basePdCd: {}", basePdCd);
+            log.debug("wrkDt: {}", wrkDt);
+            log.debug("mtrStatCd: {}", mtrStatCd);
+            log.debug("userId: {}", userId);
+            log.debug("mkCo: {}", mkCo);
+            log.debug("baseYm: {}", baseYm);
+            log.debug("seq: {}", seq);
+            log.debug("cstSvAsnNo: {}", cstSvAsnNo);
+            log.debug("prtnrNo: {}", prtnrNo);
+            log.debug("newAdrZip: {}", newAdrZip);
+            log.debug("returnUrl: {}", returnUrl);
+        }
+    }
 
     @ApiModel(value = "WsncTimeTableDto-FindTimeChoReq")
     public record FindTimeChoReq(
@@ -97,7 +159,32 @@ public class WsncTimeTableDto {
         String cstSvAsnNo,
         String prtnrNo,
         String newAdrZip
-    ) {}
+    ) {
+        public FindTimeChoReq {
+
+            wrkDt = DateUtil.getNowDayString();
+            inflwChnl = defineInflwChnl(chnlDvCd);
+
+            log.debug("chnlDvCd: {}", chnlDvCd);
+            log.debug("svDvCd: {}", svDvCd);
+            log.debug("sellDate: {}", sellDate);
+            log.debug("svBizDclsfCd: {}", svBizDclsfCd);
+            log.debug("cntrNo: {}", cntrNo);
+            log.debug("cntrSn: {}", cntrSn);
+            log.debug("inflwChnl: {}", inflwChnl);
+            log.debug("basePdCd: {}", basePdCd);
+            log.debug("wrkDt: {}", wrkDt);
+            log.debug("mtrStatCd: {}", mtrStatCd);
+            log.debug("userId: {}", userId);
+            log.debug("mkCo: {}", mkCo);
+            log.debug("baseYm: {}", baseYm);
+            log.debug("seq: {}", seq);
+            log.debug("cstSvAsnNo: {}", cstSvAsnNo);
+            log.debug("prtnrNo: {}", prtnrNo);
+            log.debug("newAdrZip: {}", newAdrZip);
+            log.debug("returnUrl: {}", returnUrl);
+        }
+    }
 
     @ApiModel(value = "WsncTimeTableDto-FindRes")
     public record FindRes(
@@ -124,7 +211,6 @@ public class WsncTimeTableDto {
         String ogTpCd,
         String rcpOgTpCd,
         String userId,
-        String dataStatCd,
         String returnUrl,
         String baseYm,
         String seq,
@@ -160,27 +246,25 @@ public class WsncTimeTableDto {
         List<WsncTimeTableDto.SmPmNt> pmTimes2,
         List<WsncTimeTableDto.SmPmNt> ntTimes
     ) {
-        @Override
-        public String inflwChnl() {
-            if (StringUtil.isEmpty(inflwChnl)) {
-                String inflwChnlTmp = "";
-                switch (chnlDvCd) {
-                    case "C":
-                        inflwChnlTmp = "1";
-                        break;
-                    case "W":
-                        inflwChnlTmp = "2";
-                        break;
-                    case "K":
-                        inflwChnlTmp = "3";
-                        break;
-                    case "P":
-                        inflwChnlTmp = "2";
-                        break;
-                }
-                return inflwChnlTmp;
-            }
-            return inflwChnl;
+        public FindRes {
+            wrkDt = DateUtil.getNowDayString();
+            inflwChnl = defineInflwChnl(chnlDvCd);
+
+            log.debug("chnlDvCd: {}", chnlDvCd);
+            log.debug("svDvCd: {}", svDvCd);
+            log.debug("sellDate: {}", sellDate);
+            log.debug("cntrNo: {}", cntrNo);
+            log.debug("cntrSn: {}", cntrSn);
+            log.debug("inflwChnl: {}", inflwChnl);
+            log.debug("basePdCd: {}", basePdCd);
+            log.debug("wrkDt: {}", wrkDt);
+            log.debug("mtrStatCd: {}", mtrStatCd);
+            log.debug("userId: {}", userId);
+            log.debug("mkCo: {}", mkCo);
+            log.debug("baseYm: {}", baseYm);
+            log.debug("seq: {}", seq);
+            log.debug("cstSvAsnNo: {}", cstSvAsnNo);
+            log.debug("returnUrl: {}", returnUrl);
         }
     }
 
@@ -209,7 +293,7 @@ public class WsncTimeTableDto {
         String ed
     ) {}
 
-    @ApiModel(value = "WsncTimeTableDto-Psics")
+    @ApiModel(value = "WsncTimeTableDto-Psic")
     public record Psic(
         String prtnrNo,
         String sellDate,
@@ -248,19 +332,10 @@ public class WsncTimeTableDto {
         String mexnoEncr,
         String cralIdvTno
     ) {
-        @Override
-        public String exnoEncr() {
-            return DbEncUtil.dec(exnoEncr);
-        }
-
-        @Override
-        public String mexnoEncr() {
-            return DbEncUtil.dec(mexnoEncr);
-        }
-
-        @Override
-        public String sjHp2() {
-            return DbEncUtil.dec(sjHp2);
+        public Psic {
+            exnoEncr = DbEncUtil.dec(exnoEncr);
+            mexnoEncr = DbEncUtil.dec(mexnoEncr);
+            sjHp2 = DbEncUtil.dec(sjHp2);
         }
     }
 

@@ -28,7 +28,7 @@ public class WsncTimeTableController {
 
     private final WsncTimeTableService service;
 
-    @ApiOperation(value = "타임테이블 조회 KSS 타임테이블 조회(팝업)")
+    @ApiOperation(value = "타임테이블 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "", paramType = "query"),
@@ -44,8 +44,8 @@ public class WsncTimeTableController {
         @ApiImplicitParam(name = "mkCo", value = "", paramType = "query"), // P_MK_CO
         @ApiImplicitParam(name = "returnurl", value = "", paramType = "query"), // returnurl
     })
-    @GetMapping("/sales")
-    public WsncTimeTableDto.FindRes getTmeAssignSales(WsncTimeTableDto.FindTimeAssignReq req)
+    @GetMapping("/time-assign")
+    public WsncTimeTableDto.FindRes getTmeAssign(WsncTimeTableDto.FindTimeAssignReq req)
         throws ParseException {
         return service.getTmeAssign(req);
     }
