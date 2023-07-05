@@ -77,11 +77,6 @@ public class WsncTimeTableDvo {
     String userId;
 
     // --------------------------------------------------
-    //1: 신규
-    //2: 수정
-    //3: 삭제
-    String dataStatCd; // dataStus
-    // --------------------------------------------------
 
     String returnUrl;
     String baseYm;
@@ -113,7 +108,7 @@ public class WsncTimeTableDvo {
     String sdingCombin;
     String sidingYn;
     String spayYn;
-    String sowDay;
+    String sowDay; // PAJONG_DAY
     String rpbLocaraCd;
     boolean isHcr = false;
 
@@ -127,11 +122,11 @@ public class WsncTimeTableDvo {
     List<WsncTimeTableDto.Days> days;
     List<WsncTimeTableDto.MonthSchedule> monthSchedules;
 
-    List<WsncTimeTableDto.SmPmNt> smTimes = new ArrayList<WsncTimeTableDto.SmPmNt>();
-    List<WsncTimeTableDto.SmPmNt> amTimes = new ArrayList<WsncTimeTableDto.SmPmNt>();
-    List<WsncTimeTableDto.SmPmNt> pmTimes1 = new ArrayList<WsncTimeTableDto.SmPmNt>();
-    List<WsncTimeTableDto.SmPmNt> pmTimes2 = new ArrayList<WsncTimeTableDto.SmPmNt>();
-    List<WsncTimeTableDto.SmPmNt> ntTimes = new ArrayList<WsncTimeTableDto.SmPmNt>();
+    List<WsncTimeTableDto.SmPmNt> smTimes = new ArrayList<>();
+    List<WsncTimeTableDto.SmPmNt> amTimes = new ArrayList<>();
+    List<WsncTimeTableDto.SmPmNt> pmTimes1 = new ArrayList<>();
+    List<WsncTimeTableDto.SmPmNt> pmTimes2 = new ArrayList<>();
+    List<WsncTimeTableDto.SmPmNt> ntTimes = new ArrayList<>();
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
 }

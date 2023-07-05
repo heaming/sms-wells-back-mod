@@ -26,33 +26,6 @@ public class WsncTimeTableService {
     private final WsncTimeTableMapper mapper;
     private final WsncTimeTableConverter converter;
 
-    /*public static String defineSellDate(String chnlDvCd, String svDvCd, String sellDate, String wrkDt)
-        throws ParseException {
-
-        // 설치 && (sellDate is null or selldate == wrkDt)
-        if ("1".equals(svDvCd) && (StringUtil.isEmpty(sellDate)
-            || StringUtil.nvl(sellDate, "").equals(StringUtil.nvl(wrkDt, "")))) {
-            return DateUtil.addDays(DateUtil.getNowDayString(), 5);
-        }
-
-        // 홈케어
-        if ("4".equals(svDvCd)) {
-            return DateUtil.addDays(DateUtil.getNowDayString(), 1);
-        }
-
-        if (StringUtil.isEmpty(sellDate)) {
-            switch (chnlDvCd) {
-                case "K":
-                case "W":
-                case "C":
-                    return DateUtil.addDays(DateUtil.getNowDayString(), 1);
-                default:
-                    return DateUtil.addDays(DateUtil.getNowDayString(), 5);
-            }
-        }
-        return sellDate;
-    }*/
-
     public WsncTimeTableDto.FindRes getTmeAssign(WsncTimeTableDto.FindTimeAssignReq req)
         throws ParseException {
 
@@ -66,7 +39,6 @@ public class WsncTimeTableService {
         WsncTimeTableRpbLocaraPsicDvo rpbLocaraPsic;
         List<WsncTimeTableSidingDaysDvo> sidingDays = null;
         WsncTimeTablePsicDvo psic;
-        List<WsncTimeTableAssignTimeDvo> assignTimes;
 
         // 00000001
         dvo.setSeq(StringUtils.leftPad(StringUtil.nvl(req.seq(), "1"), 8, "0"));
@@ -78,22 +50,24 @@ public class WsncTimeTableService {
                 case "K":
                 case "W":
                 case "C":
-                    dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 1));
+                    sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 1);
                 default:
-                    dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 5));
+                    sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 5);
             }
         }
 
         // 홈케어
         if (dvo.getSvDvCd().equals("4")) {
-            dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 1));
+            sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 1);
         }
 
         // 설치 && (sellDate is null or selldate == wrkDt)
         if (dvo.getSvDvCd().equals("1") && (StringUtil.isEmpty(dvo.getSellDate())
             || StringUtil.nvl(dvo.getSellDate(), "").equals(StringUtil.nvl(dvo.getWrkDt(), "")))) {
-            dvo.setSellDate(DateUtil.addDays(DateUtil.getNowDayString(), 5));
+            sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 5);
         }
+
+        dvo.setSellDate(sellDate);
 
         WsncTimeTableCntrDvo contractDvo = mapper.selectContract(dvo)
             .orElseThrow(() -> new BizException("MSG_ALT_NO_CONTRACT_FOUND"));
@@ -193,7 +167,7 @@ public class WsncTimeTableService {
         rpbLocaraPsic.setEmpTWrkCnt(mapper.selectEmpTWrkCnt(rpbLocaraPsic));
         rpbLocaraPsic.setDegWrkCnt(mapper.selectDegWrkCnt(rpbLocaraPsic));
         rpbLocaraPsic.setWkHhCd(mapper.selectWkHhCd(rpbLocaraPsic));
-        assignTimes = mapper.selectAssignTimes(rpbLocaraPsic); // list1
+        List<WsncTimeTableAssignTimeDvo> assignTimes = mapper.selectAssignTimes(rpbLocaraPsic); // list1
 
         dvo.setDays(converter.mapDaysDvoToDto(mapper.selectTimeTableDates(req.baseYm())));
         dvo.setPsic(converter.mapPsicDvoToDto(psic)); // left_info = psics
@@ -211,6 +185,7 @@ public class WsncTimeTableService {
             WsncTimeTableSmPmNtDvo smPmNtDvo = converter.mapAssignTimeDvoToSmPmNtDvo(assignTime);
             time = assignTime.getTm();
             smPmNtDvo.setTime(time.substring(0, 2) + ":" + time.substring(2, 4));
+            smPmNtDvo.setEnableYn(assignTime.getWrkChk2());
 
             iTime = Integer.parseInt(time);
 
@@ -320,6 +295,7 @@ public class WsncTimeTableService {
             time = assignTime.getTm();
 
             smPmNtDvo.setTime(time.substring(0, 2) + ":" + time.substring(2, 4));
+            smPmNtDvo.setEnableYn(assignTime.getWrkChk2());
 
             iTime = Integer.parseInt(time);
 
