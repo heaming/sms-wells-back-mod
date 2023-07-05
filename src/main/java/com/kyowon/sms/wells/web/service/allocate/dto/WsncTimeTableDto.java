@@ -55,8 +55,27 @@ public class WsncTimeTableDto {
         String cstSvAsnNo
     ) {
         public FindTimeAssignReq {
+
             wrkDt = DateUtil.getNowDayString();
             inflwChnl = defineInflwChnl(chnlDvCd);
+
+            log.debug("chnlDvCd: {}", chnlDvCd);
+            log.debug("svDvCd: {}", svDvCd);
+            log.debug("sellDate: {}", sellDate);
+            log.debug("svBizDclsfCd: {}", svBizDclsfCd);
+            log.debug("cntrNo: {}", cntrNo);
+            log.debug("cntrSn: {}", cntrSn);
+            log.debug("inflwChnl: {}", inflwChnl);
+            log.debug("basePdCd: {}", basePdCd);
+            log.debug("wrkDt: {}", wrkDt);
+            log.debug("mtrStatCd: {}", mtrStatCd);
+            log.debug("userId: {}", userId);
+            log.debug("mkCo: {}", mkCo);
+            log.debug("baseYm: {}", baseYm);
+            log.debug("seq: {}", seq);
+            log.debug("cstSvAsnNo: {}", cstSvAsnNo);
+            log.debug("returnUrl: {}", returnUrl);
+
         }
     }
 
@@ -91,6 +110,25 @@ public class WsncTimeTableDto {
         public FindScheChoReq {
             wrkDt = DateUtil.getNowDayString();
             inflwChnl = defineInflwChnl(chnlDvCd);
+
+            log.debug("chnlDvCd: {}", chnlDvCd);
+            log.debug("svDvCd: {}", svDvCd);
+            log.debug("sellDate: {}", sellDate);
+            log.debug("svBizDclsfCd: {}", svBizDclsfCd);
+            log.debug("cntrNo: {}", cntrNo);
+            log.debug("cntrSn: {}", cntrSn);
+            log.debug("inflwChnl: {}", inflwChnl);
+            log.debug("basePdCd: {}", basePdCd);
+            log.debug("wrkDt: {}", wrkDt);
+            log.debug("mtrStatCd: {}", mtrStatCd);
+            log.debug("userId: {}", userId);
+            log.debug("mkCo: {}", mkCo);
+            log.debug("baseYm: {}", baseYm);
+            log.debug("seq: {}", seq);
+            log.debug("cstSvAsnNo: {}", cstSvAsnNo);
+            log.debug("prtnrNo: {}", prtnrNo);
+            log.debug("newAdrZip: {}", newAdrZip);
+            log.debug("returnUrl: {}", returnUrl);
         }
     }
 
@@ -123,8 +161,28 @@ public class WsncTimeTableDto {
         String newAdrZip
     ) {
         public FindTimeChoReq {
+
             wrkDt = DateUtil.getNowDayString();
             inflwChnl = defineInflwChnl(chnlDvCd);
+
+            log.debug("chnlDvCd: {}", chnlDvCd);
+            log.debug("svDvCd: {}", svDvCd);
+            log.debug("sellDate: {}", sellDate);
+            log.debug("svBizDclsfCd: {}", svBizDclsfCd);
+            log.debug("cntrNo: {}", cntrNo);
+            log.debug("cntrSn: {}", cntrSn);
+            log.debug("inflwChnl: {}", inflwChnl);
+            log.debug("basePdCd: {}", basePdCd);
+            log.debug("wrkDt: {}", wrkDt);
+            log.debug("mtrStatCd: {}", mtrStatCd);
+            log.debug("userId: {}", userId);
+            log.debug("mkCo: {}", mkCo);
+            log.debug("baseYm: {}", baseYm);
+            log.debug("seq: {}", seq);
+            log.debug("cstSvAsnNo: {}", cstSvAsnNo);
+            log.debug("prtnrNo: {}", prtnrNo);
+            log.debug("newAdrZip: {}", newAdrZip);
+            log.debug("returnUrl: {}", returnUrl);
         }
     }
 
@@ -153,7 +211,6 @@ public class WsncTimeTableDto {
         String ogTpCd,
         String rcpOgTpCd,
         String userId,
-        String dataStatCd,
         String returnUrl,
         String baseYm,
         String seq,
@@ -192,6 +249,22 @@ public class WsncTimeTableDto {
         public FindRes {
             wrkDt = DateUtil.getNowDayString();
             inflwChnl = defineInflwChnl(chnlDvCd);
+
+            log.debug("chnlDvCd: {}", chnlDvCd);
+            log.debug("svDvCd: {}", svDvCd);
+            log.debug("sellDate: {}", sellDate);
+            log.debug("cntrNo: {}", cntrNo);
+            log.debug("cntrSn: {}", cntrSn);
+            log.debug("inflwChnl: {}", inflwChnl);
+            log.debug("basePdCd: {}", basePdCd);
+            log.debug("wrkDt: {}", wrkDt);
+            log.debug("mtrStatCd: {}", mtrStatCd);
+            log.debug("userId: {}", userId);
+            log.debug("mkCo: {}", mkCo);
+            log.debug("baseYm: {}", baseYm);
+            log.debug("seq: {}", seq);
+            log.debug("cstSvAsnNo: {}", cstSvAsnNo);
+            log.debug("returnUrl: {}", returnUrl);
         }
     }
 
@@ -259,19 +332,10 @@ public class WsncTimeTableDto {
         String mexnoEncr,
         String cralIdvTno
     ) {
-        @Override
-        public String exnoEncr() {
-            return DbEncUtil.dec(exnoEncr);
-        }
-
-        @Override
-        public String mexnoEncr() {
-            return DbEncUtil.dec(mexnoEncr);
-        }
-
-        @Override
-        public String sjHp2() {
-            return DbEncUtil.dec(sjHp2);
+        public Psic {
+            exnoEncr = DbEncUtil.dec(exnoEncr);
+            mexnoEncr = DbEncUtil.dec(mexnoEncr);
+            sjHp2 = DbEncUtil.dec(sjHp2);
         }
     }
 

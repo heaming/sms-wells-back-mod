@@ -63,17 +63,6 @@ public class WsncTimeTableService {
         dvo.getPmTimes2().clear();
         dvo.getNtTimes().clear();
 
-        log.debug("-------------------------------");
-        log.debug("CntrNo: " + dvo.getCntrNo());
-        log.debug("CntrSn: " + dvo.getCntrSn());
-        log.debug("SellDate: " + dvo.getSellDate());
-        log.debug("wrkDt: " + dvo.getWrkDt());
-        log.debug("SvDvCd: " + dvo.getSvDvCd());
-        log.debug("ChnlDvCd: " + dvo.getChnlDvCd());
-        log.debug("InflwChnl: " + dvo.getInflwChnl());
-        log.debug("BaseYm: " + dvo.getBaseYm());
-        log.debug("-------------------------------");
-
         WsncTimeTableRpbLocaraPsicDvo rpbLocaraPsic;
         List<WsncTimeTableSidingDaysDvo> sidingDays = null;
         WsncTimeTablePsicDvo psic;
