@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiModel;
 
 import java.util.List;
 
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.constraints.NotBlank;
@@ -46,6 +47,8 @@ public class WsncTimeTableDto {
         String inflwChnl,
         String basePdCd, // GDS_CD
         String wrkDt,
+
+        @NotBlank
         String mtrStatCd, // DATA_STUS
         String returnUrl,
         String userId,
@@ -58,6 +61,7 @@ public class WsncTimeTableDto {
 
             wrkDt = DateUtil.getNowDayString();
             inflwChnl = defineInflwChnl(chnlDvCd);
+            mtrStatCd = StringUtil.isEmpty(mtrStatCd) ? "1" : mtrStatCd;
 
             log.debug("chnlDvCd: {}", chnlDvCd);
             log.debug("svDvCd: {}", svDvCd);
@@ -96,7 +100,9 @@ public class WsncTimeTableDto {
 
         String inflwChnl,
         String basePdCd, // GDS_CD
+
         String wrkDt,
+        @NotBlank
         String mtrStatCd, // DATA_STUS
         String returnUrl,
         String userId,
@@ -110,6 +116,7 @@ public class WsncTimeTableDto {
         public FindScheChoReq {
             wrkDt = DateUtil.getNowDayString();
             inflwChnl = defineInflwChnl(chnlDvCd);
+            mtrStatCd = StringUtil.isEmpty(mtrStatCd) ? "1" : mtrStatCd;
 
             log.debug("chnlDvCd: {}", chnlDvCd);
             log.debug("svDvCd: {}", svDvCd);
@@ -150,6 +157,7 @@ public class WsncTimeTableDto {
         String inflwChnl,
         String basePdCd, // GDS_CD
         String wrkDt,
+        @NotBlank
         String mtrStatCd, // DATA_STUS
         String returnUrl,
         String userId,
@@ -164,6 +172,7 @@ public class WsncTimeTableDto {
 
             wrkDt = DateUtil.getNowDayString();
             inflwChnl = defineInflwChnl(chnlDvCd);
+            mtrStatCd = StringUtil.isEmpty(mtrStatCd) ? "1" : mtrStatCd;
 
             log.debug("chnlDvCd: {}", chnlDvCd);
             log.debug("svDvCd: {}", svDvCd);
@@ -203,6 +212,7 @@ public class WsncTimeTableDto {
         String prtnrNoOwr01,
         String empId,
         String hcrYn,
+        @NotBlank
         String mtrStatCd,
         String basePdCdList,
         String exYn,
@@ -230,7 +240,7 @@ public class WsncTimeTableDto {
         String sdingCombin, // LCST09
         String sidingYn,
         String spayYn,
-        String sowDay,
+        String sowDay, // PAJONG_DAY
         String rpbLocaraCd,
         boolean isHcr,
         List<String> offDays,
@@ -249,6 +259,7 @@ public class WsncTimeTableDto {
         public FindRes {
             wrkDt = DateUtil.getNowDayString();
             inflwChnl = defineInflwChnl(chnlDvCd);
+            mtrStatCd = StringUtil.isEmpty(mtrStatCd) ? "1" : mtrStatCd;
 
             log.debug("chnlDvCd: {}", chnlDvCd);
             log.debug("svDvCd: {}", svDvCd);
@@ -276,7 +287,7 @@ public class WsncTimeTableDto {
         String ed,
         String w3th,
         String ablDays,
-        String sowDay
+        String sowDay // PAJONG_DAY
     ) {}
 
     @ApiModel(value = "WsncTimeTableDto-DisableDays")
