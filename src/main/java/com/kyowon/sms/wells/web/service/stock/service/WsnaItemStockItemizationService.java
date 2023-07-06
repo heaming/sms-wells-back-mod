@@ -15,6 +15,7 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaMonthlyItemStocksDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksReqDvo;
+import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.request.RealTimeGradeStockReqIvo;
 import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemStockItemizationMapper;
 import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
@@ -1765,16 +1766,19 @@ public class WsnaItemStockItemizationService {
 
     /**
      * 실시간 등급조회 서비스
-     * @param itmPdCd   (필수) 품목상품코드
+     * @param itmPdCds   (필수) 품목상품코드 리스트
      * @return
      */
-    public RealTimeGradeStockResIvo getRealTimeGradeStock(String itmPdCd) {
-        ValidAssert.hasText(itmPdCd);
+    public RealTimeGradeStockResIvo getRealTimeGradeStock(List<String> itmPdCds) {
+        ValidAssert.notEmpty(itmPdCds);
 
-        RealTimeGradeStockResIvo req = new RealTimeGradeStockResIvo();
+        // 1,000건 미만의 품목만 조회 가능합니다.
+        BizAssert.isFalse(itmPdCds.size() > 999, "MSG_ALT_PSB_ITM_UNDER", new String[] {"1,000"});
+
+        RealTimeGradeStockReqIvo req = new RealTimeGradeStockReqIvo();
         req.setSapPlntCd(SnServiceConst.SAP_PLNT_CD);
         req.setSapSaveLctCd(SnServiceConst.SAP_SAVE_LCT_CD);
-        req.setItmPdCd(itmPdCd);
+        req.setItmPdCds(itmPdCds);
 
         return this.interfaceService
             .post(EAI_CBDO1007, req, RealTimeGradeStockResIvo.class);

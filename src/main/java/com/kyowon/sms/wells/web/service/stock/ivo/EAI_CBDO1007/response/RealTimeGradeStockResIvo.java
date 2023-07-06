@@ -1,6 +1,6 @@
 package com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -26,28 +26,6 @@ public class RealTimeGradeStockResIvo {
     @JsonProperty("sapSaveLctCd")
     private String sapSaveLctCd;
 
-    @JsonProperty("itmPdCd")
-    private String itmPdCd;
-
-    @JsonProperty("lgstAGdQty")
-    private BigDecimal lgstAGdQty;
-
-    @JsonProperty("lgstBGdQty")
-    private BigDecimal lgstBGdQty;
-
-    @JsonProperty("lgstCGdQty")
-    private BigDecimal lgstCGdQty;
-
-    @JsonProperty("lgstFGdQty")
-    private BigDecimal lgstFGdQty;
-
-    @JsonProperty("lgstEGdQty")
-    private BigDecimal lgstEGdQty;
-
-    @JsonProperty("lgstRGdQty")
-    private BigDecimal lgstRGdQty;
-
-    @JsonProperty("lgstXGdQty")
-    private BigDecimal lgstXGdQty;
-
+    @JsonProperty("lgstQtys")
+    private List<RealTimeGradeStockItemIvo> lgstQtys;
 }
