@@ -7,6 +7,7 @@ public interface WctaInstallationReqdDtInMapper {
 
     int updateInstallReqdDt(String cntrNo, String cntrSn, String istDt, String reqdDt);
 
+    int updateContractDetailPdStrtdt(String cntrNo, String cntrSn);
 
     int updateContractWellsDetailHist(String cntrNo, String cntrSn);
 
