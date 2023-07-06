@@ -18,6 +18,7 @@ public class WctaInstallationReqdDtInService {
     /**
      * 프로그램ID : W-SS-S-0085
      *  - 서비스에서 설치/철거 후 계약WELLS상세의 설치일자에 UPDATE를 한다.
+     *  - 230706 조우섭 추가 설치일자 입력 시에 계약상세의 계약상품시작일자 setting 추가
      * @param cntrNo  (필수)계약번호
      *        cntrSn  (필수)계약일련번호
      *        istDt   설치일자
@@ -34,6 +35,15 @@ public class WctaInstallationReqdDtInService {
         if(resultCount > 0){
             mapper.updateContractWellsDetailHist(cntrNo, cntrSn);
             mapper.insertContractWellsDetailHist(cntrNo, cntrSn);
+        }
+        /* 설치일자가 입력되었다면 계약상세의 계약상품시작일자를 update한다. */
+        if (resultCount > 0 && !istDt.isEmpty()) {
+            int resultCount2= mapper.updateContractDetailPdStrtdt(cntrNo, cntrSn);
+
+            if (resultCount2 > 0) {
+                mapper.updateContractDetailHist(cntrNo, cntrSn);
+                mapper.insertContractDetailHist(cntrNo, cntrSn);
+            }
         }
 
         return resultCount;

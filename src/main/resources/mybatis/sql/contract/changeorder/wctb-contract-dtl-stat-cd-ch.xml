@@ -23,6 +23,15 @@
            AND HIST_END_DTM             = '99991231235959'           /* 이력종료일시 */
      </update>
 
+    <update id="updateContractDetailPdStrtdt">
+        UPDATE TB_SSCT_CNTR_DTL
+        SET CNTR_PD_STRTDT           = TO_CHAR(SYSDATE, 'YYYYMMDD')  /* 계약상품시작일자 */
+        <include refid="COMMON.updateSystemField"/>
+        WHERE 1 = 1
+        AND CNTR_NO                  = #{cntrNo}                  /* 계약번호 */
+        AND CNTR_SN                  = #{cntrSn}                  /* 계약일련번호 */
+    </update>
+
      <insert id="insertCntrDetailStatChangeHist">
          INSERT INTO TB_SSCT_CNTR_DTL_STAT_CH_HIST (
                 CNTR_NO
