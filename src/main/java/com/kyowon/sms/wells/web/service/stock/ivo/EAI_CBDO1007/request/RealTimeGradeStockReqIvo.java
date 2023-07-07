@@ -26,6 +26,6 @@ public class RealTimeGradeStockReqIvo {
     @JsonProperty("sapSaveLctCd")
     private String sapSaveLctCd;
 
-    @JsonProperty("itmPdCds")
+    @JsonProperty("itmPdCd")
     private List<String> itmPdCds;
 }
