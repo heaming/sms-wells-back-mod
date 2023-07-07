@@ -10,7 +10,7 @@ public interface WsnzHistoryMapper {
 
     int insertCstSvasIstAsnHistByPk(String cstSvAsnNo);
 
-    int insertCstSvBfsvcAsnHistByPk(String cstSvAsnNo);
+    int insertCstSvBfsvcAsnHistByPk(String cstSvAsnNo, String dtaDlYn);
 
     int updateCntrDchHistByPk(String cntrNo, String cntrSn);
 
