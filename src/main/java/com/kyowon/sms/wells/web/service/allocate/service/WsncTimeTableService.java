@@ -127,7 +127,7 @@ public class WsncTimeTableService {
 
         dvo.setSellDate(sellDate);
         dvo.setHcr("Y".equals(productDvo.getHcrYn()));
-        dvo.setHcrGb(productDvo.getHcrGb());
+        dvo.setSvBizHclsfCd(productDvo.getSvBizHclsfCd());//addgb
 
         String prtnrNo01 = mapper.selectFnSvpdLocaraPrtnr01(dvo);
         String prtnrNoBS01 = mapper.selectFnSvpdLocaraPrtnrBs01(dvo);

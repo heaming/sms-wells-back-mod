@@ -449,7 +449,7 @@
                     </if>
                     -------------------------------------------------------------------------------------------------------------------------------------
                     -- QUERY 9
-                    <if test="@MybatisUtils@equals(hcrGb, '1')">
+                    <if test="@MybatisUtils@equals(svBizHclsfCd, '1')">
 
                         SELECT A.BASE_Y||'-'||TO_NUMBER(A.BASE_MM)||'-'|| TO_NUMBER(A.BASE_D) AS DISABLE_DAYS
                              , A.BASE_Y||'-'||A.BASE_MM||'-'||A.BASE_D AS DISABLE_FULDAYS
@@ -703,7 +703,7 @@
             -- QUERY 14
             <if test='@MybatisUtils@isNotEmpty(svDvCd)'>
                 <if test="@MybatisUtils@equals(svDvCd, '4')">
-                    <if test="@MybatisUtils@equals(hcrGb, '2')">
+                    <if test="@MybatisUtils@equals(svBizHclsfCd, '2')">
                         SELECT A.BASE_Y||'-'||TO_NUMBER(A.BASE_MM)||'-'|| TO_NUMBER(A.BASE_D) AS DISABLE_DAYS
                              , A.BASE_Y||'-'||A.BASE_MM||'-'||A.BASE_D AS DISABLE_FULDAYS
                              , '홈케어 마감일관리' AS MSG
