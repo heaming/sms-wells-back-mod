@@ -134,7 +134,12 @@ public class WsnzHistoryService {
      */
     @Transactional
     public int insertCstSvBfsvcAsnHistByPk(String cstSvAsnNo){
-        return mapper.insertCstSvBfsvcAsnHistByPk(cstSvAsnNo);
+//        return mapper.insertCstSvBfsvcAsnHistByPk(cstSvAsnNo);
+        return insertCstSvBfsvcAsnHistByPk(cstSvAsnNo, "N");
+    }
+    @Transactional
+    public int insertCstSvBfsvcAsnHistByPk(String cstSvAsnNo, String dtaDlYn){
+        return mapper.insertCstSvBfsvcAsnHistByPk(cstSvAsnNo, dtaDlYn);
     }
 
 }

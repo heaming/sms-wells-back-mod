@@ -234,8 +234,6 @@
              , CNFM_PSIC_DV_CD
              , CNFM_PSIC_PRTNR_OG_TP_CD
              , CNFM_PSIC_PRTNR_NO
-             , EGER_PSTN_CD
-             , EGER_RSB_CD
              , VST_CNFMDT
              , VST_CNFM_HH
              , VST_OJ_LOCARA_CD
@@ -293,8 +291,6 @@
              , CNFM_PSIC_DV_CD
              , CNFM_PSIC_PRTNR_OG_TP_CD
              , CNFM_PSIC_PRTNR_NO
-             , EGER_PSTN_CD
-             , EGER_RSB_CD
              , VST_CNFMDT
              , VST_CNFM_HH
              , VST_OJ_LOCARA_CD
@@ -324,7 +320,7 @@
              , WK_GRP_CD
              , LOCARA_GD_CD
              , LOCARA_CHAOS_GD_CD
-             , DTA_DL_YN
+             , #{dtaDlYn} AS DTA_DL_YN
              , FST_RGST_DTM
              , FST_RGST_USR_ID
              , FST_RGST_PRG_ID
