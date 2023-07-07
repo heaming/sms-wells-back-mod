@@ -60,7 +60,7 @@ public class WsncTimeTableDvo {
     // 7: 정보변경
     // 9: 삭제
     String hcrYn; // addGb
-    String hcrGb; // addGb
+    String svBizHclsfCd; // addGb
     // --------------------------------------------------
     // 접수구분
     // 1: 신규
