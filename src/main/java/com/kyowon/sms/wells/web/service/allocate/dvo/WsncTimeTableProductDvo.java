@@ -19,4 +19,5 @@ public class WsncTimeTableProductDvo {
     /*모종여부*/
     String sidingYn;
     String hcrYn;
+    String hcr;
 }

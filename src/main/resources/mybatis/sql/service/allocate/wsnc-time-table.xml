@@ -96,6 +96,7 @@
              , F_CMZ_CD_NM('TNT_WELLS', 'PD_GRP_CD', P5.PD_PRP_VAL20) AS PDCT_PD_GRP_NM
              , CASE WHEN P5.PD_PRP_VAL20 = '11' OR (#{svDvCd} != '3' AND P5.PD_PRP_VAL20 = '92') THEN 'Y' ELSE 'N' END SIDING_YN -- 모종 여부
              , CASE WHEN P5.PD_PRP_VAL20 = '10' THEN 'Y' ELSE 'N' END HCR_YN -- 홈케어 여부
+             , P5.PD_PRP_VAL20 AS HCR
           FROM TB_PDBS_PD_BAS P1
          INNER JOIN TB_PDBS_PD_REL P2
             ON P1.PD_CD = P2.BASE_PD_CD
@@ -448,7 +449,7 @@
                     </if>
                     -------------------------------------------------------------------------------------------------------------------------------------
                     -- QUERY 9
-                    <if test="@MybatisUtils@equals(addGb, '1')">
+                    <if test="@MybatisUtils@equals(hcr, '1')">
 
                         SELECT A.BASE_Y||'-'||TO_NUMBER(A.BASE_MM)||'-'|| TO_NUMBER(A.BASE_D) AS DISABLE_DAYS
                              , A.BASE_Y||'-'||A.BASE_MM||'-'||A.BASE_D AS DISABLE_FULDAYS
@@ -702,7 +703,7 @@
             -- QUERY 14
             <if test='@MybatisUtils@isNotEmpty(svDvCd)'>
                 <if test="@MybatisUtils@equals(svDvCd, '4')">
-                    <if test="@MybatisUtils@equals(addGb, '2')">
+                    <if test="@MybatisUtils@equals(hcr, '2')">
                         SELECT A.BASE_Y||'-'||TO_NUMBER(A.BASE_MM)||'-'|| TO_NUMBER(A.BASE_D) AS DISABLE_DAYS
                              , A.BASE_Y||'-'||A.BASE_MM||'-'||A.BASE_D AS DISABLE_FULDAYS
                              , '홈케어 마감일관리' AS MSG
