@@ -49,5 +49,4 @@ public class RealTimeGradeStockResIvo {
 
     @JsonProperty("lgstXGdQty")
     private BigDecimal lgstXGdQty;
-
 }

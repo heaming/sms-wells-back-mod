@@ -2,7 +2,9 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -15,9 +17,9 @@ import com.kyowon.sms.wells.web.service.stock.dto.WsnaMonthlyItemStocksDto;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaItemStockItemizationReqDvo;
 import com.kyowon.sms.wells.web.service.stock.dvo.WsnaMonthlyItemStocksReqDvo;
+import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.request.RealTimeGradeStockReqIvo;
 import com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.response.RealTimeGradeStockResIvo;
 import com.kyowon.sms.wells.web.service.stock.mapper.WsnaItemStockItemizationMapper;
-import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.common.common.service.EaiInterfaceService;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -1765,18 +1767,27 @@ public class WsnaItemStockItemizationService {
 
     /**
      * 실시간 등급조회 서비스
-     * @param itmPdCd   (필수) 품목상품코드
+     * @param sapPlntCd     (필수) SAP 플랜트 코드
+     * @param sapSaveLct    (필수) SAP 저장 위치 코드
+     * @param itmPdCds      (필수) 품목상품코드 리스트
      * @return
      */
-    public RealTimeGradeStockResIvo getRealTimeGradeStock(String itmPdCd) {
-        ValidAssert.hasText(itmPdCd);
+    public List<RealTimeGradeStockResIvo> getRealTimeGradeStocks(
+        String sapPlntCd, String sapSaveLct, List<String> itmPdCds
+    ) {
+        ValidAssert.hasText(sapPlntCd);
+        ValidAssert.hasText(sapSaveLct);
+        ValidAssert.notEmpty(itmPdCds);
 
-        RealTimeGradeStockResIvo req = new RealTimeGradeStockResIvo();
-        req.setSapPlntCd(SnServiceConst.SAP_PLNT_CD);
-        req.setSapSaveLctCd(SnServiceConst.SAP_SAVE_LCT_CD);
-        req.setItmPdCd(itmPdCd);
+        // 1,000건 미만의 품목만 조회 가능합니다.
+        BizAssert.isFalse(itmPdCds.size() > 999, "MSG_ALT_PSB_ITM_UNDER", new String[] {"1,000"});
 
-        return this.interfaceService
-            .post(EAI_CBDO1007, req, RealTimeGradeStockResIvo.class);
+        RealTimeGradeStockReqIvo req = new RealTimeGradeStockReqIvo();
+        req.setSapPlntCd(sapPlntCd);
+        req.setSapSaveLctCd(sapSaveLct);
+        req.setItmPdCds(itmPdCds);
+
+        ArrayList<HashMap<String, Object>> res = this.interfaceService.post(EAI_CBDO1007, req, ArrayList.class);
+        return this.converter.mapAllHashMapToRealTimeGradeStockResIvo(res);
     }
 }

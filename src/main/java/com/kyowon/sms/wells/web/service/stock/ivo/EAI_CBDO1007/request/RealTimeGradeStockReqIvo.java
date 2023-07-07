@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.stock.ivo.EAI_CBDO1007.request;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Getter;
@@ -25,5 +27,5 @@ public class RealTimeGradeStockReqIvo {
     private String sapSaveLctCd;
 
     @JsonProperty("itmPdCd")
-    private String itmPdCd;
+    private List<String> itmPdCds;
 }
