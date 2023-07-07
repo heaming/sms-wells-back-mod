@@ -50,8 +50,6 @@ public class WsnzHistoryService {
      * cnfmPsicDvCd
      * cnfmPsicPrtnrOgTpCd
      * cnfmPsicPrtnrNo
-     * egerPstnCd
-     * egerRsbCd
      * vstCnfmdt
      * vstCnfmHh
      * vstOjLocaraCd

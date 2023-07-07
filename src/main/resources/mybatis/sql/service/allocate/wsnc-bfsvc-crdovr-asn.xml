@@ -46,8 +46,6 @@
             , CNFM_PSIC_DV_CD
             , CNFM_PSIC_PRTNR_OG_TP_CD
             , CNFM_PSIC_PRTNR_NO
-            , EGER_PSTN_CD
-            , EGER_RSB_CD
             , VST_CNFMDT
             , VST_CNFM_HH
             , VST_OJ_LOCARA_CD
@@ -113,8 +111,6 @@
                    AND TEMP.OG_TP_CD = CNFM_PSIC_PRTNR_OG_TP_CD
                    AND TEMP.PRTNR_NO = CNFM_PSIC_PRTNR_NO
                ) = '1' THEN CNFM_PSIC_PRTNR_NO ELSE '' END) AS CNFM_PSIC_PRTNR_NO
-             , EGER_PSTN_CD
-             , EGER_RSB_CD
              , VST_CNFMDT
              , VST_CNFM_HH
              , VST_OJ_LOCARA_CD
@@ -361,8 +357,6 @@
             , CNFM_PSIC_DV_CD
             , CNFM_PSIC_PRTNR_OG_TP_CD
             , CNFM_PSIC_PRTNR_NO
-            , EGER_PSTN_CD
-            , EGER_RSB_CD
             , VST_CNFMDT
             , VST_CNFM_HH
             , VST_OJ_LOCARA_CD
@@ -415,8 +409,6 @@
              , TB_SOURCE.CNFM_PSIC_DV_CD
              , TB_SOURCE.CNFM_PSIC_PRTNR_OG_TP_CD
              , TB_SOURCE.CNFM_PSIC_PRTNR_NO
-             , TB_SOURCE.EGER_PSTN_CD
-             , TB_SOURCE.EGER_RSB_CD
              , TB_SOURCE.VST_CNFMDT
              , TB_SOURCE.VST_CNFM_HH
              , TB_SOURCE.VST_OJ_LOCARA_CD

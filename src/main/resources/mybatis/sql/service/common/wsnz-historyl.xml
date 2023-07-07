@@ -617,8 +617,6 @@
              , CNFM_PSIC_DV_CD
              , CNFM_PSIC_PRTNR_OG_TP_CD
              , CNFM_PSIC_PRTNR_NO
-             , EGER_PSTN_CD
-             , EGER_RSB_CD
              , VST_CNFMDT
              , VST_CNFM_HH
              , VST_OJ_LOCARA_CD
@@ -669,8 +667,6 @@
              , #{cnfmPsicDvCd}
              , #{cnfmPsicPrtnrOgTpCd}
              , #{cnfmPsicPrtnrNo}
-             , #{egerPstnCd}
-             , #{egerRsbCd}
              , #{vstCnfmdt}
              , #{vstCnfmHh}
              , #{vstOjLocaraCd}
