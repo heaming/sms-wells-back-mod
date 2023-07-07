@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -1771,7 +1772,7 @@ public class WsnaItemStockItemizationService {
      * @param itmPdCds      (필수) 품목상품코드 리스트
      * @return
      */
-    public ArrayList<RealTimeGradeStockResIvo> getRealTimeGradeStocks(
+    public List<RealTimeGradeStockResIvo> getRealTimeGradeStocks(
         String sapPlntCd, String sapSaveLct, List<String> itmPdCds
     ) {
         ValidAssert.hasText(sapPlntCd);
@@ -1786,7 +1787,7 @@ public class WsnaItemStockItemizationService {
         req.setSapSaveLctCd(sapSaveLct);
         req.setItmPdCds(itmPdCds);
 
-        return this.interfaceService.post(EAI_CBDO1007, req, ArrayList.class);
-
+        ArrayList<HashMap<String, Object>> res = this.interfaceService.post(EAI_CBDO1007, req, ArrayList.class);
+        return this.converter.mapAllHashMapToRealTimeGradeStockResIvo(res);
     }
 }
