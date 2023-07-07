@@ -1,0 +1,97 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbTaxInvoicePublicationMapper">
+
+    <select id="selectTaxInvoices" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbTaxInvoicePublicationDvo">
+        SELECT T4.RCGVP_KNM /* 고객명 */
+             , T1.CNTR_NO /* 계약번호 */
+             , T1.CNTR_SN /* 계약일련번호 */
+             , P1.PD_ABBR_NM /* 상품정보 */
+             , NVL(T3.BIL_OJ_AMT, 0) - NVL(T3.BIL_CTR_SUM_AMT, 0) AS STLM_AMT /* 결제금액 */
+             , T2.CST_SV_ASN_NO
+             , F_CMZ_CD_NM(#{session.tenantId}, 'PRD_MNGT_TP_CD', C1.SELL_TP_CD) AS SELL_TP_NM /* 판매유형명 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'COPN_DV_CD', C0.COPN_DV_CD) AS COPN_DV_NM /* 고객구분명 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'PD_USWY_CD', T0.PD_USWY_CD) AS PD_USWY_NM /* 상품용도명 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'PD_GD_CD', C1.PD_GD_CD) AS PD_GD_NM /* 상품등급명 */
+             , C0.CNTR_CNFM_DTM /* 계약일자 */
+             , C1.MM_ISTM_AMT /* 월할부금액 = 렌탈료 */
+             , T5.CS_BIL_NO /* 비용청구번호 */
+             , T5.STLM_DV_CD /* 결제구분코드 */
+             , T4.CNTR_CST_NO /* 고객번호 */
+             , T4.COPN_DV_CD /* 법인격구분코드 */
+             , T4.BZRNO /* 사업자번호 */
+             , T4.EMADR /* 이메일 */
+          FROM TB_SVPD_CST_SV_EXCN_IZ T1 /* 고객서비스수행내역 */
+         INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2 /* 고객서비스AS설치배정내역 */
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.CNTR_SN = T1.CNTR_SN
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SVPD_SV_CS_BIL_IZ T3 /* 서비스비용청구내역 */
+            ON T3.CNTR_NO = T2.CNTR_NO
+           AND T3.CNTR_SN = T2.CNTR_SN
+           AND T3.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN (SELECT V1.DTL_CNTR_NO, V1.DTL_CNTR_SN, TRIM(V2.RCGVP_KNM) AS RCGVP_KNM
+                          , V2.COPN_DV_CD
+                          , V2.CNTR_CST_NO
+                          , B1.BZRNO
+                          , B1.EMADR
+                       FROM TB_SSCT_CNTR_ADR_REL V1 /* 계약주소관계 */
+                      INNER JOIN TB_SSCT_CNTR_ADRPC_BAS V2 /* 계약주소지기본 */
+                         ON V2.CNTR_ADRPC_ID = V1.CNTR_ADRPC_ID
+                        AND V2.DTA_DL_YN = 'N'
+                       LEFT OUTER JOIN TB_CUBS_CST_BAS B1 /* 고객기본 */
+                         ON B1.CST_NO = V2.CNTR_CST_NO
+                        AND B1.DTA_DL_YN = 'N'
+                      WHERE V1.DTA_DL_YN = 'N'
+                        AND V1.ADRPC_TP_CD = '3' /* 설치처 */
+                        AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN V1.VL_STRT_DTM AND V1.VL_END_DTM
+             ) T4
+            ON T4.DTL_CNTR_NO = T1.CNTR_NO
+           AND T4.DTL_CNTR_SN = T1.CNTR_SN
+         INNER JOIN TB_PDBS_PD_BAS P1 /* 상품기본 */
+            ON P1.PD_CD = T1.PDCT_PD_CD
+           AND P1.DTA_DL_YN = 'N'
+         INNER JOIN TB_SVPD_SV_CS_BIL_BAS T5 /* 서비스비용청구기본 */
+            ON T5.CS_BIL_NO = T3.CS_BIL_NO
+           AND T5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_BAS C0 /* 계약기본 */
+            ON C0.CNTR_NO = T1.CNTR_NO
+           AND C0.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL C1 /* 계약상세 */
+            ON C1.CNTR_NO = T1.CNTR_NO
+           AND C1.CNTR_SN = T1.CNTR_SN
+           AND C1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T0 /* 고객서비스AS설치대상내역 */
+            ON T0.CNTR_NO = C1.CNTR_NO
+           AND T0.CNTR_SN = C1.CNTR_SN
+           AND T0.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+           AND T0.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND T2.ICHR_OG_TP_CD = #{ogTpCd}
+           AND T2.ICHR_PRTNR_NO = #{prtnrNo}
+           AND T2.CST_SV_ASN_NO IN (<foreach collection='cstSvAsnNos' item="item" separator=',' >
+                                        #{item}
+                                    </foreach>)
+    </select>
+
+    <select id="selectBusinessNumberCount" resultType="java.lang.Integer">
+        SELECT COUNT(*) AS CNT
+          FROM TB_GBCO_DLPNR_BAS T1 /* 거래처기본 */
+         WHERE 1 = 1
+           AND T1.BZRNO = #{bzrno}
+           AND T1.TRD_ENDDT IS NULL
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+
+    <update id="updateTaxInvoice">
+        UPDATE TB_SVPD_SV_CS_TXINV_IS_IZ /* 서비스비용세금계산서발급내역 */
+           SET TXINV_BIL_DV_CD = #{billDvCd} /* 세금계산서청구구분코드 */
+             , BZRNO = #{bzrno} /* 사업자등록번호 */
+             , TXINV_PBL_EMADR = #{emadr} /* 세금계산서발행이메일주소 */
+             , TXINV_IS_DT = TO_CHAR(SYSDATE, 'YYYYMMDD') /* 세금계산서발급일자 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CS_BIL_NO = #{csBilNo} /* 비용청구번호 */
+    </update>
+
+</mapper>
