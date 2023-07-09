@@ -2,7 +2,6 @@ package com.kyowon.sms.wells.web.service.visit.dvo;
 
 import com.sds.sflex.system.config.annotation.DBDecField;
 
-import com.sds.sflex.system.config.annotation.DBEncField;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -72,8 +71,6 @@ public class WsnbMultipleTaskOrderDvo {
     String asnDt; /* V_AC221_ORD_DT */
     String asnReq; /* V_AC221_ORD_SEQ */
     String asnCstSvAsnNo; /* DATA_GB||ORD_DT||lpad(ord_seq,10,''0'') */
-    String newPdCd; /* V_GDS_CD */
-    String newSaleCd; /* V_SALE_CD */
     @DBDecField
     String mexnoEncr; /* AC021_HNO_NO2(복호화) */
     String part; /* 자재,수량,금액(partList쪼갠거)  */
@@ -91,8 +88,17 @@ public class WsnbMultipleTaskOrderDvo {
     int expMatSum; /* V_FA001_SUM_AMT */
     int sppPlanSn; /* V_FA101_SEQ */
     String vstDtChk; /* GET_PACKING_DAY(P_VST_DT_REQ) */
-    String saleNm; /* GET_GOODS_NAME_SALE_CD(TRIM(V_SALE_CD)) */
     String pdSize; /* GET_ST101_SIZE */
+
+    // 계약정보 Extension
+    String istDt;
+    String reqdDt;
+    String stopYn;
+    String cntrCstNo;
+    String newPdCd; /* V_GDS_CD */
+    String pdGrpCd;
+    String basePdCd;
+    String basePdNm;
 
     /* 계약정보 업데이트용 */
     String adrId;

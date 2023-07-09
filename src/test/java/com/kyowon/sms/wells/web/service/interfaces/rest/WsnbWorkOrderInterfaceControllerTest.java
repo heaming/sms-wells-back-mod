@@ -27,7 +27,7 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
     private static final String BASE_URL = SnServiceConst.REST_INTERFACE_URL_V1 + "/work-orders";
 
     @Test
-    @DisplayName("작업오더 생성 테스트 - 웰스웹 설치생성")
+    @DisplayName("작업오더 생성 테스트 - 웰스웹")
     @Order(1)
     void createWorkOrdersForInstall() throws Exception {
         // given
@@ -35,8 +35,8 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
 
         List<CreateOrderReq> dtos = new ArrayList<>();
 
-        //
-        CreateOrderReq dto = CreateOrderReq.builder()
+        // 설치오더
+        CreateOrderReq dto1 = CreateOrderReq.builder()
             .inChnlDvCd("4")
             .svBizHclsfCd("1")
             .svBizDclsfCd("1110")
@@ -46,39 +46,8 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
             .vstRqdt(DateUtil.addDays(nowDayString, 2))
             .smsFwYn("Y")
             .build();
-        dtos.add(dto);
 
-        // when & then
-        MockHttpServletRequestBuilder request = post(BASE_URL)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(new EaiWrapper(dtos)));
-
-        mockMvc.perform(request)
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.header.ERR_OC_YN").value("N"));
-    }
-
-    @Test
-    @DisplayName("작업오더 생성 테스트 - 웰스웹 설치생성(당일취소)")
-    @Order(2)
-    void createWorkOrdersForInstallTodayCancel() throws Exception {
-        // given
-        String nowDayString = DateUtil.getNowDayString();
-
-        List<CreateOrderReq> dtos = new ArrayList<>();
-
-        //
-        CreateOrderReq dto = CreateOrderReq.builder()
-            .inChnlDvCd("4")
-            .svBizHclsfCd("9")
-            .svBizDclsfCd("1110")
-            .cntrNo("W20234316487")
-            .cntrSn("1")
-            .mtrStatCd("3")
-            .vstRqdt(DateUtil.addDays(nowDayString, 2))
-            .smsFwYn("Y")
-            .build();
-        dtos.add(dto);
+        dtos.add(dto1);
 
         // when & then
         MockHttpServletRequestBuilder request = post(BASE_URL)

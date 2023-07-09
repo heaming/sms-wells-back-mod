@@ -7,14 +7,13 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbAsAssignReqDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractReqDvo;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallationObjectSaveDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo;
 
 @Mapper
 public interface WsnbMultipleTaskOrderMapper {
     WsnbContractReqDvo selectContract(String cntrNo, String cntrSn);
 
-    WsnbAsAssignReqDvo selectAsAssignByPk(String asIstOjNo);
+    Optional<WsnbAsAssignReqDvo> selectAsAssignByPk(String asIstOjNo);
 
     WsnbMultipleTaskOrderDvo selectAsAssignOganizationByPk(WsnbMultipleTaskOrderDvo dvo);
 
@@ -36,7 +35,7 @@ public interface WsnbMultipleTaskOrderMapper {
 
     int insertInstallationObject(WsnbMultipleTaskOrderDvo dvo);
 
-    int updateInstallationObject(WsnbInstallationObjectSaveDvo dvo);
+    int mergeInstallationObject(WsnbMultipleTaskOrderDvo dvo);
 
     int updateInstallationObjectMtrStatCd(WsnbMultipleTaskOrderDvo dvo);
 
@@ -63,8 +62,6 @@ public interface WsnbMultipleTaskOrderMapper {
 
     int insertAsInstallationAssign(WsnbMultipleTaskOrderDvo dvo);
 
-    int insertAsInstallationAssignHistByNewKey(WsnbMultipleTaskOrderDvo dvo);
-
     Optional<String> selectVstDtChk(String vstRqDt);
 
     WsnbMultipleTaskOrderDvo selectSdingCount();
@@ -78,7 +75,4 @@ public interface WsnbMultipleTaskOrderMapper {
     int updateAsInstallationAssign(String asnCstSvAsnNo);
 
     int updateInstallationObjectKey(WsnbMultipleTaskOrderDvo dvo);
-
-    WsnbInstallationObjectSaveDvo selectSaveInstallationObject(WsnbMultipleTaskOrderDvo dvo);
-
 }

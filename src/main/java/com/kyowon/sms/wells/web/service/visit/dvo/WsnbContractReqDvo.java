@@ -16,6 +16,7 @@ import lombok.Setter;
 public class WsnbContractReqDvo {
     String cntrNo; /* 계약번호 */
     String cntrSn; /* 계약일련번호 */
+    String cntrCstNo;
     String cntrCnfmDtm; /* 계약확정일시 */
     String cntrCanDtm; /* 계약취소일시 */
     String cntrDtlStatCd; /* 계약상세상태코드 */

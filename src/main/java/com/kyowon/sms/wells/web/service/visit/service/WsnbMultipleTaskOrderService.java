@@ -17,7 +17,6 @@ import com.kyowon.sms.wells.web.service.visit.converter.WsnbMultipleTaskOrderCon
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultipleTaskOrderDto.SaveReq;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbAsAssignReqDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractReqDvo;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallationObjectSaveDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbMultipleTaskOrderMapper;
 import com.sds.sflex.common.utils.DateUtil;
@@ -64,40 +63,69 @@ public class WsnbMultipleTaskOrderService {
 
     public String saveMultipleTaskOrders(WsnbMultipleTaskOrderDvo dvo) throws Exception {
 
-        //if ("00000000".equals(dvo.getAsIstOjNo().substring(10))) {
-        //    dvo.setAsIstOjNo(null);
-        //}
+        if (StringUtils.isNotEmpty(dvo.getAsIstOjNo()) && "00000000".equals(dvo.getAsIstOjNo().substring(10))) {
+            dvo.setAsIstOjNo(null);
+        }
 
+        /* 1. ORDER 데이터 세팅 */
+        setOrderData(dvo);
+
+        /* 2. Validation Check */
+        // 1) TODAY Request Reject
+        String nowDayString = DateUtil.getNowDayString();
+        if (nowDayString.equals(dvo.getVstRqdt())
+            && (List.of(IN_CHNL_DV_CD_SALES, IN_CHNL_DV_CD_WEB, IN_CHNL_DV_CD_KMEMBERS)
+                .contains(dvo.getInChnlDvCd()))) {
+            throw new BizException("MSG_ALT_TOD_VST_AK_REJ");
+        }
+
+        // 2) 오더데이터 Validation
+        if (MTR_STAT_CD_NEW.equals(dvo.getMtrStatCd())) {
+            checkValidationNewOrder(dvo);
+        } else {
+            checkValidationExistOrder(dvo);
+        }
+
+        /* 3. 오더 생성(정보 변경이 아니면) */
+        if (!StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "7")) {
+            saveOrder(dvo);
+        }
+
+        return dvo.getNewAsIstOjNo();
+    }
+
+    private void setOrderData(WsnbMultipleTaskOrderDvo dvo) {
         /* 계약 관련 정보 */
-        WsnbContractReqDvo contractReqDvo = mapper.selectContract(dvo.getCntrNo(), dvo.getCntrSn());
+        WsnbContractReqDvo contract = mapper.selectContract(dvo.getCntrNo(), dvo.getCntrSn());
         /* 계약 관련 정보 before */
-        WsnbContractReqDvo beforeContractReqDvo = mapper.selectContract(dvo.getCntrNoB(), dvo.getCntrSnB());
-        /* AS 관련 정보 */
-        WsnbAsAssignReqDvo asAssignReqDvo = mapper.selectAsAssignByPk(dvo.getAsIstOjNo());
+        WsnbContractReqDvo beforeContract = mapper.selectContract(dvo.getCntrNoB(), dvo.getCntrSnB());
 
-        int asAssignCnt = 0; // V_AC221_CNT
-        int totChangeCnt = 0; // V_TOTAL_CHANGE_CNT
-        int rangeChangeCnt = 0; // V_RANGE_CHANGE_CNT
-        int rangeChangeBsCnt = 0; // V_RANGE_CHANGE_BS_CNT
-        int itemCnt = 0; // V_ITEM_CNT
+        // 계약정보 Extension
+        dvo.setCntrCstNo(contract.getCntrCstNo());
+        dvo.setNewRcgvpKnm(contract.getRcgvpKnm());
+        dvo.setNewPdCd(contract.getPdctPdCd());
+        dvo.setIstDt(contract.getIstDt());
+        dvo.setReqdDt(contract.getReqdDt());
+        dvo.setStopYn(contract.getStopYn());
+        dvo.setPdGrpCd(contract.getPdctPdGrpCd());
+        dvo.setPdSize(contract.getPdctPdSize());
+        dvo.setBasePdCd(contract.getBasePdCd());
+        dvo.setBasePdNm(contract.getBasePdNm());
 
-        /* KSS 접수 건이면 작업상세코드 재확인 */
-        if ((IN_CHNL_DV_CD_SALES.equals(dvo.getInChnlDvCd())
-            || IN_CHNL_DV_CD_AUTO.equals(dvo.getInChnlDvCd()))
-            && (MTR_STAT_CD_NEW.equals(dvo.getMtrStatCd())
-                || MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd()))
+        if (List.of(IN_CHNL_DV_CD_SALES, IN_CHNL_DV_CD_AUTO).contains(dvo.getInChnlDvCd())
+            && List.of(MTR_STAT_CD_NEW, MTR_STAT_CD_MOD).contains(dvo.getMtrStatCd())
             && !StringUtils.startsWith(dvo.getSvBizDclsfCd(), "7")) {
             /* 보상 여부가 Y면 */
             if ("Y".equals(dvo.getCompYn())) {
                 dvo.setNewSvBizDclsfCd("1124");
             } else if ("Y".equals(dvo.getRetYn()) || "D".equals(dvo.getRetYn())) {
 
-                if ("91".equals(beforeContractReqDvo.getPdctPdGrpCd())
-                    && !"91".equals(contractReqDvo.getPdctPdGrpCd())) {
+                if ("91".equals(beforeContract.getPdctPdGrpCd())
+                    && !"91".equals(contract.getPdctPdGrpCd())) {
                     dvo.setNewSvBizDclsfCd("1126"); //이종간기변
-                } else if ((StringUtils.isEmpty(beforeContractReqDvo.getReqdDt())
-                    && StringUtils.isEmpty(beforeContractReqDvo.getCpsDt())
-                    && !"303".equals(beforeContractReqDvo.getCntrDtlStatCd())) && "D".equals(dvo.getRetYn())) {
+                } else if ((StringUtils.isEmpty(beforeContract.getReqdDt())
+                    && StringUtils.isEmpty(beforeContract.getCpsDt())
+                    && !"303".equals(beforeContract.getCntrDtlStatCd())) && "D".equals(dvo.getRetYn())) {
                     dvo.setNewSvBizDclsfCd("1122"); //자사미회수
                 } else {
                     dvo.setNewSvBizDclsfCd("1121"); //자사회수
@@ -105,8 +133,9 @@ public class WsnbMultipleTaskOrderService {
             } else {
                 dvo.setNewSvBizDclsfCd(dvo.getSvBizDclsfCd());
             }
-        } else if (MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())
-            || MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
+        } else if (List.of(MTR_STAT_CD_MOD, MTR_STAT_CD_DEL).contains(dvo.getMtrStatCd())) {
+            WsnbAsAssignReqDvo asAssignReqDvo = mapper.selectAsAssignByPk(dvo.getAsIstOjNo())
+                .orElseThrow(() -> new BizException("MSG_ALT_RCP_DIFF_WAY", new String[] {dvo.getRcgvpKnm()}));
 
             dvo.setNewSvBizDclsfCd(asAssignReqDvo.getSvBizDclsfCd());
             dvo.setNewWkAcpteStatCd(asAssignReqDvo.getWkAcpteStatCd());
@@ -117,275 +146,251 @@ public class WsnbMultipleTaskOrderService {
             dvo.setNewSvBizDclsfCd(dvo.getSvBizDclsfCd());
         }
 
-        /* 고객명이 없으면 구한다. */
-        if (StringUtils.isEmpty(dvo.getRcgvpKnm())) {
-            dvo.setNewRcgvpKnm(contractReqDvo.getRcgvpKnm());
-        } else {
-            dvo.setNewRcgvpKnm(dvo.getRcgvpKnm());
-        }
-        String[] cstNm = {dvo.getNewRcgvpKnm()};
-
-        // TODAY Request Reject
-        String nowDayString = DateUtil.getNowDayString();
-        if (nowDayString.equals(dvo.getVstRqdt())
-            && (List.of(IN_CHNL_DV_CD_SALES, IN_CHNL_DV_CD_WEB, IN_CHNL_DV_CD_KMEMBERS)
-                .contains(dvo.getInChnlDvCd()))) {
-            throw new BizException("MSG_ALT_TOD_VST_AK_REJ");
-        }
-
-        /* 정상 접수 건인지 체크 */
-        if (MTR_STAT_CD_NEW.equals(dvo.getMtrStatCd())) {
-
-            /* 설치 오더인데 설치 일자가 이미 있는지 체크 */
-            if (StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "11") && !"1113".equals(dvo.getNewSvBizDclsfCd())) {
-                BizAssert.isNull(contractReqDvo.getIstDt(), "MSG_ALT_ARDY_IST", cstNm);
-                /* 철거 오더인데 철거 일자가 이미 있는지 체크 */
-            } else if (StringUtils.startsWith(dvo.getSvBizDclsfCd(), "34")) {
-                BizAssert.isNull(contractReqDvo.getReqdDt(), "MSG_ALT_ARDY_REQD", cstNm);
-            }
-            /* 해당 고객에 미완료 된 동일 유형의 오더 건이 존재 하는지 체크 */
-            asAssignCnt = mapper.selectAsAssignCountByPk(dvo);
-
-            if (asAssignCnt > 0) {
-                String cntrNo = dvo.getCntrNo().substring(1, 4) + "-" + dvo.getCntrNo().substring(5);
-                String workContent = mapper.selectWorkContent(dvo.getNewSvBizDclsfCd());
-                String[] param = {dvo.getNewRcgvpKnm(), cntrNo, workContent};
-                throw new BizException("MSG_ALT_ARDY_WK", param);
-            }
-
-            if ("Y".equals(dvo.getRetYn()) && dvo.getCntrNoB().length() == 0) {
-                throw new BizException("MSG_ALT_RET_NOT_CNTRNO", cstNm);
-            }
-
-            if (StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "34") && "Y".equals(contractReqDvo.getStopYn())) {
-                throw new BizException("MSG_ALT_DLQ_SV_STP");
-            }
-            if (StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "3123")
-                || StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "3124")) {
-                /*21.12.22 이영진, 김예은 매니저님요청, 라이트상품(6M3) 상판교체 서비스 없음*/
-                if (StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "3124")
-                    && !"6M1".equals(dvo.getSvPrd().trim().replace("M0", "M1"))) {
-                    throw new BizException("MSG_ALT_NOT_ESTOV_TOP_CHNG", cstNm);
-                }
-
-                /* 사용 개월 체크 */
-                int useMonths = 0;
-                if (StringUtils.isNotEmpty(contractReqDvo.getIstDt())) {
-                    useMonths = (Integer.parseInt(dvo.getVstRqdt()) - Integer.parseInt(contractReqDvo.getIstDt())) / 30;
-                }
-                /*21.10.18 최고급안마의자 토탈체인지 서비스 수행 여부 체크*/
-                totChangeCnt = mapper.selectCountChangeTotal(dvo.getCntrNo());
-
-                /*21.10.19 전기레인지 글라스 상판 교체 서비스 수행 여부 체크, 또는 특정자재 사용 여부 체크*/
-                /* 49280000000 전기레인지 하이브리드(KW-RKB1)
-                   49281000000 전기레인지 RM523ABA 하이브리드 3구
-                   49282000000 전기레인지 RM723ABA 인덕션 3구 */
-                rangeChangeCnt = mapper.selectCountRangeChange(dvo.getCntrNo());
-                /*21.10.19 전기레인지 글라스 상판 교체 BS 서비스 수행 여부 체크*/
-                rangeChangeBsCnt = mapper.selectCountRangeChangeBs(dvo.getCntrNo());
-                /*21.10.19 안마의자 토탈체인지, 전기레인지 상판교체 자재 사용으로 서비스 체크*/
-                itemCnt = mapper.selectWorkOutStorageCount(dvo.getCntrNo(), dvo.getCntrSn());
-
-                /*21.10.18 이영진, 최고급 안마의자 토탈 체인지 서비스, 전기레인지 상판 교체 설치 차월 체크*/
-                if (StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "3123")) {
-                    BizAssert.isFalse(useMonths <= 12, "MSG_ALT_NOT_YET_12M", cstNm);
-                    /*21.10.18 이영진, 최고급 안마의자 토탈 체인지 서비스 체크*/
-                    BizAssert.isTrue(totChangeCnt > 0 || itemCnt > 0, "MSG_ALT_ARDY_TOT_CHNG", cstNm);
-
-                }
-                if (StringUtils.startsWith(dvo.getSvBizDclsfCd(), "3124")) {
-                    BizAssert.isFalse(useMonths <= 24, "MSG_ALT_NOT_YET_24M", cstNm);
-                    /*21.10.19 이영진, 전기레인지 글라스 상판 교체 서비스 체크*/
-
-                    BizAssert.isTrue(
-                        (rangeChangeCnt > 0 || rangeChangeBsCnt > 0) || itemCnt > 0, "MSG_ALT_ARDY_RANGE_TOP_CHNG",
-                        cstNm
-                    );
-                }
-
-            }
-        }
-
-        if (MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())
-            || MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
-
-            if (!"00".equals(dvo.getNewWkPrgsStatCd()) && !"10".equals(dvo.getNewWkPrgsStatCd())) {
-                throw new BizException("MSG_ALT_NOT_MDFC_CAN_STAT");
-            }
-
-            BizAssert.notNull(asAssignReqDvo, "MSG_ALT_RCP_DIFF_WAY", cstNm);
-            if (nowDayString.equals(dvo.getNewWkAcpteDt())
-                && !"3460".equals(dvo.getNewSvBizDclsfCd())) {
-                throw new BizException("MSG_ALT_TOD_VST_MDFC_CAN_IMP", cstNm);
-            }
-            /* 수락 상태이면 수정/취소 안되게 */
-            BizAssert.isFalse("Y".equals(dvo.getNewWkAcpteStatCd()), "MSG_ALT_ARDY_ACPTE_STAT", cstNm);
-            /* 취소 상태이면 수정/취소 안되게 */
-            BizAssert
-                .isFalse(MTR_STAT_CD_DEL.equals(dvo.getNewMtrStatCd()), "MSG_ALT_ARDY_CAN_STAT", cstNm);
-        }
+        // 미사용해서 주석처리
+        // dvo.setMexnoEncr(mapper.selectMexnoEncr(dvo.getUserId())); /* 전화번호 가운데 복호화 */
 
         /*LC_ALLOCATE_AC211TB 키를 생성한다.
         P_IN_GB 입력구분 1:CC, 2:KIWI, 3:KSS 1이면 CC에서 입력된 P_WRK_DT, P_SEQ 사용 아니면 자체 생성
         SEQ_LC_ALLOCATE_AC211TB 5자리 시퀀스 생성, MAX 되면 CYCL
         E*/
-        WsnbMultipleTaskOrderDvo res2 = mapper.selectAsIstOjIzKey(dvo);
-        String newAsIstOjNo = res2.getNewInChnlDvCd() + res2.getNewSvBizHclsfCd() + res2.getNewRcpdt()
-            + StringUtils.leftPad(res2.getNewReq(), 8, "0");
-        String puCstSvAsnNo = res2.getNewSvBizHclsfCd() + res2.getNewRcpdt()
-            + StringUtils.leftPad(res2.getNewReq(), 10, "0");
-        dvo.setNewInChnlDvCd(res2.getNewInChnlDvCd());
-        dvo.setNewSvBizHclsfCd(res2.getNewSvBizHclsfCd());
-        dvo.setNewRcpdt(res2.getNewRcpdt());
-        dvo.setNewReq(res2.getNewReq());
+        WsnbMultipleTaskOrderDvo keyForAsReceipt = mapper.selectAsIstOjIzKey(dvo);
+        String newAsIstOjNo = keyForAsReceipt.getNewInChnlDvCd() + keyForAsReceipt.getNewSvBizHclsfCd()
+            + keyForAsReceipt.getNewRcpdt()
+            + StringUtils.leftPad(keyForAsReceipt.getNewReq(), 8, "0");
+        String puCstSvAsnNo = keyForAsReceipt.getNewSvBizHclsfCd() + keyForAsReceipt.getNewRcpdt()
+            + StringUtils.leftPad(keyForAsReceipt.getNewReq(), 10, "0");
+        dvo.setNewInChnlDvCd(keyForAsReceipt.getNewInChnlDvCd());
+        dvo.setNewSvBizHclsfCd(keyForAsReceipt.getNewSvBizHclsfCd());
+        dvo.setNewRcpdt(keyForAsReceipt.getNewRcpdt());
+        dvo.setNewReq(keyForAsReceipt.getNewReq());
         dvo.setNewAsIstOjNo(newAsIstOjNo);
         dvo.setPuCstSvAsnNo(puCstSvAsnNo);
+    }
 
-        /* KIWI 코드 및 판매 코드를 세팅한다 */
-        dvo.setNewPdCd(contractReqDvo.getPdctPdCd());
-        dvo.setNewSaleCd(contractReqDvo.getBasePdCd());
-
-        /* 고객서비스수행내역(TB_SVPD_CST_SV_EXCN_IZ) 저장 로직 삭제. TOBE에서는 배치로 처리하기로 함. */
-        /* 216TB INSERT 로직 삭제 */
-        /* 정보변경프로시저(SP_WRK_TYP_DTL_7100) 호출 로직 삭제 */
-
-        /* 정보 변경이 아니라면 오더 생성 */
-        if (!(StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "7"))) {
-            if (MTR_STAT_CD_NEW.equals(dvo.getMtrStatCd())) {
-                dvo.setMexnoEncr(mapper.selectMexnoEncr(dvo.getUserId())); /* 전화번호 가운데 복호화 */
-                mapper.insertInstallationObject(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
-            } else if (MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())) {
-                /* 저장할 값 조회 */
-                WsnbInstallationObjectSaveDvo saveDvo = mapper.selectSaveInstallationObject(dvo);
-                mapper.updateInstallationObject(saveDvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
-            } else if (MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
-                mapper.updateInstallationObjectMtrStatCd(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
-            }
-
-            if (!MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())
-                && List.of("1310", "3531").contains(dvo.getNewSvBizDclsfCd())
-                && dvo.getPartList() != null) {
-                /*TB_SVPD_CST_SVAS_PU_ITM_IZ 이전 정보를 삭제 */
-                mapper.deleteAsPutItem(dvo);
-                /*PART_LIST 자재코드,수량,금액 | 자재코드,수량,금액 | ~~~
-                * 위 형태의 List를 쪼개서 자재, 수량, 금액으로 저장해서 임시테이블에 insert
-                * */
-                String[] partList = StringUtils.split(dvo.getPartList(), "|");
-                WsnbMultipleTaskOrderDvo partDvo = new WsnbMultipleTaskOrderDvo();
-                for (String part : partList) {
-                    String[] arr = StringUtils.split(part, ",");
-                    partDvo.setPartCd(arr[0]);
-                    partDvo.setPartQty(arr[1]);
-                    partDvo.setPartAmt(arr[2]);
-                    /* 임시테이블에 insert */
-                    mapper.insertSeedingTemp(part); /* TB_SVPD_SDING_PRCHS_IZ_TEMP */
-                    mapper.insertSeedingProcsTemp(partDvo); /* TB_SVPD_SDING_PRCHS_PROCS_TEMP */
-                }
-
-                /* TB_SVPD_CST_SVAS_PU_ITM_IZ에 INSERT할 값 조회 */
-                List<WsnbMultipleTaskOrderDvo> putItems = mapper.selectPutItems(dvo);
-                for (WsnbMultipleTaskOrderDvo putItem : putItems) {
-                    mapper.insertAsPutItem(putItem); /* TB_SVPD_CST_SVAS_PU_ITM_IZ */
-                }
-            }
-
-            /*고객서비스AS설치배정내역(TB_SVPD_CST_SV_AS_IST_ASN_IZ) 키를 조회 한다.*/
-            WsnbMultipleTaskOrderDvo res4 = mapper.selectCustomerServiceAssignNo(dvo);
-            String asnCstSvAsnNo = res4.getAsnSvBizHclsfCd() + res4.getAsnDt() + res4.getAsnReq();
-            dvo.setAsnSvBizHclsfCd(res4.getAsnSvBizHclsfCd());
-            dvo.setAsnDt(res4.getAsnDt());
-            dvo.setAsnReq(res4.getAsnReq());
-            dvo.setAsnCstSvAsnNo(asnCstSvAsnNo);
-
-            if (MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())
-                || MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
-                /* 로그저장(TB_SVPD_CST_SV_AS_IST_ASN_HIST) */
-                mapper.insertAsInstallationAssignHist(dvo.getAsnCstSvAsnNo());
-                /* DELETE TB_SVPD_CST_SVAS_IST_ASN_IZ */
-                mapper.deleteAsInstallationAssign(dvo.getAsnCstSvAsnNo());
-                /*모종 고객이라면 확정되지 않은 해당 방문 스케쥴의 모종 배송 스케쥴을 삭제한다.*/
-                if ("11".equals(contractReqDvo.getPdctPdGrpCd())) {
-                    /*확정되지 않은 배송오더의 예정 모종 삭제*/
-                    mapper.deleteSeedingShipping(dvo);
-                }
-            }
-
-            if (!MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
-                /* 고객서비스AS설치배정내역(TB_SVPD_CST_SV_AS_IST_ASN_IZ) 키를 생성한다.*/
-                WsnbMultipleTaskOrderDvo res5 = mapper.selectCustomerServiceAssignNo(dvo);
-                String newAsnCstSvAsnNo = res5.getAsnSvBizHclsfCd() + res5.getAsnDt() + res5.getAsnReq();
-                dvo.setAsnSvBizHclsfCd(res5.getAsnSvBizHclsfCd());
-                dvo.setAsnDt(res5.getAsnDt());
-                dvo.setAsnReq(res5.getAsnReq());
-                dvo.setAsnCstSvAsnNo(newAsnCstSvAsnNo);
-
-                /* 배정정보를 구한다. */
-                WsnbMultipleTaskOrderDvo res3 = mapper.selectAsAssignOganizationByPk(dvo);
-                dvo.setIchrCnrCd(res3.getIchrCnrCd());
-                dvo.setIchrPrtnrNo(res3.getIchrPrtnrNo());
-                dvo.setIchrOgTpCd(res3.getIchrOgTpCd());
-                dvo.setRpbLocaraCd(res3.getRpbLocaraCd());
-
-                /* 고객서비스AS설치배정내역(TB_SVPD_CST_SV_AS_IST_ASN_IZ), HIST insert*/
-                mapper.insertAsInstallationAssign(dvo);
-                mapper.insertAsInstallationAssignHistByNewKey(dvo);
-
-                /*모종 고객이라면 생성된 방문 오더 기준 모종 배송 스케쥴을 업데이트 또는 인서트 해주고 방문 오더를 생성한다.*/
-                if ("11".equals(contractReqDvo.getPdctPdGrpCd())) {
-                    String vstDtChk = mapper.selectVstDtChk(dvo.getVstRqdt())
-                        .orElseThrow(() -> new BizException("MSG_ALT_CHK_VSTDT"));
-                    dvo.setVstDtChk(vstDtChk);
-
-                    /* ---------진행중------ */
-                    if (StringUtils.isEmpty(dvo.getPartList())) {
-                        dvo.setExpMat(0);
-                        dvo.setSdingExpMat(0);
-                        dvo.setExpMatSum(0);
-                    } else {
-                        /*파라미터로 받은 모종 정보가 있는지 확인한다*/
-                        /*파라미터를 임시테이블에 하나씩 넣는다.*/
-                        /*2020.01.17 유엔젤주 씨앗패키지 AS접수시 예외처리  */
-                        /* TODO : DB2테이블 확인필요 (INSERT INTO LC_FARM_FA001TB 까지 해야함.)*/
-
-                        /*예정 자재 건수 체크, 자재 중 모정 건수 체크, 전체 유상 비용 합*/
-                        WsnbMultipleTaskOrderDvo res6 = mapper.selectSdingCount();
-                        dvo.setExpMat(res6.getExpMat());
-                        dvo.setSdingExpMat(res6.getSdingExpMat());
-                        dvo.setExpMatSum(res6.getExpMatSum());
-                    }
-                    /*--씨앗 패키지 1월 2월 설치분 상품 코드 활력채패키지(123)으로 변경*/
-                    dvo.setNewPdCd(contractReqDvo.getPdctPdCd());
-                    dvo.setNewSaleCd(contractReqDvo.getBasePdCd());
-
-                    /* sppPlanSn 순번구하기 */
-                    dvo.setSppPlanSn(mapper.selectSppPlanSn(dvo));
-                    /* GET_GOODS_NAME_SALE_CD 값 받아놓기.*/
-                    dvo.setSaleNm(contractReqDvo.getBasePdNm());
-                    /*배송 스케쥴 테이블 인서트*/
-                    mapper.insertSeedingPlan(dvo);
-
-                    if (dvo.getExpMat() == 0) { /*인터페이스 된 출고 예정 자재 건수가 0 이라면 */
-                        dvo.setPdSize(contractReqDvo.getPdctPdSize());
-                        /* 모종정보 인서트(TODO : DB2 테이블확인필요) */
-
-                    } else { /*구매/AS 고객이라면*/
-                        /* 모종정보 인서트 */
-                        mapper.insertSeedingExpByAs(dvo);
-
-                        /*배양액만 배송이라면 담당자를 71394 생산관리팀 28714 최진아 사원으로 업데이트*/
-                        /*20.08.10 새싹시앗 패키지일 경우 택배배송*/
-                        if (dvo.getSdingExpMat() == 0 || (StringUtils.startsWith(dvo.getSaleNm(), "새싹")
-                            && !StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "1"))) {
-                            mapper.updateAsInstallationAssign(dvo.getAsnCstSvAsnNo());
-                        }
-                    }
-                }
-            }
-            /*TB_SVPD_CST_SVAS_IST_OJ_IZ 배정 키 업데이트*/
-            mapper.updateInstallationObjectKey(dvo);
-
+    private void saveOrder(WsnbMultipleTaskOrderDvo dvo) {
+        if (MTR_STAT_CD_NEW.equals(dvo.getMtrStatCd())) {
+            mapper.insertInstallationObject(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
+        } else if (MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())) {
+            mapper.mergeInstallationObject(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
+        } else if (MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
+            mapper.updateInstallationObjectMtrStatCd(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
         }
 
-        return dvo.getNewAsIstOjNo();
+        boolean isWellsFarmSeeding = "11".equals(dvo.getPdGrpCd());
+        if (MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())
+            || MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
+            /* 로그저장(TB_SVPD_CST_SV_AS_IST_ASN_HIST) */
+            mapper.insertAsInstallationAssignHist(dvo.getAsnCstSvAsnNo());
+            /* DELETE TB_SVPD_CST_SVAS_IST_ASN_IZ */
+            mapper.deleteAsInstallationAssign(dvo.getAsnCstSvAsnNo());
+            /*모종 고객이라면 확정되지 않은 해당 방문 스케쥴의 모종 배송 스케쥴을 삭제한다.*/
+            if (isWellsFarmSeeding) {
+                /*확정되지 않은 배송오더의 예정 모종 삭제*/
+                mapper.deleteSeedingShipping(dvo);
+            }
+        }
+
+        if (!MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
+
+            /*고객서비스AS설치배정내역(TB_SVPD_CST_SV_AS_IST_ASN_IZ) 키를 조회 한다.*/
+            WsnbMultipleTaskOrderDvo keyForAsAssign = mapper.selectCustomerServiceAssignNo(dvo);
+            String asnCstSvAsnNo = keyForAsAssign.getAsnSvBizHclsfCd() + keyForAsAssign.getAsnDt()
+                + keyForAsAssign.getAsnReq();
+            dvo.setAsnSvBizHclsfCd(keyForAsAssign.getAsnSvBizHclsfCd());
+            dvo.setAsnDt(keyForAsAssign.getAsnDt());
+            dvo.setAsnReq(keyForAsAssign.getAsnReq());
+            dvo.setAsnCstSvAsnNo(asnCstSvAsnNo);
+
+            /* 배정 담당자 정보 세팅 */
+            WsnbMultipleTaskOrderDvo IchrPrtnr = mapper.selectAsAssignOganizationByPk(dvo);
+            dvo.setIchrCnrCd(IchrPrtnr.getIchrCnrCd());
+            dvo.setIchrPrtnrNo(IchrPrtnr.getIchrPrtnrNo());
+            dvo.setIchrOgTpCd(IchrPrtnr.getIchrOgTpCd());
+            dvo.setRpbLocaraCd(IchrPrtnr.getRpbLocaraCd());
+
+            /* 고객서비스AS설치배정내역(TB_SVPD_CST_SV_AS_IST_ASN_IZ), HIST insert*/
+            mapper.insertAsInstallationAssign(dvo);
+            mapper.insertAsInstallationAssignHist(dvo.getAsnCstSvAsnNo());
+
+            /*--필터판매 또는 자재선택(3531 - 비스포크 패널 교체)일 경우 A/S투입부품정보 테이블에 인서트 한다.*/
+            if (List.of("1310", "3531").contains(dvo.getNewSvBizDclsfCd()) && dvo.getPartList() != null) {
+                saveAsPuItem(dvo);
+            }
+
+            /*모종 고객이라면 생성된 방문 오더 기준 모종 배송 스케쥴을 업데이트 또는 인서트 해주고 방문 오더를 생성한다.*/
+            if (isWellsFarmSeeding) {
+                createSeedingPlan(dvo);
+            }
+        }
+
+        /*TB_SVPD_CST_SVAS_IST_OJ_IZ 배정 키 업데이트*/
+        mapper.updateInstallationObjectKey(dvo);
+    }
+
+    private void saveAsPuItem(WsnbMultipleTaskOrderDvo dvo) {
+        /*TB_SVPD_CST_SVAS_PU_ITM_IZ 이전 정보를 삭제 */
+        mapper.deleteAsPutItem(dvo);
+
+        /*PART_LIST 자재코드,수량,금액 | 자재코드,수량,금액 | ~~~
+        * 위 형태의 List를 쪼개서 자재, 수량, 금액으로 저장해서 임시테이블에 insert
+        * */
+        String[] partList = StringUtils.split(dvo.getPartList(), "|");
+        WsnbMultipleTaskOrderDvo partDvo = new WsnbMultipleTaskOrderDvo();
+        for (String part : partList) {
+            String[] arr = StringUtils.split(part, ",");
+            partDvo.setPartCd(arr[0]);
+            partDvo.setPartQty(arr[1]);
+            partDvo.setPartAmt(arr[2]);
+            /* 임시테이블에 insert */
+            mapper.insertSeedingTemp(part); /* TB_SVPD_SDING_PRCHS_IZ_TEMP */
+            mapper.insertSeedingProcsTemp(partDvo); /* TB_SVPD_SDING_PRCHS_PROCS_TEMP */
+        }
+
+        /* TB_SVPD_CST_SVAS_PU_ITM_IZ에 INSERT할 값 조회 */
+        List<WsnbMultipleTaskOrderDvo> putItems = mapper.selectPutItems(dvo);
+        for (WsnbMultipleTaskOrderDvo putItem : putItems) {
+            mapper.insertAsPutItem(putItem); /* TB_SVPD_CST_SVAS_PU_ITM_IZ */
+        }
+    }
+
+    private void createSeedingPlan(WsnbMultipleTaskOrderDvo dvo) {
+        String vstDtChk = mapper.selectVstDtChk(dvo.getVstRqdt())
+            .orElseThrow(() -> new BizException("MSG_ALT_CHK_VSTDT"));
+        dvo.setVstDtChk(vstDtChk);
+
+        /* ---------진행중------ */
+        if (StringUtils.isEmpty(dvo.getPartList())) {
+            dvo.setExpMat(0);
+            dvo.setSdingExpMat(0);
+            dvo.setExpMatSum(0);
+        } else {
+            /*파라미터로 받은 모종 정보가 있는지 확인한다*/
+            /*파라미터를 임시테이블에 하나씩 넣는다.*/
+            /*2020.01.17 유엔젤주 씨앗패키지 AS접수시 예외처리  */
+            /* TODO : DB2테이블 확인필요 (INSERT INTO LC_FARM_FA001TB 까지 해야함.)*/
+
+            /*예정 자재 건수 체크, 자재 중 모정 건수 체크, 전체 유상 비용 합*/
+            WsnbMultipleTaskOrderDvo res6 = mapper.selectSdingCount();
+            dvo.setExpMat(res6.getExpMat());
+            dvo.setSdingExpMat(res6.getSdingExpMat());
+            dvo.setExpMatSum(res6.getExpMatSum());
+        }
+
+        /* sppPlanSn 순번구하기 */
+        dvo.setSppPlanSn(mapper.selectSppPlanSn(dvo));
+        /*배송 스케쥴 테이블 인서트*/
+        mapper.insertSeedingPlan(dvo);
+
+        if (dvo.getExpMat() == 0) { /*인터페이스 된 출고 예정 자재 건수가 0 이라면 */
+            /* 모종정보 인서트(TODO : DB2 테이블확인필요) */
+
+        } else { /*구매/AS 고객이라면*/
+            /* 모종정보 인서트 */
+            mapper.insertSeedingExpByAs(dvo);
+
+            /*배양액만 배송이라면 담당자를 71394 생산관리팀 28714 최진아 사원으로 업데이트*/
+            /*20.08.10 새싹시앗 패키지일 경우 택배배송*/
+            if (dvo.getSdingExpMat() == 0 || (StringUtils.startsWith(dvo.getBasePdNm(), "새싹")
+                && !StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "1"))) {
+                mapper.updateAsInstallationAssign(dvo.getAsnCstSvAsnNo());
+            }
+        }
+    }
+
+    private void checkValidationNewOrder(WsnbMultipleTaskOrderDvo dvo) {
+        int rangeChangeCnt;
+        int rangeChangeBsCnt;
+        int asAssignCnt;
+        int totChangeCnt;
+        int itemCnt;
+
+        String[] cstNm = {dvo.getNewRcgvpKnm()};
+
+        /* 설치 오더인데 설치 일자가 이미 있는지 체크 */
+        if (StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "11") && !"1113".equals(dvo.getNewSvBizDclsfCd())) {
+            BizAssert.isNull(dvo.getIstDt(), "MSG_ALT_ARDY_IST", cstNm);
+            /* 철거 오더인데 철거 일자가 이미 있는지 체크 */
+        } else if (StringUtils.startsWith(dvo.getSvBizDclsfCd(), "34")) {
+            BizAssert.isNull(dvo.getReqdDt(), "MSG_ALT_ARDY_REQD", cstNm);
+        }
+
+        /* 해당 고객에 미완료 된 동일 유형의 오더 건이 존재 하는지 체크 */
+        asAssignCnt = mapper.selectAsAssignCountByPk(dvo);
+
+        if (asAssignCnt > 0) {
+            String cntrNo = dvo.getCntrNo().substring(1, 4) + "-" + dvo.getCntrNo().substring(5);
+            String workContent = mapper.selectWorkContent(dvo.getNewSvBizDclsfCd());
+            String[] param = {dvo.getNewRcgvpKnm(), cntrNo, workContent};
+            throw new BizException("MSG_ALT_ARDY_WK", param);
+        }
+
+        if ("Y".equals(dvo.getRetYn()) && dvo.getCntrNoB().length() == 0) {
+            throw new BizException("MSG_ALT_RET_NOT_CNTRNO", cstNm);
+        }
+
+        if (StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "34") && "Y".equals(dvo.getStopYn())) {
+            throw new BizException("MSG_ALT_DLQ_SV_STP");
+        }
+        if (StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "3123")
+            || StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "3124")) {
+            /*21.12.22 이영진, 김예은 매니저님요청, 라이트상품(6M3) 상판교체 서비스 없음*/
+            if (StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "3124")
+                && !"6M1".equals(dvo.getSvPrd().trim().replace("M0", "M1"))) {
+                throw new BizException("MSG_ALT_NOT_ESTOV_TOP_CHNG", cstNm);
+            }
+
+            /* 사용 개월 체크 */
+            int useMonths = 0;
+            if (StringUtils.isNotEmpty(dvo.getIstDt())) {
+                useMonths = (Integer.parseInt(dvo.getVstRqdt()) - Integer.parseInt(dvo.getIstDt())) / 30;
+            }
+            /*21.10.18 최고급안마의자 토탈체인지 서비스 수행 여부 체크*/
+            totChangeCnt = mapper.selectCountChangeTotal(dvo.getCntrNo());
+
+            /*21.10.19 전기레인지 글라스 상판 교체 서비스 수행 여부 체크, 또는 특정자재 사용 여부 체크*/
+            /* 49280000000 전기레인지 하이브리드(KW-RKB1)
+               49281000000 전기레인지 RM523ABA 하이브리드 3구
+               49282000000 전기레인지 RM723ABA 인덕션 3구 */
+            rangeChangeCnt = mapper.selectCountRangeChange(dvo.getCntrNo());
+            /*21.10.19 전기레인지 글라스 상판 교체 BS 서비스 수행 여부 체크*/
+            rangeChangeBsCnt = mapper.selectCountRangeChangeBs(dvo.getCntrNo());
+            /*21.10.19 안마의자 토탈체인지, 전기레인지 상판교체 자재 사용으로 서비스 체크*/
+            itemCnt = mapper.selectWorkOutStorageCount(dvo.getCntrNo(), dvo.getCntrSn());
+
+            /*21.10.18 이영진, 최고급 안마의자 토탈 체인지 서비스, 전기레인지 상판 교체 설치 차월 체크*/
+            if (StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "3123")) {
+                BizAssert.isFalse(useMonths <= 12, "MSG_ALT_NOT_YET_12M", cstNm);
+                /*21.10.18 이영진, 최고급 안마의자 토탈 체인지 서비스 체크*/
+                BizAssert.isTrue(totChangeCnt > 0 || itemCnt > 0, "MSG_ALT_ARDY_TOT_CHNG", cstNm);
+
+            }
+            if (StringUtils.startsWith(dvo.getSvBizDclsfCd(), "3124")) {
+                BizAssert.isFalse(useMonths <= 24, "MSG_ALT_NOT_YET_24M", cstNm);
+                /*21.10.19 이영진, 전기레인지 글라스 상판 교체 서비스 체크*/
+
+                BizAssert.isTrue(
+                    (rangeChangeCnt > 0 || rangeChangeBsCnt > 0) || itemCnt > 0, "MSG_ALT_ARDY_RANGE_TOP_CHNG",
+                    cstNm
+                );
+            }
+        }
+    }
+
+    private void checkValidationExistOrder(WsnbMultipleTaskOrderDvo dvo) {
+        String[] cstNm = {dvo.getNewRcgvpKnm()};
+
+        boolean canChangeWkPrgsStatCd = List.of("00", "10").contains(dvo.getNewWkPrgsStatCd());
+        BizAssert.isTrue(canChangeWkPrgsStatCd, "MSG_ALT_NOT_MDFC_CAN_STAT");
+
+        String nowDayString = DateUtil.getNowDayString();
+        if (nowDayString.equals(dvo.getNewWkAcpteDt())
+            && !"3460".equals(dvo.getNewSvBizDclsfCd())) {
+            throw new BizException("MSG_ALT_TOD_VST_MDFC_CAN_IMP", cstNm);
+        }
+        /* 수락 상태이면 수정/취소 안되게 */
+        BizAssert.isFalse("Y".equals(dvo.getNewWkAcpteStatCd()), "MSG_ALT_ARDY_ACPTE_STAT", cstNm);
+        /* 취소 상태이면 수정/취소 안되게 */
+        BizAssert
+            .isFalse(MTR_STAT_CD_DEL.equals(dvo.getNewMtrStatCd()), "MSG_ALT_ARDY_CAN_STAT", cstNm);
     }
 }

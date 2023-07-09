@@ -69,6 +69,7 @@
              , IN_CHNL_DV_CD   /* 입력채널구분코드 */
              , CNTR_NO         /* 계약번호 */
              , CNTR_SN         /* 계약일련번호 */
+             , HIST_CH_DTM
              , DTA_DL_YN       /* 데이터삭제여부 */
              <include refid="COMMON.insertSystemField" />)
         VALUES (
@@ -76,6 +77,7 @@
              , #{inChnlDvCd}
              , #{cntrNo}
              , ${cntrSn}
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
              , 'N'
              <include refid="COMMON.insertSystemFieldValue" />)
     </insert>

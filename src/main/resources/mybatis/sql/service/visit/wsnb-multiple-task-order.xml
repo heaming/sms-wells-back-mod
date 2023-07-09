@@ -4,6 +4,7 @@
     <select id="selectContract" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractReqDvo">
         SELECT S1.CNTR_NO
               , S1.CNTR_SN
+             ,  C1.CNTR_CST_NO
               , C1.CNTR_CNFM_DTM -- 계약확정일시
               , C1.CNTR_CAN_DTM -- 계약취소일시
               , C2.CNTR_DTL_STAT_CD -- 계약상세상태코드
@@ -171,6 +172,7 @@
            AND O1.SV_BIZ_DCLSF_CD LIKE '2178%'
            AND A1.VST_PRGS_STAT_CD = '20'
     </select>
+
     <select id="selectWorkOutStorageCount" resultType="int">
         SELECT COUNT(1)
           FROM TB_SVST_SV_WK_OSTR_IZ
@@ -181,6 +183,7 @@
            AND REFRI_DV_CD = '1'
            AND ITM_PD_CD IN ('WM07105864', 'WM07105786', 'WM07105787', 'WM07105788')
     </select>
+
     <select id="selectAsIstOjIzKey" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo">
         SELECT TRIM(#{inChnlDvCd}) AS NEW_IN_CHNL_DV_CD
              , TRIM(#{svBizHclsfCd}) AS NEW_SV_BIZ_HCLSF_CD
@@ -227,86 +230,115 @@
                AND PRTNR_NO = #{userId}
                AND OG_TP_CD = #{rcpOgTpCd}
     </select>
-    <select id="selectSaveInstallationObject" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallationObjectSaveDvo">
-        SELECT #{newAsIstOjNo} AS AS_IST_OJ_NO
-             , #{newSvBizDclsfCd} AS SV_BIZ_DCLSF_CD
-             , (CASE WHEN #{newInChnlDvCd} = '1' THEN TRIM(#{urgtYn})  /*고객센터 접수건은 고객센터에서 내려준 값 사용*/
-                     ELSE (SELECT NVL(MAX(DECODE(#{rcpOgTpCd},'W02','3','2')), '0') /*긴급여부 :  0 정상설치 1 당일긴급(SMS)  2 ENG  3 웰스매니저 4 고객요청 */
-                              FROM DUAL
-                          )
-                 END) AS URGT_YN
-             , #{vstRqdt} AS VST_RQDT /*방문요청일자*/
-             , #{vstAkHh} AS VST_AK_HH /*방문요청시간*/
-             , #{cnslTpHclsfCd} AS CNSL_TP_HCLSF_CD /*상담유형 1(대)*/
-             , #{cnslTpMclsfCd} AS CNSL_TP_MCLSF_CD /*상담유형 2(중)*/
-             , #{cnslTpLclsfCd} AS CNSL_TP_LCLSF_CD/* 상담유형 3(소)*/
-             , DECODE(A2.IST_DT,NULL,NULL,'00000000',NULL
-                              ,DECODE(SIGN(TO_DATE(TO_CHAR(SYSDATE,'YYYYMMDD')) - ADD_MONTHS(TO_DATE(A2.IST_DT,'YYYYMMDD'),C9.FRISU_AS_PTRM_N)),1,'2','1')) AS AS_REFRI_DV_CD /*AS유무상구분코드*/
-             , DECODE(A2.IST_DT,NULL,NULL,'00000000',NULL
-                              ,DECODE(SIGN(TO_DATE(TO_CHAR(SYSDATE,'YYYYMMDD')) - ADD_MONTHS(TO_DATE(A2.IST_DT,'YYYYMMDD'),C9.FRISU_BFSVC_PTRM_N)),1,'2','1')) AS BFSVC_REFRI_DV_CD /*BS유무상구분코드*/
-             , #{smsFwYn} AS SMS_FW_YN /*SMS발송여부*/
-             , #{dpDvCd} AS DP_DV_CD /*입금구분코드*/
-             , NVL(#{svEtAmt},0) AS SV_ET_AMT /*서비스예상금액*/
-             , (SELECT OG_ID
-                  FROM TB_OGBS_PRTNR_BAS
-                 WHERE 1=1
-                   AND PRTNR_NO = FN_SVPD_LOCARA_PRTNR_01(TRIM(T3.NEW_ADR_ZIP), A2.PDCT_PD_CD, #{newSvBizDclsfCd}, NVL(#{vstRqdt}, TO_CHAR(SYSDATE, 'YYYYMMDD')))
-                   AND OG_TP_CD = 'W06'
-               ) AS SV_CNR_OG_ID /*서비스센터조직ID*/
-             , #{mtrStatCd} AS MTR_STAT_CD /*자료상태코드*/
-             , A2.PDCT_PD_CD AS PDCT_PD_CD /*상품코드*/
-             , C0.PD_GD_CD AS PD_GD_CD /*상품등급코드*/
-             , T8.PD_PRP_VAL01 AS PD_USWY_CD /*상품용도코드*/
-             , #{cnslDtlpTpCd} AS CNSL_DTLP_TP_CD /*상담 세부유형*/
-             , (CASE WHEN #{newInChnlDvCd} = '1' THEN REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
-                     WHEN #{newInChnlDvCd} = '2' THEN
-                          REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '') ||
-                          (
-                          )
-                     WHEN #{newInChnlDvCd} = '3' THEN (CASE WHEN #{newSvBizDclsfCd} IN ('1121', '1122')
-                                                            THEN F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_DCLSF_CD', #{newSvBizDclsfCd}, #{session.langId}) || ': ' || SUBSTR(TRIM(#{cntrNoB}), 1, 4) || '-' || SUBSTR(TRIM(#{cntrNoB}), 5) || ' '  ||
-                                                                 (SELECT T2.PD_ABBR_NM FROM TB_SSCT_CNTR_DTL T1 INNER JOIN TB_PDBS_PD_BAS T2 ON T1.BASE_PD_CD = T2.PD_CD WHERE CNTR_NO = #{cntrNoB} AND CNTR_SN = #{cntrSnB})
-                                                                 || CHR(13) || CHR(10) || REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
-                                                            ELSE REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
-                                                        END)
-                     ELSE REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
-               END) AS CNSL_MO_CN /*상담메모내용*/
-             , C4.RCGVP_KNM /*설치고객명*/
-          FROM TB_SVPD_CST_SVAS_IST_OJ_IZ A1
-		 INNER JOIN TB_SVPD_CST_SV_EXCN_IZ A2
-		    ON A1.CNTR_NO = A2.CNTR_NO
-           AND A1.CNTR_SN = A2.CNTR_SN
-         INNER JOIN TB_SSCT_CNTR_DTL C0 /*계약상세*/
-            ON C0.CNTR_NO   = A1.CNTR_NO
-           AND C0.CNTR_SN   = A1.CNTR_SN
-           AND C0.DTA_DL_YN = 'N'
-         INNER JOIN TB_SSCT_CNTR_WELLS_DTL C9 /*계약WELLS상세*/
-            ON C9.CNTR_NO = C0.CNTR_NO
-           AND C9.CNTR_SN = C0.CNTR_SN
-           AND C9.DTA_DL_YN = 'N'
-         INNER JOIN TB_SSCT_CNTR_BAS C1 /*계약기본*/
-            ON C1.CNTR_NO = C0.CNTR_NO
-           AND C1.DTA_DL_YN = 'N'
-         INNER JOIN TB_SSCT_CNTR_ADR_REL C3 /*계약주소관계*/
-            ON C3.DTL_CNTR_NO = C0.CNTR_NO
-           AND C3.DTL_CNTR_SN = C0.CNTR_SN
-           AND C3.ADRPC_TP_CD = '3' /*설치주소*/
-           AND C3.DTA_DL_YN = 'N'
-           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
-         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C4 /*계약주소지기본*/
-            ON C4.CNTR_ADRPC_ID = C3.CNTR_ADRPC_ID
-           AND C4.DTA_DL_YN     = 'N'
-         INNER JOIN TB_GBCO_ADR_BAS T3 /*주소기본*/
-            ON T3.ADR_ID = C4.ADR_ID
-           AND T3.DTA_DL_YN = 'N'
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T8 /*상품각사속성상세*/
-            ON T8.PD_CD = A1.PD_CD /*서비스상품코드*/
-           AND T8.PD_EXTS_PRP_GRP_CD = 'SCHD' /*상품확장속성그룹코드 : AFS AS, PART AS부품, SCHD 일정관리*/
-           AND T8.DTA_DL_YN = 'N'
-         WHERE 1=1
-           AND A1.CNTR_NO = #{cntrNo}
-           AND A1.CNTR_SN = #{cntrSn}
-    </select>
+
+    <insert id="mergeInstallationObject">
+        MERGE INTO TB_SVPD_CST_SVAS_IST_OJ_IZ S1
+        USING (
+                    SELECT #{newAsIstOjNo} AS AS_IST_OJ_NO
+                         , #{newSvBizDclsfCd} AS SV_BIZ_DCLSF_CD
+                         , (CASE WHEN #{newInChnlDvCd} = '1' THEN TRIM(#{urgtYn})  /*고객센터 접수건은 고객센터에서 내려준 값 사용*/
+                                 ELSE (SELECT NVL(MAX(DECODE(#{rcpOgTpCd},'W02','3','2')), '0') /*긴급여부 :  0 정상설치 1 당일긴급(SMS)  2 ENG  3 웰스매니저 4 고객요청 */
+                                          FROM DUAL
+                                      )
+                             END) AS URGT_YN
+                         , #{vstRqdt} AS VST_RQDT /*방문요청일자*/
+                         , #{vstAkHh} AS VST_AK_HH /*방문요청시간*/
+                         , #{cnslTpHclsfCd} AS CNSL_TP_HCLSF_CD /*상담유형 1(대)*/
+                         , #{cnslTpMclsfCd} AS CNSL_TP_MCLSF_CD /*상담유형 2(중)*/
+                         , #{cnslTpLclsfCd} AS CNSL_TP_LCLSF_CD/* 상담유형 3(소)*/
+                         , DECODE(A2.IST_DT,NULL,NULL,'00000000',NULL
+                                          ,DECODE(SIGN(TO_DATE(TO_CHAR(SYSDATE,'YYYYMMDD')) - ADD_MONTHS(TO_DATE(A2.IST_DT,'YYYYMMDD'),C9.FRISU_AS_PTRM_N)),1,'2','1')) AS AS_REFRI_DV_CD /*AS유무상구분코드*/
+                         , DECODE(A2.IST_DT,NULL,NULL,'00000000',NULL
+                                          ,DECODE(SIGN(TO_DATE(TO_CHAR(SYSDATE,'YYYYMMDD')) - ADD_MONTHS(TO_DATE(A2.IST_DT,'YYYYMMDD'),C9.FRISU_BFSVC_PTRM_N)),1,'2','1')) AS BFSVC_REFRI_DV_CD /*BS유무상구분코드*/
+                         , #{smsFwYn} AS SMS_FW_YN /*SMS발송여부*/
+                         , #{dpDvCd} AS DP_DV_CD /*입금구분코드*/
+                         , NVL(#{svEtAmt},0) AS SV_ET_AMT /*서비스예상금액*/
+                         , (SELECT OG_ID
+                              FROM TB_OGBS_PRTNR_BAS
+                             WHERE 1=1
+                               AND PRTNR_NO = FN_SVPD_LOCARA_PRTNR_01(TRIM(T3.NEW_ADR_ZIP), A2.PDCT_PD_CD, #{newSvBizDclsfCd}, NVL(#{vstRqdt}, TO_CHAR(SYSDATE, 'YYYYMMDD')))
+                               AND OG_TP_CD = 'W06'
+                           ) AS SV_CNR_OG_ID /*서비스센터조직ID*/
+                         , #{mtrStatCd} AS MTR_STAT_CD /*자료상태코드*/
+                         , A2.PDCT_PD_CD AS PDCT_PD_CD /*상품코드*/
+                         , C0.PD_GD_CD AS PD_GD_CD /*상품등급코드*/
+                         , P1.SV_PD_TP_CD AS PD_USWY_CD /*상품용도코드*/
+                         , #{cnslDtlpTpCd} AS CNSL_DTLP_TP_CD /*상담 세부유형*/
+                         , (CASE WHEN #{newInChnlDvCd} = '1' THEN REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
+                                 WHEN #{newInChnlDvCd} = '2' THEN
+                                      REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '') ||
+                                      (
+                                      )
+                                 WHEN #{newInChnlDvCd} = '3' THEN (CASE WHEN #{newSvBizDclsfCd} IN ('1121', '1122')
+                                                                        THEN F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_DCLSF_CD', #{newSvBizDclsfCd}, #{session.langId}) || ': ' || SUBSTR(TRIM(#{cntrNoB}), 1, 4) || '-' || SUBSTR(TRIM(#{cntrNoB}), 5) || ' '  ||
+                                                                             (SELECT T2.PD_ABBR_NM FROM TB_SSCT_CNTR_DTL T1 INNER JOIN TB_PDBS_PD_BAS T2 ON T1.BASE_PD_CD = T2.PD_CD WHERE CNTR_NO = #{cntrNoB} AND CNTR_SN = #{cntrSnB})
+                                                                             || CHR(13) || CHR(10) || REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
+                                                                        ELSE REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
+                                                                    END)
+                                 ELSE REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
+                           END) AS CNSL_MO_CN /*상담메모내용*/
+                         , C4.RCGVP_KNM /*설치고객명*/
+                      FROM TB_SVPD_CST_SVAS_IST_OJ_IZ A1
+                     INNER JOIN TB_SVPD_CST_SV_EXCN_IZ A2
+                        ON A1.CNTR_NO = A2.CNTR_NO
+                       AND A1.CNTR_SN = A2.CNTR_SN
+                     INNER JOIN TB_SSCT_CNTR_DTL C0 /*계약상세*/
+                        ON C0.CNTR_NO   = A1.CNTR_NO
+                       AND C0.CNTR_SN   = A1.CNTR_SN
+                       AND C0.DTA_DL_YN = 'N'
+                     INNER JOIN TB_SSCT_CNTR_WELLS_DTL C9 /*계약WELLS상세*/
+                        ON C9.CNTR_NO = C0.CNTR_NO
+                       AND C9.CNTR_SN = C0.CNTR_SN
+                       AND C9.DTA_DL_YN = 'N'
+                     INNER JOIN TB_SSCT_CNTR_BAS C1 /*계약기본*/
+                        ON C1.CNTR_NO = C0.CNTR_NO
+                       AND C1.DTA_DL_YN = 'N'
+                     INNER JOIN TB_SSCT_CNTR_ADR_REL C3 /*계약주소관계*/
+                        ON C3.DTL_CNTR_NO = C0.CNTR_NO
+                       AND C3.DTL_CNTR_SN = C0.CNTR_SN
+                       AND C3.ADRPC_TP_CD = '3' /*설치주소*/
+                       AND C3.DTA_DL_YN = 'N'
+                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
+                     INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C4 /*계약주소지기본*/
+                        ON C4.CNTR_ADRPC_ID = C3.CNTR_ADRPC_ID
+                       AND C4.DTA_DL_YN     = 'N'
+                     INNER JOIN TB_GBCO_ADR_BAS T3 /*주소기본*/
+                        ON T3.ADR_ID = C4.ADR_ID
+                       AND T3.DTA_DL_YN = 'N'
+                     INNER JOIN TB_PDBS_PD_BAS P1 /*상품각사속성상세*/
+                        ON P1.PD_CD = A1.PD_CD /*서비스상품코드*/
+                     WHERE 1=1
+                       AND A1.CNTR_NO = #{cntrNo}
+                       AND A1.CNTR_SN = #{cntrSn}
+            ) S2
+        ON (S1.AS_IST_OJ_NO = S2.AS_IST_OJ_NO)
+        WHEN MATCHED THEN
+            UPDATE SET S1.SV_BIZ_DCLSF_CD     = S2.SV_BIZ_DCLSF_CD       /* 서비스업무세분류코드 */
+                     , S1.FNL_RCPDT           = TO_CHAR(SYSDATE,'YYYYMMDD')           /* 최종접수일자 */
+                     , S1.FNL_RCP_HH          = TO_CHAR(SYSDATE,'HH24MISS')        /* 최종접수시간 */
+                     , S1.URGT_YN             = S2.URGT_YN             /* 긴급여부 */
+                     , S1.VST_RQDT            = S2.VST_RQDT            /* 방문요청일자 */
+                     , S1.VST_AK_HH           = S2.VST_AK_HH          /* 방문요청시간 */
+                     , S1.CNSL_TP_HCLSF_CD    = S2.CNSL_TP_HCLSF_CD      /* 상담유형대분류코드 */
+                     , S1.CNSL_TP_MCLSF_CD    = S2.CNSL_TP_MCLSF_CD      /* 상담유형중분류코드 */
+                     , S1.CNSL_TP_LCLSF_CD    = S2.CNSL_TP_LCLSF_CD      /* 상담유형소분류코드 */
+                     , S1.CST_CNR_REFRI_DV_CD = #{cstCnrRefriDvCd}    /* 고객센터유무상구분코드 */
+                     , S1.SMS_FW_YN           = S2.SMS_FW_YN            /* SMS발송여부 */
+                     , S1.DP_DV_CD            = S2.DP_DV_CD             /* 입금구분코드 */
+                     , S1.SV_ET_AMT           = S2.SV_ET_AMT            /* 서비스예상금액 */
+                     , S1.SV_CNR_OG_ID        = S2.SV_CNR_OG_ID           /* 서비스센터조직ID */
+                     , S1.MTR_STAT_CD         = S2.MTR_STAT_CD         /* 자료상태코드 */
+                     , S1.PD_CD               = S2.PDCT_PD_CD              /* 상품코드 */
+                     , S1.PD_GD_CD            = S2.PD_GD_CD             /* 상품등급코드 */
+                     , S1.PD_USWY_CD          = S2.PD_USWY_CD           /* 상품용도코드 */
+                     , S1.CNSL_DTLP_TP_CD     = S2.CNSL_DTLP_TP_CD       /* 상담세부유형코드 */
+                     , S1.CNSL_MO_CN          = S2.CNSL_MO_CN           /* 상담메모내용 */
+                     , S1.ISTLL_KNM           = S2.ISTLL_KNM         /* 설치자한글명 */
+                     , S1.DTA_DL_YN           = 'N'          /* 데이터삭제여부 */
+                    <include refid="COMMON.updateSystemField"/>
+    </insert>
+
+
     <insert id="insertInstallationObject">
         INSERT INTO TB_SVPD_CST_SVAS_IST_OJ_IZ
         SELECT #{newAsIstOjNo} AS AS_IST_OJ_NO
@@ -349,7 +381,7 @@
              , #{mtrStatCd} AS MTR_STAT_CD /*자료상태코드*/
              , A.PDCT_PD_CD AS PD_CD /*상품코드*/
              , C0.PD_GD_CD AS PD_GD_CD /*상품등급코드*/
-             , T8.PD_PRP_VAL01 AS PD_USWY_CD /*상품용도코드*/
+             , P1.SV_PD_TP_CD AS PD_USWY_CD /*상품용도코드*/
              , '' AS CST_SV_ASN_NO /*고객서비스배정번호*/
              , #{cnslDtlpTpCd} AS CNSL_DTLP_TP_CD /*상담 세부유형*/
              , (CASE WHEN #{newInChnlDvCd} = '1' THEN REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
@@ -413,49 +445,28 @@
          INNER JOIN TB_GBCO_ADR_BAS T3 /*주소기본*/
             ON T3.ADR_ID = C4.ADR_ID
            AND T3.DTA_DL_YN = 'N'
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T8 /*상품각사속성상세*/
-            ON T8.PD_CD = A.SV_PD_CD /*서비스상품코드*/
-           AND T8.PD_EXTS_PRP_GRP_CD = 'SCHD' /*상품확장속성그룹코드 : AFS AS, PART AS부품, SCHD 일정관리*/
-           AND T8.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS P1 /*상품각사속성상세*/
+            ON P1.PD_CD = A.PDCT_PD_CD /*서비스상품코드*/
          WHERE 1=1
            AND A.CNTR_NO = #{cntrNo}
            AND A.CNTR_SN = #{cntrSn}
            AND ROWNUM = 1 /* 데이터 불안정해 중복건 발생할 수 있어 임시조치. */
     </insert>
+
     <update id="updateInstallationObject">
         UPDATE TB_SVPD_CST_SVAS_IST_OJ_IZ /* 고객서비스AS설치대상내역 */
-           SET SV_BIZ_DCLSF_CD     = #{svBizDclsfCd}       /* 서비스업무세분류코드 */
-             , FNL_RCPDT           = TO_CHAR(SYSDATE,'YYYYMMDD')           /* 최종접수일자 */
-             , FNL_RCP_HH          = TO_CHAR(SYSDATE,'HH24MISS')        /* 최종접수시간 */
-             , URGT_YN             = #{urgtYn}             /* 긴급여부 */
-             , VST_RQDT            = #{vstRqdt}            /* 방문요청일자 */
-             , VST_AK_HH           = #{vstAkHh}            /* 방문요청시간 */
-             , CNSL_TP_HCLSF_CD    = #{cnslTpHclsfCd}      /* 상담유형대분류코드 */
-             , CNSL_TP_MCLSF_CD    = #{cnslTpMclsfCd}      /* 상담유형중분류코드 */
-             , CNSL_TP_LCLSF_CD    = #{cnslTpLclsfCd}      /* 상담유형소분류코드 */
-             , CST_CNR_REFRI_DV_CD = #{cstCnrRefriDvCd}    /* 고객센터유무상구분코드 */
-             , SMS_FW_YN           = #{smsFwYn}            /* SMS발송여부 */
-             , DP_DV_CD            = #{dpDvCd}             /* 입금구분코드 */
-             , SV_ET_AMT           = #{svEtAmt}            /* 서비스예상금액 */
-             , SV_CNR_OG_ID        = #{svCnrOgId}          /* 서비스센터조직ID */
-             , MTR_STAT_CD         = #{mtrStatCd}          /* 자료상태코드 */
-             , PD_CD               = #{pdctPdCd}               /* 상품코드 */
-             , PD_GD_CD            = #{pdGdCd}             /* 상품등급코드 */
-             , PD_USWY_CD          = #{pdUswyCd}           /* 상품용도코드 */
-             , CNSL_DTLP_TP_CD     = #{cnslDtlpTpCd}       /* 상담세부유형코드 */
-             , CNSL_MO_CN          = #{cnslMoCn}           /* 상담메모내용 */
-             , ISTLL_KNM           = #{rcgvpKnm}           /* 설치자한글명 */
-             , DTA_DL_YN           = 'N'          /* 데이터삭제여부 */
-            <include refid="COMMON.updateSystemField"/>
+           SET
          WHERE 1 = 1
-           AND AS_IST_OJ_NO        = #{asIstOjNo}          /* AS설치대상번호 */
+           AND AS_IST_OJ_NO        = #{newAsIstOjNo}          /* AS설치대상번호 */
     </update>
+
     <update id="updateInstallationObjectMtrStatCd">
         UPDATE TB_SVPD_CST_SVAS_IST_OJ_IZ
            SET MTR_STAT_CD = #{mtrStatCd}
               <include refid="COMMON.updateSystemField"/>
          WHERE AS_IST_OJ_NO   = #{newAsIstOjNo}
     </update>
+
     <update id="deleteAsPutItem">
         UPDATE TB_SVPD_CST_SVAS_PU_ITM_IZ
            SET DTA_DL_YN = 'N'
@@ -488,6 +499,7 @@
               <include refid="COMMON.insertSystemFieldValue"/>
              )
     </insert>
+
     <select id="selectPutItems" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo">
         SELECT #{puCstSvAsnNo} AS PU_CST_SV_ASN_NO
              , (SELECT PD_PRP_VAL19
@@ -502,6 +514,7 @@
              , (CASE WHEN T1.RECAP_CS_AMT > 0 THEN 'Y' ELSE 'N' END) AS REFRI_YN
           FROM TB_SVPD_SDING_PRCHS_PROCS_TEMP T1
     </select>
+
     <insert id="insertAsPutItem">
         INSERT INTO TB_SVPD_CST_SVAS_PU_ITM_IZ
              ( CST_SV_ASN_NO
@@ -631,6 +644,7 @@
         WHERE 1=1
           AND CST_SV_ASN_NO = #{asnCstSvAsnNo}
     </insert>
+
     <update id="deleteAsInstallationAssign">
         UPDATE TB_SVPD_CST_SVAS_IST_ASN_IZ
          SET DTA_DL_YN = 'Y'
@@ -639,6 +653,7 @@
          AND CST_SV_ASN_NO = #{asnCstSvAsnNo}
          AND WK_PRGS_STAT_CD IN ('00', '10')
     </update>
+
     <update id="deleteSeedingShipping">
         UPDATE TB_SVPD_SDING_SPP_EXP_IZ
            SET DTA_DL_YN = 'Y'
@@ -662,9 +677,10 @@
              , LPAD(SQ_SVPD_CST_SVAS_IST_ASN_IZ$CST_SV_ASN_NO.NEXTVAL,10,'0')
        FROM DUAL
     </select>
+
     <insert id="insertAsInstallationAssign">
-        INSERT INTO TB_SVPD_CST_SVAS_IST_ASN_IZ
-             ( CST_SV_ASN_NO
+        INSERT INTO TB_SVPD_CST_SVAS_IST_ASN_IZ(
+               CST_SV_ASN_NO
              , CNTR_NO
              , CNTR_SN
              , CNTR_CST_NO
@@ -704,10 +720,11 @@
              , DTA_DL_YN
               <include refid="COMMON.insertSystemField"/>
              )
-        SELECT #{asnCstSvAsnNo}
-             , E1.CNTR_NO
-             , E1.CNTR_SN
-             , C1.CNTR_CST_NO
+        VALUES (
+               #{asnCstSvAsnNo}
+             , #{cntrNo}
+             , #{cntrSn}
+             , #{cntrCstNo}
              , #{vstRqdt}
              , #{vstAkHh}
              , #{vstRqdt}
@@ -722,12 +739,7 @@
              , #{ichrPrtnrNo}
              , '' --없던컬럼이라 비워놓음.
              , #{rpbLocaraCd}
-             , (SELECT PD_PRP_VAL20
-                  FROM TB_PDBS_PD_ECOM_PRP_DTL
-                 WHERE PD_CD 	= E1.PDCT_PD_CD
-                   AND PD_EXTS_PRP_GRP_CD = 'PART'
-                   AND DTA_DL_YN = 'N'
-               )
+             , #{pdGrpCd}
              , ''
              , ''
              , (CASE WHEN #{inChnlDvCd} = '9' THEN 'Y'
@@ -754,72 +766,10 @@
              , ''
              , 'N'
               <include refid="COMMON.insertSystemFieldValue"/>
-          FROM TB_SVPD_CST_SV_EXCN_IZ E1
-         INNER JOIN TB_SSCT_CNTR_BAS C1 /*계약기본*/
-            ON C1.CNTR_NO = E1.CNTR_NO
-           AND C1.DTA_DL_YN = 'N'
-           AND E1.CNTR_NO   = #{cntrNo}
+        )
     </insert>
-    <insert id="insertAsInstallationAssignHistByNewKey">
-        INSERT INTO TB_SVPD_CST_SVAS_IST_ASN_HIST
-        SELECT #{asnCstSvAsnNo}
-             , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
-             , E1.CNTR_NO
-             , E1.CNTR_SN
-             , C1.CNTR_CST_NO
-             , #{vstRqdt}
-             , #{vstAkHh}
-             , #{vstRqdt}
-             , #{vstAkHh}
-             , #{asnSvBizHclsfCd}
-             , #{newSvBizDclsfCd}
-             , #{ichrCnrCd}
-             , #{asnDt}
-             , TO_CHAR(SYSDATE,'YYYYMMDD')
-             , TO_CHAR(SYSDATE,'HH24MISS')
-             , #{ichrOgTpCd}
-             , #{ichrPrtnrNo}
-             , '' --없던컬럼이라 비워놓음.
-             , #{rpbLocaraCd}
-             , (SELECT PD_PRP_VAL20
-                  FROM TB_PDBS_PD_ECOM_PRP_DTL
-                 WHERE PD_CD 	= E1.PDCT_PD_CD
-                   AND PD_EXTS_PRP_GRP_CD = 'PART'
-                   AND DTA_DL_YN = 'N'
-               )
-             , ''
-             , ''
-             , (CASE WHEN #{inChnlDvCd} = '9' THEN 'Y'
-                     ELSE ''
-                 END)
-             , (CASE WHEN #{inChnlDvCd} = '9' THEN TO_CHAR(SYSDATE,'YYYYMMDD')
-                     ELSE ''
-                 END)
-             , (CASE WHEN #{inChnlDvCd} = '9' THEN TO_CHAR(SYSDATE,'HH24MISS')
-                     ELSE ''
-                 END)
-             , ''
-             , ''
-             , ''
-             , FN_SVPD_WRK_GRP_01(#{newPdCd}, #{newSvBizDclsfCd}, #{vstRqdt})
-             , '00'
-             , ''
-             , ''
-             , ''
-             , ''
-             , ''
-             , ''
-             , ''
-             , ''
-             , ''
-             , 'N'
-              <include refid="COMMON.insertSystemFieldValue"/>
-          FROM TB_SVPD_CST_SV_EXCN_IZ E1
-         INNER JOIN TB_SSCT_CNTR_BAS C1 /*계약기본*/
-            ON C1.CNTR_NO = E1.CNTR_NO
-           AND C1.DTA_DL_YN = 'N'
-           AND E1.CNTR_NO   = #{cntrNo}
-    </insert>
+
+
     <select id="selectVstDtChk" resultType="String">
         SELECT W3TH
           FROM (SELECT W1TH, W3TH
