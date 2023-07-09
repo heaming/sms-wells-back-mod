@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.interfaces.dto;
 
+import javax.validation.constraints.NotBlank;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.annotations.ApiModel;
@@ -15,30 +17,40 @@ import lombok.Builder;
  */
 public class WsnbWorkOrderInterfaceDto {
 
+    @Builder
     @ApiModel(value = "WsnbMultipleTaskOrderInterfaceDto-CreateOrderReq")
     public record CreateOrderReq(
+        @NotBlank
         @JsonProperty("IN_CHNL_DV_CD")
         String inChnlDvCd, // 입력채널구분코드
+        @NotBlank
         @JsonProperty("SV_BIZ_HCLSF_CD")
         String svBizHclsfCd, // 서비스업무대분류코드
         @JsonProperty("RCPDT")
         String rcpdt, // 접수일자
         @JsonProperty("AS_IST_OJ_NO")
         String asIstOjNo, // AS설치대상번호
+        @NotBlank
         @JsonProperty("MTR_STAT_CD")
         String mtrStatCd, // 자료상태코드
+        @NotBlank
         @JsonProperty("SV_BIZ_DCLSF_CD")
         String svBizDclsfCd, // 서비스업무세분류코드
+        @NotBlank
         @JsonProperty("CNTR_NO")
         String cntrNo, // 계약번호
+        @NotBlank
         @JsonProperty("CNTR_SN")
         String cntrSn, // 계약일련번호
+        @NotBlank
         @JsonProperty("VST_RQDT")
         String vstRqdt, // 방문요청일자
         @JsonProperty("VST_AK_HH")
         String vstAkHh, // 방문요청시간
+
         @JsonProperty("URGT_YN")
         String urgtYn, // 긴급여부
+        @NotBlank
         @JsonProperty("SMS_FW_YN")
         String smsFwYn, // SMS발송여부
         @JsonProperty("SV_ET_AMT")
