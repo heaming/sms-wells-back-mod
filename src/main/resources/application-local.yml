@@ -1,0 +1,213 @@
+server:
+    port: 8080
+    profile: local
+    servlet:
+        session:
+            tracking-modes: cookie
+        encoding:
+            force: true
+
+sflex:
+    file:
+        path:
+            root: c:\nas\gatch
+            attachFile: \appdata\attachfile
+            temp: ${sflex.file.path.attachFile}\temp
+            export: ${sflex.file.path.attachFile}\export
+    drm:
+        path:
+            temp: c:/nas/drm/temp/
+        thumbnail:
+            width: 120
+            height: 120
+        delete:
+            enabled: true
+        multipart:
+            maxUploadSize: 52428800
+            maxUploadSizePerFile: 52428800
+    security:
+        fileCoder:
+            qualifier: AESFileCoder
+            secretKey: SflexpKGseed8957Jw8xcO3dkXxcop49
+        passwordCoder:
+            qualifier: SHAPasswordCoder
+        messageCoder:
+            qualifier: AESMessageCoder
+            secretKey: SflexpKGseed8957Jw8xcO3dkXxcop49
+    authentication:
+        passwordCheck: false
+    authorization:
+        dataServiceIdCheck:
+            ignoreApi: all
+        #      ignoreApi: /api/v1/common/security/login,/api/v1/common/pages,/api/v1/common/meta,/api/v1/common/portal
+        pageRoleCheck: false
+        dataServiceRoleCheck: false
+        cors:
+            accessControlAllowOrigin: "*"
+    logging:
+        login: true
+        page: false
+        dataService: false
+        menu: false
+        exception: false
+    server:
+        timezone: Asia/Seoul
+    tableHistory:
+        realtime: false
+    query:
+        maxSize: 5000
+    sap:
+        rfcDirectApi: /api/v1/common/rfc-direct
+    sso:
+        use: false
+    cubeone:
+        useYn: N
+
+portal:
+    defaultId: WEB_ADM
+    login:
+        simple:
+            enabled: true
+            url: http://localhost:8080/certification/{portal-id}/simpleLogin.html
+        default:
+            url: http://localhost:8080/certification/{portal-id}/simpleLogin.html
+        welcome:
+            enabled: true
+            url: http://localhost:8080/certification/welcome.html
+    ssoLogout:
+        url: http://localhost:8080/certification/sso/sso-service?pname=spLogout
+    main:
+        url: http://localhost:8081/index.html
+
+tenant:
+    defaultId: TNT_BASE
+
+spring:
+    application:
+        name: SMS-WELLS-MOD
+    servlet:
+        multipart:
+            enabled: false
+    mybatis:
+        common:
+            config: classpath:mybatis/config/mybatis-config.xml
+            mapper: classpath*:mybatis/sql/**/*.xml
+            interval: 1000
+    devtools:
+        restart:
+            exclude: mybatis/sql/**/*.xml
+    output:
+        ansi:
+            enabled: always
+    redis:
+        database: 1
+        sentinelHost: 10.1.199.5,10.1.199.37,10.1.199.38
+        sentinelPort: 5100,5100,5100
+        password: 'OtLKsonzcHIHGAbpOico781K'
+        lettuce:
+            pool:
+                max-active: 10
+                max-idle: 10
+                min-idle: 2
+        ttl: 60
+    mvc:
+        pathmatch:
+            matching-strategy: ant_path_matcher
+
+webClient:
+    proxy:
+        host: d-rvp.kyowon.co.kr
+        port: 8111
+    cruzlink: http://d-fep.kyowon.co.kr:49001
+    eai: http://d-eai.kyowon.co.kr:10001/mediate/KYOWON
+    sujiewon: https://api.sujiewon.com:18015/nrasrv
+    controlm: https://d-ctm.kyowon.co.kr:8446/automation-api
+    kakaoMobility: https://apis-navi.kakaomobility.com/v1/directions
+
+report:
+    ozUrl: https://d-eform.kyowon.co.kr:2943
+
+nice:
+    url: https://d-nskey.kyowon.co.kr
+
+controlm:
+    ctm: ctmkwda01
+    userId: apiuser
+    password: empass
+
+kworks:
+    message:
+        apikey: FLOW_BOT_NOTI_API
+        botcert: 20220209-7ee5a72f-0229-48b7-8e64-91ade9c37a53
+        botid: noti_kstation
+
+kportal:
+    approval:
+        url: https://kportal.digitalkyowon.com/KyowonGroupwareLogin.aspx
+        secretKey: 2022-0217-KSPL-KFLW-000000
+
+
+kakaopay:
+    callbackUrl: http://localhost:8080/api/v1/interface/sflex/common/common/kakaopay
+
+#datasource:
+#    ########### DEV #######################
+#    pri:
+#        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+#        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.29:1515/DITGKW
+#        username: WSMDEV
+#        password: WSM#DEV1249##
+#        maximumpoolsize: 10
+#        auto-commit: false
+#        cacheprepstmts: true
+#        prepstmtcachesize: 250
+#        prepstmtcachesqlLimit: 2048
+#    sec:
+#        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+#        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.29:1515/DITGKW
+#        username: WSMDEV
+#        password: WSM#DEV1249##
+#        maximumpoolsize: 10
+#        auto-commit: false
+#        cacheprepstmts: true
+#        prepstmtcachesize: 250
+#        prepstmtcachesqlLimit: 2048
+
+
+datasource:
+    ########### QA #######################
+    pri:
+        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.30:1525/QITGKW
+        username: WSMDEV
+        password: wsm$DEV4708#$
+        maximumpoolsize: 10
+        auto-commit: false
+        cacheprepstmts: true
+        prepstmtcachesize: 250
+        prepstmtcachesqlLimit: 2048
+    sec:
+        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.30:1525/QITGKW
+        username: WSMDEV
+        password: wsm$DEV4708#$
+        maximumpoolsize: 10
+        auto-commit: false
+        cacheprepstmts: true
+        prepstmtcachesize: 250
+        prepstmtcachesqlLimit: 2048
+
+
+############## LOGGING Setting ############
+logging:
+    level:
+        root: info
+        com.sds: debug
+        org.mybatis: error
+        jdbc.sqlonly: off
+        jdbc.sqltiming: info
+        jdbc.audit: error
+        jdbc.resultset: off
+        jdbc.resultsettable: debug
+        jdbc.connection: error
+        org.thymeleaf: error

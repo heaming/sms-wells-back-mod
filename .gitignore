@@ -30,4 +30,3 @@ build/
 ### VS Code ###
 .vscode/
 /bin/
-/src/main/resources/application-local.yml
