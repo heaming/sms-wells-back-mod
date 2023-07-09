@@ -1,5 +1,13 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_AUTO;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_KMEMBERS;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_SALES;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_WEB;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.MTR_STAT_CD_DEL;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.MTR_STAT_CD_MOD;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.MTR_STAT_CD_NEW;
+
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -12,7 +20,6 @@ import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractReqDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallationObjectSaveDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbMultipleTaskOrderMapper;
-import com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -57,9 +64,9 @@ public class WsnbMultipleTaskOrderService {
 
     public String saveMultipleTaskOrders(WsnbMultipleTaskOrderDvo dvo) throws Exception {
 
-        if ("00000000".equals(dvo.getAsIstOjNo().substring(10))) {
-            dvo.setAsIstOjNo(null);
-        }
+        //if ("00000000".equals(dvo.getAsIstOjNo().substring(10))) {
+        //    dvo.setAsIstOjNo(null);
+        //}
 
         /* 계약 관련 정보 */
         WsnbContractReqDvo contractReqDvo = mapper.selectContract(dvo.getCntrNo(), dvo.getCntrSn());
@@ -75,10 +82,10 @@ public class WsnbMultipleTaskOrderService {
         int itemCnt = 0; // V_ITEM_CNT
 
         /* KSS 접수 건이면 작업상세코드 재확인 */
-        if ((SnServiceConst.IN_CHNL_DV_CD_SALES.equals(dvo.getInChnlDvCd())
-            || SnServiceConst.IN_CHNL_DV_CD_AUTO.equals(dvo.getInChnlDvCd()))
-            && (SnServiceConst.MTR_STAT_CD_NEW.equals(dvo.getMtrStatCd())
-                || SnServiceConst.MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd()))
+        if ((IN_CHNL_DV_CD_SALES.equals(dvo.getInChnlDvCd())
+            || IN_CHNL_DV_CD_AUTO.equals(dvo.getInChnlDvCd()))
+            && (MTR_STAT_CD_NEW.equals(dvo.getMtrStatCd())
+                || MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd()))
             && !StringUtils.startsWith(dvo.getSvBizDclsfCd(), "7")) {
             /* 보상 여부가 Y면 */
             if ("Y".equals(dvo.getCompYn())) {
@@ -98,8 +105,8 @@ public class WsnbMultipleTaskOrderService {
             } else {
                 dvo.setNewSvBizDclsfCd(dvo.getSvBizDclsfCd());
             }
-        } else if (SnServiceConst.MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())
-            || SnServiceConst.MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
+        } else if (MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())
+            || MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
 
             dvo.setNewSvBizDclsfCd(asAssignReqDvo.getSvBizDclsfCd());
             dvo.setNewWkAcpteStatCd(asAssignReqDvo.getWkAcpteStatCd());
@@ -118,8 +125,16 @@ public class WsnbMultipleTaskOrderService {
         }
         String[] cstNm = {dvo.getNewRcgvpKnm()};
 
+        // TODAY Request Reject
+        String nowDayString = DateUtil.getNowDayString();
+        if (nowDayString.equals(dvo.getVstRqdt())
+            && (List.of(IN_CHNL_DV_CD_SALES, IN_CHNL_DV_CD_WEB, IN_CHNL_DV_CD_KMEMBERS)
+                .contains(dvo.getInChnlDvCd()))) {
+            throw new BizException("MSG_ALT_TOD_VST_AK_REJ");
+        }
+
         /* 정상 접수 건인지 체크 */
-        if (SnServiceConst.MTR_STAT_CD_NEW.equals(dvo.getMtrStatCd())) {
+        if (MTR_STAT_CD_NEW.equals(dvo.getMtrStatCd())) {
 
             /* 설치 오더인데 설치 일자가 이미 있는지 체크 */
             if (StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "11") && !"1113".equals(dvo.getNewSvBizDclsfCd())) {
@@ -130,13 +145,6 @@ public class WsnbMultipleTaskOrderService {
             }
             /* 해당 고객에 미완료 된 동일 유형의 오더 건이 존재 하는지 체크 */
             asAssignCnt = mapper.selectAsAssignCountByPk(dvo);
-
-            if (DateUtil.getNowDayString().equals(dvo.getVstRqdt().trim())
-                && (SnServiceConst.IN_CHNL_DV_CD_SALES.equals(dvo.getInChnlDvCd())
-                    || SnServiceConst.IN_CHNL_DV_CD_WEB.equals(dvo.getInChnlDvCd())
-                    || SnServiceConst.IN_CHNL_DV_CD_KMEMBERS.equals(dvo.getInChnlDvCd()))) {
-                throw new BizException("MSG_ALT_TOD_VST_AK_REJ");
-            }
 
             if (asAssignCnt > 0) {
                 String cntrNo = dvo.getCntrNo().substring(1, 4) + "-" + dvo.getCntrNo().substring(5);
@@ -198,20 +206,15 @@ public class WsnbMultipleTaskOrderService {
             }
         }
 
-        if (SnServiceConst.MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())
-            || SnServiceConst.MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
+        if (MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())
+            || MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
 
             if (!"00".equals(dvo.getNewWkPrgsStatCd()) && !"10".equals(dvo.getNewWkPrgsStatCd())) {
                 throw new BizException("MSG_ALT_NOT_MDFC_CAN_STAT");
             }
-            if (DateUtil.getNowDayString().equals(dvo.getVstRqdt().trim())
-                && (SnServiceConst.IN_CHNL_DV_CD_SALES.equals(dvo.getInChnlDvCd())
-                    || SnServiceConst.IN_CHNL_DV_CD_WEB.equals(dvo.getInChnlDvCd())
-                    || SnServiceConst.IN_CHNL_DV_CD_KMEMBERS.equals(dvo.getInChnlDvCd()))) {
-                throw new BizException("MSG_ALT_TOD_VST_AK_REJ");
-            }
+
             BizAssert.notNull(asAssignReqDvo, "MSG_ALT_RCP_DIFF_WAY", cstNm);
-            if (DateUtil.getNowDayString().equals(dvo.getNewWkAcpteDt())
+            if (nowDayString.equals(dvo.getNewWkAcpteDt())
                 && !"3460".equals(dvo.getNewSvBizDclsfCd())) {
                 throw new BizException("MSG_ALT_TOD_VST_MDFC_CAN_IMP", cstNm);
             }
@@ -219,7 +222,7 @@ public class WsnbMultipleTaskOrderService {
             BizAssert.isFalse("Y".equals(dvo.getNewWkAcpteStatCd()), "MSG_ALT_ARDY_ACPTE_STAT", cstNm);
             /* 취소 상태이면 수정/취소 안되게 */
             BizAssert
-                .isFalse(SnServiceConst.MTR_STAT_CD_DEL.equals(dvo.getNewMtrStatCd()), "MSG_ALT_ARDY_CAN_STAT", cstNm);
+                .isFalse(MTR_STAT_CD_DEL.equals(dvo.getNewMtrStatCd()), "MSG_ALT_ARDY_CAN_STAT", cstNm);
         }
 
         /*LC_ALLOCATE_AC211TB 키를 생성한다.
@@ -248,18 +251,18 @@ public class WsnbMultipleTaskOrderService {
 
         /* 정보 변경이 아니라면 오더 생성 */
         if (!(StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "7"))) {
-            if (SnServiceConst.MTR_STAT_CD_NEW.equals(dvo.getMtrStatCd())) {
+            if (MTR_STAT_CD_NEW.equals(dvo.getMtrStatCd())) {
                 dvo.setMexnoEncr(mapper.selectMexnoEncr(dvo.getUserId())); /* 전화번호 가운데 복호화 */
                 mapper.insertInstallationObject(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
-            } else if (SnServiceConst.MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())) {
+            } else if (MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())) {
                 /* 저장할 값 조회 */
                 WsnbInstallationObjectSaveDvo saveDvo = mapper.selectSaveInstallationObject(dvo);
                 mapper.updateInstallationObject(saveDvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
-            } else if (SnServiceConst.MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
+            } else if (MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
                 mapper.updateInstallationObjectMtrStatCd(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
             }
 
-            if (!SnServiceConst.MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())
+            if (!MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())
                 && List.of("1310", "3531").contains(dvo.getNewSvBizDclsfCd())
                 && dvo.getPartList() != null) {
                 /*TB_SVPD_CST_SVAS_PU_ITM_IZ 이전 정보를 삭제 */
@@ -294,8 +297,8 @@ public class WsnbMultipleTaskOrderService {
             dvo.setAsnReq(res4.getAsnReq());
             dvo.setAsnCstSvAsnNo(asnCstSvAsnNo);
 
-            if (SnServiceConst.MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())
-                || SnServiceConst.MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
+            if (MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())
+                || MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
                 /* 로그저장(TB_SVPD_CST_SV_AS_IST_ASN_HIST) */
                 mapper.insertAsInstallationAssignHist(dvo.getAsnCstSvAsnNo());
                 /* DELETE TB_SVPD_CST_SVAS_IST_ASN_IZ */
@@ -307,7 +310,7 @@ public class WsnbMultipleTaskOrderService {
                 }
             }
 
-            if (!SnServiceConst.MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
+            if (!MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
                 /* 고객서비스AS설치배정내역(TB_SVPD_CST_SV_AS_IST_ASN_IZ) 키를 생성한다.*/
                 WsnbMultipleTaskOrderDvo res5 = mapper.selectCustomerServiceAssignNo(dvo);
                 String newAsnCstSvAsnNo = res5.getAsnSvBizHclsfCd() + res5.getAsnDt() + res5.getAsnReq();
