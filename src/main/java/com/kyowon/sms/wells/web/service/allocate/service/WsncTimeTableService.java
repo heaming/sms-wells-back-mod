@@ -2,6 +2,10 @@ package com.kyowon.sms.wells.web.service.allocate.service;
 
 import com.kyowon.sms.wells.web.service.allocate.converter.WsncTimeTableConverter;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto.FindRes;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto.FindScheChoReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto.FindTimeAssignReq;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto.FindTimeChoReq;
 import com.kyowon.sms.wells.web.service.allocate.dvo.*;
 import com.kyowon.sms.wells.web.service.allocate.mapper.WsncTimeTableMapper;
 import com.sds.sflex.common.utils.DateUtil;
@@ -26,8 +30,9 @@ public class WsncTimeTableService {
     private final WsncTimeTableMapper mapper;
     private final WsncTimeTableConverter converter;
 
-    public WsncTimeTableDto.FindRes getTmeAssign(WsncTimeTableDto.FindTimeAssignReq req)
+    public FindRes getTmeAssign(FindTimeAssignReq req)
         throws ParseException {
+
 
         WsncTimeTableDvo dvo = converter.mapTimeAssignReqToParamDvo(req);
         dvo.getSmTimes().clear();
@@ -45,7 +50,7 @@ public class WsncTimeTableService {
 
         String sellDate = dvo.getSellDate();
 
-        if (StringUtil.isEmpty(req.sellDate())) {
+        if (StringUtil.isEmpty(req.sellDate()))
             switch (req.chnlDvCd()) {
                 case "K":
                 case "W":
@@ -56,18 +61,15 @@ public class WsncTimeTableService {
                     sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 5);
                     break;
             }
-        }
 
         // 홈케어
-        if ("4".equals(dvo.getSvDvCd())) {
+        if ("4".equals(dvo.getSvDvCd()))
             sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 1);
-        }
 
         // 설치 && (sellDate is null or selldate == wrkDt)
         if ("1".equals(dvo.getSvDvCd()) && (StringUtil.isEmpty(dvo.getSellDate())
-            || StringUtil.nvl(dvo.getSellDate(), "").equals(StringUtil.nvl(dvo.getWrkDt(), "")))) {
+            || StringUtil.nvl(dvo.getSellDate(), "").equals(StringUtil.nvl(dvo.getWrkDt(), ""))))
             sellDate = DateUtil.addDays(DateUtil.getNowDayString(), 5);
-        }
 
         dvo.setSellDate(sellDate);
 
@@ -92,9 +94,11 @@ public class WsncTimeTableService {
         //------------------------------------------------------
 
         // 모종인지 확인
-        if ("Y".equals(dvo.getSidingYn())) {
-
-            // 일시불여부
+        // 일시불여부
+        // 일반모종 타임테이블
+        //------------------------------------------------------
+        //------------------------------------------------------
+        if ("Y".equals(dvo.getSidingYn()))
             if ("Y".equals(dvo.getSpayYn())) {
 
                 //------------------------------------------------------
@@ -104,26 +108,19 @@ public class WsncTimeTableService {
 
                 boolean isAdd40Days = false;
 
-                for (WsncTimeTableSidingDaysDvo sidingDay : sidingDays) {
+                for (WsncTimeTableSidingDaysDvo sidingDay : sidingDays)
                     if (sidingDay.getAblDays().equals(DateUtil.formatDate(sellDate, "-"))) {
                         isAdd40Days = true;
                         dvo.setSowDay(sidingDay.getSowDay());
                         break;
                     }
-                }
 
                 if (!isAdd40Days) {
                     sellDate = sidingDays.get(0).getW3th();
                     dvo.setSowDay(sidingDays.get(0).getSowDay());
                 }
-            } else {
-                // 일반모종 타임테이블
-                //------------------------------------------------------
+            } else
                 sidingDays = mapper.selectSidingDays(dvo);
-                //------------------------------------------------------
-            }
-
-        }
 
         dvo.setSellDate(sellDate);
         dvo.setHcr("Y".equals(productDvo.getHcrYn()));
@@ -178,22 +175,37 @@ public class WsncTimeTableService {
 
             iTime = Integer.parseInt(time);
 
-            if (iTime >= 10000 && iTime < 50000) {
+            if (iTime >= 10000 && iTime < 50000)
                 dvo.getSmTimes().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
-            } else if (iTime > 80000 && iTime < 140000) {
+            else if (iTime > 80000 && iTime < 140000)
                 dvo.getAmTimes().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
-            } else if (iTime >= 140000 && iTime < 180000) {
+            else if (iTime >= 140000 && iTime < 180000)
                 dvo.getPmTimes1().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
-            } else if (iTime >= 180000 && iTime < 200000) {
+            else if (iTime >= 180000 && iTime < 200000)
                 dvo.getPmTimes2().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
-            } else
+            else
                 dvo.getNtTimes().add(converter.mapSmPmNtDvoToSchDto(smPmNtDvo));
         }
 
         return converter.mapTimeAssignDvoToRes(dvo);
     }
 
-    public WsncTimeTableDto.FindRes getScheduleChoice(WsncTimeTableDto.FindScheChoReq req) {
+    /**
+    *
+    * @param req sellDate: 배정선택일자(달력)
+    * @param req baseYm: 달력기준 년월
+    * @param req svDvCd: 1:설치, 2: BS, 3: AS, 4: 홈케어
+    * @param req chnlDvCd: 유입체널 W: 웰스, K: KSS, C: CubicCC, P: K-MEMBERS, I || E: 엔지니어, M: 매니저, S: 조회용(일정), B: BS업무(엔지니어)
+    * @param req cntrNo: 계약번호
+    * @param req cntrSn: 계약순번
+    * @param req prtnrNo: 파트너번호
+    * @param req basePdCdList: 선택불가일자 조회 시 in 조건으로 사용
+    * @param req contDt: 계약일자
+    * @param req vstDowValCd: 방문요일값 1:일요일, 2:월요일, 3:화요일, 4:수요일, 5:목요일, 6:금요일, 7:토요일
+    * @param req copnDvCd: 법인격구분코드 1:개인, 2:법인
+    *
+    **/
+    public FindRes getScheduleChoice(FindScheChoReq req) {
 
         WsncTimeTableDvo dvo = converter.mapScheChoReqToDvo(req);
         dvo.getSmTimes().clear();
@@ -215,7 +227,8 @@ public class WsncTimeTableService {
             .orElseThrow(() -> new BizException("MSG_ALT_NO_PRODUCT_FOUND"));
         dvo.setSidingYn(productDvo.getSidingYn());
 
-        dvo.setEmpId("3".equals(dvo.getSvDvCd()) ? mapper.selectFnSvpdLocaraPrtnr01(dvo) : dvo.getPrtnrNo());
+        dvo.setContDt("C".equals(dvo.getChnlDvCd()) ? DateUtil.getNowDayString() : contractDvo.getCntrDt());
+        dvo.setPrtnrNo("3".equals(dvo.getSvDvCd()) ? mapper.selectFnSvpdLocaraPrtnr01(dvo) : dvo.getPrtnrNo());
 
         // 모종인지 확인
         if ("Y".equals(dvo.getSidingYn())) {
@@ -230,7 +243,24 @@ public class WsncTimeTableService {
         return converter.mapSchdChoDvoToRes(dvo);
     }
 
-    public WsncTimeTableDto.FindRes getTimeChoice(WsncTimeTableDto.FindTimeChoReq req) {
+
+    /**
+    *
+    * @param req sellDate: 배정선택일자(달력)
+    * @param req svDvCd: 1:설치, 2: BS, 3: AS, 4: 홈케어
+    * @param req chnlDvCd: W: 웰스, K: KSS, C: CubicCC, P: K-MEMBERS, I || E: 엔지니어, M: 매니저, S: 조회용(일정), B: BS업무(엔지니어)
+    * @param req newAdrZip: 우편번호
+    * @param req pdctPdCd: 제품상품코드
+    * @param req svBizDclsfCd:
+    * @param req inflwChnl: 채널구분
+    *                       AS-IS에서는 파라메터로 받았으나 FindTimeChoReq에서 chnlDvCd 에 따라 정함.
+    *                       1: Cubig CC, 2: Wells, 3: KSS, 4: wells 홈페이지, 5:K-members
+    * @param req vstGb: 방문구분코드
+    *                   10:방문, 11:매니저, 12:엔지니어, 13:홈마스터, 20:택배
+    * @param req cstSvAsnNo: 고객서비스배정번호
+    *
+    * */
+    public FindRes getTimeChoice(FindTimeChoReq req) {
 
         WsncTimeTableDvo dvo = converter.mapTimeChoReqToDvo(req);
 
@@ -269,15 +299,15 @@ public class WsncTimeTableService {
 
             iTime = Integer.parseInt(time);
 
-            if (iTime >= 10000 && iTime < 50000) {
+            if (iTime >= 10000 && iTime < 50000)
                 dvo.getSmTimes().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
-            } else if (iTime > 80000 && iTime < 140000) {
+            else if (iTime > 80000 && iTime < 140000)
                 dvo.getAmTimes().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
-            } else if (iTime >= 140000 && iTime < 180000) {
+            else if (iTime >= 140000 && iTime < 180000)
                 dvo.getPmTimes1().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
-            } else if (iTime >= 180000 && iTime <= 190000) {
+            else if (iTime >= 180000 && iTime <= 190000)
                 dvo.getPmTimes2().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
-            } else
+            else
                 dvo.getNtTimes().add(converter.mapSmPmNtDvoToTimDto(smPmNtDvo));
         }
 
