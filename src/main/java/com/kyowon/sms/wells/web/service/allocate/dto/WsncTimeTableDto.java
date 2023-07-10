@@ -244,17 +244,17 @@ public class WsncTimeTableDto {
         String rpbLocaraCd,
         boolean isHcr,
         List<String> offDays,
-        List<WsncTimeTableDto.SidingDays> sidingDays,
-        List<WsncTimeTableDto.DisableDays> disableDays,
-        WsncTimeTableDto.Psic psic,
-        List<WsncTimeTableDto.AssignTime> assignTimes,
-        List<WsncTimeTableDto.Days> days,
-        List<WsncTimeTableDto.MonthSchedule> monthSchedules,
-        List<WsncTimeTableDto.SmPmNt> smTimes,
-        List<WsncTimeTableDto.SmPmNt> amTimes,
-        List<WsncTimeTableDto.SmPmNt> pmTimes1,
-        List<WsncTimeTableDto.SmPmNt> pmTimes2,
-        List<WsncTimeTableDto.SmPmNt> ntTimes
+        List<SidingDays> sidingDays,
+        List<DisableDays> disableDays,
+        Psic psic,
+        List<AssignTime> assignTimes,
+        List<Days> days,
+        List<MonthSchedule> monthSchedules,
+        List<SmPmNt> smTimes,
+        List<SmPmNt> amTimes,
+        List<SmPmNt> pmTimes1,
+        List<SmPmNt> pmTimes2,
+        List<SmPmNt> ntTimes
     ) {
         public FindRes {
             wrkDt = DateUtil.getNowDayString();

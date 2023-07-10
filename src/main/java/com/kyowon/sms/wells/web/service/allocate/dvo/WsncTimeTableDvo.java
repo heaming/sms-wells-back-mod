@@ -49,7 +49,7 @@ public class WsncTimeTableDvo {
     String prtnrNo01;
     String prtnrNoBS01;
     String prtnrNoOwr01;
-    String empId;
+    //String empId;
 
     // --------------------------------------------------
     // 1: 설치
