@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.customer.contract.mapper.WcsaCustomerSingleViewMapper">
+    <select id="selectCustomerSingleViewInfos" resultType="com.kyowon.sms.wells.web.customer.contract.dvo.WcsaCustomerDvo">
+        SELECT BAS.CST_NO /* 고객번호 */
+             , BAS.COPN_DV_CD /* 법인격구분코드 */
+             , DTL.CST_GD_CD /* 고객등급코드 */
+             , BAS.CST_KNM AS CST_NM /* 고객한글명 */
+             , BAS.BRYY_MMDD /* 생년월일 */
+             , BAS.SEX_DV_CD /* 성별구분코드 */
+             , ADR.NEW_ADR_ZIP AS ZIP   /* 우편번호 */
+             , ADR.RNADR AS BAS_ADR /* 기본주소 */
+             , ADR.RDADR AS DTL_ADR /* 상세주소 */
+             , CASE WHEN ADR.NEW_ADR_ZIP IS NOT NULL THEN '(' || ADR.NEW_ADR_ZIP || ') '
+                END || ADR.RNADR || ' ' || ADR.RDADR AS ADR /* 주소 */
+             , BAS.CRAL_LOCARA_TNO
+             , BAS.MEXNO_ENCR
+             , BAS.CRAL_IDV_TNO
+             , '' AS MPNO
+             , HPNO.LOCARA_TNO AS HP_LOCARA_TNO
+             , HPNO.EXNO_ENCR AS HP_ENCR
+             , HPNO.IDV_TNO AS HP_IDV_TNO
+             , '' AS HPNO
+             , CASE WHEN EXISTS (SELECT 1
+                                   FROM TB_BCBC_DRM_CTF_IS_IZ IZ
+                                  WHERE 1=1
+                                    AND IZ.DTA_DL_YN = 'N'
+                                    AND IZ.PROCS_YN = 'Y'
+                                    AND IZ.SFK_VAL IS NOT NULL
+                                    AND IZ.SFK_VAL != BAS.SFK_VAL
+                                    AND IZ.OJPS_KNM = BAS.CST_KNM
+                                    AND IZ.BRYY_MMDD = BAS.BRYY_MMDD
+                                    AND DECODE(IZ.SEX_DV_CD,'0','2','1') = BAS.SEX_DV_CD
+                                    AND IZ.CRAL_LOCARA_TNO = BAS.CRAL_LOCARA_TNO
+                                    AND IZ.MEXNO_ENCR = BAS.MEXNO_ENCR
+                                    AND IZ.CRAL_IDV_TNO = BAS.CRAL_IDV_TNO) THEN 'Y'
+                    ELSE 'N'
+                END AS SAFE_KEY_DUP_YN
+          FROM TB_CUBS_CST_BAS BAS
+         INNER JOIN TB_CUBS_CST_DTL DTL
+            ON DTL.CST_NO = BAS.CST_NO
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS ADR
+            ON BAS.ADR_ID = ADR.ADR_ID
+           AND ADR.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CUBS_CST_CTPLC_BAS HPNO
+            ON HPNO.CST_CTPLC_OJ_REFK_VAL = BAS.CST_NO
+           AND HPNO.CST_CTPLC_OJ_DV_CD = '01' /* 고객 */
+           AND HPNO.CTPLC_TP_CD = '04' /* 자택전화번호 */
+           AND HPNO.HIST_END_DTM = '99991231235959'
+         WHERE 1=1
+          -- AND BAS.COPN_DV_CD = '1' /* 고객유형(개인) */
+           AND BAS.DTA_DL_YN = 'N'
+           AND (BAS.CST_KNM = #{cstNm} OR BAS.CST_ENM = #{cstNm})     /* 고객명 */
+           AND BAS.BRYY_MMDD = #{bryyMmdd}         /* 생년월일 */
+           AND BAS.SEX_DV_CD = #{sexDvCd}         /* 성별 */
+    </select>
+
+    <select id="selectCustomerSingleViewPayments" resultType="com.kyowon.sms.wells.web.customer.contract.dto.WcsaCustomerSingleViewDto$PaymentRes">
+        SELECT SUM(CASE WHEN T2.SELL_TP_CD IN ('2', '6')    /* 2: 렌탈/리스, 6: 정기배송 */
+                         AND T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') /* 현재 유효한 계약상태 */
+                            THEN T2.FNL_AMT
+                        ELSE 0
+                    END) AS THIS_RENTAL_AMT
+             , MAX(T3.PY_AMT) AS PY_AMT
+             , MAX(T4.CANCEL_FEE_AMT) AS CANCEL_FEE_AMT
+             , MAX(T4.CANCEL_COUNT) AS CANCEL_COUNT
+             , MAX(T5.DLQ_AMT) AS DLQ_AMT
+             , MAX(T5.DLQ_MCN) AS DLQ_MCN
+             , MAX(T5.DLQ_PD_COUNT) AS DLQ_PD_COUNT
+             , MAX(T5.FNL_PY_DT) AS FNL_PY_DT
+          FROM TB_SSCT_CNTR_BAS T1
+         INNER JOIN TB_SSCT_CNTR_DTL T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN
+             LATERAL(SELECT SUM(CASE WHEN DP_DV_CD IN ('1', '3') THEN RVE_AMT ELSE 0 END)
+                          - SUM(CASE WHEN DP_DV_CD IN ('2', '4') THEN RVE_AMT ELSE 0 END) AS PY_AMT
+                       FROM TB_RVDW_RVE_DTL
+                      WHERE DTA_DL_YN = 'N'
+                        AND CNTR_NO = T2.CNTR_NO
+                        AND CNTR_SN = T2.CNTR_SN) T3    /* 납입완료*/
+            ON 1=1
+          LEFT OUTER JOIN
+             LATERAL(SELECT NVL(SUM(RVE_AMT), 0) AS CANCEL_FEE_AMT
+                          , COUNT(DISTINCT (CNTR_NO || CNTR_SN)) AS CANCEL_COUNT
+                       FROM TB_RVDW_RVE_DTL
+                      WHERE DTA_DL_YN = 'N'
+                        AND RVE_DV_CD = '07'    /* '07' : 위약금 */
+                        AND CNTR_NO = T2.CNTR_NO
+                        AND CNTR_SN = T2.CNTR_SN) T4    /* 위약금 */
+            ON 1=1
+          LEFT OUTER JOIN
+             LATERAL(SELECT NVL(SUM(A.EOT_DLQ_AMT), 0) AS DLQ_AMT
+                          , NVL(SUM(A.DLQ_MCN), 0) AS DLQ_MCN
+                          , COUNT(DISTINCT (A.CNTR_NO || A.CNTR_SN)) AS DLQ_PD_COUNT
+                          , MAX((SELECT MAX(DP_DT)
+                                   FROM TB_RVDW_RVE_DTL
+                                  WHERE DTA_DL_YN = 'N'
+                                    AND CNTR_NO = A.CNTR_NO
+                                    AND CNTR_SN = A.CNTR_SN
+                                    AND DP_DV_CD IN ('1', '3'))) AS FNL_PY_DT
+                       FROM TB_CBCL_DLQ_BAS A
+                      WHERE A.DTA_DL_YN = 'N'
+                        AND A.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE,-1), 'YYYYMM')
+                        AND A.CNTR_NO = T2.CNTR_NO
+                        AND A.CNTR_SN = T2.CNTR_SN) T5  /* 연체 */
+            ON 1=1
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.CNTR_CST_NO =  #{cstNo}
+    </select>
+
+    <select id="selectCustomerSingleViewContracts" resultType="com.kyowon.sms.wells.web.customer.contract.dto.WcsaCustomerSingleViewDto$ContractRes">
+        SELECT CNTR_CST_NO
+             , CNTR_NO
+             , CNTR_SN
+             , CNTR_RCP_FSH_DT
+             , IST_CST_KNM
+             , PD_CD
+             , PD_NM
+             , CNTR_PRGS_STAT_CD
+             , CNTR_PRGS_STAT_NM
+             , SELL_TP_CD
+          FROM (SELECT T1.CNTR_CST_NO
+                     , T1.CNTR_NO
+                     , T2.CNTR_SN
+                     , SUBSTR(T1.CNTR_RCP_FSH_DTM,1,8) AS CNTR_RCP_FSH_DT
+                     , T4.RCGVP_KNM AS IST_CST_KNM
+                     , T5.PD_CD
+                     , T5.PD_NM
+                     , T1.CNTR_PRGS_STAT_CD
+                     , F_CMZ_CD_NM('TNT_WELLS', 'CNTR_PRGS_STAT_CD', T1.CNTR_PRGS_STAT_CD, #{session.langId}) AS CNTR_PRGS_STAT_NM
+                     , ROW_NUMBER() OVER(ORDER BY T1.CNTR_RCP_FSH_DTM DESC, T2.CNTR_NO, T2.CNTR_SN) AS ORDER_SEQ
+                     , T2.SELL_TP_CD
+                  FROM TB_SSCT_CNTR_BAS T1
+                 INNER JOIN TB_SSCT_CNTR_DTL T2
+                    ON T2.CNTR_NO = T1.CNTR_NO
+                   AND T2.DTA_DL_YN = 'N'
+                 INNER JOIN TB_SSCT_CNTR_ADR_REL T3
+                    ON T3.DTL_CNTR_NO = T2.CNTR_NO
+                   AND T3.DTL_CNTR_SN = T2.CNTR_SN
+                   AND T3.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                   AND T3.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                   AND T3.ADRPC_TP_CD IN ('2','3')
+                   AND T3.DTA_DL_YN = 'N'
+                 INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4
+                    ON T4.CNTR_ADRPC_ID = T3.CNTR_ADRPC_ID
+                   AND T4.DTA_DL_YN = 'N'
+                 INNER JOIN TB_PDBS_PD_BAS T5
+                    ON T5.PD_CD = T2.BASE_PD_CD
+                   AND T5.DTA_DL_YN = 'N'
+                 WHERE T1.DTA_DL_YN = 'N'
+                   AND T1.CNTR_RCP_FSH_DTM IS NOT NULL
+                   AND T1.CNTR_CST_NO = #{cstNo}
+                   AND T1.CNTR_PRGS_STAT_CD IN ('20', '30', '40', '50', '60')
+               )
+         WHERE ORDER_SEQ <![CDATA[<=]]> 5
+         ORDER BY ORDER_SEQ
+    </select>
+
+    <select id="selectCustomerSingleViewServices" resultType="com.kyowon.sms.wells.web.customer.contract.dto.WcsaCustomerSingleViewDto$ServiceRes">
+        SELECT WK_EXCN_DT
+             , SERVICE_GB
+             , CNTR_NO
+             , PD_GRP_NM
+             , PD_NM
+             , PART_PD_NM
+             , CNTR_SN
+          FROM (SELECT T.WK_EXCN_DT
+                     , T.SERVICE_GB
+                     , T.CNTR_NO
+                     , LISTAGG(DISTINCT T.PD_GRP_NM,  ', ') WITHIN GROUP(ORDER BY T.CNTR_NO || T.CNTR_SN) AS PD_GRP_NM
+                     , LISTAGG(DISTINCT T.PD_NM,  ', ') WITHIN GROUP(ORDER BY T.CNTR_NO || T.CNTR_SN) AS PD_NM
+                     , LISTAGG(DISTINCT T.PART_PD_NM,  ', ') WITHIN GROUP(ORDER BY T.CNTR_NO || T.CNTR_SN) AS PART_PD_NM
+                     , LISTAGG(T.CNTR_SN,  ',') WITHIN GROUP(ORDER BY T.CNTR_SN) AS CNTR_SN
+                     , ROW_NUMBER() OVER(ORDER BY T.WK_EXCN_DT DESC, T.SERVICE_GB) AS ORDER_SEQ
+                  FROM (
+                        SELECT T1.WK_EXCN_DT
+                             , T1.CNTR_NO
+                             , T1.CNTR_SN
+                             , F_CMZ_CD_NM('TNT_WELLS','SV_BIZ_HCLSF_CD', T1.SV_BIZ_HCLSF_CD, #{session.langId}) AS SERVICE_GB
+                             , F_CMZ_CD_NM('TNT_WELLS','PD_GRP_CD', T3.PD_PRP_VAL20, #{session.langId})             AS PD_GRP_NM
+                             , T5.PD_CD
+                             , T5.PD_NM || CASE WHEN INSTR(T5.PD_NM, T6.PD_PRP_VAL07) = 0 THEN '(' || T6.PD_PRP_VAL07 || ')' END AS PD_NM
+                             , T31.PD_NM AS PART_PD_NM
+                          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T1
+                         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T2
+                            ON T2.CNTR_NO = T1.CNTR_NO
+                           AND T2.CNTR_SN = T1.CNTR_SN
+                           AND T2.DTA_DL_YN = 'N'
+                         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T3
+                            ON T3.PD_CD = T2.PDCT_PD_CD
+                           AND T3.PD_EXTS_PRP_GRP_CD = 'PART'
+                           AND T3.DTA_DL_YN = 'N'
+                         INNER JOIN TB_PDBS_PD_BAS T31
+                            ON T31.PD_CD = T3.PD_CD
+                           AND T31.DTA_DL_YN = 'N'
+                         INNER JOIN TB_SSCT_CNTR_DTL T4
+                            ON T4.CNTR_NO = T1.CNTR_NO
+                           AND T4.CNTR_SN = T1.CNTR_SN
+                           AND T4.DTA_DL_YN = 'N'
+                          INNER JOIN TB_PDBS_PD_BAS T5
+                            ON T5.PD_CD = T4.BASE_PD_CD
+                           AND T5.DTA_DL_YN = 'N'
+                         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T6
+                            ON T6.PD_CD = T5.PD_CD
+                           AND T6.PD_EXTS_PRP_GRP_CD = 'IND'
+                           AND T6.DTA_DL_YN = 'N'
+                         WHERE 1=1
+                           AND T1.DTA_DL_YN = 'N'
+                           AND T1.CNTR_CST_NO = #{cstNo}
+                        UNION ALL
+                        SELECT T1.WK_EXCN_DT
+                             , T1.CNTR_NO
+                             , T1.CNTR_SN
+                             , F_CMZ_CD_NM('TNT_WELLS','SV_BIZ_HCLSF_CD', '2', #{session.langId})       AS SERVICE_GB
+                             , F_CMZ_CD_NM('TNT_WELLS','PD_GRP_CD', T3.PD_PRP_VAL20, #{session.langId})     AS PD_GRP_NM    -- 상품종류(서비스에서 상품그룹으로 부름)
+                             , T5.PD_CD
+                             , T5.PD_NM || CASE WHEN INSTR(T5.PD_NM, T6.PD_PRP_VAL07) = 0 THEN '(' || T6.PD_PRP_VAL07 || ')' END AS PD_NM
+                             , T31.PD_NM AS PART_PD_NM
+                          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ T1
+                         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T2
+                            ON T2.CNTR_NO = T1.CNTR_NO
+                           AND T2.CNTR_SN = T1.CNTR_SN
+                           AND T2.DTA_DL_YN = 'N'
+                         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T3
+                            ON T3.PD_CD = T2.PDCT_PD_CD
+                           AND T3.PD_EXTS_PRP_GRP_CD = 'PART'
+                           AND T3.DTA_DL_YN = 'N'
+                         INNER JOIN TB_PDBS_PD_BAS T31
+                            ON T31.PD_CD = T3.PD_CD
+                           AND T31.DTA_DL_YN = 'N'
+                         INNER JOIN TB_SSCT_CNTR_DTL T4
+                            ON T4.CNTR_NO = T1.CNTR_NO
+                           AND T4.CNTR_SN = T1.CNTR_SN
+                           AND T4.DTA_DL_YN = 'N'
+                         INNER JOIN TB_PDBS_PD_BAS T5
+                            ON T5.PD_CD = T4.BASE_PD_CD
+                           AND T5.DTA_DL_YN = 'N'
+                         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T6
+                            ON T6.PD_CD = T5.PD_CD
+                           AND T6.PD_EXTS_PRP_GRP_CD = 'IND'
+                           AND T6.DTA_DL_YN = 'N'
+                         WHERE 1=1
+                           AND T1.DTA_DL_YN = 'N'
+                           AND T1.VST_PRGS_STAT_CD = '20'
+                           AND (T1.CNTR_NO, T1.CNTR_SN) IN (SELECT B.CNTR_NO
+                                                                 , B.CNTR_SN
+                                                              FROM TB_SSCT_CNTR_BAS A
+                                                             INNER JOIN TB_SSCT_CNTR_DTL B
+                                                                ON B.CNTR_NO = A.CNTR_NO
+                                                               AND B.DTA_DL_YN = 'N'
+                                                             WHERE A.DTA_DL_YN = 'N'
+                                                               AND A.CNTR_RCP_FSH_DTM IS NOT NULL
+                                                               AND A.CNTR_CST_NO = #{cstNo})
+                       ) T
+                 WHERE 1 = 1
+                 GROUP BY T.WK_EXCN_DT
+                        , T.SERVICE_GB
+                        , T.CNTR_NO
+               )
+         WHERE ORDER_SEQ <![CDATA[<=]]> 5
+         ORDER BY ORDER_SEQ
+    </select>
+
+    <select id="selectCustomerSingleViewProducts" resultType="com.kyowon.sms.wells.web.customer.contract.dto.WcsaCustomerSingleViewDto$ProductRes">
+        SELECT T5.PD_CD
+             , T5.PD_NM
+             , T2.SELL_TP_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T2.SELL_TP_CD, #{session.langId}) AS SELL_TP_NM
+             , T2.FNL_AMT
+             , T4.RCGVP_KNM
+             , T6.PRTNR_KNM
+             , NVL(TO_CHAR(CASE WHEN T7.RENTAL_TN = 0  THEN NULL
+                                WHEN T7.RENTAL_TN + 1 <![CDATA[>]]> T2.CNTR_PTRM THEN T2.CNTR_PTRM
+                                ELSE T7.RENTAL_TN + 1
+                            END), '-') AS RENTAL_TN         /* 렌탈사용기간 */
+             , CASE WHEN NVL(T2.CNTR_PTRM, '999') = 999 THEN '-'
+                    ELSE TO_CHAR(T2.CNTR_PTRM)
+                END AS CNTR_PTRM                    /* 전체계약기간 */
+             , CASE WHEN NVL(T61.FRISU_BFSVC_PTRM_N,0) <![CDATA[>]]> 0 THEN TO_CHAR(ADD_MONTHS(TO_DATE(T2.CNTR_PD_STRTDT,'YYYYMMDD'), NVL(T61.FRISU_BFSVC_PTRM_N,0)),'YYYYMM')
+                    ELSE ''
+                END AS FRISU_BFSVC_ENDDT  /* 무상멤버십종료일 */
+             , T2.SV_PRD
+             , (SELECT MAX(VST_CNFMDT)
+                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
+                 WHERE ASN_OJ_YM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND CNTR_NO = T2.CNTR_NO
+                   AND CNTR_SN = T2.CNTR_SN) AS LAST_BS
+             , (SELECT MIN(VST_DUEDT)
+                  FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                 WHERE VST_DUEDT <![CDATA[>]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                   AND CNTR_NO = T2.CNTR_NO
+                   AND CNTR_SN = T2.CNTR_SN) AS NEXT_BS
+             , T2.CNTR_NO
+             , T2.CNTR_SN
+             , T1.CNTR_CNFM_DTM
+             , T1.CNTR_CST_NO
+             , '' AS EXPIRE_SOON_YN
+          FROM TB_SSCT_CNTR_BAS T1
+         INNER JOIN TB_SSCT_CNTR_DTL T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           /* 현재보유상품만 해당 - 일시불만 '401' 허용 */
+           AND T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303', (CASE WHEN T2.SELL_TP_CD != '1' THEN '401' ELSE '301' END))
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADR_REL T3
+            ON T3.DTL_CNTR_NO = T2.CNTR_NO
+           AND T3.DTL_CNTR_SN = T2.CNTR_SN
+           AND T3.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND T3.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND T3.ADRPC_TP_CD IN ('2','3')
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4
+            ON T4.CNTR_ADRPC_ID = T3.CNTR_ADRPC_ID
+           AND T4.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS T5
+            ON T5.PD_CD = T2.BASE_PD_CD
+           AND T5.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ T6
+            ON T6.BASE_YM = SUBSTR(T1.CNTR_CNFM_DTM,1,6)
+           AND T6.OG_TP_CD = T1.SELL_OG_TP_CD
+           AND T6.PRTNR_NO = T1.SELL_PRTNR_NO
+           AND T6.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL T61
+            ON T61.CNTR_NO = T2.CNTR_NO
+           AND T61.CNTR_SN = T2.CNTR_SN
+           AND T61.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T7
+            ON T7.SL_CL_YM = (SELECT MAX(SL_CL_YM)
+                                FROM TB_CBCL_WELLS_SL_MM_CL_IZ
+                               WHERE CNTR_NO = T2.CNTR_NO
+                                 AND CNTR_SN = T2.CNTR_SN
+                                 AND DTA_DL_YN = 'N')
+           AND T7.CNTR_NO = T2.CNTR_NO
+           AND T7.CNTR_SN = T2.CNTR_SN
+           AND T7.DTA_DL_YN = 'N'
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.CNTR_CNFM_DTM IS NOT NULL
+           AND T1.CNTR_CST_NO = #{cstNo}
+         ORDER BY T1.CNTR_CNFM_DTM DESC
+                , T2.CNTR_NO DESC
+                , T2.CNTR_SN
+    </select>
+</mapper>
