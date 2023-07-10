@@ -1,6 +1,16 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.*;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.CNTR_DTL_STAT_CD_CANCEL;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.CNTR_REL_DTL_CD_HOMECARE_MEMBERSHIP;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.CNTR_REL_DTL_CD_SDING_COMBI;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_WEB;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.MTR_STAT_CD_DEL;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.PG_GRP_CD_WELLS_FARM;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.PG_GRP_CD_WELLS_SEEDING;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_HCLSF_CD_DEL;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_HCLSF_CD_HOME_CARE;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_MCLSF_CD_IST;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_MCLSF_CD_NEW;
 
 import java.util.Arrays;
 import java.util.List;

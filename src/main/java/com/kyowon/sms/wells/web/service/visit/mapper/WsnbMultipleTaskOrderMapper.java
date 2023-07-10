@@ -33,8 +33,6 @@ public interface WsnbMultipleTaskOrderMapper {
 
     String selectMexnoEncr(String userId);
 
-    int insertInstallationObject(WsnbMultipleTaskOrderDvo dvo);
-
     int mergeInstallationObject(WsnbMultipleTaskOrderDvo dvo);
 
     int updateInstallationObjectMtrStatCd(WsnbMultipleTaskOrderDvo dvo);
@@ -57,8 +55,6 @@ public interface WsnbMultipleTaskOrderMapper {
 
     /**/
     int deleteSeedingShipping(WsnbMultipleTaskOrderDvo dvo);
-
-    WsnbMultipleTaskOrderDvo selectNewAsnCstSvAsnNo(WsnbMultipleTaskOrderDvo dvo);
 
     int insertAsInstallationAssign(WsnbMultipleTaskOrderDvo dvo);
 

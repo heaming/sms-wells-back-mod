@@ -1,6 +1,9 @@
 package com.kyowon.sms.wells.web.service.interfaces.service;
 
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.*;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_HCLSF_CD_INFO_CHANGE;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_LCLSF_CD_REINSTALL;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_LCLSF_CD_SEP;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_MCLSF_CD_IST;
 
 import java.util.ArrayList;
 import java.util.List;

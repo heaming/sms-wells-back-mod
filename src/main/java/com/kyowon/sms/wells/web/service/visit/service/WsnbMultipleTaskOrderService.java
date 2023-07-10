@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * <pre>
- * W-SV-S-0012 다건 작업오더, 정보변경 처리
+ * W-SV-S-0012 작업오더, 정보변경 처리
  * </pre>
  *
  * @author yeonghwa.cheon
@@ -146,8 +146,7 @@ public class WsnbMultipleTaskOrderService {
             dvo.setNewSvBizDclsfCd(dvo.getSvBizDclsfCd());
         }
 
-        // 미사용해서 주석처리
-        // dvo.setMexnoEncr(mapper.selectMexnoEncr(dvo.getUserId())); /* 전화번호 가운데 복호화 */
+        dvo.setMexnoEncr(mapper.selectMexnoEncr(dvo.getUserId())); /* 전화번호 가운데 복호화 */
 
         /*LC_ALLOCATE_AC211TB 키를 생성한다.
         P_IN_GB 입력구분 1:CC, 2:KIWI, 3:KSS 1이면 CC에서 입력된 P_WRK_DT, P_SEQ 사용 아니면 자체 생성
@@ -168,13 +167,13 @@ public class WsnbMultipleTaskOrderService {
     }
 
     private void saveOrder(WsnbMultipleTaskOrderDvo dvo) {
-        if (MTR_STAT_CD_NEW.equals(dvo.getMtrStatCd())) {
-            mapper.insertInstallationObject(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
-        } else if (MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())) {
+        if (List.of(MTR_STAT_CD_NEW, MTR_STAT_CD_MOD).contains(dvo.getMtrStatCd())) {
             mapper.mergeInstallationObject(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
         } else if (MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
             mapper.updateInstallationObjectMtrStatCd(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
         }
+
+        setAssignKeyAndValue(dvo);
 
         boolean isWellsFarmSeeding = "11".equals(dvo.getPdGrpCd());
         if (MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())
@@ -191,16 +190,6 @@ public class WsnbMultipleTaskOrderService {
         }
 
         if (!MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
-
-            /*고객서비스AS설치배정내역(TB_SVPD_CST_SV_AS_IST_ASN_IZ) 키를 조회 한다.*/
-            WsnbMultipleTaskOrderDvo keyForAsAssign = mapper.selectCustomerServiceAssignNo(dvo);
-            String asnCstSvAsnNo = keyForAsAssign.getAsnSvBizHclsfCd() + keyForAsAssign.getAsnDt()
-                + keyForAsAssign.getAsnReq();
-            dvo.setAsnSvBizHclsfCd(keyForAsAssign.getAsnSvBizHclsfCd());
-            dvo.setAsnDt(keyForAsAssign.getAsnDt());
-            dvo.setAsnReq(keyForAsAssign.getAsnReq());
-            dvo.setAsnCstSvAsnNo(asnCstSvAsnNo);
-
             /* 배정 담당자 정보 세팅 */
             WsnbMultipleTaskOrderDvo IchrPrtnr = mapper.selectAsAssignOganizationByPk(dvo);
             dvo.setIchrCnrCd(IchrPrtnr.getIchrCnrCd());
@@ -225,6 +214,16 @@ public class WsnbMultipleTaskOrderService {
 
         /*TB_SVPD_CST_SVAS_IST_OJ_IZ 배정 키 업데이트*/
         mapper.updateInstallationObjectKey(dvo);
+    }
+
+    private void setAssignKeyAndValue(WsnbMultipleTaskOrderDvo dvo) {
+        WsnbMultipleTaskOrderDvo keyForAsAssign = mapper.selectCustomerServiceAssignNo(dvo);
+        String asnCstSvAsnNo = keyForAsAssign.getAsnSvBizHclsfCd() + keyForAsAssign.getAsnDt()
+            + keyForAsAssign.getAsnReq();
+        dvo.setAsnSvBizHclsfCd(keyForAsAssign.getAsnSvBizHclsfCd());
+        dvo.setAsnDt(keyForAsAssign.getAsnDt());
+        dvo.setAsnReq(keyForAsAssign.getAsnReq());
+        dvo.setAsnCstSvAsnNo(asnCstSvAsnNo);
     }
 
     private void saveAsPuItem(WsnbMultipleTaskOrderDvo dvo) {
