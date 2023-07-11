@@ -8,8 +8,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbContractDtlStatCdChDvo;
-import com.kyowon.sms.wells.web.contract.changeorder.service.WctbContractDtlStatCdChService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdDtInService;
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbInstallationOrderConverter;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallationOrderDto.SaveReq;
@@ -41,8 +39,6 @@ public class WsnbInstallationOrderService {
     private final WsnbInstallationOrderConverter converter;
 
     private final WsnbWorkOrderService taskOrderService; // 작업오더 서비스
-
-    private final WctbContractDtlStatCdChService contractDtlService; // 계약상세상태변경 서비스
 
     private final WctaInstallationReqdDtInService contractIstService; // 계약설치요청일자변경 서비스
 
@@ -111,7 +107,7 @@ public class WsnbInstallationOrderService {
         // 2-2. 설치("11%", "41%")이면 계약-예정일자 업데이트 LC_ASREGN_API_U02_T
         if (dvo.getSvBizDclsfCd().startsWith(SV_BIZ_MCLSF_CD_IST)
             || dvo.getSvBizDclsfCd().startsWith(SV_BIZ_MCLSF_CD_NEW)) {
-            String cttRsCd = "01"; // 91 (컨택완료)
+            String lcCttRsCd = "01"; // 91 (컨택완료)
             String sppDuedt = dvo.getVstRqdt();
 
             if ((MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())
@@ -119,11 +115,11 @@ public class WsnbInstallationOrderService {
                 && (IN_CHNL_DV_CD_WEB.equals(dvo.getInChnlDvCd())
                     && SV_BIZ_HCLSF_CD_HOME_CARE.equals(dvo.getSvBizHclsfCd()))) {
                 sppDuedt = "";
-                cttRsCd = "91"; // 고객이 계약을 취소하고자함,고객과 신속히 재접촉요망!
+                lcCttRsCd = "91"; // 고객이 계약을 취소하고자함,고객과 신속히 재접촉요망!
             }
 
-            // 방문예정일, TODO: 컨택코드 업데이트
-            contractIstService.saveInstallOrderReqDt(cntrNo, cntrSn, sppDuedt);
+            // 방문예정일, 컨택코드 업데이트
+            contractIstService.saveInstallOrderReqDt(cntrNo, cntrSn, sppDuedt, lcCttRsCd);
         }
 
         // 3. 작업오더 호출
@@ -175,14 +171,6 @@ public class WsnbInstallationOrderService {
      * @throws Exception
      */
     private void removeContract(String cntrNo, String cntrSn) throws Exception {
-        WctbContractDtlStatCdChDvo contractDtlStatCdChDvo = new WctbContractDtlStatCdChDvo();
-        contractDtlStatCdChDvo.setCntrNo(cntrNo);
-        contractDtlStatCdChDvo.setCntrSn(cntrSn);
-        contractDtlStatCdChDvo.setCntrDtlStatCd(CNTR_DTL_STAT_CD_CANCEL); // "303" 계약취소 상태로 set
-
-        // 계약상세상태 업데이트
-        contractDtlService.editContractDtlStatCdCh(contractDtlStatCdChDvo);
-
         mapper.deleteSvExcnIz(cntrNo, cntrSn); // 계약 삭제 후 고객서비스수행내역 삭제
         mapper.deleteIstAsnIz(cntrNo, cntrSn); // 작업할당 삭제 - 고객서비스설치배정내역
         mapper.deleteIstOjIz(cntrNo, cntrSn); // 작업할당 삭제 - 고객서비스설치대상내역
