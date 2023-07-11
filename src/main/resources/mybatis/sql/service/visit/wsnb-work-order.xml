@@ -63,19 +63,19 @@
             AND C2.CNTR_SN = #{cntrSn}
     </select>
     <select id="selectAsAssignByPk" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbAsAssignReqDvo">
-        SELECT S2.SV_BIZ_HCLSF_CD
-             , S2.SV_BIZ_DCLSF_CD
-             , S2.MTR_STAT_CD AS MTR_STAT_CD
-             , S1.WK_ACPTE_STAT_CD
-             , S1.VST_CNFMDT AS WK_ACPTE_DT
-             , S1.WK_PRGS_STAT_CD
-             , S2.PD_CD PDCT_PD_CD
-          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S1
-         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ  S2
+        SELECT S2.CST_SV_ASN_NO
+             , S1.SV_BIZ_HCLSF_CD
+             , S1.SV_BIZ_DCLSF_CD
+             , S1.MTR_STAT_CD
+             , S2.WK_ACPTE_STAT_CD
+             , S2.VST_CNFMDT AS WK_ACPTE_DT
+             , S2.WK_PRGS_STAT_CD
+             , S1.PD_CD PDCT_PD_CD
+          FROM TB_SVPD_CST_SVAS_IST_OJ_IZ S1
+    LEFT OUTER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ S2
             ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
-           AND S2.DTA_DL_YN = 'N'
          WHERE 1 = 1
-           AND S2.AS_IST_OJ_NO = #{asIstOjNo}
+           AND S1.AS_IST_OJ_NO = #{asIstOjNo}
     </select>
     <select id="selectAsAssignOganizationByPk" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo">
         SELECT A2.OG_ID AS ICHR_CNR_CD

@@ -150,37 +150,13 @@ kportal:
 kakaopay:
     callbackUrl: http://localhost:8080/api/v1/interface/sflex/common/common/kakaopay
 
-#datasource:
-#    ########### DEV #######################
-#    pri:
-#        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-#        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.29:1515/DITGKW
-#        username: WSMDEV
-#        password: WSM#DEV1249##
-#        maximumpoolsize: 10
-#        auto-commit: false
-#        cacheprepstmts: true
-#        prepstmtcachesize: 250
-#        prepstmtcachesqlLimit: 2048
-#    sec:
-#        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-#        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.29:1515/DITGKW
-#        username: WSMDEV
-#        password: WSM#DEV1249##
-#        maximumpoolsize: 10
-#        auto-commit: false
-#        cacheprepstmts: true
-#        prepstmtcachesize: 250
-#        prepstmtcachesqlLimit: 2048
-
-
 datasource:
-    ########### QA #######################
+    ########### DEV #######################
     pri:
         driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.30:1525/QITGKW
+        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.29:1515/DITGKW
         username: WSMDEV
-        password: wsm$DEV4708#$
+        password: WSM#DEV1249##
         maximumpoolsize: 10
         auto-commit: false
         cacheprepstmts: true
@@ -188,14 +164,38 @@ datasource:
         prepstmtcachesqlLimit: 2048
     sec:
         driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.30:1525/QITGKW
+        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.29:1515/DITGKW
         username: WSMDEV
-        password: wsm$DEV4708#$
+        password: WSM#DEV1249##
         maximumpoolsize: 10
         auto-commit: false
         cacheprepstmts: true
         prepstmtcachesize: 250
         prepstmtcachesqlLimit: 2048
+
+#
+#datasource:
+#    ########### QA #######################
+#    pri:
+#        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+#        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.30:1525/QITGKW
+#        username: WSMDEV
+#        password: wsm$DEV4708#$
+#        maximumpoolsize: 10
+#        auto-commit: false
+#        cacheprepstmts: true
+#        prepstmtcachesize: 250
+#        prepstmtcachesqlLimit: 2048
+#    sec:
+#        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+#        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.30:1525/QITGKW
+#        username: WSMDEV
+#        password: wsm$DEV4708#$
+#        maximumpoolsize: 10
+#        auto-commit: false
+#        cacheprepstmts: true
+#        prepstmtcachesize: 250
+#        prepstmtcachesqlLimit: 2048
 
 
 ############## LOGGING Setting ############
