@@ -36,6 +36,7 @@ public class WsncBfsvcCrdovrAsnService {
         //신규 고객서비스배정번호 채번
         WsncBfsvcCrdovrAsnDvo newCstSvAsnNo = mapper.selectNewCstSvAsnNo();
         newCstSvAsnNo.setCstSvAsnNo(beforeBfSvcCrdovrAsns.get(0).getCstSvAsnNo());
+        newCstSvAsnNo.setCrdovrYm(dto.crdovrYm());
 
         //insert TB_SVPD_CST_SV_BFSVC_ASN_IZ(고객서비스BS배정내역)
         //TODO : 확정담당자가 퇴사자인 경우, 해당 지역의 업무담당자를 update (현재 로직 미협의)
@@ -49,6 +50,9 @@ public class WsncBfsvcCrdovrAsnService {
 
         //insert TB_SVPD_CST_SV_BFSVC_ASN_HIST(고객서비스BS배정이력)
         mapper.insertCstSvBfsvcAsnHist(newCstSvAsnNo);
+
+        //insert TB_SVPD_CST_SV_BFSVC_OJ_HIST(고객서비스BS대상이력)
+        mapper.insertCstSvBfsvcOjHist(newCstSvAsnNo);
 
         //insert TB_SVPD_WK_DTM_CH_IZ(작업일시변경내역)
         mapper.insertWkDtmChIz(newCstSvAsnNo);

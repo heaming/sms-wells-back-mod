@@ -16,7 +16,13 @@
         SELECT CST_SV_ASN_NO
           FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
          WHERE 1=1
-           AND CST_SV_ASN_NO = #{cstSvAsnNo}
+           AND (CNTR_NO, CNTR_SN) = (
+                SELECT TEMP.CNTR_NO
+                     , TEMP.CNTR_SN
+                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ TEMP
+                 WHERE 1=1
+                   AND TEMP.CST_SV_ASN_NO = #{cstSvAsnNo}
+           )
            AND ASN_OJ_YM = #{crdovrYm}
            AND DTA_DL_YN = 'N'
     </select>
@@ -55,8 +61,8 @@
             , LSTMM_VST_CNFM_HH
             , VST_DUEDT
             , VST_EXP_HH
-            , VST_TP_DV_CD
-            , ICHR_CONF_DT
+           -- , VST_TP_DV_CD
+           -- , ICHR_CONF_DT
             , VST_PRGS_STAT_CD
             , WK_EXCN_DT
             , WK_CAN_RSON_CD
@@ -81,7 +87,7 @@
               <include refid="COMMON.insertSystemField"/>
         )
         SELECT #{newCstSvAsnNo} AS CST_SV_ASN_NO
-             , ASN_OJ_YM
+             , #{crdovrYm} AS ASN_OJ_YM
              , CNTR_NO
              , CNTR_SN
              , SV_BIZ_MCLSF_CD
@@ -120,8 +126,8 @@
              , LSTMM_VST_CNFM_HH
              , VST_DUEDT
              , VST_EXP_HH
-             , VST_TP_DV_CD
-             , ICHR_CONF_DT
+            -- , VST_TP_DV_CD
+            -- , ICHR_CONF_DT
              , VST_PRGS_STAT_CD
              , WK_EXCN_DT
              , WK_CAN_RSON_CD
@@ -153,13 +159,13 @@
     <update id="updateRgbsPuItmIz">
         MERGE INTO TB_SVPD_RGBS_PU_ITM_IZ TB_TARGET
         USING (
-            SELECT ASN_OJ_YM
+            SELECT #{crdovrYm} AS ASN_OJ_YM
                  , CNTR_NO
                  , CNTR_SN
                  , SV_BIZ_MCLSF_CD
                  , SV_BIZ_DCLSF_CD
                  , WK_SN
-                 , BASE_PD_CD
+                 , PDCT_PD_CD
                  , IST_NMN_N
                  , PU_PART_PD_CD
                  , PU_QTY
@@ -171,7 +177,7 @@
                  , QOM_ASN_DT
                  , OG_TP_CD
                  , QOM_ASN_PRTNR_NO
-                 , CST_SV_ASN_NO
+                 , #{newCstSvAsnNo} AS CST_SV_ASN_NO
                  , DTA_DL_YN
               FROM TB_SVPD_RGBS_PU_ITM_IZ
              WHERE 1=1
@@ -186,7 +192,7 @@
             AND TB_TARGET.SV_BIZ_MCLSF_CD  = TB_SOURCE.SV_BIZ_MCLSF_CD
             AND TB_TARGET.SV_BIZ_DCLSF_CD  = TB_SOURCE.SV_BIZ_DCLSF_CD
             AND TB_TARGET.WK_SN            = TB_SOURCE.WK_SN
-            AND TB_TARGET.BASE_PD_CD       = TB_SOURCE.BASE_PD_CD
+            AND TB_TARGET.PDCT_PD_CD       = TB_SOURCE.PDCT_PD_CD
             AND TB_TARGET.IST_NMN_N        = TB_SOURCE.IST_NMN_N
             AND TB_TARGET.PU_PART_PD_CD    = TB_SOURCE.PU_PART_PD_CD
         )
@@ -206,7 +212,7 @@
             , TB_TARGET.SV_BIZ_MCLSF_CD
             , TB_TARGET.SV_BIZ_DCLSF_CD
             , TB_TARGET.WK_SN
-            , TB_TARGET.BASE_PD_CD
+            , TB_TARGET.PDCT_PD_CD
             , TB_TARGET.IST_NMN_N
             , TB_TARGET.PU_PART_PD_CD
             , TB_TARGET.PU_QTY
@@ -228,7 +234,7 @@
             , TB_SOURCE.SV_BIZ_MCLSF_CD
             , TB_SOURCE.SV_BIZ_DCLSF_CD
             , TB_SOURCE.WK_SN
-            , TB_SOURCE.BASE_PD_CD
+            , TB_SOURCE.PDCT_PD_CD
             , TB_SOURCE.IST_NMN_N
             , TB_SOURCE.PU_PART_PD_CD
             , TB_SOURCE.PU_QTY
@@ -249,7 +255,7 @@
     <update id="updateCstSvBfsvcOjIz">
         MERGE INTO TB_SVPD_CST_SV_BFSVC_OJ_IZ TB_TARGET
         USING (
-            SELECT ASN_OJ_YM
+            SELECT #{crdovrYm} AS ASN_OJ_YM
                  , CNTR_NO
                  , CNTR_SN
                  , SV_BIZ_MCLSF_CD
@@ -265,9 +271,9 @@
                  , AS_REFRI_DV_CD
                  , BFSVC_REFRI_DV_CD
                  , VST_DV_CD
-                 , MTR_STAT_CD
+                -- , MTR_STAT_CD
                  , SPC_AS_TP_CD
-                 , CST_SV_ASN_NO
+                 , #{newCstSvAsnNo} AS CST_SV_ASN_NO
                  , DTA_DL_YN
               FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ
              WHERE 1=1
@@ -307,13 +313,13 @@
             , TB_TARGET.AS_REFRI_DV_CD
             , TB_TARGET.BFSVC_REFRI_DV_CD
             , TB_TARGET.VST_DV_CD
-            , TB_TARGET.MTR_STAT_CD
+           -- , TB_TARGET.MTR_STAT_CD
             , TB_TARGET.SPC_AS_TP_CD
             , TB_TARGET.CST_SV_ASN_NO
             , TB_TARGET.DTA_DL_YN
               <include refid="COMMON.insertSystemField"/>
         ) VALUES (
-              TB_SOURCE.ASN_OJ_YM
+              #{crdovrYm}
             , TB_SOURCE.CNTR_NO
             , TB_SOURCE.CNTR_SN
             , TB_SOURCE.SV_BIZ_MCLSF_CD
@@ -329,13 +335,85 @@
             , TB_SOURCE.AS_REFRI_DV_CD
             , TB_SOURCE.BFSVC_REFRI_DV_CD
             , TB_SOURCE.VST_DV_CD
-            , TB_SOURCE.MTR_STAT_CD
+           -- , TB_SOURCE.MTR_STAT_CD
             , TB_SOURCE.SPC_AS_TP_CD
-            , TB_SOURCE.CST_SV_ASN_NO
+            , #{newCstSvAsnNo}
             , TB_SOURCE.DTA_DL_YN
               <include refid="COMMON.insertSystemFieldValue"/>
         )
     </update>
+
+    <insert id="insertCstSvBfsvcOjHist">
+        INSERT INTO TB_SVPD_CST_SV_BFSVC_OJ_HIST (
+              BFSVC_OJ_IZ_ID
+            , ASN_OJ_YM
+            , CNTR_NO
+            , CNTR_SN
+            , SV_BIZ_MCLSF_CD
+            , SV_BIZ_DCLSF_CD
+            , WK_SN
+            , MNGR_DV_CD
+            , RLTD_SV_BIZ_DCLSF_CD
+            , CLSF_CD_SRN_PRNT_CN
+            , ADR_ID
+            , LSTMM_CRDOVR_YN
+            , BF_VST_DUEDT
+            , PDCT_PD_CD
+            , IST_NMN_N
+            , VST_NMN_N
+            , EGER_WK_YN
+            , VST_DUEDT
+            , AS_REFRI_DV_CD
+            , BFSVC_REFRI_DV_CD
+            , VST_DV_CD
+            , SPC_AS_TP_CD
+            , CST_SV_ASN_NO
+            , DTA_DL_YN
+            , FST_RGST_DTM
+            , FST_RGST_USR_ID
+            , FST_RGST_PRG_ID
+            , FST_RGST_DEPT_ID
+            , FNL_MDFC_DTM
+            , FNL_MDFC_USR_ID
+            , FNL_MDFC_PRG_ID
+            , FNL_MDFC_DEPT_ID
+        )
+        SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVPD_CST_SV_BFSVC_OJ_HIST$BFSVC_OJ_IZ_ID.NEXTVAL, 12, '0') AS BFSVC_OJ_IZ_ID
+             , ASN_OJ_YM
+             , CNTR_NO
+             , CNTR_SN
+             , SV_BIZ_MCLSF_CD
+             , SV_BIZ_DCLSF_CD
+             , WK_SN
+             , MNGR_DV_CD
+             , RLTD_SV_BIZ_DCLSF_CD
+             , CLSF_CD_SRN_PRNT_CN
+             , ADR_ID
+             , LSTMM_CRDOVR_YN
+             , BF_VST_DUEDT
+             , PDCT_PD_CD
+             , IST_NMN_N
+             , VST_NMN_N
+             , EGER_WK_YN
+             , VST_DUEDT
+             , AS_REFRI_DV_CD
+             , BFSVC_REFRI_DV_CD
+             , VST_DV_CD
+             , SPC_AS_TP_CD
+             , CST_SV_ASN_NO
+             , DTA_DL_YN
+             , FST_RGST_DTM
+             , FST_RGST_USR_ID
+             , FST_RGST_PRG_ID
+             , FST_RGST_DEPT_ID
+             , FNL_MDFC_DTM
+             , FNL_MDFC_USR_ID
+             , FNL_MDFC_PRG_ID
+             , FNL_MDFC_DEPT_ID
+          FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ
+         WHERE 1=1
+           AND CST_SV_ASN_NO = #{newCstSvAsnNo}
+    </insert>
 
     <insert id="insertCstSvBfsvcAsnHist">
         INSERT INTO TB_SVPD_CST_SV_BFSVC_ASN_HIST (
@@ -366,8 +444,8 @@
             , LSTMM_VST_CNFM_HH
             , VST_DUEDT
             , VST_EXP_HH
-            , VST_TP_DV_CD
-            , ICHR_CONF_DT
+           -- , VST_TP_DV_CD
+           -- , ICHR_CONF_DT
             , VST_PRGS_STAT_CD
             , WK_EXCN_DT
             , WK_CAN_RSON_CD
@@ -391,7 +469,7 @@
             , DTA_DL_YN
               <include refid="COMMON.insertSystemField"/>
         )
-        SELECT '2' || TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVPD_CST_SV_BFSVC_ASN_HIST$BFSVC_EXCN_ASN_IZ_ID.NEXTVAL, 10, '0') AS BFSVC_EXCN_ASN_IZ_ID
+        SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVPD_CST_SV_BFSVC_ASN_HIST$BFSVC_EXCN_ASN_IZ_ID.NEXTVAL, 12, '0') AS BFSVC_EXCN_ASN_IZ_ID
              , TB_SOURCE.CST_SV_ASN_NO
              , TB_SOURCE.ASN_OJ_YM
              , TB_SOURCE.CNTR_NO
@@ -418,8 +496,8 @@
              , TB_SOURCE.LSTMM_VST_CNFM_HH
              , TB_SOURCE.VST_DUEDT
              , TB_SOURCE.VST_EXP_HH
-             , TB_SOURCE.VST_TP_DV_CD
-             , TB_SOURCE.ICHR_CONF_DT
+            -- , TB_SOURCE.VST_TP_DV_CD
+            -- , TB_SOURCE.ICHR_CONF_DT
              , TB_SOURCE.VST_PRGS_STAT_CD
              , TB_SOURCE.WK_EXCN_DT
              , TB_SOURCE.WK_CAN_RSON_CD
