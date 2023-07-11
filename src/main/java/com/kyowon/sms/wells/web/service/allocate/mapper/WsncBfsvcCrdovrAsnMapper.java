@@ -24,5 +24,7 @@ public interface WsncBfsvcCrdovrAsnMapper {
 
     int insertCstSvBfsvcAsnHist(WsncBfsvcCrdovrAsnDvo dvo);
 
+    int insertCstSvBfsvcOjHist(WsncBfsvcCrdovrAsnDvo dvo);
+
     int insertWkDtmChIz(WsncBfsvcCrdovrAsnDvo dvo);
 }
