@@ -40,7 +40,7 @@ public class WctaInstallationReqdDtInService {
         int resultCount2 = 0, resultCount3 = 0;
         /* 예정일자가 있는 경우, 예정일자를 UPDATE */
         if (StringUtils.isNotEmpty(sppDuedt)) {
-            resultCount2 = mapper.updateInstallOrderReqDt( cntrNo, cntrSn, sppDuedt) ;
+            resultCount2 = mapper.updateInstallOrderReqDt( cntrNo, cntrSn, sppDuedt, "") ;
         }
 
         /* 설치일자가 입력되었거나, 예정일자 계약상세의 계약상품시작일자를 update한다. */
@@ -56,27 +56,12 @@ public class WctaInstallationReqdDtInService {
         return resultCount;
     }
 
-    public int saveInstallOrderReqDt(String cntrNo, String cntrSn, String sppDuedt) {
+    public int saveInstallOrderReqDt(String cntrNo, String cntrSn, String sppDuedt, String lcCttRsCd) {
         ValidAssert.hasText(cntrNo);
         ValidAssert.hasText(cntrSn);
         BizAssert.isFalse(StringUtils.isEmpty(sppDuedt), "MSG_ALT_NO_APPY_TARGET_DATA");
 
-        int resultCount = mapper.updateInstallOrderReqDt( cntrNo, cntrSn, sppDuedt) ;
-
-        if(resultCount > 0){
-            mapper.updateContractDetailHist(cntrNo, cntrSn);
-            mapper.insertContractDetailHist(cntrNo, cntrSn);
-        }
-
-        return resultCount;
-    }
-
-    public int saveDeliveryConfirm(String cntrNo, String cntrSn, String sppDuedt) {
-        ValidAssert.hasText(cntrNo);
-        ValidAssert.hasText(cntrSn);
-        BizAssert.isFalse(StringUtils.isEmpty(sppDuedt), "MSG_ALT_NO_APPY_TARGET_DATA");
-
-        int resultCount = mapper.updateInstallOrderReqDt( cntrNo, cntrSn, sppDuedt) ;
+        int resultCount = mapper.updateInstallOrderReqDt(cntrNo, cntrSn, sppDuedt, lcCttRsCd) ;
 
         if(resultCount > 0){
             mapper.updateContractDetailHist(cntrNo, cntrSn);
