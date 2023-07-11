@@ -58,7 +58,10 @@ public class WsnbInstallationOrderService {
 
     public String saveInstallationOrder(SaveReq dto) throws Exception {
         WsnbMultipleTaskOrderDvo multipleTaskOrderDvo = converter.mapSaveReqToMultipleTaskOrderDvo(dto);
-        multipleTaskOrderDvo.setInChnlDvCd(dto.inflwChnl()); // FIXME: 확인필요
+        multipleTaskOrderDvo.setInChnlDvCd(dto.inflwChnl());
+
+        // TODO: 파라미터 로그 저장
+
         return this.saveInstallationOrderByDvo(multipleTaskOrderDvo);
     }
 
@@ -71,7 +74,6 @@ public class WsnbInstallationOrderService {
 
         // 1. 계약 조회
         WsnbContractReqDvo contractDvo = this.getContractByPk(cntrNo, cntrSn);
-
         String rcgvpKnm = contractDvo.getRcgvpKnm();
 
         // 2-1. 당일 계약취소 [AS-IS] LC_ASREGN_API_U03_T -> PR_KIWI_DEL_CSMR
@@ -105,15 +107,14 @@ public class WsnbInstallationOrderService {
 
                     this.removeContract(sidingCntrNo, sidingCntrSn); // 계약 삭제 및 작업할당 삭제
 
-                    // TODO: 모종 배송, 구성정보 삭제 시 키 값 확인
-                    mapper.deleteSdingSppPlan(dvo); // 모종 배송 스케줄 삭제
-                    mapper.deleteSdingSppExpIz(dvo); // 모종 배송 예정내역(구성정보) 삭제
+                    mapper.deleteSdingSppPlan(sidingCntrNo, sidingCntrSn); // 모종 배송 스케줄 삭제
+                    mapper.deleteSdingSppExpIz(sidingCntrNo, sidingCntrSn); // 모종 배송 예정내역(구성정보) 삭제
                 }
             }
 
             if (PG_GRP_CD_WELLS_SEEDING.equals(contractDvo.getPdctPdGrpCd())) { // 웰스팜모종
-                mapper.deleteSdingSppPlan(dvo); // 모종 배송 스케줄 삭제
-                mapper.deleteSdingSppExpIz(dvo); // 모종 배송 예정내역(구성정보) 삭제
+                mapper.deleteSdingSppPlan(dvo.getCntrNo(), dvo.getCntrSn()); // 모종 배송 스케줄 삭제
+                mapper.deleteSdingSppExpIz(dvo.getCntrNo(), dvo.getCntrSn()); // 모종 배송 예정내역(구성정보) 삭제
             }
         }
 

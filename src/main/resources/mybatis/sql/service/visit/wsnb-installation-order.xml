@@ -12,7 +12,7 @@
          INNER JOIN TB_SSCT_CNTR_ADR_REL C3
             ON C2.CNTR_NO = C3.DTL_CNTR_NO
            AND C2.CNTR_SN = C3.DTL_CNTR_SN
-           AND C3.ADRPC_TP_CD = '3'
+           AND C3.ADRPC_TP_CD IN ('2','3')
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C4
             ON C3.CNTR_ADRPC_ID = C4.CNTR_ADRPC_ID
@@ -114,12 +114,8 @@
            SET DTA_DL_YN = 'Y'
                <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
-           AND CNTR_NO          = #{cntrNo}       /* 계약번호 */
-           AND CNTR_SN          = ${cntrSn}       /* 계약일련번호 */
-           AND SV_BIZ_HCLSF_CD  = #{svBizHclsfCd} /* 서비스업무대분류코드 */
-           AND SV_BIZ_DCLSF_CD  = #{svBizDclsfCd} /* 서비스업무세분류코드 */
-           AND SPP_ORD_NO       = #{sppOrdNo}     /* 배송주문번호 */
-           AND SPP_PLAN_SN      = ${sppPlanSn}    /* 배송계획일련번호 */
+           AND CNTR_NO = #{cntrNo} /* 계약번호 */
+           AND CNTR_SN = ${cntrSn} /* 계약일련번호 */
     </delete>
 
     <delete id="deleteSdingSppExpIz">
@@ -127,13 +123,8 @@
            SET DTA_DL_YN = 'Y'
                <include refid="COMMON.updateSystemField"/>
          WHERE 1 = 1
-           AND CNTR_NO          = #{cntrNo}       /* 계약번호 */
-           AND CNTR_SN          = ${cntrSn}       /* 계약일련번호 */
-           AND SV_BIZ_HCLSF_CD  = #{svBizHclsfCd} /* 서비스업무대분류코드 */
-           AND SV_BIZ_DCLSF_CD  = #{svBizDclsfCd} /* 서비스업무세분류코드 */
-           AND SPP_ORD_NO       = #{sppOrdNo}     /* 배송주문번호 */
-           AND SPP_PLAN_SN      = ${sppPlanSn}    /* 배송계획일련번호 */
-           AND SDING_SN         = ${sdingSn}      /* 모종일련번호 */
+           AND CNTR_NO = #{cntrNo} /* 계약번호 */
+           AND CNTR_SN = ${cntrSn} /* 계약일련번호 */
     </delete>
 
 </mapper>
