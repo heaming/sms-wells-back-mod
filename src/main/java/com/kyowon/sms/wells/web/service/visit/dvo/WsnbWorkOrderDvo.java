@@ -16,7 +16,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class WsnbMultipleTaskOrderDvo {
+public class WsnbWorkOrderDvo {
     String inChnlDvCd; /* 입력채널구분코드 */
     String asIstOjNo; /* AS설치대상번호 */
     String svBizHclsfCd; /* 서비스업무대분류코드 */
@@ -108,4 +108,5 @@ public class WsnbMultipleTaskOrderDvo {
     String locaraTno;
     String exno;
     String idvTno;
+
 }

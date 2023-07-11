@@ -2,13 +2,13 @@ package com.kyowon.sms.wells.web.service.interfaces.converter;
 
 import java.util.List;
 
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractInstallDto.SaveReq;
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbWorkOrderInterfaceDto.CreateOrderReq;
 import com.kyowon.sms.wells.web.service.interfaces.dvo.WsnbWorkOrderInterfaceDvo;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo;
 
 /**
  * <pre>
@@ -23,11 +23,11 @@ public interface WsnbWorkOrderInterfaceConverter {
 
     List<WsnbWorkOrderInterfaceDvo> mapAllCreateOrderReqToDvos(List<CreateOrderReq> dtos);
 
-    SaveReq mapDvoToContractSaveReq(WsnbMultipleTaskOrderDvo multiTaskOrderDvo);
+    SaveReq mapDvoToContractSaveReq(WsnbWorkOrderDvo multiTaskOrderDvo);
 
     @Mapping(source = "asRefriDvCd", target = "cstCnrRefriDvCd")
     @Mapping(source = "prchsMatList", target = "partList")
     @Mapping(source = "regUserId", target = "userId")
-    WsnbMultipleTaskOrderDvo convertInterfaceDvoToDvo(WsnbWorkOrderInterfaceDvo install);
+    WsnbWorkOrderDvo convertInterfaceDvoToDvo(WsnbWorkOrderInterfaceDvo install);
 
 }

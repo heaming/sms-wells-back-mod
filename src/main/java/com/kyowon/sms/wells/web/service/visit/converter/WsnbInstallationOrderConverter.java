@@ -3,7 +3,7 @@ package com.kyowon.sms.wells.web.service.visit.converter;
 import org.mapstruct.Mapper;
 
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallationOrderDto.SaveReq;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 
 /**
  * <pre>
@@ -17,6 +17,6 @@ import com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo;
 @Mapper(componentModel = "spring")
 public interface WsnbInstallationOrderConverter {
 
-    WsnbMultipleTaskOrderDvo mapSaveReqToMultipleTaskOrderDvo(SaveReq dto);
+    WsnbWorkOrderDvo mapSaveReqToWorkOrderDvo(SaveReq dto);
 
 }

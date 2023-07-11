@@ -1,16 +1,6 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.CNTR_DTL_STAT_CD_CANCEL;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.CNTR_REL_DTL_CD_HOMECARE_MEMBERSHIP;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.CNTR_REL_DTL_CD_SDING_COMBI;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_WEB;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.MTR_STAT_CD_DEL;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.PG_GRP_CD_WELLS_FARM;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.PG_GRP_CD_WELLS_SEEDING;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_HCLSF_CD_DEL;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_HCLSF_CD_HOME_CARE;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_MCLSF_CD_IST;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_MCLSF_CD_NEW;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,9 +14,9 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdD
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbInstallationOrderConverter;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallationOrderDto.SaveReq;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractReqDvo;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbOjContractDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbTaskProgStatDvo;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbInstallationOrderMapper;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -50,23 +40,23 @@ public class WsnbInstallationOrderService {
 
     private final WsnbInstallationOrderConverter converter;
 
-    private final WsnbMultipleTaskOrderService taskOrderService; // 작업오더 서비스
+    private final WsnbWorkOrderService taskOrderService; // 작업오더 서비스
 
     private final WctbContractDtlStatCdChService contractDtlService; // 계약상세상태변경 서비스
 
     private final WctaInstallationReqdDtInService contractIstService; // 계약설치요청일자변경 서비스
 
     public String saveInstallationOrder(SaveReq dto) throws Exception {
-        WsnbMultipleTaskOrderDvo multipleTaskOrderDvo = converter.mapSaveReqToMultipleTaskOrderDvo(dto);
-        multipleTaskOrderDvo.setInChnlDvCd(dto.inflwChnl());
+        WsnbWorkOrderDvo workOrderDvo = converter.mapSaveReqToWorkOrderDvo(dto);
+        workOrderDvo.setInChnlDvCd(dto.inflwChnl());
 
         // TODO: 파라미터 로그 저장
 
-        return this.saveInstallationOrderByDvo(multipleTaskOrderDvo);
+        return this.saveInstallationOrderByDvo(workOrderDvo);
     }
 
     @Transactional
-    public String saveInstallationOrderByDvo(WsnbMultipleTaskOrderDvo dvo) throws Exception {
+    public String saveInstallationOrderByDvo(WsnbWorkOrderDvo dvo) throws Exception {
         String cntrNo = dvo.getCntrNo();
         String cntrSn = dvo.getCntrSn();
         String mtrStatCd = dvo.getMtrStatCd();

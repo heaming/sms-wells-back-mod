@@ -11,7 +11,7 @@ import io.swagger.annotations.ApiModel;
  * @author yeonghwa.cheon
  * @since 2023.02.09
  */
-public class WsnbMultipleTaskOrderDto {
+public class WsnbWorkOrderDto {
 
     @ApiModel(value = "WsnbMultipleTaskOrderDto-SaveReq")
     public record SaveReq(
