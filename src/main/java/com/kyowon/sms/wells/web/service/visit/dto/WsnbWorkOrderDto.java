@@ -11,7 +11,7 @@ import io.swagger.annotations.ApiModel;
  * @author yeonghwa.cheon
  * @since 2023.02.09
  */
-public class WsnbMultipleTaskOrderDto {
+public class WsnbWorkOrderDto {
 
     @ApiModel(value = "WsnbMultipleTaskOrderDto-SaveReq")
     public record SaveReq(
@@ -41,7 +41,7 @@ public class WsnbMultipleTaskOrderDto {
         String pdCd, /* 상품코드 */
         String saleCd, /* 기간계 상품코드 */
         String svPrd, /* 서비스주기 */
-        String compYn, /* 기기변경여부 */
+        String cpsYn, /* 기기변경여부 */
         String retYn, /* 회수유무 */
         String cntrNoB, /* 보상계약번호 */
         String cntrSnB, /* 보상계약번호순번 */

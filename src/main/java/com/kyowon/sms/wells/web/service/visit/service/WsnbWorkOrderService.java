@@ -1,24 +1,19 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_AUTO;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_KMEMBERS;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_SALES;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_WEB;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.MTR_STAT_CD_DEL;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.MTR_STAT_CD_MOD;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.MTR_STAT_CD_NEW;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.*;
 
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
-import com.kyowon.sms.wells.web.service.visit.converter.WsnbMultipleTaskOrderConverter;
-import com.kyowon.sms.wells.web.service.visit.dto.WsnbMultipleTaskOrderDto.SaveReq;
+import com.kyowon.sms.wells.web.service.common.mapper.WsnzHistoryMapper;
+import com.kyowon.sms.wells.web.service.visit.converter.WsnbWorkOrderConverter;
+import com.kyowon.sms.wells.web.service.visit.dto.WsnbWorkOrderDto.SaveReq;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbAsAssignReqDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractReqDvo;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbMultipleTaskOrderDvo;
-import com.kyowon.sms.wells.web.service.visit.mapper.WsnbMultipleTaskOrderMapper;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
+import com.kyowon.sms.wells.web.service.visit.mapper.WsnbWorkOrderMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -37,9 +32,11 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class WsnbMultipleTaskOrderService {
-    private final WsnbMultipleTaskOrderMapper mapper;
-    private final WsnbMultipleTaskOrderConverter converter;
+public class WsnbWorkOrderService {
+    private final WsnbWorkOrderMapper mapper;
+    private final WsnbWorkOrderConverter converter;
+
+    private final WsnzHistoryMapper historyMapper;
 
     /**
      * W-SV-S-0012 다건 작업오더, 정보변경 처리
@@ -56,12 +53,12 @@ public class WsnbMultipleTaskOrderService {
      *            istllKnm : 설치자한글명, adrDvCd : 주소구분코드, istAdr : 설치주소 }]
      */
     public String saveMultipleTaskOrders(SaveReq dto) throws Exception {
-        WsnbMultipleTaskOrderDvo dvo = converter.mapSaveReqToWsnbMultipleTaskOrderDvo(dto);
+        WsnbWorkOrderDvo dvo = converter.mapSaveReqToWsnbWorkOrderDvo(dto);
 
         return this.saveMultipleTaskOrders(dvo);
     }
 
-    public String saveMultipleTaskOrders(WsnbMultipleTaskOrderDvo dvo) throws Exception {
+    public String saveMultipleTaskOrders(WsnbWorkOrderDvo dvo) throws Exception {
 
         if (StringUtils.isNotEmpty(dvo.getAsIstOjNo()) && "00000000".equals(dvo.getAsIstOjNo().substring(10))) {
             dvo.setAsIstOjNo(null);
@@ -94,7 +91,7 @@ public class WsnbMultipleTaskOrderService {
         return dvo.getNewAsIstOjNo();
     }
 
-    private void setOrderData(WsnbMultipleTaskOrderDvo dvo) {
+    private void setOrderData(WsnbWorkOrderDvo dvo) {
         /* 계약 관련 정보 */
         WsnbContractReqDvo contract = mapper.selectContract(dvo.getCntrNo(), dvo.getCntrSn());
         /* 계약 관련 정보 before */
@@ -116,7 +113,7 @@ public class WsnbMultipleTaskOrderService {
             && List.of(MTR_STAT_CD_NEW, MTR_STAT_CD_MOD).contains(dvo.getMtrStatCd())
             && !StringUtils.startsWith(dvo.getSvBizDclsfCd(), "7")) {
             /* 보상 여부가 Y면 */
-            if ("Y".equals(dvo.getCompYn())) {
+            if ("Y".equals(dvo.getCpsYn())) {
                 dvo.setNewSvBizDclsfCd("1124");
             } else if ("Y".equals(dvo.getRetYn()) || "D".equals(dvo.getRetYn())) {
 
@@ -152,7 +149,7 @@ public class WsnbMultipleTaskOrderService {
         P_IN_GB 입력구분 1:CC, 2:KIWI, 3:KSS 1이면 CC에서 입력된 P_WRK_DT, P_SEQ 사용 아니면 자체 생성
         SEQ_LC_ALLOCATE_AC211TB 5자리 시퀀스 생성, MAX 되면 CYCL
         E*/
-        WsnbMultipleTaskOrderDvo keyForAsReceipt = mapper.selectAsIstOjIzKey(dvo);
+        WsnbWorkOrderDvo keyForAsReceipt = mapper.selectAsIstOjIzKey(dvo);
         String newAsIstOjNo = keyForAsReceipt.getNewInChnlDvCd() + keyForAsReceipt.getNewSvBizHclsfCd()
             + keyForAsReceipt.getNewRcpdt()
             + StringUtils.leftPad(keyForAsReceipt.getNewReq(), 8, "0");
@@ -166,7 +163,7 @@ public class WsnbMultipleTaskOrderService {
         dvo.setPuCstSvAsnNo(puCstSvAsnNo);
     }
 
-    private void saveOrder(WsnbMultipleTaskOrderDvo dvo) {
+    private void saveOrder(WsnbWorkOrderDvo dvo) throws Exception {
         if (List.of(MTR_STAT_CD_NEW, MTR_STAT_CD_MOD).contains(dvo.getMtrStatCd())) {
             mapper.mergeInstallationObject(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
         } else if (MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
@@ -179,27 +176,31 @@ public class WsnbMultipleTaskOrderService {
         if (MTR_STAT_CD_MOD.equals(dvo.getMtrStatCd())
             || MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
             /* 로그저장(TB_SVPD_CST_SV_AS_IST_ASN_HIST) */
-            mapper.insertAsInstallationAssignHist(dvo.getAsnCstSvAsnNo());
+            historyMapper.insertCstSvasIstAsnHistByPk(dvo.getAsnCstSvAsnNo());
             /* DELETE TB_SVPD_CST_SVAS_IST_ASN_IZ */
             mapper.deleteAsInstallationAssign(dvo.getAsnCstSvAsnNo());
             /*모종 고객이라면 확정되지 않은 해당 방문 스케쥴의 모종 배송 스케쥴을 삭제한다.*/
             if (isWellsFarmSeeding) {
                 /*확정되지 않은 배송오더의 예정 모종 삭제*/
                 mapper.deleteSeedingShipping(dvo);
+                /* TODO: 확정되지않은 배송오더삭제 */
             }
         }
 
         if (!MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
             /* 배정 담당자 정보 세팅 */
-            WsnbMultipleTaskOrderDvo IchrPrtnr = mapper.selectAsAssignOganizationByPk(dvo);
+            WsnbWorkOrderDvo IchrPrtnr = mapper.selectAsAssignOganizationByPk(dvo);
             dvo.setIchrCnrCd(IchrPrtnr.getIchrCnrCd());
             dvo.setIchrPrtnrNo(IchrPrtnr.getIchrPrtnrNo());
             dvo.setIchrOgTpCd(IchrPrtnr.getIchrOgTpCd());
             dvo.setRpbLocaraCd(IchrPrtnr.getRpbLocaraCd());
 
+            //키 생성.
+            setNewAssignKey(dvo);
             /* 고객서비스AS설치배정내역(TB_SVPD_CST_SV_AS_IST_ASN_IZ), HIST insert*/
             mapper.insertAsInstallationAssign(dvo);
-            mapper.insertAsInstallationAssignHist(dvo.getAsnCstSvAsnNo());
+            Thread.sleep(1000);
+            historyMapper.insertCstSvasIstAsnHistByPk(dvo.getAsnCstSvAsnNo());
 
             /*--필터판매 또는 자재선택(3531 - 비스포크 패널 교체)일 경우 A/S투입부품정보 테이블에 인서트 한다.*/
             if (List.of("1310", "3531").contains(dvo.getNewSvBizDclsfCd()) && dvo.getPartList() != null) {
@@ -216,8 +217,8 @@ public class WsnbMultipleTaskOrderService {
         mapper.updateInstallationObjectKey(dvo);
     }
 
-    private void setAssignKeyAndValue(WsnbMultipleTaskOrderDvo dvo) {
-        WsnbMultipleTaskOrderDvo keyForAsAssign = mapper.selectCustomerServiceAssignNo(dvo);
+    private void setAssignKeyAndValue(WsnbWorkOrderDvo dvo) {
+        WsnbWorkOrderDvo keyForAsAssign = mapper.selectCustomerServiceAssignNo(dvo);
         String asnCstSvAsnNo = keyForAsAssign.getAsnSvBizHclsfCd() + keyForAsAssign.getAsnDt()
             + keyForAsAssign.getAsnReq();
         dvo.setAsnSvBizHclsfCd(keyForAsAssign.getAsnSvBizHclsfCd());
@@ -226,7 +227,17 @@ public class WsnbMultipleTaskOrderService {
         dvo.setAsnCstSvAsnNo(asnCstSvAsnNo);
     }
 
-    private void saveAsPuItem(WsnbMultipleTaskOrderDvo dvo) {
+    private void setNewAssignKey(WsnbWorkOrderDvo dvo) {
+        WsnbWorkOrderDvo newkeyForAsAssign = mapper.selectCustomerServiceNewAssignNo(dvo);
+        String newAsnCstSvAsnNo = newkeyForAsAssign.getAsnSvBizHclsfCd() + newkeyForAsAssign.getAsnDt()
+            + newkeyForAsAssign.getAsnReq();
+        dvo.setAsnSvBizHclsfCd(newkeyForAsAssign.getAsnSvBizHclsfCd());
+        dvo.setAsnDt(newkeyForAsAssign.getAsnDt());
+        dvo.setAsnReq(newkeyForAsAssign.getAsnReq());
+        dvo.setAsnCstSvAsnNo(newAsnCstSvAsnNo);
+    }
+
+    private void saveAsPuItem(WsnbWorkOrderDvo dvo) {
         /*TB_SVPD_CST_SVAS_PU_ITM_IZ 이전 정보를 삭제 */
         mapper.deleteAsPutItem(dvo);
 
@@ -234,7 +245,7 @@ public class WsnbMultipleTaskOrderService {
         * 위 형태의 List를 쪼개서 자재, 수량, 금액으로 저장해서 임시테이블에 insert
         * */
         String[] partList = StringUtils.split(dvo.getPartList(), "|");
-        WsnbMultipleTaskOrderDvo partDvo = new WsnbMultipleTaskOrderDvo();
+        WsnbWorkOrderDvo partDvo = new WsnbWorkOrderDvo();
         for (String part : partList) {
             String[] arr = StringUtils.split(part, ",");
             partDvo.setPartCd(arr[0]);
@@ -246,13 +257,13 @@ public class WsnbMultipleTaskOrderService {
         }
 
         /* TB_SVPD_CST_SVAS_PU_ITM_IZ에 INSERT할 값 조회 */
-        List<WsnbMultipleTaskOrderDvo> putItems = mapper.selectPutItems(dvo);
-        for (WsnbMultipleTaskOrderDvo putItem : putItems) {
+        List<WsnbWorkOrderDvo> putItems = mapper.selectPutItems(dvo);
+        for (WsnbWorkOrderDvo putItem : putItems) {
             mapper.insertAsPutItem(putItem); /* TB_SVPD_CST_SVAS_PU_ITM_IZ */
         }
     }
 
-    private void createSeedingPlan(WsnbMultipleTaskOrderDvo dvo) {
+    private void createSeedingPlan(WsnbWorkOrderDvo dvo) {
         String vstDtChk = mapper.selectVstDtChk(dvo.getVstRqdt())
             .orElseThrow(() -> new BizException("MSG_ALT_CHK_VSTDT"));
         dvo.setVstDtChk(vstDtChk);
@@ -269,7 +280,7 @@ public class WsnbMultipleTaskOrderService {
             /* TODO : DB2테이블 확인필요 (INSERT INTO LC_FARM_FA001TB 까지 해야함.)*/
 
             /*예정 자재 건수 체크, 자재 중 모정 건수 체크, 전체 유상 비용 합*/
-            WsnbMultipleTaskOrderDvo res6 = mapper.selectSdingCount();
+            WsnbWorkOrderDvo res6 = mapper.selectSdingCount();
             dvo.setExpMat(res6.getExpMat());
             dvo.setSdingExpMat(res6.getSdingExpMat());
             dvo.setExpMatSum(res6.getExpMatSum());
@@ -296,7 +307,7 @@ public class WsnbMultipleTaskOrderService {
         }
     }
 
-    private void checkValidationNewOrder(WsnbMultipleTaskOrderDvo dvo) {
+    private void checkValidationNewOrder(WsnbWorkOrderDvo dvo) {
         int rangeChangeCnt;
         int rangeChangeBsCnt;
         int asAssignCnt;
@@ -375,7 +386,7 @@ public class WsnbMultipleTaskOrderService {
         }
     }
 
-    private void checkValidationExistOrder(WsnbMultipleTaskOrderDvo dvo) {
+    private void checkValidationExistOrder(WsnbWorkOrderDvo dvo) {
         String[] cstNm = {dvo.getNewRcgvpKnm()};
 
         boolean canChangeWkPrgsStatCd = List.of("00", "10").contains(dvo.getNewWkPrgsStatCd());
