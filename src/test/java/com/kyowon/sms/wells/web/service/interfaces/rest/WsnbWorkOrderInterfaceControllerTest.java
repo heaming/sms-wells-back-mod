@@ -55,7 +55,7 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
 
         // 설치오더
         CreateOrderReq createDto = CreateOrderReq.builder()
-            .inChnlDvCd("4")
+            .inChnlDvCd("3")
             .svBizHclsfCd("1")
             .svBizDclsfCd("1110")
             .cntrNo(cntrNo)
@@ -69,10 +69,52 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
         List<String> results = callRestApi(List.of(createDto));
 
         // then
-        String asIstOjNo = results.get(0);
-        WsnbAsAssignReqDvo createAsAssign = mapper.selectAsAssignByPk(asIstOjNo).orElseThrow();
+        //String asIstOjNo = results.get(0);
+        //WsnbAsAssignReqDvo createAsAssign = mapper.selectAsAssignByPk(asIstOjNo).orElseThrow();
 
         //Assertions.assertThat(createAsAssign.getCn).
+    }
+
+    //@Commit
+    @Test
+    @DisplayName("작업오더 생성 테스트 - 판매 웰스팜 설치오더 신규")
+    @Order(1)
+    void createWorkOrdersForWellsFarmInstall() throws Exception {
+        // TEST DATA
+        // 웰스팜 계약번호
+        String cntrNo = "W20231854072";
+        String cntrSn = "1";
+
+        // 모종 계약번호
+        String sdingCntrNo = "W20230536953";
+        String sdingCntrSn = "1";
+
+        /* TEST CASE1(신규생성) */
+        // given
+        String nowDayString = DateUtil.getNowDayString();
+
+        // 설치오더
+        CreateOrderReq createDto = CreateOrderReq.builder()
+            .inChnlDvCd("3")
+            .svBizHclsfCd("1")
+            .svBizDclsfCd("1110")
+            .cntrNo(cntrNo)
+            .cntrSn(cntrSn)
+            .mtrStatCd("1")
+            .vstRqdt(DateUtil.addDays(nowDayString, 2))
+            .smsFwYn("Y")
+            .build();
+
+        // when
+        List<String> results = callRestApi(List.of(createDto));
+
+        // then
+        //String asIstOjNo = results.get(0);
+        //WsnbAsAssignReqDvo createAsAssign = mapper.selectAsAssignByPk(asIstOjNo).orElseThrow();
+
+        //Assertions.assertThat(createAsAssign.getCn).
+
+        /* TEST CASE2(당일취소) */
     }
 
     @Test

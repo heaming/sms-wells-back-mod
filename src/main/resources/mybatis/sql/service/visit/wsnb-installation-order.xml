@@ -46,6 +46,7 @@
     <select id="selectOjContract" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbOjContractDvo">
         SELECT C1.OJ_DTL_CNTR_NO AS CNTR_NO
              , C1.OJ_DTL_CNTR_SN AS CNTR_SN
+             , C1.CNTR_REL_DTL_CD AS REL_DTL_CD
           FROM TB_SSCT_CNTR_REL C1
          WHERE 1 = 1
            AND C1.CNTR_REL_DTL_CD = #{relDtlCd} /* 216 :모종결합, 221: 홈케어멤버십 */
