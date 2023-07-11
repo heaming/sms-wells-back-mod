@@ -20,6 +20,7 @@ public class WozwSampleController {
     @GetMapping
     public List<String> getSampleData() {
         System.out.println("===> TEST LOG");
+
         return List.of("TEST1", "TEST2", "TEST3");
     }
 }
