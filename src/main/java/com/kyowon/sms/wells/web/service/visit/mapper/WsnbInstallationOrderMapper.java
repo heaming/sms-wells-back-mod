@@ -38,8 +38,8 @@ public interface WsnbInstallationOrderMapper {
 
     List<String> selectSeedingCstSvAsnNos(String cntrNo, String cntrSn);
 
-    int deleteSdingSppPlan(WsnbMultipleTaskOrderDvo dvo);
+    int deleteSdingSppPlan(String cntrNo, String cntrSn);
 
-    int deleteSdingSppExpIz(WsnbMultipleTaskOrderDvo dvo);
+    int deleteSdingSppExpIz(String cntrNo, String cntrSn);
 
 }
