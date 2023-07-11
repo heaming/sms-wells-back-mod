@@ -113,7 +113,7 @@ public class WsnbWorkOrderService {
             && List.of(MTR_STAT_CD_NEW, MTR_STAT_CD_MOD).contains(dvo.getMtrStatCd())
             && !StringUtils.startsWith(dvo.getSvBizDclsfCd(), "7")) {
             /* 보상 여부가 Y면 */
-            if ("Y".equals(dvo.getCompYn())) {
+            if ("Y".equals(dvo.getCpsYn())) {
                 dvo.setNewSvBizDclsfCd("1124");
             } else if ("Y".equals(dvo.getRetYn()) || "D".equals(dvo.getRetYn())) {
 
