@@ -15,6 +15,7 @@
              , M1.OJ_CNTR_NO AS CNTR_NO_B /* 대상계약번호 */
              , M1.OJ_CNTR_SN AS CNTR_SN_B /* 대상계약일련번호 */
              , T1.ALNC_BZS_CD /* 제휴업체코드 */
+             , C1.CNTR_CST_NO
           FROM TB_SSCT_CNTR_BAS C1
          INNER JOIN TB_SSCT_CNTR_DTL C2
             ON C1.CNTR_NO = C2.CNTR_NO
@@ -346,7 +347,7 @@
                     ON T3.ADR_ID = C4.ADR_ID
                    AND T3.DTA_DL_YN = 'N'
                  INNER JOIN TB_PDBS_PD_BAS P1 /*상품각사속성상세*/
-                    ON P1.PD_CD = A.PDCT_PD_CD /*서비스상품코드*/
+                    ON P1.PD_CD = A.SV_PD_CD /*서비스상품코드*/
                  WHERE 1=1
                    AND A.CNTR_NO = #{cntrNo}
                    AND A.CNTR_SN = #{cntrSn}

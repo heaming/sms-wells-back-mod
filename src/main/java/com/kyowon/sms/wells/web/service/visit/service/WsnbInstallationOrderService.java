@@ -126,7 +126,7 @@ public class WsnbInstallationOrderService {
         if (!SV_BIZ_HCLSF_CD_DEL.equals(dvo.getSvBizHclsfCd())) {
 
             // 작업오더 호출 [AS-IS] PR_KIWI_WRK_CREATE_V2
-            asIstOjNo = taskOrderService.saveMultipleTaskOrders(dvo);
+            asIstOjNo = taskOrderService.saveWsnbWorkOrders(dvo);
 
             // 웰스팜 설치인 경우 모종설치 작업오더 생성
             if (dvo.getSvBizDclsfCd().startsWith(SV_BIZ_MCLSF_CD_IST)
@@ -145,7 +145,7 @@ public class WsnbInstallationOrderService {
                     for (String cstSvAsnNo : cstSvAsnNos) {
                         dvo.setCntrNo(sidingCntrNo);
                         dvo.setCntrSn(sidingCntrSn);
-                        taskOrderService.saveMultipleTaskOrders(dvo); // 작업오더 호출
+                        taskOrderService.saveWsnbWorkOrders(dvo); // 작업오더 호출
                     }
                 }
             }
@@ -157,7 +157,7 @@ public class WsnbInstallationOrderService {
             for (WsnbOjContractDvo homecareDvo : homecareDvos) {
                 dvo.setCntrNo(homecareDvo.getCntrNo());
                 dvo.setCntrSn(homecareDvo.getCntrSn());
-                taskOrderService.saveMultipleTaskOrders(dvo); // 작업오더 호출
+                taskOrderService.saveWsnbWorkOrders(dvo); // 작업오더 호출
             }
         }
 
