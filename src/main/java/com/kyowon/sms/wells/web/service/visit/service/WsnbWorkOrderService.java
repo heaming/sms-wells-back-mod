@@ -52,13 +52,13 @@ public class WsnbWorkOrderService {
      *            cnslDtlpTpCd : 상담세부유형코드, asAkDvCd1 : AS요청구분코드1, asAkDvCd2 : AS요청구분코드2,
      *            istllKnm : 설치자한글명, adrDvCd : 주소구분코드, istAdr : 설치주소 }]
      */
-    public String saveWsnbWorkOrders(SaveReq dto) throws Exception {
+    public String saveWorkOrders(SaveReq dto) throws Exception {
         WsnbWorkOrderDvo dvo = converter.mapSaveReqToWsnbWorkOrderDvo(dto);
 
-        return this.saveWsnbWorkOrders(dvo);
+        return this.saveWorkOrders(dvo);
     }
 
-    public String saveWsnbWorkOrders(WsnbWorkOrderDvo dvo) throws Exception {
+    public String saveWorkOrders(WsnbWorkOrderDvo dvo) throws Exception {
 
         if (StringUtils.isNotEmpty(dvo.getAsIstOjNo()) && "00000000".equals(dvo.getAsIstOjNo().substring(10))) {
             dvo.setAsIstOjNo(null);
