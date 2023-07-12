@@ -14,7 +14,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class WsnbTaskProgStatDvo {
+public class WsnbWorkProgStatDvo {
 
     int acpteCt; // 수락된 오더 건수
     int vstCnfmCt; // 당일방문예정 오더 건수

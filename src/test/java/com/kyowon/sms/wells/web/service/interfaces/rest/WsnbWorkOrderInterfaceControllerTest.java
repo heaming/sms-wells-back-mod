@@ -65,60 +65,12 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
             .smsFwYn("Y")
             .build();
 
-        // when
-        List<String> results = callRestApi(List.of(createDto));
-
-        // then
-        //String asIstOjNo = results.get(0);
-        //WsnbAsAssignReqDvo createAsAssign = mapper.selectAsAssignByPk(asIstOjNo).orElseThrow();
-
-        //Assertions.assertThat(createAsAssign.getCn).
-    }
-
-    //@Commit
-    @Test
-    @DisplayName("작업오더 생성 테스트 - 판매 웰스팜 설치오더 신규")
-    @Order(1)
-    void createWorkOrdersForWellsFarmInstall() throws Exception {
-        // TEST DATA
-        // 웰스팜 계약번호
-        String cntrNo = "W20231854072";
-        String cntrSn = "1";
-
-        // 모종 계약번호
-        String sdingCntrNo = "W20230536953";
-        String sdingCntrSn = "1";
-
-        /* TEST CASE1(신규생성) */
-        // given
-        String nowDayString = DateUtil.getNowDayString();
-
-        // 설치오더
-        CreateOrderReq createDto = CreateOrderReq.builder()
-            .inChnlDvCd("3")
-            .svBizHclsfCd("1")
-            .svBizDclsfCd("1110")
-            .cntrNo(cntrNo)
-            .cntrSn(cntrSn)
-            .mtrStatCd("1")
-            .vstRqdt(DateUtil.addDays(nowDayString, 2))
-            .smsFwYn("Y")
-            .build();
-
-        // when
-        List<String> results = callRestApi(List.of(createDto));
-
-        // then
-        //String asIstOjNo = results.get(0);
-        //WsnbAsAssignReqDvo createAsAssign = mapper.selectAsAssignByPk(asIstOjNo).orElseThrow();
-
-        //Assertions.assertThat(createAsAssign.getCn).
-
-        /* TEST CASE2(당일취소) */
+        // when & then
+        callRestApi(List.of(createDto));
     }
 
     @Test
-    @DisplayName("작업오더 생성 테스트 - 웰스웹 설치오더 신규/수정/삭제")
+    @DisplayName("작업오더 생성 테스트 - 판매 설치오더 신규/수정/삭제")
     @Order(2)
     void createWorkOrdersForInstallAndModifyAndCancel() throws Exception {
         // TEST DATA
@@ -131,7 +83,7 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
 
         // 설치오더
         CreateOrderReq createDto = CreateOrderReq.builder()
-            .inChnlDvCd("4")
+            .inChnlDvCd("3")
             .svBizHclsfCd("1")
             .svBizDclsfCd("1110")
             .cntrNo(cntrNo)
@@ -194,7 +146,84 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
         WsnbAsAssignReqDvo removeAsAssign = mapper.selectAsAssignByPk(asIstOjNo).orElseThrow();
         // 1) 자료상태 삭제 상태 확인
         Assertions.assertThat(removeAsAssign.getMtrStatCd()).isEqualTo("3");
+    }
 
+    @Test
+    @DisplayName("작업오더 생성 테스트 - 판매 웰스팜 설치오더 신규/삭제")
+    @Order(1)
+    void createWorkOrdersForWellsFarmInstall() throws Exception {
+        // TEST DATA
+        // 웰스팜 계약번호
+        String cntrNo = "W20231854072";
+        String cntrSn = "1";
+
+        // 모종 계약번호
+        //String sdingCntrNo = "W20230536953";
+        //String sdingCntrSn = "1";
+
+        /* TEST CASE1(신규생성) */
+        // given
+        String nowDayString = DateUtil.getNowDayString();
+
+        // 설치오더
+        CreateOrderReq createDto = CreateOrderReq.builder()
+            .inChnlDvCd("3")
+            .svBizHclsfCd("1")
+            .svBizDclsfCd("1110")
+            .cntrNo(cntrNo)
+            .cntrSn(cntrSn)
+            .mtrStatCd("1")
+            .vstRqdt(DateUtil.addDays(nowDayString, 2))
+            .smsFwYn("Y")
+            .build();
+
+        // when & then
+        List<String> results = callRestApi(List.of(createDto));
+
+        Thread.sleep(1000L);
+        String asIstOjNo = results.get(0);
+
+        WsnbAsAssignReqDvo createAsAssign = mapper.selectAsAssignByPk(asIstOjNo).orElseThrow();
+
+        /* TEST CASE2(수정) */
+        // given
+        // 설치오더
+        CreateOrderReq editDto = CreateOrderReq.builder()
+            .inChnlDvCd("3")
+            .svBizHclsfCd("1")
+            .svBizDclsfCd("1110")
+            .cntrNo(cntrNo)
+            .cntrSn(cntrSn)
+            .asIstOjNo(asIstOjNo)
+            .mtrStatCd("2")
+            .vstRqdt(DateUtil.addDays(nowDayString, 2))
+            .smsFwYn("Y")
+            .build();
+
+        // when & then
+        callRestApi(List.of(editDto));
+
+        /* TEST CASE3(삭제) */
+        // given
+        CreateOrderReq removeDto = CreateOrderReq.builder()
+            .inChnlDvCd("3")
+            .svBizHclsfCd("1")
+            .svBizDclsfCd("1110")
+            .cntrNo(cntrNo)
+            .cntrSn(cntrSn)
+            .asIstOjNo(asIstOjNo)
+            .mtrStatCd("3")
+            .vstRqdt(DateUtil.addDays(nowDayString, 2))
+            .smsFwYn("Y")
+            .build();
+
+        // when & then
+        callRestApi(List.of(removeDto));
+
+        // then
+        WsnbAsAssignReqDvo removeAsAssign = mapper.selectAsAssignByPk(asIstOjNo).orElseThrow();
+        // 1) 자료상태 삭제 상태 확인
+        Assertions.assertThat(removeAsAssign.getMtrStatCd()).isEqualTo("3");
     }
 
     private List<String> callRestApi(List<CreateOrderReq> dtos) throws Exception {

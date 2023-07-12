@@ -31,7 +31,7 @@
            AND C2.CNTR_SN = ${cntrSn}
     </select>
 
-    <select id="selectTaskProgStat" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbTaskProgStatDvo">
+    <select id="selectWorkProgStat" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkProgStatDvo">
         SELECT SUM(CASE WHEN S1.WK_ACPTE_STAT_CD = 'Y' AND S1.WK_PRGS_STAT_CD IN ('00', '10') THEN 1 ELSE 0 END) AS ACPTE_CT /* 수락된오더 건수 */
              , SUM(CASE WHEN S1.VST_CNFMDT = TO_CHAR(SYSDATE, 'YYYYMMDD') AND S1.WK_PRGS_STAT_CD IN ('00', '10') THEN 1 ELSE 0 END) AS VST_CNFM_CT /* 당일방문예정오더 건수 */
              , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD != '3130' AND S1.WK_PRGS_STAT_CD IN ('20') THEN 1 ELSE 0 END) AS FSH_CT /* 완료건수(설치환경점검은 제외) */
@@ -56,12 +56,12 @@
            AND C1.BASE_DTL_CNTR_SN = ${cntrSn}
     </select>
 
-    <select id="selectSeedingCstSvAsnNos" resultType="java.lang.String">
-        SELECT S1.CST_SV_ASN_NO AS SIDING_CST_SV_ASN_NO
-          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S1
+    <select id="selectSdingAsIstOjNos" resultType="java.lang.String">
+        SELECT S1.AS_IST_OJ_NO
+          FROM TB_SVPD_CST_SVAS_IST_OJ_IZ S1
          WHERE 1 = 1
-           AND S1.CNTR_NO = #{sidingCntrNo}
-           AND S1.CNTR_SN = ${sidingCntrSn}
+           AND S1.CNTR_NO = #{cntrNo}
+           AND S1.CNTR_SN = ${cntrSn}
     </select>
 
     <insert id="insertAsIstCancel">

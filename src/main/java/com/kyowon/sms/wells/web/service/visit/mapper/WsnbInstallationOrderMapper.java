@@ -3,12 +3,12 @@ package com.kyowon.sms.wells.web.service.visit.mapper;
 import java.util.List;
 import java.util.Optional;
 
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractReqDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbOjContractDvo;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbTaskProgStatDvo;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkProgStatDvo;
 
 /**
  * <pre>
@@ -26,7 +26,7 @@ public interface WsnbInstallationOrderMapper {
 
     int insertAsIstCancel(WsnbWorkOrderDvo dvo);
 
-    WsnbTaskProgStatDvo selectTaskProgStat(String cntrNo, String cntrSn);
+    WsnbWorkProgStatDvo selectWorkProgStat(String cntrNo, String cntrSn);
 
     int deleteSvExcnIz(String cntrNo, String cntrSn);
 
@@ -36,7 +36,7 @@ public interface WsnbInstallationOrderMapper {
 
     List<WsnbOjContractDvo> selectOjContract(WsnbOjContractDvo dvo);
 
-    List<String> selectSeedingCstSvAsnNos(String cntrNo, String cntrSn);
+    List<String> selectSdingAsIstOjNos(String cntrNo, String cntrSn);
 
     int deleteSdingSppPlan(String cntrNo, String cntrSn);
 

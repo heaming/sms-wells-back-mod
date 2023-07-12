@@ -254,11 +254,10 @@
                      , A.CNTR_NO AS CNTR_NO
                      , A.CNTR_SN AS CNTR_SN
                      , C1.CNTR_CST_NO AS CNTR_CST_NO
-                     , C3.CNTR_ADRPC_ID AS CNTR_ADRPC_ID
                      , #{newInChnlDvCd} AS IN_CHNL_DV_CD
                      , #{newSvBizHclsfCd} AS SV_BIZ_HCLSF_CD
                      , #{newSvBizDclsfCd} AS SV_BIZ_DCLSF_CD
-                     , '' AS RCP_SV_BIZ_DCLSF_CD
+                     , #{svBizDclsfCd} AS RCP_SV_BIZ_DCLSF_CD
                      , #{rcpOgTpCd} AS RCP_OG_TP_CD
                      , #{userId} AS RCP_ICHR_PRTNR_NO
                      , #{newRcpdt} AS RCPDT
@@ -268,7 +267,7 @@
                              ELSE (SELECT NVL(MAX(DECODE(#{rcpOgTpCd},'W02','3','2')), '0') /*긴급여부 :  0 정상설치 1 당일긴급(SMS)  2 ENG  3 웰스매니저 4 고객요청 */
                                       FROM DUAL
                                   )
-                         END) AS URGT_YN
+                         END) AS URGT_DV_CD
                      , #{vstRqdt} AS VST_RQDT /*방문요청일자*/
                      , #{vstAkHh} AS VST_AK_HH /*방문요청시간*/
                      , #{cnslTpHclsfCd} AS CNSL_TP_HCLSF_CD /*상담유형 1(대)*/
@@ -317,9 +316,6 @@
                              ELSE REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
                        END) AS CNSL_MO_CN /*상담메모내용*/
                      , C4.RCGVP_KNM AS ISTLL_KNM /*설치고객명*/
-                     , C4.ADR_DV_CD AS ADR_DV_CD /*주소구분(지번/도로명)*/
-                     , T3.RNADR AS IST_ADR /*도로명주소*/
-                     , T3.RDADR AS IST_DTL_ADR /*도로명상세주소*/
                      , C4.ADR_ID AS ADR_ID
                      , 'N' AS DTA_DL_YN
                   FROM TB_SVPD_CST_SV_EXCN_IZ A
@@ -346,7 +342,7 @@
                  INNER JOIN TB_GBCO_ADR_BAS T3 /*주소기본*/
                     ON T3.ADR_ID = C4.ADR_ID
                    AND T3.DTA_DL_YN = 'N'
-                 INNER JOIN TB_PDBS_PD_BAS P1 /*상품각사속성상세*/
+            LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품각사속성상세*/
                     ON P1.PD_CD = A.SV_PD_CD /*서비스상품코드*/
                  WHERE 1=1
                    AND A.CNTR_NO = #{cntrNo}
@@ -358,7 +354,7 @@
             UPDATE SET S1.SV_BIZ_DCLSF_CD     = S2.SV_BIZ_DCLSF_CD       /* 서비스업무세분류코드 */
                      , S1.FNL_RCPDT           = TO_CHAR(SYSDATE,'YYYYMMDD')           /* 최종접수일자 */
                      , S1.FNL_RCP_HH          = TO_CHAR(SYSDATE,'HH24MISS')        /* 최종접수시간 */
-                     , S1.URGT_YN             = S2.URGT_YN             /* 긴급여부 */
+                     , S1.URGT_DV_CD          = S2.URGT_DV_CD             /* 긴급여부 */
                      , S1.VST_RQDT            = S2.VST_RQDT            /* 방문요청일자 */
                      , S1.VST_AK_HH           = S2.VST_AK_HH          /* 방문요청시간 */
                      , S1.CNSL_TP_HCLSF_CD    = S2.CNSL_TP_HCLSF_CD      /* 상담유형대분류코드 */
@@ -384,7 +380,6 @@
                 , CNTR_NO
                 , CNTR_SN
                 , CNTR_CST_NO
-                , CNTR_ADRPC_ID
                 , IN_CHNL_DV_CD
                 , SV_BIZ_HCLSF_CD
                 , SV_BIZ_DCLSF_CD
@@ -394,7 +389,7 @@
                 , RCPDT
                 , FNL_RCPDT
                 , FNL_RCP_HH
-                , URGT_YN
+                , URGT_DV_CD
                 , VST_RQDT
                 , VST_AK_HH
                 , CNSL_TP_HCLSF_CD
@@ -415,9 +410,6 @@
                 , CNSL_DTLP_TP_CD
                 , CNSL_MO_CN
                 , ISTLL_KNM
-                , ADR_DV_CD
-                , IST_ADR
-                , IST_DTL_ADR
                 , ADR_ID
                 , DTA_DL_YN
                 <include refid="COMMON.insertSystemField"/>
@@ -426,7 +418,6 @@
                 , S2.CNTR_NO
                 , S2.CNTR_SN
                 , S2.CNTR_CST_NO
-                , S2.CNTR_ADRPC_ID
                 , S2.IN_CHNL_DV_CD
                 , S2.SV_BIZ_HCLSF_CD
                 , S2.SV_BIZ_DCLSF_CD
@@ -436,7 +427,7 @@
                 , S2.RCPDT
                 , S2.FNL_RCPDT
                 , S2.FNL_RCP_HH
-                , S2.URGT_YN
+                , S2.URGT_DV_CD
                 , S2.VST_RQDT
                 , S2.VST_AK_HH
                 , S2.CNSL_TP_HCLSF_CD
@@ -457,9 +448,6 @@
                 , S2.CNSL_DTLP_TP_CD
                 , S2.CNSL_MO_CN
                 , S2.ISTLL_KNM
-                , S2.ADR_DV_CD
-                , S2.IST_ADR
-                , S2.IST_DTL_ADR
                 , S2.ADR_ID
                 , S2.DTA_DL_YN
                 <include refid="COMMON.insertSystemFieldValue"/>
@@ -474,12 +462,11 @@
          WHERE AS_IST_OJ_NO   = #{newAsIstOjNo}
     </update>
 
-    <update id="deleteAsPutItem">
-        UPDATE TB_SVPD_CST_SVAS_PU_ITM_IZ
-           SET DTA_DL_YN = 'N'
-             <include refid="COMMON.updateSystemField"/>
+    <delete id="deleteAsPutItem">
+        DELETE
+          FROM TB_SVPD_CST_SVAS_PU_ITM_IZ
          WHERE CST_SV_ASN_NO = #{puCstSvAsnNo}
-    </update>
+    </delete>
     <insert id="insertSeedingTemp">
         INSERT INTO TB_SVPD_SDING_PRCHS_IZ_TEMP
              ( SDING_PRCHS_PROCS_ID
@@ -711,7 +698,7 @@
                  GROUP BY W1TH, W3TH
                )
          WHERE W3TH = #{vstRqdt}
-           AND ROWNUM = 1;
+           AND ROWNUM = 1
     </select>
     <select id="selectSdingCount" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo">
         SELECT COUNT(1) AS EXP_MAT
@@ -812,8 +799,8 @@
              )
     </insert>
     <insert id="insertSeedingExpByAs">
-        INSERT INTO TB_SVPD_SDING_SPP_EXP_IZ
-             ( CNTR_NO
+        INSERT INTO TB_SVPD_SDING_SPP_EXP_IZ (
+             CNTR_NO
              , CNTR_SN
              , SV_BIZ_HCLSF_CD
              , SV_BIZ_DCLSF_CD
@@ -826,7 +813,7 @@
              , SOW_DT
              , DTA_DL_YN
              <include refid="COMMON.insertSystemField"/>
-             )
+        )
         SELECT CNTR_NO
              , CNTR_SN
              , SV_BIZ_HCLSF_CD
@@ -839,14 +826,7 @@
              , NVL(RECAP_CS_AMT,0)
              , SOW_DT
              , DTA_DL_YN
-             , FST_RGST_DTM
-             , FST_RGST_USR_ID
-             , FST_RGST_PRG_ID
-             , FST_RGST_DEPT_ID
-             , FNL_MDFC_DTM
-             , FNL_MDFC_USR_ID
-             , FNL_MDFC_PRG_ID
-             , FNL_MDFC_DEPT_ID
+             <include refid="COMMON.insertSystemFieldValue"/>
           FROM (/*모종 + 배양액*/
                SELECT #{cntrNo} AS CNTR_NO
                      , '00' AS CNTR_SN
@@ -903,14 +883,6 @@
                                                                     AND P3.BASE_PD_CD = S1.SDING_PD_CD), 'YYYYMMDD')
                          END) AS SOW_DT
                      , 'N' AS DTA_DL_YN
-                     , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') AS FST_RGST_DTM
-                     , #{session.userId} AS FST_RGST_USR_ID
-                     , #{session.pageId} AS FST_RGST_PRG_ID
-                     , #{session.ogId} AS FST_RGST_DEPT_ID
-                     , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
-                     , #{session.userId} AS FNL_MDFC_USR_ID
-                     , #{session.pageId} AS FNL_MDFC_PRG_ID
-                     , #{session.ogId} AS FNL_MDFC_DEPT_ID
                   FROM TB_SVPD_SDING_PRCHS_PROCS_TEMP S1
                )
     </insert>

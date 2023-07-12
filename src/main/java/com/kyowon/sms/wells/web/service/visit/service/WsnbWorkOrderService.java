@@ -1,6 +1,12 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.*;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_AUTO;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_KMEMBERS;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_SALES;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_WEB;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.MTR_STAT_CD_DEL;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.MTR_STAT_CD_MOD;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.MTR_STAT_CD_NEW;
 
 import java.util.List;
 
@@ -110,8 +116,9 @@ public class WsnbWorkOrderService {
         dvo.setBasePdNm(contract.getBasePdNm());
 
         if (List.of(IN_CHNL_DV_CD_SALES, IN_CHNL_DV_CD_AUTO).contains(dvo.getInChnlDvCd())
-            && List.of(MTR_STAT_CD_NEW, MTR_STAT_CD_MOD).contains(dvo.getMtrStatCd())
+            && List.of(MTR_STAT_CD_NEW).contains(dvo.getMtrStatCd())
             && !StringUtils.startsWith(dvo.getSvBizDclsfCd(), "7")) {
+
             /* 보상 여부가 Y면 */
             if ("Y".equals(dvo.getCpsYn())) {
                 dvo.setNewSvBizDclsfCd("1124");
@@ -130,6 +137,7 @@ public class WsnbWorkOrderService {
             } else {
                 dvo.setNewSvBizDclsfCd(dvo.getSvBizDclsfCd());
             }
+
         } else if (List.of(MTR_STAT_CD_MOD, MTR_STAT_CD_DEL).contains(dvo.getMtrStatCd())) {
             WsnbAsAssignReqDvo asAssignReqDvo = mapper.selectAsAssignByPk(dvo.getAsIstOjNo())
                 .orElseThrow(() -> new BizException("MSG_ALT_RCP_DIFF_WAY", new String[] {dvo.getRcgvpKnm()}));
