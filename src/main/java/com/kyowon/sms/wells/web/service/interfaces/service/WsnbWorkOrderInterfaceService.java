@@ -1,14 +1,10 @@
 package com.kyowon.sms.wells.web.service.interfaces.service;
 
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_HCLSF_CD_INFO_CHANGE;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_LCLSF_CD_REINSTALL;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_LCLSF_CD_SEP;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_MCLSF_CD_IST;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +17,7 @@ import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbWorkOrderInterfaceDto
 import com.kyowon.sms.wells.web.service.interfaces.dto.WsnbWorkOrderInterfaceDto.CreateOrderRes;
 import com.kyowon.sms.wells.web.service.interfaces.dvo.WsnbWorkOrderInterfaceDvo;
 import com.kyowon.sms.wells.web.service.interfaces.mapper.WsnbWorkOrderInterfaceMapper;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbInstallationOrderService;
 import com.kyowon.sms.wells.web.service.visit.service.WsnbWorkOrderService;
 
@@ -53,7 +50,7 @@ public class WsnbWorkOrderInterfaceService {
     private final WctiContractInstallService contractInstallService; // 계약설치정보변경 서비스
 
     @Transactional
-    public List<CreateOrderRes> createMultipleTaskOrders(List<CreateOrderReq> dtos) throws Exception {
+    public List<CreateOrderRes> createWorkOrders(List<CreateOrderReq> dtos) throws Exception {
         List<WsnbWorkOrderInterfaceDvo> orders = converter.mapAllCreateOrderReqToDvos(dtos);
         List<CreateOrderRes> orderRes = new ArrayList<>();
 
@@ -95,13 +92,13 @@ public class WsnbWorkOrderInterfaceService {
      * @return CreateOrderRes
      */
     private CreateOrderRes createSeparateOrder(WsnbWorkOrderInterfaceDvo separate) throws Exception {
-        WsnbWorkOrderDvo multiTaskOrderDvo = converter.convertInterfaceDvoToDvo(separate);
+        WsnbWorkOrderDvo workOrderDvo = converter.convertInterfaceDvoToDvo(separate);
 
         // 1. W-SV-S-0012 [다건 작업오더, 정보변경 처리] 호출
-        String asIstOjNo = taskOrderService.saveMultipleTaskOrders(multiTaskOrderDvo);
+        String asIstOjNo = taskOrderService.saveWsnbWorkOrders(workOrderDvo);
 
         // 2. 정보변경 처리
-        this.editContract(multiTaskOrderDvo, separate);
+        this.editContract(workOrderDvo, separate);
 
         return new CreateOrderRes(asIstOjNo);
     }
@@ -111,15 +108,15 @@ public class WsnbWorkOrderInterfaceService {
      * @return CreateOrderRes
      */
     private CreateOrderRes createEtcOrder(WsnbWorkOrderInterfaceDvo etc) throws Exception {
-        WsnbWorkOrderDvo multiTaskOrderDvo = converter.convertInterfaceDvoToDvo(etc);
+        WsnbWorkOrderDvo workOrderDvo = converter.convertInterfaceDvoToDvo(etc);
 
         // 1. W-SV-S-0012 [다건 작업오더, 정보변경 처리] 호출
-        String asIstOjNo = taskOrderService.saveMultipleTaskOrders(multiTaskOrderDvo);
+        String asIstOjNo = taskOrderService.saveWsnbWorkOrders(workOrderDvo);
 
         // 2. 재설치 오더와 정보변경 오더일 경우 정보변경 처리
         if (etc.getSvBizDclsfCd().startsWith(SV_BIZ_LCLSF_CD_REINSTALL)
             || etc.getSvBizDclsfCd().startsWith(SV_BIZ_HCLSF_CD_INFO_CHANGE)) {
-            this.editContract(multiTaskOrderDvo, etc);
+            this.editContract(workOrderDvo, etc);
         }
 
         return new CreateOrderRes(asIstOjNo);
@@ -127,11 +124,11 @@ public class WsnbWorkOrderInterfaceService {
 
     /**
      * 계약주소 및 연락처 업데이트
-     * @param multiTaskOrderDvo
+     * @param workOrderDvo
      * @param ifDvo
      * @throws Exception
      */
-    private void editContract(WsnbWorkOrderDvo multiTaskOrderDvo, WsnbWorkOrderInterfaceDvo ifDvo)
+    private void editContract(WsnbWorkOrderDvo workOrderDvo, WsnbWorkOrderInterfaceDvo ifDvo)
         throws Exception {
         // 0. 기존 계약 주소 조회
         String oldAdrId = mapper.selectContractAdr(ifDvo);
@@ -146,15 +143,15 @@ public class WsnbWorkOrderInterfaceService {
 
         // 2. 계약주소 업데이트 (기존 계약 ADR_ID와 다른 경우에만 업데이트)
         if (!formatAddress.getAdrId().equals(oldAdrId)) {
-            multiTaskOrderDvo.setAdrId(formatAddress.getAdrId());
-            multiTaskOrderDvo.setCralLocaraTno(ifDvo.getMtcmco());
-            multiTaskOrderDvo.setMexno(ifDvo.getCphonIdvTno1());
-            multiTaskOrderDvo.setCralIdvTno(ifDvo.getCphonIdvTno2());
-            multiTaskOrderDvo.setLocaraTno(ifDvo.getLocaraTno());
-            multiTaskOrderDvo.setExno(ifDvo.getIdvTno1());
-            multiTaskOrderDvo.setIdvTno(ifDvo.getIdvTno2());
+            workOrderDvo.setAdrId(formatAddress.getAdrId());
+            workOrderDvo.setCralLocaraTno(ifDvo.getMtcmco());
+            workOrderDvo.setMexno(ifDvo.getCphonIdvTno1());
+            workOrderDvo.setCralIdvTno(ifDvo.getCphonIdvTno2());
+            workOrderDvo.setLocaraTno(ifDvo.getLocaraTno());
+            workOrderDvo.setExno(ifDvo.getIdvTno1());
+            workOrderDvo.setIdvTno(ifDvo.getIdvTno2());
 
-            contractInstallService.editContractInstall(converter.mapDvoToContractSaveReq(multiTaskOrderDvo));
+            contractInstallService.editContractInstall(converter.mapDvoToContractSaveReq(workOrderDvo));
         }
 
     }

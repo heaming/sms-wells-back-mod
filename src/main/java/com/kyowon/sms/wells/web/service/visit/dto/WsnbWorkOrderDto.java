@@ -13,7 +13,7 @@ import io.swagger.annotations.ApiModel;
  */
 public class WsnbWorkOrderDto {
 
-    @ApiModel(value = "WsnbMultipleTaskOrderDto-SaveReq")
+    @ApiModel(value = "WsnbWorkOrderDto-SaveReq")
     public record SaveReq(
         String inChnlDvCd, /* 입력채널구분코드 */
         String asIstOjNo, /* AS설치대상번호 */

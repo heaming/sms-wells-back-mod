@@ -18,7 +18,7 @@ import lombok.Builder;
 public class WsnbWorkOrderInterfaceDto {
 
     @Builder
-    @ApiModel(value = "WsnbMultipleTaskOrderInterfaceDto-CreateOrderReq")
+    @ApiModel(value = "WsnbWorkOrderInterfaceDto-CreateOrderReq")
     public record CreateOrderReq(
         @NotBlank
         @JsonProperty("IN_CHNL_DV_CD")
@@ -100,7 +100,7 @@ public class WsnbWorkOrderInterfaceDto {
     ) {}
 
     @Builder
-    @ApiModel(value = "WsnbMultipleTaskOrderInterfaceDto-CreateOrderRes")
+    @ApiModel(value = "WsnbWorkOrderInterfaceDto-CreateOrderRes")
     public record CreateOrderRes(
         @JsonProperty("AS_IST_OJ_NO")
         String asIstOjNo // AS설치대상번호
