@@ -95,7 +95,7 @@ public class WsnbWorkOrderInterfaceService {
         WsnbWorkOrderDvo workOrderDvo = converter.convertInterfaceDvoToDvo(separate);
 
         // 1. W-SV-S-0012 [다건 작업오더, 정보변경 처리] 호출
-        String asIstOjNo = taskOrderService.saveWsnbWorkOrders(workOrderDvo);
+        String asIstOjNo = taskOrderService.saveWorkOrders(workOrderDvo);
 
         // 2. 정보변경 처리
         this.editContract(workOrderDvo, separate);
@@ -111,7 +111,7 @@ public class WsnbWorkOrderInterfaceService {
         WsnbWorkOrderDvo workOrderDvo = converter.convertInterfaceDvoToDvo(etc);
 
         // 1. W-SV-S-0012 [다건 작업오더, 정보변경 처리] 호출
-        String asIstOjNo = taskOrderService.saveWsnbWorkOrders(workOrderDvo);
+        String asIstOjNo = taskOrderService.saveWorkOrders(workOrderDvo);
 
         // 2. 재설치 오더와 정보변경 오더일 경우 정보변경 처리
         if (etc.getSvBizDclsfCd().startsWith(SV_BIZ_LCLSF_CD_REINSTALL)

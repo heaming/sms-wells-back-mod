@@ -27,13 +27,13 @@ public class WsnbWorkOrderController {
 
     @ApiOperation(value = "다건 작업오더, 정보변경 처리", notes = "다건에 대한 작업오더 생성, 수정, 삭제, 정보 변경처리를 한다.")
     @PostMapping
-    public SaveResponse saveWsnbWorkOrders(
+    public SaveResponse saveWorkOrders(
         @Valid
         @RequestBody
         SaveReq dto
     ) throws Exception {
         return SaveResponse.builder()
-            .data(service.saveWsnbWorkOrders(dto))
+            .data(service.saveWorkOrders(dto))
             .processCount(1)
             .build();
     }
