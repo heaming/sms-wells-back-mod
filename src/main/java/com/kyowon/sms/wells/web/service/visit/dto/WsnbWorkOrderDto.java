@@ -21,7 +21,7 @@ public class WsnbWorkOrderDto {
         String rcpdt, /* 접수일자 */
         String mtrStatCd, /* 자료상태코드 */
         String svBizDclsfCd, /* 서비스업무세분류코드 */
-        String urgtYn, /* 긴급여부 */
+        String urgtDvCd, /* 긴급여부 */
         String vstRqdt, /* 방문요청일자 */
         String vstAkHh, /* 방문요청시간 */
         String smsFwYn, /* SMS발송여부 */
