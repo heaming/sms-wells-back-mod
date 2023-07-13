@@ -18,7 +18,7 @@
              , RCPDT
              , FNL_RCPDT
              , FNL_RCP_HH
-             , URGT_YN
+             , URGT_DV_CD
              , VST_RQDT
              , VST_AK_HH
              , CNSL_TP_HCLSF_CD
@@ -39,9 +39,6 @@
              , CNSL_MO_CN
              , CNSL_DTLP_TP_CD
              , ISTLL_KNM
-             , ADR_DV_CD
-             , IST_ADR
-             , IST_DTL_ADR
              , DTA_DL_YN
              , FST_RGST_DTM
              , FST_RGST_USR_ID
@@ -66,7 +63,7 @@
              , RCPDT
              , FNL_RCPDT
              , FNL_RCP_HH
-             , URGT_YN
+             , URGT_DV_CD
              , VST_RQDT
              , VST_AK_HH
              , CNSL_TP_HCLSF_CD
@@ -87,9 +84,6 @@
              , CNSL_MO_CN
              , CNSL_DTLP_TP_CD
              , ISTLL_KNM
-             , ADR_DV_CD
-             , IST_ADR
-             , IST_DTL_ADR
              , DTA_DL_YN
              , FST_RGST_DTM
              , FST_RGST_USR_ID
