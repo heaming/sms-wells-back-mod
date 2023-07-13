@@ -11,6 +11,6 @@ public class WsncTimeTableSidingDaysDvo {
     String st;
     String ed;
     String w3th;
-    String ablDays;
+    String enableDays;
     String sowDay;
 }

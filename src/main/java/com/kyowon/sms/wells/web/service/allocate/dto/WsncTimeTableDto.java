@@ -12,9 +12,9 @@ import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 
 @Slf4j
-/*타임테이블 조회(판매)*/
 public class WsncTimeTableDto {
 
     private static String defineInflwChnl(String chnlDvCd) {
@@ -25,10 +25,11 @@ public class WsncTimeTableDto {
             "W", "4", // 웰스 홈페이지
             "K", "3", // KSS
             "P", "5", // K-MEMBERS
-            "0" // I: 엔지니어, E: 엔지니어, M: 매니저, B: BS(엔지니어)
+            "" // I: 엔지니어, E: 엔지니어, M: 매니저, B: BS(엔지니어)
         );
     }
 
+    @Builder
     @ApiModel(value = "WsncTimeTableDto-FindTimeAssignReq")
     public record FindTimeAssignReq(
         @NotBlank
@@ -38,14 +39,17 @@ public class WsncTimeTableDto {
         @NotBlank
         @ValidDate
         String sellDate, // SEL_DATE
-        @NotBlank
+        @NotEmpty
         String svBizDclsfCd, // wrkTypDtl
-        @NotBlank
+        String[] svBizDclsfCds, // wrkTypDtl
         String cntrNo,
         String cntrSn,
 
         String inflwChnl,
         String basePdCd, // GDS_CD
+        String[] basePdCds, // P_GDS_LIST
+        String pdctPdCd,
+
         String wrkDt,
 
         @NotBlank
@@ -55,34 +59,39 @@ public class WsncTimeTableDto {
         String mkCo,
         String baseYm,
         String seq, // P_IN_GB + P_WRK_GB + P_WRK_DT + LEFTPAD(P_SEQ, 8,"0")
-        String cstSvAsnNo
+        String cstSvAsnNo,
+        String newAdrZip,
+        String contDt,
+        String copnDvCd,
+        String sellDscDbCd,
+        String sdingCombin,
+        String vstDvCd
     ) {
         public FindTimeAssignReq {
-
-            wrkDt = DateUtil.getNowDayString();
+            wrkDt = StringUtil.isEmpty(wrkDt) ? DateUtil.getNowDayString() : wrkDt;
             inflwChnl = defineInflwChnl(chnlDvCd);
             mtrStatCd = StringUtil.isEmpty(mtrStatCd) ? "1" : mtrStatCd;
-
-            log.debug("chnlDvCd: {}", chnlDvCd);
-            log.debug("svDvCd: {}", svDvCd);
-            log.debug("sellDate: {}", sellDate);
-            log.debug("svBizDclsfCd: {}", svBizDclsfCd);
-            log.debug("cntrNo: {}", cntrNo);
-            log.debug("cntrSn: {}", cntrSn);
-            log.debug("inflwChnl: {}", inflwChnl);
-            log.debug("basePdCd: {}", basePdCd);
-            log.debug("wrkDt: {}", wrkDt);
-            log.debug("mtrStatCd: {}", mtrStatCd);
-            log.debug("userId: {}", userId);
-            log.debug("mkCo: {}", mkCo);
-            log.debug("baseYm: {}", baseYm);
-            log.debug("seq: {}", seq);
-            log.debug("cstSvAsnNo: {}", cstSvAsnNo);
-            log.debug("returnUrl: {}", returnUrl);
+            //            log.debug("chnlDvCd: {}", chnlDvCd);
+            //            log.debug("svDvCd: {}", svDvCd);
+            //            log.debug("sellDate: {}", sellDate);
+            //            log.debug("svBizDclsfCd: {}", svBizDclsfCd);
+            //            log.debug("cntrNo: {}", cntrNo);
+            //            log.debug("cntrSn: {}", cntrSn);
+            //            log.debug("inflwChnl: {}", inflwChnl);
+            //            log.debug("basePdCd: {}", basePdCd);
+            //            log.debug("wrkDt: {}", wrkDt);
+            //            log.debug("mtrStatCd: {}", mtrStatCd);
+            //            log.debug("userId: {}", userId);
+            //            log.debug("mkCo: {}", mkCo);
+            //            log.debug("baseYm: {}", baseYm);
+            //            log.debug("seq: {}", seq);
+            //            log.debug("cstSvAsnNo: {}", cstSvAsnNo);
+            //            log.debug("returnUrl: {}", returnUrl);
 
         }
     }
 
+    @Builder
     @ApiModel(value = "WsncTimeTableDto-FindScheChoReq")
     public record FindScheChoReq(
         @NotBlank
@@ -114,7 +123,7 @@ public class WsncTimeTableDto {
         String newAdrZip
     ) {
         public FindScheChoReq {
-            wrkDt = DateUtil.getNowDayString();
+            wrkDt = StringUtil.isEmpty(wrkDt) ? DateUtil.getNowDayString() : wrkDt;
             inflwChnl = defineInflwChnl(chnlDvCd);
             mtrStatCd = StringUtil.isEmpty(mtrStatCd) ? "1" : mtrStatCd;
 
@@ -139,6 +148,7 @@ public class WsncTimeTableDto {
         }
     }
 
+    @Builder
     @ApiModel(value = "WsncTimeTableDto-FindTimeChoReq")
     public record FindTimeChoReq(
         @NotBlank
@@ -170,7 +180,7 @@ public class WsncTimeTableDto {
     ) {
         public FindTimeChoReq {
 
-            wrkDt = DateUtil.getNowDayString();
+            wrkDt = StringUtil.isEmpty(wrkDt) ? DateUtil.getNowDayString() : wrkDt;
             inflwChnl = defineInflwChnl(chnlDvCd);
             mtrStatCd = StringUtil.isEmpty(mtrStatCd) ? "1" : mtrStatCd;
 
@@ -205,6 +215,7 @@ public class WsncTimeTableDto {
         String cntrSn,
         String inflwChnl,
         String basePdCd,
+        String[] basePdCds,
         String pdctPdCd,
         String prtnrNo,
         String prtnrNo01,
@@ -214,7 +225,6 @@ public class WsncTimeTableDto {
         String hcrYn,
         @NotBlank
         String mtrStatCd,
-        String basePdCdList,
         String exYn,
         String contDt,
         String wrkDt,
@@ -235,7 +245,7 @@ public class WsncTimeTableDto {
         String copnDvCd,
         String sellDscDbCd,
         String lcst09,
-        String vstGb,
+        String vstDvCd,
         String cstSvAsnNo,
         String sdingCombin, // LCST09
         String sidingYn,
@@ -257,7 +267,7 @@ public class WsncTimeTableDto {
         List<SmPmNt> ntTimes
     ) {
         public FindRes {
-            wrkDt = DateUtil.getNowDayString();
+            wrkDt = StringUtil.isEmpty(wrkDt) ? DateUtil.getNowDayString() : wrkDt;
             inflwChnl = defineInflwChnl(chnlDvCd);
             mtrStatCd = StringUtil.isEmpty(mtrStatCd) ? "1" : mtrStatCd;
 
@@ -286,7 +296,7 @@ public class WsncTimeTableDto {
         String st,
         String ed,
         String w3th,
-        String ablDays,
+        String enableDays,
         String sowDay // PAJONG_DAY
     ) {}
 
