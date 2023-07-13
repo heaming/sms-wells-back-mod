@@ -263,7 +263,7 @@
                      , #{newRcpdt} AS RCPDT
                      , TO_CHAR(SYSDATE,'YYYYMMDD') AS FNL_RCPDT /*최종접수일자*/
                      , TO_CHAR(SYSDATE,'HH24MISS') AS FNL_RCP_HH /*최종접수시간*/
-                     , (CASE WHEN #{newInChnlDvCd} = '1' THEN TRIM(#{urgtYn})  /*고객센터 접수건은 고객센터에서 내려준 값 사용*/
+                     , (CASE WHEN #{newInChnlDvCd} = '1' THEN TRIM(#{urgtDvCd})  /*고객센터 접수건은 고객센터에서 내려준 값 사용*/
                              ELSE (SELECT NVL(MAX(DECODE(#{rcpOgTpCd},'W02','3','2')), '0') /*긴급여부 :  0 정상설치 1 당일긴급(SMS)  2 ENG  3 웰스매니저 4 고객요청 */
                                       FROM DUAL
                                   )
