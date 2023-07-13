@@ -4,9 +4,12 @@
     <select id="selectCustomerSingleViewInfos" resultType="com.kyowon.sms.wells.web.customer.contract.dvo.WcsaCustomerDvo">
         SELECT BAS.CST_NO /* 고객번호 */
              , BAS.COPN_DV_CD /* 법인격구분코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'COPN_DV_CD', BAS.COPN_DV_CD, #{session.langId}) AS COPN_DV_NM   /* 법인격구분명 */
              , DTL.CST_GD_CD /* 고객등급코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'CST_GD_CD', DTL.CST_GD_CD, #{session.langId}) AS CST_GD_NM   /* 고객등급명 */
              , BAS.CST_KNM AS CST_NM /* 고객한글명 */
              , BAS.BRYY_MMDD /* 생년월일 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'SEX_DV_CD', BAS.SEX_DV_CD, #{session.langId}) AS SEX_DV_NM   /* 성별구분명 */
              , BAS.SEX_DV_CD /* 성별구분코드 */
              , ADR.NEW_ADR_ZIP AS ZIP   /* 우편번호 */
              , ADR.RNADR AS BAS_ADR /* 기본주소 */
@@ -72,6 +75,9 @@
          INNER JOIN TB_SSCT_CNTR_DTL T2
             ON T2.CNTR_NO = T1.CNTR_NO
            AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS T6
+            ON T6.PD_CD = T2.BASE_PD_CD
+           AND T6.DTA_DL_YN = 'N'
           LEFT OUTER JOIN
              LATERAL(SELECT SUM(CASE WHEN DP_DV_CD IN ('1', '3') THEN RVE_AMT ELSE 0 END)
                           - SUM(CASE WHEN DP_DV_CD IN ('2', '4') THEN RVE_AMT ELSE 0 END) AS PY_AMT
