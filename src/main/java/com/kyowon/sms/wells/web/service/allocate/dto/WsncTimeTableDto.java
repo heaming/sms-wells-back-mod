@@ -41,13 +41,11 @@ public class WsncTimeTableDto {
         String sellDate, // SEL_DATE
         @NotEmpty
         String svBizDclsfCd, // wrkTypDtl
-        String[] svBizDclsfCds, // wrkTypDtl
         String cntrNo,
         String cntrSn,
 
         String inflwChnl,
         String basePdCd, // GDS_CD
-        String[] basePdCds, // P_GDS_LIST
         String pdctPdCd,
 
         String wrkDt,

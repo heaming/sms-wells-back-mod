@@ -47,7 +47,7 @@ public class WsncTimeTableDvo {
     // --------------------------------------------------
     //판매인 경우 '1110:신규설치' fix
     String svBizDclsfCd;
-    String[] svBizDclsfCds; // wrkTypDtl
+    List<String> svBizDclsfCds; // wrkTypDtl
     // --------------------------------------------------
 
     String basePdCd;
@@ -121,10 +121,10 @@ public class WsncTimeTableDvo {
     //boolean isHcr = false;
 
     String workTypeDtl = "";
-    String[] cntrSns = new String[]{};
-    String[] basePdCds = new String[]{};
-    String[] pdctPdCds = new String[]{};
-    String[] sdingCombins = new String[]{}; // 모종패키지 분리여부
+    List<String> cntrSns = new ArrayList<>();
+    List<String> basePdCds = new ArrayList<>();
+    List<String> pdctPdCds = new ArrayList<>();
+    List<String> sdingCombins = new ArrayList<>();
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     List<String> offDays;
