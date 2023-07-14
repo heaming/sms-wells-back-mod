@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncSpecCustPlanMatMapper">
+    <select id="selectSpecCustPlanMat"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncSpecCustPlanMatDvo">
+        -- 파라미터: 배정년월, 계약번호, 작업자사번
+        -- 아래의 서비스에 배정년월과 담당자사번 데이터만 파라미터로 전달한다. (특정 계약번호를 입력하지 않은 경우 해당 배정년월의 전체 대상으로 서비스를 수행한다.)
+        -- 1. TB_SVPD_CST_SV_BFSVC_OJ_IZ 의 primary key (배정고객) 기반으로 예정자재를 생성한다.
+           -- 주의: 기존 데이터 중 미완료 배정건이 있다면 미완료 된 예정자재를 추가한다.
+        -- 2. TB_SVPD_RGBS_PU_ITM_IZ 테이블에 아래 데이터를 insert 한다.
+        -- 기존 물량 배정된 건은 어떻게 처리. 재 물량배정, 아니면 따로 처리
+        /* 해당 월 배송 건의 예정자재 */
+        SELECT t1.ASN_OJ_YM         AS ASN_OJ_YM
+             , t1.CNTR_NO             AS CNTR_NO
+             , t1.CNTR_SN             AS CNTR_SN
+             , t1.SV_BIZ_MCLSF_CD     AS SV_BIZ_MCLSF_CD
+             , t1.SV_BIZ_DCLSF_CD     AS SV_BIZ_DCLSF_CD
+             , t1.WK_SN             AS WK_SN
+             , t2.PDCT_PD_CD         AS PDCT_PD_CD
+             , t1.IST_NMN_N         AS IST_NMN_N
+             , t3.PART_PD_CD         AS PU_PART_PD_CD
+             , t3.PART_USE_QTY         AS PU_QTY
+             , t3.FILT_CHNG_LV_CD     AS FILT_CHNG_LV_CD
+             , t3.ITM_KND_CD         AS ITM_KND_CD
+             , ''                     AS QOM_ASN_WARE_NO
+             , ''                     AS STR_WARE_DV_CD
+             , ''                     AS STR_WARE_NO
+             , ''                     AS QOM_ASN_DT
+             , ''                     AS OG_TP_CD
+             , ''                     AS QOM_ASN_PRTNR_NO
+             , ''                     AS CST_SV_ASN_NO
+             , 'N'                     AS DTA_DL_YN
+          FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ t1
+             , TB_SVPD_CST_SV_EXCN_IZ t2
+             , TB_SVPD_CST_SV_RGBSPR_IZ t3
+         WHERE t1.ASN_OJ_YM = #{asnOjYm}
+         <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND t1.CNTR_NO = #{cntrNo}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+           AND t1.CNTR_SN = #{cntrSn}
+         </if>
+           AND t1.CNTR_NO = t2.CNTR_NO
+           AND t1.CNTR_SN = t2.CNTR_SN
+           AND t1.CNTR_NO = t3.CNTR_NO
+           AND t1.CNTR_SN = t3.CNTR_SN
+           AND t1.IST_NMN_N = t3.IST_NMN_N
+           AND t1.VST_DV_CD <![CDATA[ = ]]> '20'             -- 배송 이외
+           AND t3.VST_DV_CD <![CDATA[ = ]]> '20'                -- 배송 이외
+           AND t3.MTR_CAN_DT IS NULL
+           AND t3.WK_DT IS NULL                 -- 작업처리 되지 않은 건
+           AND t3.PART_PD_CD IS NOT NULL
+        UNION ALL
+        /* 마지막 배송 중 미완료 되어 추가 될 예정자재 체크 */
+        SELECT #{asnOjYm} -- 배정년월
+             , t4.CNTR_NO
+             , t4.CNTR_SN
+             , t4.SV_BIZ_MCLSF_CD
+             , t4.SV_BIZ_DCLSF_CD
+             , t4.WK_SN
+             , t4.PDCT_PD_CD
+             , t4.IST_NMN_N
+             , t4.PU_PART_PD_CD
+             , t4.PU_QTY
+             , t4.FILT_CHNG_LV_CD
+             , t4.ITM_KND_CD
+             , ''                     AS QOM_ASN_WARE_NO
+             , ''                     AS STR_WARE_DV_CD
+             , ''                     AS STR_WARE_NO
+             , ''                     AS QOM_ASN_DT
+             , ''                     AS OG_TP_CD
+             , ''                     AS QOM_ASN_PRTNR_NO
+             , ''                     AS CST_SV_ASN_NO
+             , 'N'                     AS DTA_DL_YN
+          FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ t1
+             , TB_SVPD_CST_SV_BFSVC_ASN_IZ t2
+             , TB_SVPD_CST_SV_EXCN_IZ t3
+             , TB_SVPD_RGBS_PU_ITM_IZ t4
+         WHERE 1=1
+         <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND t1.CNTR_NO = #{cntrNo}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+           AND t1.CNTR_SN = #{cntrSn}
+         </if>
+           AND t1.CST_SV_ASN_NO = t2.CST_SV_ASN_NO
+           AND t1.CNTR_NO = t3.CNTR_NO
+           AND t1.CNTR_SN = t3.CNTR_SN
+           AND t1.CST_SV_ASN_NO = t4.CST_SV_ASN_NO
+           AND t1.CST_SV_ASN_NO LIKE '2%'  -- BS
+           AND t2.VST_PRGS_STAT_CD <![CDATA[ <> ]]> '20' -- 작업완료를 제외한 모든 상태
+           AND t3.CNTR_DTL_STAT_CD = '101' -- 계약이 정상 상태인 건만 배정
+           AND t1.VST_DV_CD = '20'  -- 20 or 20이 아닌 값으로 구분하여 각각 데이터 추가
+           AND t1.ASN_OJ_YM =    (SELECT MAX(zz.ASN_OJ_YM)
+                                    FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ zz
+                                   WHERE 1=1
+                                     AND zz.CST_SV_ASN_NO LIKE '2%'  -- BS
+                                   <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+                                     AND zz.CNTR_NO = #{cntrNo}
+                                   </if>
+                                   <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+                                     AND zz.CNTR_SN = #{cntrSn}
+                                   </if>
+                                     AND zz.CNTR_NO = t1.CNTR_NO
+                                     AND zz.CNTR_SN = t1.CNTR_SN
+                                     AND zz.ASN_OJ_YM <![CDATA[ < ]]> #{asnOjYm}  -- 파라미터 (데이터생성월)
+                                     AND zz.VST_DV_CD = '20'  -- 20 or 20이 아닌 값으로 구분하여 각각 데이터 추가
+                                     )
+        UNION ALL
+        /* 해당 월 배송 이외의 건의 예정자재 */
+        SELECT t1.ASN_OJ_YM         AS ASN_OJ_YM
+             , t1.CNTR_NO             AS CNTR_NO
+             , t1.CNTR_SN             AS CNTR_SN
+             , t1.SV_BIZ_MCLSF_CD     AS SV_BIZ_MCLSF_CD
+             , t1.SV_BIZ_DCLSF_CD     AS SV_BIZ_DCLSF_CD
+             , t1.WK_SN             AS WK_SN
+             , t2.PDCT_PD_CD         AS PDCT_PD_CD
+             , t1.IST_NMN_N         AS IST_NMN_N
+             , t3.PART_PD_CD         AS PU_PART_PD_CD
+             , t3.PART_USE_QTY         AS PU_QTY
+             , t3.FILT_CHNG_LV_CD     AS FILT_CHNG_LV_CD
+             , t3.ITM_KND_CD         AS ITM_KND_CD
+             , ''                     AS QOM_ASN_WARE_NO
+             , ''                     AS STR_WARE_DV_CD
+             , ''                     AS STR_WARE_NO
+             , ''                     AS QOM_ASN_DT
+             , ''                     AS OG_TP_CD
+             , ''                     AS QOM_ASN_PRTNR_NO
+             , ''                     AS CST_SV_ASN_NO
+             , 'N'                     AS DTA_DL_YN
+          FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ t1
+             , TB_SVPD_CST_SV_EXCN_IZ t2
+             , TB_SVPD_CST_SV_RGBSPR_IZ t3
+         WHERE t1.ASN_OJ_YM = #{asnOjYm}
+         <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND t1.CNTR_NO = #{cntrNo}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+           AND t1.CNTR_SN = #{cntrSn}
+         </if>
+           AND t1.CNTR_NO = t2.CNTR_NO
+           AND t1.CNTR_SN = t2.CNTR_SN
+           AND t1.CNTR_NO = t3.CNTR_NO
+           AND t1.CNTR_SN = t3.CNTR_SN
+           AND t1.IST_NMN_N = t3.IST_NMN_N
+           AND t1.VST_DV_CD <![CDATA[ <> ]]> '20'             -- 배송 이외
+           AND t3.VST_DV_CD <![CDATA[ <> ]]> '20'                -- 배송 이외
+           AND t3.MTR_CAN_DT IS NULL
+           AND t3.WK_DT IS NULL                 -- 작업처리 되지 않은 건
+           AND t3.PART_PD_CD IS NOT NULL
+        UNION ALL
+        /* 마지막 방문 중 미완료 되어 추가 될 예정자재 체크 */
+        SELECT #{asnOjYm} -- 배정년월
+             , t4.CNTR_NO
+             , t4.CNTR_SN
+             , t4.SV_BIZ_MCLSF_CD
+             , t4.SV_BIZ_DCLSF_CD
+             , t4.WK_SN
+             , t4.PDCT_PD_CD
+             , t4.IST_NMN_N
+             , t4.PU_PART_PD_CD
+             , t4.PU_QTY
+             , t4.FILT_CHNG_LV_CD
+             , t4.ITM_KND_CD
+             , ''                     AS QOM_ASN_WARE_NO
+             , ''                     AS STR_WARE_DV_CD
+             , ''                     AS STR_WARE_NO
+             , ''                     AS QOM_ASN_DT
+             , ''                     AS OG_TP_CD
+             , ''                     AS QOM_ASN_PRTNR_NO
+             , ''                     AS CST_SV_ASN_NO
+             , 'N'                     AS DTA_DL_YN
+          FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ t1
+             , TB_SVPD_CST_SV_BFSVC_ASN_IZ t2
+             , TB_SVPD_CST_SV_EXCN_IZ t3
+             , TB_SVPD_RGBS_PU_ITM_IZ t4
+         WHERE 1=1
+         <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND t1.CNTR_NO = #{cntrNo}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+           AND t1.CNTR_SN = #{cntrSn}
+         </if>
+           AND t1.CST_SV_ASN_NO = t2.CST_SV_ASN_NO
+           AND t1.CNTR_NO = t3.CNTR_NO
+           AND t1.CNTR_SN = t3.CNTR_SN
+           AND t1.CST_SV_ASN_NO = t4.CST_SV_ASN_NO
+           AND t1.CST_SV_ASN_NO LIKE '2%'  -- BS
+           AND t2.VST_PRGS_STAT_CD <![CDATA[ <> ]]> '20' -- 작업완료를 제외한 모든 상태
+           AND t3.CNTR_DTL_STAT_CD = '101' -- 계약이 정상 상태인 건만 배정
+           AND t1.VST_DV_CD <![CDATA[ <> ]]> '20'  -- 20 or 20이 아닌 값으로 구분하여 각각 데이터 추가
+           AND t1.ASN_OJ_YM =    (SELECT MAX(zz.ASN_OJ_YM)
+                                    FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ zz
+                                   WHERE 1=1
+                                     AND zz.CST_SV_ASN_NO LIKE '2%'  -- BS
+                                   <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+                                     AND zz.CNTR_NO = #{cntrNo}
+                                   </if>
+                                   <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+                                     AND zz.CNTR_SN = #{cntrSn}
+                                   </if>
+                                     AND zz.CNTR_NO = t1.CNTR_NO
+                                     AND zz.CNTR_SN = t1.CNTR_SN
+                                     AND zz.ASN_OJ_YM <![CDATA[ < ]]> #{asnOjYm}  -- 파라미터 (데이터생성월)
+                                     AND zz.VST_DV_CD <![CDATA[ <> ]]> '20'  -- 20 or 20이 아닌 값으로 구분하여 각각 데이터 추가
+                                     )
+    </select>
+
+    <insert id="insertSpecCustPlanMat">
+        INSERT INTO TB_SVPD_RGBS_PU_ITM_IZ (
+              ASN_OJ_YM
+            , CNTR_NO
+            , CNTR_SN
+            , SV_BIZ_MCLSF_CD
+            , SV_BIZ_DCLSF_CD
+            , WK_SN
+            , PDCT_PD_CD
+            , IST_NMN_N
+            , PU_PART_PD_CD
+            , PU_QTY
+            , FILT_CHNG_LV_CD
+            , ITM_KND_CD
+            , QOM_ASN_WARE_NO
+            , STR_WARE_DV_CD
+            , STR_WARE_NO
+            , QOM_ASN_DT
+            , OG_TP_CD
+            , QOM_ASN_PRTNR_NO
+            , CST_SV_ASN_NO
+            , DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+              #{asnOjYm}
+            , #{cntrNo}
+            , #{cntrSn}
+            , #{svBizMclsfCd}
+            , #{svBizDclsfCd}
+            , #{wkSn}
+            , #{pdctPdCd}
+            , #{istNmnN}
+            , #{puPartPdCd}
+            , #{puQty}
+            , #{filtChngLvCd}
+            , #{itmKndCd}
+            , #{qomAsnWareNo}
+            , #{strWareDvCd}
+            , #{strWareNo}
+            , #{qomAsnDt}
+            , #{ogTpCd}
+            , #{qomAsnPrtnrNo}
+            , #{cstSvAsnNo}
+            , #{dtaDlYn}
+              <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+
+</mapper>

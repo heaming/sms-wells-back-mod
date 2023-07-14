@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncSpecCustMngrAsnMapper">
+    <select id="selectSpecCustMngrAsn"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncSpecCustMngrAsnDvo">
+        --0. 배정 대상을 조회 (변수 처리된 데이터는 insert 하기 전에 계약별로 데이터 구해서 입력)
+        SELECT '2' || TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SQ_SVPD_CST_SV_BFSVC_ASN_IZ$CST_SV_ASN_NO.NEXTVAL, 10, '0') AS CST_SV_ASN_NO            --    // 1자리 + 8자리 + 10자리 = 19자리
+             , #{asnOjYm}                     AS ASN_OJ_YM
+             , t1.CNTR_NO                         AS CNTR_NO
+             , t1.CNTR_SN                         AS CNTR_SN
+             , t1.SV_BIZ_MCLSF_CD                 AS SV_BIZ_MCLSF_CD
+             , t1.SV_BIZ_DCLSF_CD                 AS SV_BIZ_DCLSF_CD
+             , t1.WK_SN                         AS WK_SN
+             , ''                         AS ASN_PSIC_MNGT_DV_CD -- vChgGb
+             , ''                         AS ASN_PSIC_DV_CD                    -- 배송일 경우 어떻게 해야 하는지.  '' 넣어도 되는지.
+             , ''             AS ASN_PSIC_PRTNR_OG_TP_CD            -- 추가 로직 필요 -- prtnrOgTpCd
+             , ''                 AS ASN_PSIC_PRTNR_NO -- prtnrNo
+             , ''                 AS CNFM_PSIC_MNGT_DV_CD -- vChgGb
+             , TO_CHAR(SYSDATE,'YYYYMMDD')             AS CNFM_PSIC_ASN_DT
+             , TO_CHAR(SYSDATE,'HH24MISS')             AS CNFM_PSIC_ASN_HH
+             , ''                 AS CNFM_PSIC_DV_CD -- vChgGb
+             , ''             AS CNFM_PSIC_PRTNR_OG_TP_CD -- prtnrOgTpCd
+             , ''                 AS CNFM_PSIC_PRTNR_NO -- prtnrNo
+             , t1.VST_DUEDT                     AS VST_CNFMDT -- 약속변경이 있으면 변경됨
+             , '010000'                         AS VST_CNFM_HH -- 약속변경이 있으면 변경됨
+             , '' AS VST_OJ_LOCARA_CD                -- 빈값 (사용안함 삭제 검토중)
+             , t2.MNGER_RGLVL_DV_CD             AS MNGER_RGLVL_DV_CD
+             , 'N' AS LSTMM_CRDOVR_YN
+             , '' AS LSTMM_VST_CNFMDT            -- 빈값 고정
+             , '' AS LSTMM_VST_CNFM_HH            -- 빈값 고정
+             , t1.VST_DUEDT AS VST_DUEDT                    -- 약속변경이 있으면 변경됨
+             , '010000' AS VST_EXP_HH                -- 약속변경이 있으면 변경됨
+             , '00' AS VST_PRGS_STAT_CD
+             , '' AS WK_EXCN_DT                -- 빈값 고정
+             , '' AS WK_CAN_RSON_CD            -- 빈값 고정
+             , '' AS ASN_TF_DV_CD                -- 빈값 고정
+             , t4.SVPD_ITEM_GR AS SITE_AW_PD_GRP_CD            -- 주석제거
+             , '' AS SITE_AW_SV_TP_CD            -- 빈값 고정
+             , '' AS SITE_AW_ATC_CD            -- 빈값 고정
+             , '' AS CST_CNTC_DT                -- 빈값 고정
+             , '' AS CNTC_ICHR_PRTNR_OG_TP_CD    -- 빈값 고정
+             , '' AS CNTC_ICHR_PRTNR_NO        -- 빈값 고정
+             , '' AS CST_CNTC_CD                -- 빈값 고정
+             , '' AS CST_CNTC_MO_CN            -- 빈값 고정
+             , '' AS SPC_AS_TP_CD                -- 빈값 고정
+             , 'N' AS HPCALL_FW_YN
+             , '' AS ICHR_LOCARA_DV_CD            -- 구함 GET_LOCAL_GB
+             , '' AS ARV_DT                    -- 빈값 고정
+             , '' AS ARV_HH                    -- 빈값 고정
+             , '' AS WK_GRP_CD                    -- 구함 GET_WRK_GR
+             , '' AS LOCARA_GD_CD                -- 빈값 고정
+             , '' AS LOCARA_CHAOS_GD_CD        -- 빈값 고정
+             , 'N' AS DTA_DL_YN
+             , DECODE(t1.VST_DV_CD, '20', '8', DECODE(t1.EGER_WK_YN, 'Y', '2', '1')) AS V_CHG_GB --1. 배정담당자 구하는 로직 수행
+          FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ t1
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ t2
+         ON (
+                t1.CNTR_NO = t2.CNTR_NO
+            AND t1.CNTR_SN = t2.CNTR_SN
+         )
+        -- INNER JOIN TB_SVPD_CST_SV_RGBSPR_IZ t3
+        -- ON (
+        --        t1.CNTR_NO = t3.CNTR_NO
+        --    AND t1.CNTR_SN = t3.CNTR_SN
+        -- )
+         INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) t4
+         ON (
+            t2.PDCT_PD_CD = t4.SVPD_PD_CD
+         )
+         WHERE 1=1
+           AND t1.ASN_OJ_YM = #{asnOjYm}
+         <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND t1.CNTR_NO = #{cntrNo}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+           AND t1.CNTR_SN = #{cntrSn}
+         </if>
+    </select>
+
+    <select id="selectSpecCustMngrAsn_01" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncSpecCustMngrAsnDvo">
+        /* 1-2. 관리 구분에 따른 배정담당자 구하는 로직 수행한다. */
+        /* 1-2-1. vChgGb가 8인 경우 공통코드로 지정한 담당자 고정으로 지정(공통코드) */
+        SELECT USER_DFN_03        AS PRTNR_OG_TP_CD        -- 배정파트너조직유형코드
+             , USER_DFN_04        AS PRTNR_NO                -- 배정파트너번호
+          FROM T_CMZ_CD_D
+         WHERE 1=1
+           AND TENANT_ID = 'TNT_WELLS'
+           AND CD_ID = 'SV_ICHR_DSN_CD'
+           AND CD_VLD_VAL = '10'
+    </select>
+
+    <select id="selectSpecCustMngrAsn_02" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncSpecCustMngrAsnDvo">
+        /* 1-2-2. vChgGb가 8이 아닌경우 */
+        /* 고정담당자가 있으면 고정담당자를 배정담당자로 지정 */
+        SELECT FXN_PRTNR_OG_TP_CD    AS PRTNR_OG_TP_CD        -- 배정파트너조직유형코드
+             , FXN_PRTNR_NO            AS PRTNR_NO                -- 배정파트너번호
+          FROM TB_SVPD_CNTR_FXN_PRTNR_IZ t1
+         WHERE t1.CNTR_NO = #{cntrNo}
+           AND t1.CNTR_SN = #{cntrSn}
+           AND t1.CH_SN =  (SELECT MAX(CH_SN)
+                              FROM TB_SVPD_CNTR_FXN_PRTNR_IZ zz
+                             WHERE zz.CNTR_NO = #{cntrNo}
+                               AND zz.CNTR_SN = #{cntrSn}
+                               AND zz.DTA_DL_YN = 'N')
+    </select>
+
+    <select id="selectSpecCustMngrAsn_03" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncSpecCustMngrAsnDvo">
+        /* 1-2-3. 고정담당자가 없으면 엔지니어와 매니저를 구분하여 배정 */
+        /* 1) 매니저인경우 해당 계약에 매핑된 담당 파트너를 배정담당자로 지정한다. (vChgGb가 1인 경우) */
+        SELECT zz.MNGT_PRTNR_OG_TP_CD        AS PRTNR_OG_TP_CD        -- 배정파트너조직유형코드
+             , zz.MNGT_PRTNR_NO            AS PRTNR_NO                -- 배정파트너번호
+          FROM TB_SVPD_CST_SV_EXCN_IZ zz
+         WHERE zz.CNTR_NO = #{cntrNo}
+           AND zz.CNTR_SN = #{cntrSn}
+           AND zz.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectSpecCustMngrAsn_04" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncSpecCustMngrAsnDvo">
+        SELECT TB.NEW_OG_TP_CD AS PRTNR_OG_TP_CD
+             , TB.NEW_PRTNR_NO AS PRTNR_NO
+          FROM (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) TB
+    </select>
+
+    <sql id="selectEngAsnPsic">
+        /* 엔지니어 배정 담당자 조회. 3차 완성 */
+        -- 2) 엔지니어인경우 책임지역관리 로직으로 배정담당자 지정 (vChgGb가 2인 경우)
+        -- 기존 사용했던 쿼리 사용 (휴일근무자 > 대체근무자 > 지역담당자 로직)
+        SELECT TB_1.OG_TP_CD AS OG_TP_CD
+             , TB_1.PRTNR_NO AS PRTNR_NO /* 근무자 */
+             , TB_2.OG_TP_CD AS OG_TP_CD_1
+             , TB_2.BNDT_WRK_PSIC_NO AS PRTNR_NO_1 /* 당직근무자 */
+             , TB_4.OG_TP_CD AS OG_TP_CD_2
+             , TB_4.BIZ_AGNT_PRTNR_NO AS PRTNR_NO_2 /* 대체근무자 */
+             , TB_10.ICHR_PRTNR_OG_TP_CD AS OG_TP_CD_3
+             , TB_10.ICHR_PRTNR_NO AS PRTNR_NO_3 /* 지역책임자 */
+             , NVL(NVL(TB_2.OG_TP_CD, TB_4.OG_TP_CD), TB_10.ICHR_PRTNR_OG_TP_CD) AS NEW_OG_TP_CD
+             , NVL(NVL(TB_2.BNDT_WRK_PSIC_NO, TB_4.BIZ_AGNT_PRTNR_NO), TB_10.ICHR_PRTNR_NO) AS NEW_PRTNR_NO
+          FROM (
+                /* parameter setting */
+                SELECT #{ogTpCd} AS OG_TP_CD
+                     , #{prtnrNo} AS PRTNR_NO
+                     , #{cntrNo} AS CNTR_NO
+                     , #{cntrSn} AS CNTR_SN
+                     , #{svBizDclsfCd} AS SV_BIZ_DCLSF_CD
+                  FROM DUAL
+               ) TB_1
+         LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ TB_22
+         ON (
+                TB_22.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+            AND TB_22.OG_TP_CD = TB_1.OG_TP_CD
+            AND TB_22.PRTNR_NO = TB_1.PRTNR_NO
+         )
+         LEFT OUTER JOIN TB_SVPD_BNDT_WRK_PSIC_RGST_IZ TB_2
+         ON (
+                TB_2.SV_CNR_OG_ID = TB_22.OG_ID
+            AND TB_2.BASE_Y = TO_CHAR(SYSDATE, 'YYYY')
+            AND TB_2.BASE_MM = TO_CHAR(SYSDATE, 'MM')
+            AND TB_2.BASE_D = TO_CHAR(SYSDATE, 'DD')
+         )
+         LEFT OUTER JOIN TB_OGPS_EGER_ATDC_IZ TB_3
+         ON (
+                TB_3.WRK_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+            AND TB_1.OG_TP_CD = TB_3.OG_TP_CD
+            AND TB_1.PRTNR_NO = TB_3.PRTNR_NO
+         )
+         LEFT OUTER JOIN TB_OGPS_EGER_VCN_IZ TB_4
+         ON (
+            TB_3.OG_TP_CD = TB_4.OG_TP_CD
+            AND TB_3.PRTNR_NO = TB_4.PRTNR_NO
+            AND TB_3.WRK_DT BETWEEN TB_4.VCN_STRT_DT AND TB_4.VCN_END_DT
+         )
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS TB_44
+         ON (
+            TB_44.CNTR_ADRPC_ID = (
+                SELECT TEMP.CNTR_ADRPC_ID AS CNTR_ADRPC_ID
+                  FROM TB_SSCT_CNTR_ADR_REL TEMP
+                 WHERE 1=1
+                   AND TEMP.DTL_CNTR_NO = TB_1.CNTR_NO
+                   AND TEMP.DTL_CNTR_SN = TB_1.CNTR_SN
+                   AND TEMP.ADRPC_TP_CD = '3'
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN TEMP.VL_STRT_DTM AND TEMP.VL_END_DTM
+                   AND ROWNUM = 1
+            )
+         )
+         INNER JOIN TB_GBCO_ADR_BAS TB_5
+         ON (
+            TB_44.ADR_ID = TB_5.ADR_ID
+         )
+         INNER JOIN TB_SVPD_EGER_ASN_ADR_IZ TB_6
+         ON (
+            (TB_6.NEW_ADR_ZIP, TB_6.EMD_SN) = (
+                SELECT TEMP.NEW_ADR_ZIP
+                     , MAX(TEMP.EMD_SN) AS EMD_SN
+                  FROM TB_SVPD_EGER_ASN_ADR_IZ TEMP
+                 WHERE 1=1
+                   AND TEMP.NEW_ADR_ZIP = TB_5.NEW_ADR_ZIP
+                 GROUP BY TEMP.NEW_ADR_ZIP
+            )
+         )
+         INNER JOIN TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ TB_7
+         ON (
+            (TB_7.FR2P_LGLD_CD, TB_7.CTPV_NM, TB_7.CTCTY_NM, TB_7.LAWC_EMD_NM, TB_7.AMTD_NM, TB_7.ADR_ODR_NO) = (
+                SELECT TEMP.FR2P_LGLD_CD
+                     , TEMP.CTPV_NM
+                     , TEMP.CTCTY_NM
+                     , TEMP.LAWC_EMD_NM
+                     , TEMP.AMTD_NM
+                     , MAX(TEMP.ADR_ODR_NO) AS ADR_ODR_NO
+                  FROM TB_SVPD_RPB_LOCARA_MNGT_ADR_IZ TEMP
+                 WHERE 1=1
+                   AND TEMP.FR2P_LGLD_CD = TB_6.FR2P_LGLD_CD
+                   AND TEMP.CTPV_NM = TB_6.CTPV_NM
+                   AND TEMP.CTCTY_NM = TB_6.CTCTY_NM
+                   AND TEMP.LAWC_EMD_NM = TB_6.LAWC_EMD_NM
+                   AND TEMP.AMTD_NM = TB_6.AMTD_NM
+                 GROUP BY TEMP.FR2P_LGLD_CD, TEMP.CTPV_NM, TEMP.CTCTY_NM, TEMP.LAWC_EMD_NM, TEMP.AMTD_NM
+            )
+         )
+         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ TB_8
+         ON (
+                TB_8.CNTR_NO = TB_1.CNTR_NO
+            AND TB_8.CNTR_SN = TB_1.CNTR_SN
+         )
+         INNER JOIN TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ TB_9
+         ON (
+            (TB_9.PD_CD, TB_9.SV_BIZ_DCLSF_CD, TB_9.IZ_SN) = (
+                SELECT TEMP.PD_CD
+                     , TEMP.SV_BIZ_DCLSF_CD
+                     , MAX(TEMP.IZ_SN) AS IZ_SN
+                  FROM TB_SVPD_BPD_BIZ_TP_WK_GRP_IZ TEMP
+                 WHERE 1=1
+                   AND TEMP.PD_CD = TB_8.PDCT_PD_CD
+                   AND TEMP.SV_BIZ_DCLSF_CD = TB_1.SV_BIZ_DCLSF_CD
+                 GROUP BY TEMP.PD_CD, TEMP.SV_BIZ_DCLSF_CD
+            )
+         )
+         INNER JOIN TB_SVPD_RPB_LOCARA_PSIC_IZ TB_10
+         ON (
+            (TB_10.WK_GRP_CD, TB_10.RPB_LOCARA_CD, TB_10.IZ_SN) = (
+                SELECT TEMP.WK_GRP_CD
+                     , TEMP.RPB_LOCARA_CD
+                     , MAX(TEMP.IZ_SN) AS IZ_SN
+                  FROM TB_SVPD_RPB_LOCARA_PSIC_IZ TEMP
+                 WHERE 1=1
+                   AND TEMP.WK_GRP_CD = TB_9.WK_GRP_CD
+                   AND TEMP.RPB_LOCARA_CD = TB_7.RPB_LOCARA_CD
+                 GROUP BY TEMP.WK_GRP_CD, TEMP.RPB_LOCARA_CD
+            )
+         )
+         WHERE 1=1
+    </sql>
+
+    <select id="selectSpecCustMngrAsn_05" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncSpecCustMngrAsnDvo">
+        /* 2. 배정일자/배정시간 구하는 로직 수행 */
+        /* psicAsnDt    배정일자 */
+        /* psicAsnHh    배정시간 */
+        SELECT PROM_DT AS PSIC_ASN_DT        -- 약속일자
+             , PROM_HH AS PSIC_ASN_HH        -- 약속시간
+          FROM TB_SVPD_WK_DTM_CH_IZ
+         WHERE 1=1
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND FNL_MDFC_DTM = (SELECT MAX(FNL_MDFC_DTM)
+                          FROM TB_SVPD_WK_DTM_CH_IZ
+                         WHERE 1=1
+                           AND CNTR_NO = #{cntrNo}
+                           AND CNTR_SN = #{cntrSn}
+                           AND PROM_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
+                           )
+           AND ROWNUM = 1
+    </select>
+
+    <insert id="insertSpecCustMngrAsn">
+        INSERT INTO TB_SVPD_CST_SV_BFSVC_ASN_IZ (
+              CST_SV_ASN_NO
+            , ASN_OJ_YM
+            , CNTR_NO
+            , CNTR_SN
+            , SV_BIZ_MCLSF_CD
+            , SV_BIZ_DCLSF_CD
+            , WK_SN
+            , ASN_PSIC_MNGT_DV_CD
+            , ASN_PSIC_DV_CD
+            , ASN_PSIC_PRTNR_OG_TP_CD
+            , ASN_PSIC_PRTNR_NO
+            , CNFM_PSIC_MNGT_DV_CD
+            , CNFM_PSIC_ASN_DT
+            , CNFM_PSIC_ASN_HH
+            , CNFM_PSIC_DV_CD
+            , CNFM_PSIC_PRTNR_OG_TP_CD
+            , CNFM_PSIC_PRTNR_NO
+            , VST_CNFMDT
+            , VST_CNFM_HH
+            , VST_OJ_LOCARA_CD
+            , MNGER_RGLVL_DV_CD
+            , LSTMM_CRDOVR_YN
+            , LSTMM_VST_CNFMDT
+            , LSTMM_VST_CNFM_HH
+            , VST_DUEDT
+            , VST_EXP_HH
+            , VST_PRGS_STAT_CD
+            , WK_EXCN_DT
+            , WK_CAN_RSON_CD
+            , ASN_TF_DV_CD
+            , SITE_AW_PD_GRP_CD
+            , SITE_AW_SV_TP_CD
+            , SITE_AW_ATC_CD
+            , CST_CNTC_DT
+            , CNTC_ICHR_PRTNR_OG_TP_CD
+            , CNTC_ICHR_PRTNR_NO
+            , CST_CNTC_CD
+            , CST_CNTC_MO_CN
+            , SPC_AS_TP_CD
+            , HPCALL_FW_YN
+            , ICHR_LOCARA_DV_CD
+            , ARV_DT
+            , ARV_HH
+            , WK_GRP_CD
+            , LOCARA_GD_CD
+            , LOCARA_CHAOS_GD_CD
+            , DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+              #{cstSvAsnNo}
+            , #{asnOjYm}
+            , #{cntrNo}
+            , #{cntrSn}
+            , #{svBizMclsfCd}
+            , #{svBizDclsfCd}
+            , #{wkSn}
+            , #{vChgGb}
+            , #{asnPsicDvCd}
+            , #{prtnrOgTpCd}
+            , #{prtnrNo}
+            , #{vChgGb}
+            , #{cnfmPsicAsnDt}
+            , #{cnfmPsicAsnHh}
+            , #{vChgGb}
+            , #{prtnrOgTpCd}
+            , #{prtnrNo}
+            , #{vstCnfmdt}
+            , #{vstCnfmHh}
+            , #{vstOjLocaraCd}
+            , #{mngerRglvlDvCd}
+            , #{lstmmCrdovrYn}
+            , #{lstmmVstCnfmdt}
+            , #{lstmmVstCnfmHh}
+            , #{vstDuedt}
+            , #{vstExpHh}
+            , #{vstPrgsStatCd}
+            , #{wkExcnDt}
+            , #{wkCanRsonCd}
+            , #{asnTfDvCd}
+            , #{siteAwPdGrpCd}
+            , #{siteAwSvTpCd}
+            , #{siteAwAtcCd}
+            , #{cstCntcDt}
+            , #{cntcIchrPrtnrOgTpCd}
+            , #{cntcIchrPrtnrNo}
+            , #{cstCntcCd}
+            , #{cstCntcMoCn}
+            , #{spcAsTpCd}
+            , #{hpcallFwYn}
+            , #{ichrLocaraDvCd}
+            , #{arvDt}
+            , #{arvHh}
+            , #{wkGrpCd}
+            , #{locaraGdCd}
+            , #{locaraChaosGdCd}
+            , #{dtaDlYn}
+              <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+
+</mapper>
