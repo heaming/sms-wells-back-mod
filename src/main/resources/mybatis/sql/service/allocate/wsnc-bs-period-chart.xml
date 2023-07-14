@@ -1,0 +1,1834 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncBsPeriodChartMapper">
+    <select id="selectPeriodChartBaseInfo"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo">
+        /* -> V_AC201_BS_GB1 */
+        /* BFSVC_SPP_STP_RSON_CD != '00'일 경우 Process End! */
+        SELECT TB_1.CNTR_NO
+             , TB_1.CNTR_SN
+             , TB_1.BFSVC_SPP_STP_RSON_CD
+             , TB_1.STVLV_CHNG_DT
+             , TB_3.SELL_TP_CD
+             , TB_1.SV_PD_CD
+             , TB_1.PDCT_PD_CD
+             , TB_4.IST_DT
+             , CEIL(MONTHS_BETWEEN(SUBSTR(TB_3.CNTR_PD_STRTDT,1,6)||'01',SUBSTR(TB_4.IST_DT,1,6)||'01')) AS CHEK_INST_MTHS
+             , CEIL(MONTHS_BETWEEN(SUBSTR(TO_CHAR(SYSDATE, 'YYYYMMDD'),1,6)||'01',SUBSTR(TB_4.IST_DT,1,6)||'01')) AS CHEK_INST_MTHS_BS04
+             , (
+                 CASE WHEN TB_3.SELL_TP_CD = 3 THEN TB_3.CNTR_PD_STRTDT
+                      ELSE ''
+                      END
+               ) AS CNTR_PD_STRTDT
+          FROM TB_SVPD_CST_SV_EXCN_IZ TB_1
+         INNER JOIN TB_SSCT_CNTR_DTL TB_3
+         ON (
+                TB_1.CNTR_NO = TB_3.CNTR_NO
+            AND TB_1.CNTR_SN = TB_3.CNTR_SN
+         )
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL TB_4
+         ON (
+                TB_1.CNTR_NO = TB_4.CNTR_NO
+            AND TB_1.CNTR_SN = TB_4.CNTR_SN
+         )
+         WHERE 1=1
+           AND TB_1.CNTR_NO = #{cntrNo}
+           AND TB_1.CNTR_SN = #{cntrSn}
+    </select>
+
+    <select id="selectBsPeriodChartBs03_04" resultType="java.lang.Integer">
+        /* 방문기준 차월수 */
+        /* -> CHEK_CYCL_MTHS */
+        SELECT MIN(VST_NMN_N)
+          FROM TB_PDBS_RGBS_WK_BASE_DTL
+         WHERE 1=1
+           AND PDCT_PD_CD = #{pdctPdCd} /* selectBsPeriodChartBs03_01의 결과 */
+           AND SV_PD_CD = #{svPdCd} /* selectBsPeriodChartBs03_01의 결과 */
+         GROUP BY SV_PD_CD, PDCT_PD_CD
+    </select>
+
+    <select id="selectBsPeriodChartBs03_05" resultType="java.lang.String">
+        /* 주기표상 마지막 방문일자 */
+        /* 기존 주기표가 만들어진 계약건이라면 주기표상 마지막 일자를 가져옴 */
+        /* -> V_VS107_WRK_DT */
+        SELECT NVL((
+                    SELECT MAX(WK_DT) AS MAX_VS107_WRK_DT
+                      FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                     WHERE 1=1
+                       AND CNTR_NO = #{cntrNo}
+                       AND CNTR_SN = #{cntrSn}), '') AS V_VS107_WRK_DT
+          FROM DUAL
+    </select>
+
+    <select id="selectBsPeriodChartBs03_06"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo">
+        /* 해당 결과가 WORK_X 로 Loop를 수행한다. */
+        /* SV_PD_CD, PDCT_PD_CD는 selectBsPeriodChartBs03_01 의 결과로 수행한다. */
+        SELECT VST_NMN_N
+             , TOT_STPL_MCN
+             , DTL_SN
+          FROM TB_PDBS_RGBS_WK_BASE_DTL
+         WHERE 1=1
+           AND SV_PD_CD = #{svPdCd}
+           AND PDCT_PD_CD = #{pdctPdCd}
+         ORDER BY SV_PD_CD, PDCT_PD_CD, VST_NMN_N, DTL_SN
+    </select>
+
+    <select id="selectBsPeriodChartBs03_07"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo">
+        SELECT DISTINCT *
+          FROM (
+                SELECT TB_1.VST_NMN_N     AS VST_MTHS
+                     , TB_1.SV_BIZ_DCLSF_CD  AS WRK_TYP_DTL
+                     , TB_1.FILT_CHNG_LV_CD     AS CHNG_STG
+                     , TB_2.SVPD_ITEM_KND     AS ITEM_KND /* part master - SVPD_ITEM_KND */
+                     , TB_1.PART_PD_CD AS PART_CD
+                     , TB_1.PART_USE_QTY          AS QTY
+                     , TB_1.VST_DV_CD       AS VST_GB
+                  FROM TB_PDBS_RGBS_WK_BASE_DTL TB_1
+                 INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) TB_2
+                 ON (
+                    TB_1.PDCT_PD_CD = TB_2.SVPD_PD_CD
+                 )
+                 WHERE 1=1
+                  /* AND 'PRD_RFLT_YN'   = 'Y' */ /* cherro ::: 주기반영여부 컬럼 없음. */
+                   AND TB_1.PDCT_PD_CD = #{pdctPdCd}
+                   AND TB_1.SV_PD_CD = #{svPdCd}
+                   AND TB_1.DTL_SN = #{dtlSn}
+               )
+         WHERE 1=1
+           AND WRK_TYP_DTL != '9999'
+         ORDER
+            BY VST_MTHS
+             , WRK_TYP_DTL DESC
+             , CHNG_STG
+    </select>
+
+    <select id="selectBsPeriodChartBs03_08" resultType="java.lang.Integer">
+        SELECT NVL((SELECT COUNT(1)
+                      FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                     WHERE CNTR_NO = #{cntrNo}
+                       AND CNTR_SN = #{cntrSn}
+                       AND SV_BIZ_DCLSF_CD IN ('2120', '2138')), 0) AS WRK_TYP_DTL_CNT
+          FROM DUAL
+    </select>
+
+    <select id="selectBsPeriodChartBs03_09" resultType="java.lang.Integer">
+        SELECT NVL((
+                    SELECT COUNT(1)
+                      FROM TB_SVPD_CST_SV_RGBSPR_IZ
+                     WHERE CNTR_NO = #{cntrNo}
+                       AND CNTR_SN = #{cntrSn}
+                       AND SV_BIZ_DCLSF_CD = '2120'
+                   ),0) AS WRK_TYP_DTL_CNT
+           FROM DUAL
+    </select>
+
+    <select id="selectBsPeriodChartBs03_10" resultType="java.lang.String">
+        WITH TB_CAL AS (
+            SELECT TO_CHAR(TO_DATE(#{chekVstDt}, 'YYYYMMDD') + LEVEL - 1, 'YYYYMMDD') AS TARGET_DT
+                 , SUBSTR(TO_CHAR(TO_DATE(#{chekVstDt}, 'YYYYMMDD') + LEVEL - 1, 'YYYYMMDD'), 1, 4) AS BASE_Y
+                 , SUBSTR(TO_CHAR(TO_DATE(#{chekVstDt}, 'YYYYMMDD') + LEVEL - 1, 'YYYYMMDD'), 5, 2) AS BASE_MM
+                 , SUBSTR(TO_CHAR(TO_DATE(#{chekVstDt}, 'YYYYMMDD') + LEVEL - 1, 'YYYYMMDD'), 7, 2) AS BASE_D
+              FROM DUAL
+             WHERE 1=1
+             CONNECT BY LEVEL <![CDATA[ < ]]> 10
+        )
+        SELECT MIN(TB_1.TARGET_DT) AS TARGET_DT
+          FROM TB_CAL TB_1
+        LEFT OUTER JOIN TB_SVPD_SV_CLND_BAS TB_2
+        ON (
+               TB_1.BASE_Y = TB_2.BASE_Y
+           AND TB_1.BASE_MM = TB_2.BASE_MM
+           AND TB_1.BASE_D = TB_2.BASE_D
+        )
+         WHERE 1=1
+           AND (TB_2.DF_YN != 'Y' OR TB_2.DF_YN IS NULL)
+    </select>
+
+    <select id="selectBsPeriodChartBs03_11" resultType="java.lang.String">
+        /*20.02.27 이영진 - 고객이 약속한 방문 예정일자가 있는지 확인*/
+        SELECT NVL(
+                   (
+                    SELECT VST_PROM_DT
+                      FROM (
+                            SELECT CNTR_NO, CNTR_SN, VST_PROM_DT, SAVE_SN
+                                 , RANK() OVER (PARTITION BY CNTR_NO, CNTR_SN ORDER BY SAVE_SN DESC) AS RN
+                              FROM (
+                                    SELECT CNTR_NO, CNTR_SN, VST_PROM_DT, SAVE_SN
+                                      FROM TB_SVPD_BFSVC_NX_VST_PROM_IZ
+                                     WHERE 1=1
+                                       AND CNTR_NO = #{cntrNo}
+                                       AND CNTR_SN = #{cntrSn}
+                                       AND SUBSTR(VST_PROM_DT,1,6) = SUBSTR(#{chekVstDt},1,6)
+                                   )
+                           )
+                     WHERE 1=1
+                       AND RN =1
+                   ), '') AS V_VS104_CFRM_DT
+          FROM DUAL
+    </select>
+
+    <select id="selectBsPeriodChartBs03_12" resultType="java.lang.Integer">
+        SELECT COUNT(1) AS WRK_TYP_DTL_CNT
+          FROM TB_SVPD_CST_SV_RGBSPR_IZ
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND SV_BIZ_DCLSF_CD = #{newWrkTypDtl}
+    </select>
+
+    <select id="selectBsPeriodChartBs03_13" resultType="java.lang.Integer">
+        SELECT COUNT(1) AS WRK_TYP_DTL_CNT
+          FROM TB_SVPD_CST_SV_RGBSPR_IZ TB_1
+         INNER JOIN TB_SVPD_CNTR_PDCT_IST_LCT_DTL TB_2
+         ON (
+                TB_1.CNTR_NO = TB_2.CNTR_NO
+            AND TB_1.CNTR_SN = TB_2.CNTR_SN
+         )
+         WHERE 1=1
+           AND TB_1.CNTR_NO = #{cntrNo}
+           AND TB_1.CNTR_SN = #{cntrSn}
+           AND TB_1.SV_BIZ_DCLSF_CD = #{newWrkTypDtl}
+           /* AND NOT (AC201_GDS_CD = '49240000000' AND AC201_CYCL_TYP = '6M3') */
+           AND NOT (TB_1.PART_PD_CD = '49240000000')
+    </select>
+
+    <select id="selectBsPeriodChartBs03_14" resultType="java.lang.Integer">
+        SELECT COUNT(1) AS WRK_TYP_DTL_CNT
+               FROM TB_SVPD_CST_SV_RGBSPR_IZ
+              WHERE CNTR_NO = #{cntrNo}
+                AND CNTR_SN = #{cntrSn}
+                AND SV_BIZ_DCLSF_CD = #{newWrkTypDtl}
+    </select>
+
+    <select id="selectBsPeriodChartBs03_15" resultType="java.lang.Integer">
+        SELECT COUNT(1) AS V_CHK_2178
+          FROM TB_SVST_SV_WK_OSTR_IZ
+         WHERE 1=1
+           AND ITM_PD_CD = '49280251080'   /*49280251080 CERAMIC GLASS ASSY RK1B1*/
+           AND REFRI_DV_CD = '1'
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </select>
+
+    <select id="selectBsPeriodChartBs03_16" resultType="java.lang.Integer">
+        SELECT COUNT(1) AS WRK_TYP_DTL_CNT
+          FROM TB_SVPD_CST_SV_RGBSPR_IZ
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND SV_BIZ_DCLSF_CD = #{newWrkTypDtl}
+           AND #{pdctPdCd} IN ('49431000000', '49432000000', '49433000000', '49434000000', '49435000000', '49436000000')
+    </select>
+
+    <select id="selectBsPeriodChartBs03_17" resultType="java.lang.Integer">
+        SELECT COUNT(1) AS V_CHK_2178
+          FROM TB_SVST_SV_WK_OSTR_IZ
+         WHERE 1=1
+           AND ITM_PD_CD IN ('49431812020', '49432812020', '49433812020', '49434812020', '49435812020', '49436812020')
+           AND REFRI_DV_CD = '1'
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </select>
+
+    <select id="selectBsPeriodChartBs03_18" resultType="java.lang.Integer">
+        SELECT COUNT(1) AS WRK_TYP_DTL_CNT
+          FROM TB_SVPD_CST_SV_RGBSPR_IZ
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND SV_BIZ_DCLSF_CD = #{newWrkTypDtl}
+           AND #{pdctPdCd} IN ( '49401000000'      /*일반탑퍼 퀸 스프링침대*/
+                           , '49402000000'        /*일반탑퍼 슈퍼싱글 스프링침대*/
+                           , '49403000000'        /*일반탑퍼 슈퍼싱글 스프링 아동용침대*/
+                           , '49404000000'        /*에어탑퍼 퀸 스프링*/
+                           , '49406000000'        /*에어탑퍼(아동겸용) 슈퍼싱글 스프링*/
+                           , '49429000000'        /*에어탑퍼(단품판매) 퀸 스프링*/
+                           , '49430000000'        /*에어탑퍼(단품판매) 슈퍼싱글*/
+                           )
+    </select>
+
+    <select id="selectBsPeriodChartBs03_19" resultType="java.lang.Integer">
+        SELECT COUNT(1) AS V_CHK_2178
+          FROM TB_SVST_SV_WK_OSTR_IZ
+         WHERE 1=1
+           AND ITM_PD_CD IN (
+                                 '49401812010'  /*일반탑퍼 퀸 교체용  BS*/
+                               , '49401812011'   /*일반탑퍼 퀸 교체용 탑퍼+커버  BS*/
+                               , '49402812010'   /*일반탑퍼 슈퍼싱글 교체용  BS*/
+                               , '49402812011'   /*일반탑퍼 슈퍼싱글 교체용 탑퍼+커버  BS*/
+                               , '49403812010'   /*일반탑퍼 슈퍼싱글 아동용 교체용  BS*/
+                               , '49403812011'   /*일반탑퍼 슈퍼싱글 아동용 교체용 탑퍼+커버  BS*/
+                                )
+           AND REFRI_DV_CD = '1'
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </select>
+
+    <select id="selectBsPeriodChartBs03_20" resultType="java.lang.String">
+        SELECT (CASE WHEN (SELECT COUNT(1)
+                             FROM TB_PDBS_LVLH_CSTMW_FILT_BAS
+                            WHERE PDCT_PD_CD = #{pdctPdCd}
+                              AND SV_PD_CD = #{svPdCd}
+                              AND VST_DV_CD = #{vstGb}
+                              AND PART_PD_CD = #{partCd}
+                          ) > 0  THEN (SELECT PART_PD_CD
+                                         FROM TB_PDBS_LVLH_CSTMW_FILT_BAS
+                                        WHERE PDCT_PD_CD = #{pdctPdCd}
+                                          AND SV_PD_CD = #{svPdCd}
+                                          AND PRD_MM_VAL = SUBSTR(#{chekVstDt},5,2)
+                                          AND VST_DV_CD= #{vstGb}
+                                        )
+                     ELSE #{partCd}     -- js
+                END) AS NEW_PART_CD
+          FROM DUAL
+    </select>
+
+    <select id="selectBsPeriodChartBs03_21" resultType="java.lang.String">
+        SELECT CSTMW_FILT_PD_CD
+            /* , RANK() OVER (PARTITION BY CNTR_NO, CNTR_SN ORDER BY SAVE_SN DESC) AS RN */
+          FROM (
+                SELECT CNTR_NO, CNTR_SN, VST_PROM_DT, CSTMW_FILT_PD_CD, SAVE_SN
+                  FROM TB_SVPD_BFSVC_NX_VST_PROM_IZ
+                 WHERE 1=1
+                   AND CNTR_NO = #{cntrNo}
+                   AND CNTR_SN = #{cntrSn}
+                   AND CSTMW_FILT_PD_CD IS NOT NULL
+                   AND #{chekVstDt} >= TO_CHAR(ADD_MONTHS(FST_RGST_DTM,1), 'YYYYMM') || '01'  /*주기가 변경 되는 경우가 있어서*/
+                   AND #{newPartCd} IN (SELECT PART_PD_CD
+                                         FROM TB_PDBS_LVLH_CSTMW_FILT_BAS
+                                        WHERE 1=1
+                                      )
+               )
+    </select>
+
+    <insert id="insertBsPeriodChart">
+        INSERT INTO TB_SVPD_CST_SV_RGBSPR_IZ (
+              CNTR_NO
+            , CNTR_SN
+            , SV_BIZ_MCLSF_CD
+            , SV_BIZ_DCLSF_CD
+            , WK_SN
+            , VST_DUEDT
+            , FILT_CHNG_LV_CD
+            , IST_NMN_N
+            , VST_NMN_N
+            , ITM_KND_CD
+            , PART_PD_CD
+            , PART_USE_QTY
+            , VST_DV_CD
+            , FST_RGST_DTM
+            , FST_RGST_USR_ID
+            , FST_RGST_PRG_ID
+            , FST_RGST_DEPT_ID
+            , FNL_MDFC_DTM
+            , FNL_MDFC_USR_ID
+            , FNL_MDFC_PRG_ID
+            , FNL_MDFC_DEPT_ID
+        ) VALUES (
+              #{cntrNo}
+            , #{cntrSn}
+            , SUBSTR(#{newWrkTypDtl}, 1, 2)
+            , #{newWrkTypDtl}
+            , #{dtlSn}                  /* 로직변경 - js */
+            , #{chekVstDt}
+            , #{chngStg}
+            , #{chekInstMths}
+            , #{chekCyclMths}          /* CHEK_VST_MTHS -> vstNmnN */
+            , #{itemKnd}
+            , #{newPartCd}
+            , #{qty}
+            , #{newVstGb}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{session.userId}
+            , #{pgrmId}
+            , #{session.ogId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{session.userId}
+            , #{pgrmId}
+            , #{session.ogId}
+        )
+    </insert>
+
+    <insert id="insertBsPeriodChartError">
+        INSERT INTO TB_SVPD_RGBSPR_CHT_CRT_ERR_IZ(
+              RGBS_PRD_CHT_ERR_IZ_ID
+            , CNTR_NO
+            , CNTR_SN
+			, CRT_ERR_CN
+            , FST_RGST_DTM
+            , FST_RGST_USR_ID
+            , FST_RGST_PRG_ID
+            , FST_RGST_DEPT_ID
+            , FNL_MDFC_DTM
+            , FNL_MDFC_USR_ID
+            , FNL_MDFC_PRG_ID
+            , FNL_MDFC_DEPT_ID
+        ) VALUES(
+              TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVPD_RGBSPR_CHT_CRT_ERR_IZ$RGBS_PRD_CHT_ERR_IZ_ID.NEXTVAL, 12, '0')
+            , #{cntrNo}
+            , #{cntrSn}
+            , #{crtErrCn}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{session.userId}
+            , #{pgrmId}
+            , #{session.ogId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{session.userId}
+            , #{pgrmId}
+            , #{session.ogId}
+        )
+    </insert>
+
+    <select id="selectPriorityVstDt" resultType="java.lang.String">
+        WITH TB_BASE_INFO AS (
+            SELECT CNTR_NO
+                 , CNTR_SN
+                 , SV_HSHD_NO -- 서비스가구번호 (동일한 주소인지 찾아본다.)
+                 , SV_PD_CD
+                 , PDCT_PD_CD
+              FROM TB_SVPD_CST_SV_EXCN_IZ
+             WHERE 1=1
+               AND CNTR_NO = #{cntrNo}
+               AND CNTR_SN = #{cntrSn}
+        )
+        , TB_VST_NMN_N AS (
+            SELECT MIN(VST_NMN_N) AS VST_NMN_N
+                 , #{cntrNo} AS CNTR_NO
+                 , #{cntrSn} AS CNTR_SN
+              FROM TB_PDBS_RGBS_WK_BASE_DTL TB_VST_NMN_N
+                 , TB_BASE_INFO TB_BASE_INFO
+             WHERE 1=1
+               AND TB_VST_NMN_N.SV_PD_CD = TB_BASE_INFO.SV_PD_CD
+               AND TB_VST_NMN_N.PDCT_PD_CD = TB_BASE_INFO.PDCT_PD_CD
+        )
+        , TB_VST_DT AS (
+            SELECT TB_VST_NMN_N.CNTR_NO
+                 , TB_VST_NMN_N.CNTR_SN
+                 , TO_CHAR(ADD_MONTHS(SYSDATE, TB_VST_NMN_N.VST_NMN_N), 'YYYYMM') AS DT
+                 , (
+                     CASE WHEN TO_CHAR(ADD_MONTHS(SYSDATE, TB_VST_NMN_N.VST_NMN_N - 3), 'YYYYMM') <![CDATA[ <= ]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                          THEN TO_CHAR(ADD_MONTHS(SYSDATE, 1), 'YYYYMM')
+                          ELSE TO_CHAR(ADD_MONTHS(SYSDATE, TB_VST_NMN_N.VST_NMN_N - 3), 'YYYYMM')
+                          END
+                   ) AS ST_DT /* 현재월 이후(현재월은 미포함.) */
+                 , TO_CHAR(ADD_MONTHS(SYSDATE, TB_VST_NMN_N.VST_NMN_N + 3), 'YYYYMM') AS ED_DT
+              FROM TB_VST_NMN_N TB_VST_NMN_N
+        )
+        SELECT MIN(TB_2.VST_DUEDT) AS VST_DUEDT
+          FROM TB_SVPD_CST_SV_EXCN_IZ TB_1
+         INNER JOIN TB_SVPD_CST_SV_RGBSPR_IZ TB_2
+         ON (
+                TB_1.CNTR_NO = TB_2.CNTR_NO
+            AND TB_1.CNTR_SN = TB_2.CNTR_SN
+         )
+         INNER JOIN TB_BASE_INFO TB_3
+         ON (
+                TB_1.CNTR_NO = TB_3.CNTR_NO
+            AND TB_1.CNTR_SN = TB_3.CNTR_SN
+            AND TB_1.SV_HSHD_NO = TB_3.SV_HSHD_NO
+         )
+         INNER JOIN TB_VST_DT TB_4
+         ON (
+                TB_1.CNTR_NO = TB_4.CNTR_NO
+            AND TB_1.CNTR_SN = TB_4.CNTR_SN
+         )
+         WHERE 1=1
+           AND TB_2.VST_DUEDT BETWEEN (TB_4.ST_DT || '01') AND (TB_4.ED_DT || '32')
+    </select>
+
+    <select id="selectPriorityVstDiff" resultType="java.lang.Integer">
+        SELECT TRUNC(MONTHS_BETWEEN(SUBSTR(TO_CHAR(ADD_MONTHS(SYSDATE, #{chekCyclMths}), 'YYYYMMDD'), 1, 6) || '01', SUBSTR(#{priorityVstDt}, 1, 6) || '01')) AS PRIORITY_VST_DIFF
+          FROM DUAL
+    </select>
+
+    <select id="selectBsPeriodChartBs04_07"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo">
+        SELECT DISTINCT *
+          FROM (
+                /*최소 공배수 만큼 풀어 놓은 방문 주기표 */
+                /*필터택배발송*/
+                SELECT TB_1.VST_NMN_N AS VST_MTHS
+                     , TB_1.SV_BIZ_DCLSF_CD  AS WRK_TYP_DTL
+                     , TB_1.FILT_CHNG_LV_CD     AS CHNG_STG
+                     , TB_2.SVPD_ITEM_KND     AS ITEM_KND /* part master - SVPD_ITEM_KND */
+                     , TB_1.PART_PD_CD      AS PART_CD
+                     , TB_1.PART_USE_QTY          AS QTY
+                     , TB_1.VST_DV_CD       AS VST_GB
+                     , TB_1.CSTMW_PDCT_YN
+                  FROM TB_PDBS_RGBS_WK_BASE_DTL TB_1
+                 INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) TB_2
+                 ON (
+                    TB_1.PDCT_PD_CD = TB_2.SVPD_PD_CD
+                 )
+                 WHERE 1=1
+                   /* AND 'PRD_RFLT_YN'   = 'Y' */ /* cherro ::: 주기반영여부 컬럼 없음. */
+                   AND PDCT_PD_CD = #{pdctPdCd}
+                   AND #{chekVstDt} > #{istDt}
+               )
+         WHERE 1=1
+         ORDER
+            BY VST_MTHS
+             , WRK_TYP_DTL DESC
+             , CHNG_STG
+    </select>
+
+    <select id="selectBsPeriodChartBs01_22" resultType="java.lang.String">
+        /* 패키지 변경 요청을 적용한 패키지 */
+        /* -> NEW_GDS_CD */
+        SELECT NVL(
+                   (SELECT /* '65' || T1.AFCH_PD_CD || '000000' */
+                           T1.AFCH_PD_CD
+                      FROM TB_SVPD_HCF_AS_AK_IZ T1
+                     WHERE 1=1
+                       AND T1.CNTR_NO = #{cntrNo}
+                       AND T1.CNTR_SN = #{cntrSn}
+                       AND SUBSTR(T1.AK_CHDT,1,6) <![CDATA[ <= ]]> SUBSTR(#{chekVstDt},1,6)
+                       AND T1.AK_SN = (SELECT MAX(TEMP.AK_SN)
+                                          FROM TB_SVPD_HCF_AS_AK_IZ TEMP
+                                         WHERE 1=1
+                                           AND TEMP.CNTR_NO = T1.CNTR_NO
+                                           AND TEMP.CNTR_SN = T1.CNTR_SN)
+                       AND T1.CNFMDT IS NULL
+                       AND T1.AS_AK_DV_CD = '1'
+                       AND T1.MTR_PROCS_STAT_CD != '3'), #{pdctPdCd}) AS NEW_GDS_CD
+          FROM DUAL
+    </select>
+
+    <select id="selectBsPeriodChartBs01_23" resultType="java.lang.String">
+        /*배송중지요청체크*/
+        SELECT NVL(
+                   (SELECT AK_CHDT
+                      FROM TB_SVPD_HCF_AS_AK_IZ
+                     WHERE 1=1
+                       AND CNTR_NO = #{cntrNo}
+                       AND CNTR_SN = #{cntrSn}
+                       AND SUBSTR(AK_CHDT,1,6) = SUBSTR(#{chekVstDt},1,6)
+                       AND CNFMDT IS NULL
+                       AND AS_AK_DV_CD = '4'
+                       AND MTR_PROCS_STAT_CD != '3'), '') AS V_VS107_CNCL_DT
+          FROM DUAL
+    </select>
+
+    <select id="selectBsPeriodChartBs01_07"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo">
+        /* 주기표생성 작업 */
+        /* 로직 추가로 협의해서 넣어야 함. */
+        SELECT DISTINCT
+                  VST_MTHS
+                , WRK_TYP_DTL
+                , LPAD(RANK() OVER(ORDER BY ITEM_KND, PART_CD ASC),2,'0') AS CHNG_STG
+                , ITEM_KND
+                , PART_CD
+                , QTY
+                , VST_GB
+             FROM (
+                   /*최소 공배수 만큼 풀어 놓은 방문 주기표 */
+                   SELECT A.VST_NMN_N        AS VST_MTHS
+                        , A.SV_BIZ_DCLSF_CD     AS WRK_TYP_DTL
+                        , ''                    AS CHNG_STG
+                        , '5'                   AS ITEM_KND
+                        , A.PART_PD_CD AS PART_CD
+                        , A.PART_USE_QTY AS QTY
+                        , A.VST_DV_CD          AS VST_GB
+                     FROM TB_PDBS_RGBS_WK_BASE_DTL A
+                    WHERE 1=1
+                      AND A.PDCT_PD_CD = #{newGdsCD}
+                     -- AND (CASE WHEN #{newGdsCD} IN ('WM01106498', 'WM01106499', 'WM01106500') THEN '1' ELSE '2' END) = '1'  /*고객선택 패기지를 선택한 경우만 처리하기 위해*/
+                  )
+            ORDER BY VST_MTHS
+    </select>
+
+    <insert id="insertBsPeriodChartBs01">
+        INSERT INTO TB_SVPD_CST_SV_RGBSPR_IZ (
+              CNTR_NO
+            , CNTR_SN
+            , SV_BIZ_MCLSF_CD
+            , SV_BIZ_DCLSF_CD
+            , WK_SN
+            , VST_DUEDT
+            , SV_BIZ_DCLSF_CD
+            , FILT_CHNG_LV_CD
+            , IST_NMN_N
+            , VST_NMN_N
+            , ITM_KND_CD
+            , PART_PD_CD
+            , PART_USE_QTY
+            , MTR_CAN_DT
+            , MTR_CAN_RSON_CD
+            , VST_DV_CD
+            , FST_RGST_DTM
+            , FST_RGST_USR_ID
+            , FST_RGST_PRG_ID
+            , FST_RGST_DEPT_ID
+            , FNL_MDFC_DTM
+            , FNL_MDFC_USR_ID
+            , FNL_MDFC_PRG_ID
+            , FNL_MDFC_DEPT_ID
+        ) VALUES (
+              #{cntrNo}
+            , #{cntrSn}
+            , SUBSTR(#{newWrkTypDtl}, 1, 2)
+            , #{newWrkTypDtl}
+            , (
+                SELECT NVL(MAX(TEMP.WK_SN) + 1, 1) AS WK_SN
+                  FROM TB_SVPD_CST_SV_RGBSPR_IZ TEMP
+                 WHERE 1=1
+                   AND TEMP.CNTR_NO = #{cntrNo}
+                   AND TEMP.CNTR_SN = #{cntrSn}
+                   AND TEMP.SV_BIZ_MCLSF_CD = SUBSTR(#{newWrkTypDtl}, 1, 2)
+                   AND TEMP.SV_BIZ_DCLSF_CD = #{newWrkTypDtl}
+              )
+            , #{chekVstDt}
+            , #{newWrkTypDtl}
+            , #{chngStg}
+            , #{chekInstMths}
+            , #{chekCyclMths}          /* CHEK_VST_MTHS -> vstNmnN */
+            , #{itemKnd}
+            , #{newPartCd}
+            , #{qty}
+            , #{vVs107CnclDt}
+            , (CASE WHEN #{vVs107CnclDt} IS NOT NULL THEN '10' ELSE '' END)
+            , #{newVstGb}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{session.userId}
+            , #{pgrmId}
+            , #{session.ogId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{session.userId}
+            , #{pgrmId}
+            , #{session.ogId}
+        )
+    </insert>
+
+    <select id="selectBsPeriodChartBs05_22" resultType="java.lang.String">
+        /* NEW_GDS_CD */
+        /*패키지 변경 요청을 적용한 패키지*/
+        SELECT NVL(
+                   (SELECT /* '60' || AFCH_PD_CD || '000000' */
+                           AFCH_PD_CD
+                      FROM TB_SVPD_SDING_AS_AK_IZ T1
+                     WHERE 1=1
+                       AND CNTR_NO = #{cntrNo}
+                       AND CNTR_SN = #{cntrSn}
+                       AND (
+                            SUBSTR(#{chekVstDt},1,6) = SUBSTR(AK_CHDT,1,6)
+                            /* cherro ::: 아래쪽 조건이 이상함. 확인이 필요함. */
+                            OR SUBSTR(#{chekVstDt},1,6) >= TO_CHAR(ADD_MONTHS(TO_DATE(AK_CHDT, 'YYYYMMDD'),1), 'YYYYMM') || '01'
+                        )
+                       AND AK_SN = (SELECT MAX(AK_SN)
+                                          FROM TB_SVPD_SDING_AS_AK_IZ
+                                         WHERE 1=1
+                                           AND CNTR_NO = T1.CNTR_NO
+                                           AND CNTR_SN = T1.CNTR_SN)
+                       AND CNFMDT IS NULL
+                       AND AS_AK_DV_CD = '1'
+                       AND MTR_PROCS_STAT_CD != '3')
+                       , #{pdctPdCd}) AS NEW_GDS_CD
+          FROM DUAL
+    </select>
+
+    <select id="selectBsPeriodChartBs05_25" resultType="java.lang.String">
+        /* NEW_PART_LIST */
+        /*패키지 변경 요청을 적용한 패키지*/
+        SELECT NVL(
+                   (SELECT MAT_NM /* 허남인 이사 확인사항(PART_LIST 를 MAT_NM으로 매핑시킴) */
+                      FROM TB_SVPD_SDING_AS_AK_IZ T1
+                     WHERE 1=1
+                       AND CNTR_NO = #{cntrNo}
+                       AND CNTR_SN = #{cntrSn}
+                       AND (
+                            SUBSTR(#{chekVstDt},1,6) = SUBSTR(AK_CHDT,1,6)
+                            /* cherro ::: 아래쪽 조건이 이상함. 확인이 필요함. */
+                           /* OR SUBSTR(#{chekVstDt},1,6) >= TO_CHAR(ADD_MONTHS(TO_DATE(FST_RGST_DTM, 'YYYYMMDD'),1), 'YYYYMM') || '01' */
+                        )
+                       AND AK_SN = (SELECT MAX(AK_SN)
+                                          FROM TB_SVPD_SDING_AS_AK_IZ
+                                         WHERE 1=1
+                                           AND CNTR_NO = T1.CNTR_NO
+                                           AND CNTR_SN = T1.CNTR_SN)
+                       AND CNFMDT IS NULL
+                       AND AS_AK_DV_CD = '1'
+                       AND MTR_PROCS_STAT_CD != '3'), '') AS NEW_PART_LIST
+          FROM DUAL
+    </select>
+
+    <select id="selectBsPeriodChartBs05_23" resultType="java.lang.String">
+        /* V_VS107_CNCL_DT */
+        /*배송중지요청체크*/
+        SELECT NVL(
+                   (SELECT AK_CHDT
+                      FROM TB_SVPD_SDING_AS_AK_IZ
+                     WHERE 1=1
+                       AND CNTR_NO = #{cntrNo}
+                       AND CNTR_SN = #{cntrSn}
+                       AND SUBSTR(AK_CHDT,1,6) = SUBSTR(#{chekVstDt},1,6)
+                       AND CNFMDT IS NULL
+                       AND AS_AK_DV_CD = '4'
+                       AND MTR_PROCS_STAT_CD != '3'), '')
+          FROM DUAL
+    </select>
+
+    <select id="selectBsPeriodChartBs05_07"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo">
+        /* 주기표생성 작업 */
+        SELECT DISTINCT
+                  VST_MTHS
+                , WRK_TYP_DTL
+                , LPAD(ROW_NUMBER() OVER(ORDER BY ITEM_KND, PART_CD ASC),2,'0') AS CHNG_STG
+                , ITEM_KND
+                , PART_CD
+                , QTY
+                , VST_GB
+             FROM (
+                   /*최소 공배수 만큼 풀어 놓은 방문 주기표 */
+                   SELECT DISTINCT
+                          VST_NMN_N        AS VST_MTHS
+                        , SV_BIZ_DCLSF_CD     AS WRK_TYP_DTL
+                        , ''                    AS CHNG_STG
+                        , '5'                   AS ITEM_KND
+                        , A.PART_PD_CD AS PART_CD
+                        , A.PART_USE_QTY AS QTY
+                        , A.VST_DV_CD AS VST_GB
+                     FROM TB_PDBS_RGBS_WK_BASE_DTL A
+                    WHERE 1=1
+                      AND A.PDCT_PD_CD = #{newGdsCd}
+                      /*22.08.18 */
+                      AND (CASE WHEN #{newGdsCd} = 'WM05106251' THEN '1'
+                                WHEN #{newGdsCd} = 'WM05106468' THEN '1'
+                                WHEN #{newGdsCd} = 'WM05106469' THEN '1'
+                                WHEN #{newGdsCd} = 'WM05106470' THEN '1'
+                                WHEN #{newGdsCd} = 'WM05106471' THEN '1'
+                                ELSE '2'
+                           END) = '1'  /*고객선택 패기지를 선택한 경우만 처리하기 위해*/
+                     AND (CASE WHEN LENGTH(#{newPartList}) > 0 THEN '2' ELSE '1' END) = '1'   /*자유패키지를 선택하여 변경 한 경우는 KSS 자료가 없는 상태라 파라미터로 받은 값을 처리하기 위해*/
+
+                    UNION ALL
+
+                   /*자유선택 패키지 일 경우 입력 받은 파라미터로 처리*/
+                   SELECT DISTINCT
+                          A.VST_NMN_N        AS VST_MTHS
+                        , A.SV_BIZ_DCLSF_CD     AS WRK_TYP_DTL
+                        , ''                    AS CHNG_STG
+                        , '5'                   AS ITEM_KND
+                        , A.PART_PD_CD AS PART_CD
+                        , TO_NUMBER(B.PART_QTY) AS QTY
+                        , A.VST_DV_CD AS VST_GB
+                     FROM TB_PDBS_RGBS_WK_BASE_DTL A
+                        , (SELECT /*행을 구분자에 따라 열로 변경*/
+                                  SUBSTR(PART_LIST, 1, INSTR(PART_LIST, ',',1,1)-1) AS PART_CD
+                                , SUBSTR(PART_LIST, INSTR(PART_LIST, ',',1,1)+1, (CASE WHEN INSTR(PART_LIST, ',',1,2) > 0 THEN INSTR(PART_LIST, ',',1,2) - INSTR(PART_LIST, ',',1,1)-1
+                                                                                       ELSE LENGTH(PART_LIST)
+                                                                                  END)) AS PART_QTY
+                             FROM (/*스트링을 행으로*/
+                                   SELECT TRIM(REGEXP_SUBSTR(TXT, '[^|]+', 1, LEVEL)) AS PART_LIST
+                                     FROM (SELECT #{newPartList} AS TXT FROM DUAL) T1
+                                  CONNECT
+                                       BY INSTR(TXT, '|', 1, LEVEL - 1) > 0)) B
+                    WHERE 1=1
+                      AND A.PDCT_PD_CD = #{newGdsCd}
+                      AND (CASE WHEN LENGTH(#{newPartList}) > 0 THEN '1' ELSE '2' END) = '1'   /*자유패키지를 선택하여 변경 한 경우는 KSS 자료가 없는 상태라 파라미터로 받은 값을 처리하기 위해*/
+                  )
+    </select>
+
+    <select id="selectBsPeriodChartBs05_24" resultType="java.lang.String">
+        /*
+            17.11.16 이영진 추가
+        공기청정기 AK316ESA, AK320FSA 계절별 맞춤형 필터 적용
+        3M1
+        12 1 2 / 3 4 5 / 6 7 8 / 9 10 11 -> 43101-111080 / 43101-111060 / 43101-111070 / 43101-111090
+         1,2M1
+        12 1 / 2 3 4 5 / 6 7 / 8 9 10 11 -> 43101-111080 / 43101-111060 / 43101-111070 / 43101-111090
+        */
+        SELECT (CASE WHEN #{partCd} = '43101111080' AND SUBSTR(#{chekVstDt},5,2) IN ('12', '01', '02') THEN '43101111080'
+                     WHEN #{partCd} = '43101111080' AND SUBSTR(#{chekVstDt},5,2) IN ('03', '04', '05') THEN '43101111060'
+                     WHEN #{partCd} = '43101111080' AND SUBSTR(#{chekVstDt},5,2) IN ('06', '07', '08') THEN '43101111070'
+                     WHEN #{partCd} = '43101111080' AND SUBSTR(#{chekVstDt},5,2) IN ('09', '10', '11') THEN '43101111090'
+
+                     WHEN #{partCd} = '43101111080' AND SUBSTR(#{chekVstDt},5,2) IN ('12', '01') THEN '43101111080'
+                     WHEN #{partCd} = '43101111080' AND SUBSTR(#{chekVstDt},5,2) IN ('02', '03', '04', '05') THEN '43101111060'
+                     WHEN #{partCd} = '43101111080' AND SUBSTR(#{chekVstDt},5,2) IN ('06', '07') THEN '43101111070'
+                     WHEN #{partCd} = '43101111080' AND SUBSTR(#{chekVstDt},5,2) IN ('08', '09', '10', '11') THEN '43101111090'
+
+                     ELSE #{partCd}
+                END) AS NEW_PART_CD
+          FROM DUAL
+    </select>
+
+    <select id="selectSpMkPlantSchedule"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo">
+        /*일시불 모종 생성 대상 조회*/
+        SELECT *
+          FROM (
+                SELECT V1.*
+                     , RANK () OVER (PARTITION BY AC201_CSMR_YR, AC201_CSMR_CD, AC201_CSMR_SEQ ORDER BY AC201_CSMR_SER DESC) AS RN
+                  FROM (
+                        SELECT LPAD(LCYEAR,4,'0')               AS AC201_CSMR_YR            /** [ 0]LCYEAR 년도 **/
+                             , LPAD(LCCODE,7,'0')               AS AC201_CSMR_CD            /** [ 1]LCCODE 고객코드 **/
+                             , '00'                             AS AC201_CSMR_SEQ           /** [ 2]LCSEQN 순번 **/
+                             , TO_CHAR(LCSEQN)                  AS AC201_CSMR_SER           /** [ 3]LCSERI 일련번호 **/
+                             , TO_CHAR(SYSDATE,'YYYYMMDD')      AS AC201_RECD_DT
+                             , '10'                             AS AC201_CO_CD              /** [ 4]LCCOMP 회사코드 **/
+                             , TO_CHAR(LCSALE)                  AS AC201_SALE_GB            /** [ 5]LCSALE 판매구분 **/
+                             , LCTYPE                           AS AC201_MGT_GB             /** [ 6]LCTYPE 판매유형 **/
+                             , TO_CHAR(LCDCDE)                  AS AC201_EMP_ID_PTNR        /** [ 7]LCDCDE 파트너 **/
+                             , (SELECT TRIM(AKDBTD)
+                                  FROM KWMART.AK0400P
+                                 WHERE AKDGUB = LD30.LCSALE
+                                   AND AKDCDE = LD30.LCDCDE)    AS AC201_TEL_CO_PTNR        /** [ 8]LCDTL1 전화１**/
+                             , (SELECT CIPDEC('df', AKDBT1)
+                                  FROM KWMART.AK0400P
+                                 WHERE AKDGUB = LD30.LCSALE
+                                   AND AKDCDE = LD30.LCDCDE)    AS AC201_HP_NO1_PTNR        /** [ 9]LCDTL2 전화２ **/
+                             , (SELECT AKDBT2
+                                  FROM KWMART.AK0400P
+                                 WHERE AKDGUB = LD30.LCSALE
+                                   AND AKDCDE = LD30.LCDCDE)    AS AC201_HP_NO2_PTNR        /** [10]LCDTL3 전화３ **/
+                             , TO_CHAR(LCDBON)                  AS AC201_EMP_ID_CH          /** [11]LCDBON 지점장 **/
+                             , (SELECT TRIM(AKDBTD)
+                                  FROM KWMART.AK0400P
+                                 WHERE AKDGUB = LD30.LCSALE
+                                   AND AKDCDE = LD30.LCDBON)    AS AC201_TEL_CO_CH          /** [12]LCBTL1 전화１ **/
+                             , (SELECT CIPDEC('df',  AKDBT1)
+                                  FROM KWMART.AK0400P
+                                 WHERE AKDGUB = LD30.LCSALE
+                                   AND AKDCDE = LD30.LCDBON)    AS AC201_HP_NO1_CH          /** [13]LCBTL2 전화２ **/
+                             , (SELECT AKDBT2
+                                  FROM KWMART.AK0400P
+                                 WHERE AKDGUB = LD30.LCSALE
+                                   AND AKDCDE = LD30.LCDBON)    AS AC201_HP_NO2_CH          /** [14]LCBTL3 전화３ **/
+                             , LCWGUB                           AS AC201_INST_GB            /** [15]LCWGUB 구분 **/
+                             , TO_SINGLE_BYTE(LCWNAM)           AS AC201_CUST_NM            /** [16]LCWNAM 고객명 **/
+                             , '0'                              AS AC201_ID_NO              /** [17]LCWINO 주민／사업 NO **/
+                             , TRIM(LCWNO1)                     AS AC201_TEL_CO             /** [18]LCWNO1 휴대폰１ **/
+                             , CIPDEC('df', LD30.LCWNO2)        AS AC201_HP_NO1             /** [19]LCWNO2 휴대폰２  2015.05.31 김경희 DB암호화 **/
+                             , LCWNO3                           AS AC201_HP_NO2             /** [20]LCWNO3 휴대폰３ **/
+                             , LCWDDD                           AS AC201_TEL_AR             /** [21]LCWDDD 전화지역 **/
+                             , CIPDEC('df', LD30.LCWTL1)        AS AC201_TEL_NO1            /** [22]LCWTL1 전화국    2015.05.31 김경희 DB암호화 **/
+                             , LCWTL2                           AS AC201_TEL_NO2            /** [23]LCWTL2 전화번호 **/
+                             , LD30.LCWZP1                      AS AC201_ZIP_NO1            /** [24]LCWZP1 우편１ **/
+                             , LD30.LCWZP2                      AS AC201_ZIP_NO2            /** [25]LCWZP2 우편２ **/
+                             , TO_SINGLE_BYTE(LD30.LCWAD1)      AS AC201_ADD                /** [26]LCWAD1 주소１ **/
+                             , TO_SINGLE_BYTE(LD30.LCWAD2)      AS AC201_ADD_DTL            /** [27]LCWAD2 주소２ **/
+
+                             , '60'||DECODE(TO_CHAR((CASE WHEN LCST07 != 'Y' THEN '0' ELSE TO_CHAR(LCST12) END)),'0', '100',TO_CHAR(LCST12))||'000000'  AS AC201_GDS_CD             /** [28]LCICDE 상품코드 2016.10.28 이충관 수정 - 기존 LCICDE를 LCNCDE로 변경(단종상품관련) **/
+                             , '1'                              AS AC201_GDS_QTY            /** [29]LCIQTY 상품수량 **/
+                             , 'A'                              AS AC201_DEG                /** [30]LCIGRD 상품등급 (일단제외) **/
+                             , LCIUSE                           AS AC201_USGE               /** [31]LCIUSE 상품용도 **/
+                             , '2'                              AS AC201_SALE_TYP           /** [32]LCVGU1 관리구분   1 할부  2 렌탈  3 멤버  4 회사  9 **/
+                             --, TRIM(TO_CHAR(LD30.LCIMON)) || 'M' || NVL(REPLACE(TO_CHAR(LD30.LCIUSE), '0', '1'),'1') AS AC201_CYCL_TYP /** [32]LCVGU2 방문주기 **/
+                             , '2M1' AS AC201_CYCL_TYP /** [32]LCVGU2 방문주기 **/
+                             , TO_CHAR(LD30.LCDUTY)             AS AC201_DUTY_MTHS          /** [34]LCVGU3 의무사용 (무상기간) **/
+
+                             , DECODE(LCMONT, 1, 0, LCMONT) + LCST13          AS AC201_AS_MTHS            /** [35]LCVGU4 무상 A/S **/
+                             , DECODE(LCMONT, 1, 0, LCMONT) + LCST13          AS AC201_BS_MTHS            /** [36]LCVGU5 무상 B/S **/
+
+                             , LPAD(TO_CHAR(LD30.LCCRTY),4,'0')||
+                               LPAD(TO_CHAR(LD30.LCCRTM),2,'0')||
+                               LPAD(TO_CHAR(LD30.LCCRTD),2,'0')     AS AC201_CONT_DT        /** [37]LCCRTT 계약일자 **/
+                             , (CASE WHEN LD30.LCSLEY = 0 THEN T1.AC201_INST_DT
+                                     ELSE LPAD(TO_CHAR(LD30.LCSLEY),4,'0')||
+                                          LPAD(TO_CHAR(LD30.LCSLEM),2,'0')||
+                                          LPAD(TO_CHAR(LD30.LCSLED),2,'0')
+                                END)                                AS AC201_INST_DT        /** [38]LCSETT 설치일자 **/
+                             , ''                                   AS AC201_CHNG_DT        /** [39]LCCHGT 교체일자 **/
+                             , (CASE WHEN LD30.LCCANY !=0
+                                     THEN LPAD(TO_CHAR(LD30.LCCANY),4,'0')||
+                                          LPAD(TO_CHAR(LD30.LCCANM),2,'0')||
+                                          LPAD(TO_CHAR(LD30.LCCAND),2,'0')
+                                     ELSE ''
+                                END)                                AS AC201_REMV_DT        /** [40]LCREMT 철거일자 **/
+                             , (CASE WHEN LD30.LCCANY !=0
+                                     THEN LPAD(TO_CHAR(LD30.LCCANY),4,'0')||
+                                          LPAD(TO_CHAR(LD30.LCCANM),2,'0')||
+                                          LPAD(TO_CHAR(LD30.LCCAND),2,'0')
+                                     ELSE ''
+                                END)                                AS AC201_CANC_DT        /** [41]LCCANT 취소일자 **/
+                             , ''                                   AS AC201_COMP_DT        /** [42]LCCOMT 보상일자 **/
+                             , ''                                   AS AC201_STOP_DT
+                             , ''                               AS AC201_COMP_YN            /** [43]LCBGU1 보상유무 **/
+                             , ''                               AS AC201_RET_YN             /** [44]LCBGU2 회수유무 **/
+                             , ''                               AS AC201_MKD_CO             /** [45]LCBCMP 제조회사 **/
+                             , (SELECT CASE WHEN TRIM(LCTYP2) != '' THEN LCTYP2 ELSE LCTYP1 END
+                                  FROM KWMART.LC2290P
+                                 WHERE 1=1
+                                   AND LCYEAR = LD30.LCYEAR
+                                   AND LCCODE = LD30.LCCODE)    AS AC201_CSMR_YR_B          /** [46]LCBTYP **/
+                             , (SELECT CASE WHEN LCYER2 != 0 THEN LCYER2 ELSE LCYER1 END
+                                  FROM KWMART.LC2290P
+                                 WHERE 1=1
+                                   AND LCYEAR = LD30.LCYEAR
+                                   AND LCCODE = LD30.LCCODE)    AS AC201_CSMR_CD_B          /** [46]LCBYER 년도 **/
+                             , (SELECT CASE WHEN LCCOD2 != 0 THEN LCCOD2 ELSE LCCOD1 END
+                                  FROM KWMART.LC2290P
+                                 WHERE 1=1
+                                   AND LCYEAR = LD30.LCYEAR
+                                   AND LCCODE = LD30.LCCODE)    AS AC201_CSMR_SEQ_B         /** [47]LCBCDE 고객코드 **/
+                             , LD30.LCWAGB                      AS AC201_ADD_GB             /** [64]LCWAGB 주소구분(1:도로명,2:지번) - 2015.01.02 정찬영 추가 - 도로명주소 **/
+                             , TO_SINGLE_BYTE(LD30.LCWAD3)      AS AC201_ADD_REFER          /** [65]LCWAD3 주소3 **/
+                             , '60'||DECODE(TO_CHAR((CASE WHEN LCST07 != 'Y' THEN '0' ELSE TO_CHAR(LCPKAG) END)),'0', '100',TO_CHAR(LCPKAG))||'000000'  AS AC201_GDS_CD_OLD
+                             , '00' AS AC201_BS_GB1
+                             , '1' AS AC201_BS_GB2
+                             , '' AS AC201_ETC_1
+                             , '' AS AC201_ETC_3
+                             , '' AS AC201_ETC_9
+
+                             , LPAD(LCDEMY,4,'0') || LPAD(LCDEMM,2,'0') || LPAD(LCDEMD,2,'0') AS REQ_VST_DT
+                             , LPAD(LCJYER,4,'0') AS D_CSMR_YR
+                             , LPAD(LCJCOD,7,'0') AS D_CSMR_CD
+                             , T2.AC201_GDS_CD AS D_GDS_CD
+                             , T2.AC201_CYCL_TYP AS D_CYCL_TYP
+                             , T2.AC201_USGE AS D_USGE
+                             , T2.AC201_SALE_TYP AS D_SALE_TYP
+                             , T2.AC201_INST_DT AS D_INST_DT
+                             , T1.AC201_CSMR_SER AS P_AC201_CSMR_SER
+                          FROM KWMART.LD3000P LD30
+                             , LC_ALLOCATE_AC201TB T1
+                             , LC_ALLOCATE_AC201TB T2
+                         WHERE 1=1
+                           AND LCYEAR = TO_NUMBER(T1.AC201_CSMR_YR(+))
+                           AND LCCODE = TO_NUMBER(T1.AC201_CSMR_CD(+))
+                           AND LCJYER = TO_NUMBER(T2.AC201_CSMR_YR(+))
+                           AND LCJCOD = TO_NUMBER(T2.AC201_CSMR_CD(+))
+                           AND LCSEQN != 1 /*1 은 최초 무상설치*/
+                           AND LCST05 = '2' /*LCST05 배송형태 1:정기배송, 2:일시불*/
+                           AND LCTAMT-LCRAMT >= 0 /*유상판매*/
+
+                           /*고객일련번호가 다르거나, 패키지가 다르거나, 방문예정일이 다른경우*/
+                           AND LCDEMY != 0 /*19.02.26 프로시져 오류 발생 해제*/
+                           AND LPAD(LCDEMY,4,'0')||LPAD(LCDEMM,2,'0')||LPAD(LCDEMD,2,'0') > TO_CHAR(SYSDATE, 'YYYYMMDD')
+
+                           AND ((LCCANY = 0 AND LCSEQN != T1.AC201_CSMR_SER)
+                             --OR ('60'||DECODE(TO_CHAR(LCST12),'0', '100',TO_CHAR(LCST12))||'000000' != T1.AC201_GDS_CD)
+                             OR (LCCANY = 0 AND LPAD(LCDEMY,4,'0')||LPAD(LCDEMM,2,'0') != NVL((SELECT SUBSTR(MIN(VS107_VST_DT),1,6)
+                                                                                                 FROM LC_VISIT_VS107TB
+                                                                                                WHERE 1=1
+                                                                                                  AND VS107_CSMR_YR = T1.AC201_CSMR_YR
+                                                                                                  AND VS107_CSMR_CD = T1.AC201_CSMR_CD
+                                                                                                  AND VS107_VST_DT > TO_CHAR(SYSDATE, 'YYYYMM') || '00'
+                                                                                                  AND VS107_WRK_DT IS NULL)
+                                                                                               , 0)
+                                                                                              )
+                               )
+                           --AND LCYEAR = '2019'
+                           --AND LCCODE = '1883587'
+                    --       AND LCSEQN = 3
+
+                         UNION ALL
+
+
+                        SELECT LPAD(LCYEAR,4,'0')               AS AC201_CSMR_YR            /** [ 0]LCYEAR 년도 **/
+                             , LPAD(LCCODE,7,'0')               AS AC201_CSMR_CD            /** [ 1]LCCODE 고객코드 **/
+                             , '00'                             AS AC201_CSMR_SEQ           /** [ 2]LCSEQN 순번 **/
+                             , TO_CHAR(LCSEQN)                  AS AC201_CSMR_SER           /** [ 3]LCSERI 일련번호 **/
+                             , TO_CHAR(SYSDATE,'YYYYMMDD')      AS AC201_RECD_DT
+                             , '10'                             AS AC201_CO_CD              /** [ 4]LCCOMP 회사코드 **/
+                             , TO_CHAR(LCSALE)                  AS AC201_SALE_GB            /** [ 5]LCSALE 판매구분 **/
+                             , LCTYPE                           AS AC201_MGT_GB             /** [ 6]LCTYPE 판매유형 **/
+                             , TO_CHAR(LCDCDE)                  AS AC201_EMP_ID_PTNR        /** [ 7]LCDCDE 파트너 **/
+                             , (SELECT TRIM(AKDBTD)
+                                  FROM KWMART.AK0400P
+                                 WHERE AKDGUB = LD30.LCSALE
+                                   AND AKDCDE = LD30.LCDCDE)    AS AC201_TEL_CO_PTNR        /** [ 8]LCDTL1 전화１**/
+                             , (SELECT CIPDEC('df', AKDBT1)
+                                  FROM KWMART.AK0400P
+                                 WHERE AKDGUB = LD30.LCSALE
+                                   AND AKDCDE = LD30.LCDCDE)    AS AC201_HP_NO1_PTNR        /** [ 9]LCDTL2 전화２ **/
+                             , (SELECT AKDBT2
+                                  FROM KWMART.AK0400P
+                                 WHERE AKDGUB = LD30.LCSALE
+                                   AND AKDCDE = LD30.LCDCDE)    AS AC201_HP_NO2_PTNR        /** [10]LCDTL3 전화３ **/
+                             , TO_CHAR(LCDBON)                  AS AC201_EMP_ID_CH          /** [11]LCDBON 지점장 **/
+                             , (SELECT TRIM(AKDBTD)
+                                  FROM KWMART.AK0400P
+                                 WHERE AKDGUB = LD30.LCSALE
+                                   AND AKDCDE = LD30.LCDBON)    AS AC201_TEL_CO_CH          /** [12]LCBTL1 전화１ **/
+                             , (SELECT CIPDEC('df',  AKDBT1)
+                                  FROM KWMART.AK0400P
+                                 WHERE AKDGUB = LD30.LCSALE
+                                   AND AKDCDE = LD30.LCDBON)    AS AC201_HP_NO1_CH          /** [13]LCBTL2 전화２ **/
+                             , (SELECT AKDBT2
+                                  FROM KWMART.AK0400P
+                                 WHERE AKDGUB = LD30.LCSALE
+                                   AND AKDCDE = LD30.LCDBON)    AS AC201_HP_NO2_CH          /** [14]LCBTL3 전화３ **/
+                             , LCWGUB                           AS AC201_INST_GB            /** [15]LCWGUB 구분 **/
+                             , TO_SINGLE_BYTE(LCWNAM)           AS AC201_CUST_NM            /** [16]LCWNAM 고객명 **/
+                             , '0'                              AS AC201_ID_NO              /** [17]LCWINO 주민／사업 NO **/
+                             , TRIM(LCWNO1)                     AS AC201_TEL_CO             /** [18]LCWNO1 휴대폰１ **/
+                             , CIPDEC('df', LD30.LCWNO2)        AS AC201_HP_NO1             /** [19]LCWNO2 휴대폰２  2015.05.31 김경희 DB암호화 **/
+                             , LCWNO3                           AS AC201_HP_NO2             /** [20]LCWNO3 휴대폰３ **/
+                             , LCWDDD                           AS AC201_TEL_AR             /** [21]LCWDDD 전화지역 **/
+                             , CIPDEC('df', LD30.LCWTL1)        AS AC201_TEL_NO1            /** [22]LCWTL1 전화국    2015.05.31 김경희 DB암호화 **/
+                             , LCWTL2                           AS AC201_TEL_NO2            /** [23]LCWTL2 전화번호 **/
+                             , LD30.LCWZP1                      AS AC201_ZIP_NO1            /** [24]LCWZP1 우편１ **/
+                             , LD30.LCWZP2                      AS AC201_ZIP_NO2            /** [25]LCWZP2 우편２ **/
+                             , TO_SINGLE_BYTE(LD30.LCWAD1)      AS AC201_ADD                /** [26]LCWAD1 주소１ **/
+                             , TO_SINGLE_BYTE(LD30.LCWAD2)      AS AC201_ADD_DTL            /** [27]LCWAD2 주소２ **/
+
+                             , '60'||DECODE(TO_CHAR((CASE WHEN LCST07 != 'Y' THEN '0' ELSE TO_CHAR(LCST12) END)),'0', '100',TO_CHAR(LCST12))||'000000'  AS AC201_GDS_CD             /** [28]LCICDE 상품코드 2016.10.28 이충관 수정 - 기존 LCICDE를 LCNCDE로 변경(단종상품관련) **/
+                             , '1'                              AS AC201_GDS_QTY            /** [29]LCIQTY 상품수량 **/
+                             , 'A'                              AS AC201_DEG                /** [30]LCIGRD 상품등급 (일단제외) **/
+                             , LCIUSE                           AS AC201_USGE               /** [31]LCIUSE 상품용도 **/
+                             , '2'                              AS AC201_SALE_TYP           /** [32]LCVGU1 관리구분   1 할부  2 렌탈  3 멤버  4 회사  9 **/
+                             --, TRIM(TO_CHAR(LD30.LCIMON)) || 'M' || NVL(REPLACE(TO_CHAR(LD30.LCIUSE), '0', '1'),'1') AS AC201_CYCL_TYP /** [32]LCVGU2 방문주기 **/
+                             , '2M1' AS AC201_CYCL_TYP /** [32]LCVGU2 방문주기 **/
+                             , TO_CHAR(LD30.LCDUTY)             AS AC201_DUTY_MTHS          /** [34]LCVGU3 의무사용 (무상기간) **/
+
+                             , DECODE(LCMONT, 1, 0, LCMONT) + LCST13          AS AC201_AS_MTHS            /** [35]LCVGU4 무상 A/S **/
+                             , DECODE(LCMONT, 1, 0, LCMONT) + LCST13          AS AC201_BS_MTHS            /** [36]LCVGU5 무상 B/S **/
+
+                             , LPAD(TO_CHAR(LD30.LCCRTY),4,'0')||
+                               LPAD(TO_CHAR(LD30.LCCRTM),2,'0')||
+                               LPAD(TO_CHAR(LD30.LCCRTD),2,'0')     AS AC201_CONT_DT        /** [37]LCCRTT 계약일자 **/
+                             , (CASE WHEN LD30.LCSLEY = 0 THEN T1.AC201_INST_DT
+                                     ELSE LPAD(TO_CHAR(LD30.LCSLEY),4,'0')||
+                                          LPAD(TO_CHAR(LD30.LCSLEM),2,'0')||
+                                          LPAD(TO_CHAR(LD30.LCSLED),2,'0')
+                                END)                                AS AC201_INST_DT        /** [38]LCSETT 설치일자 **/
+                             , ''                                   AS AC201_CHNG_DT        /** [39]LCCHGT 교체일자 **/
+                             , (CASE WHEN LD30.LCCANY !=0
+                                     THEN LPAD(TO_CHAR(LD30.LCCANY),4,'0')||
+                                          LPAD(TO_CHAR(LD30.LCCANM),2,'0')||
+                                          LPAD(TO_CHAR(LD30.LCCAND),2,'0')
+                                     ELSE ''
+                                END)                                AS AC201_REMV_DT        /** [40]LCREMT 철거일자 **/
+                             , (CASE WHEN LD30.LCCANY !=0
+                                     THEN LPAD(TO_CHAR(LD30.LCCANY),4,'0')||
+                                          LPAD(TO_CHAR(LD30.LCCANM),2,'0')||
+                                          LPAD(TO_CHAR(LD30.LCCAND),2,'0')
+                                     ELSE ''
+                                END)                                AS AC201_CANC_DT        /** [41]LCCANT 취소일자 **/
+                             , ''                                   AS AC201_COMP_DT        /** [42]LCCOMT 보상일자 **/
+                             , ''                                   AS AC201_STOP_DT
+                             , ''                               AS AC201_COMP_YN            /** [43]LCBGU1 보상유무 **/
+                             , ''                               AS AC201_RET_YN             /** [44]LCBGU2 회수유무 **/
+                             , ''                               AS AC201_MKD_CO             /** [45]LCBCMP 제조회사 **/
+                             , (SELECT CASE WHEN TRIM(LCTYP2) != '' THEN LCTYP2 ELSE LCTYP1 END
+                                  FROM KWMART.LC2290P
+                                 WHERE 1=1
+                                   AND LCYEAR = LD30.LCYEAR
+                                   AND LCCODE = LD30.LCCODE)    AS AC201_CSMR_YR_B          /** [46]LCBTYP **/
+                             , (SELECT CASE WHEN LCYER2 != 0 THEN LCYER2 ELSE LCYER1 END
+                                  FROM KWMART.LC2290P
+                                 WHERE 1=1
+                                   AND LCYEAR = LD30.LCYEAR
+                                   AND LCCODE = LD30.LCCODE)    AS AC201_CSMR_CD_B          /** [46]LCBYER 년도 **/
+                             , (SELECT CASE WHEN LCCOD2 != 0 THEN LCCOD2 ELSE LCCOD1 END
+                                  FROM KWMART.LC2290P
+                                 WHERE 1=1
+                                   AND LCYEAR = LD30.LCYEAR
+                                   AND LCCODE = LD30.LCCODE)    AS AC201_CSMR_SEQ_B         /** [47]LCBCDE 고객코드 **/
+                             , LD30.LCWAGB                      AS AC201_ADD_GB             /** [64]LCWAGB 주소구분(1:도로명,2:지번) - 2015.01.02 정찬영 추가 - 도로명주소 **/
+                             , TO_SINGLE_BYTE(LD30.LCWAD3)      AS AC201_ADD_REFER          /** [65]LCWAD3 주소3 **/
+                             , '60'||DECODE(TO_CHAR((CASE WHEN LCST07 != 'Y' THEN '0' ELSE TO_CHAR(LCPKAG) END)),'0', '100',TO_CHAR(LCPKAG))||'000000'  AS AC201_GDS_CD_OLD
+                             , '00' AS AC201_BS_GB1
+                             , '1' AS AC201_BS_GB2
+                             , '' AS AC201_ETC_1
+                             , '' AS AC201_ETC_3
+                             , '' AS AC201_ETC_9
+
+                             , LPAD(LCDEMY,4,'0') || LPAD(LCDEMM,2,'0') || LPAD(LCDEMD,2,'0') AS REQ_VST_DT
+                             , LPAD(LCJYER,4,'0') AS D_CSMR_YR
+                             , LPAD(LCJCOD,7,'0') AS D_CSMR_CD
+                             , T2.AC201_GDS_CD AS D_GDS_CD
+                             , T2.AC201_CYCL_TYP AS D_CYCL_TYP
+                             , T2.AC201_USGE AS D_USGE
+                             , T2.AC201_SALE_TYP AS D_SALE_TYP
+                             , T2.AC201_INST_DT AS D_INST_DT
+                             , T1.AC201_CSMR_SER AS P_AC201_CSMR_SER
+                          FROM KWMART.LD3000P LD30
+                             , LC_ALLOCATE_AC201TB T1
+                             , LC_ALLOCATE_AC201TB T2
+                         WHERE 1=1
+                           AND LCYEAR = TO_NUMBER(T1.AC201_CSMR_YR(+))
+                           AND LCCODE = TO_NUMBER(T1.AC201_CSMR_CD(+))
+                           AND LCJYER = TO_NUMBER(T2.AC201_CSMR_YR(+))
+                           AND LCJCOD = TO_NUMBER(T2.AC201_CSMR_CD(+))
+                           --AND LCSEQN != 1 /*1 은 최초 무상설치*/
+                           AND LCST05 = '2' /*LCST05 배송형태 1:정기배송, 2:일시불*/
+                           AND LCTAMT-LCRAMT >= 0 /*유상판매*/
+
+                           AND LCCANY = 0
+                           AND LCSEQN = (SELECT MAX(LCSEQN)
+                                           FROM KWMART.LD3000P
+                                          WHERE 1=1
+                                            AND LCYEAR = LD30.LCYEAR
+                                            AND LCCODE = LD30.LCCODE)
+
+                           /*고객일련번호가 다르거나, 패키지가 다르거나, 방문예정일이 다른경우*/
+                           AND LCDEMY != 0 /*19.02.26 프로시져 오류 발생 해제*/
+                           --AND LPAD(LCDEMY,4,'0')||LPAD(LCDEMM,2,'0')||LPAD(LCDEMD,2,'0') > TO_CHAR(SYSDATE, 'YYYYMMDD')
+
+                           AND (LCSEQN != T1.AC201_CSMR_SER)
+                    --       AND LCYEAR = '2018'
+                    --       AND LCCODE = '6955353'
+                    --       AND LCSEQN = 3
+                       ) V1
+                 WHERE 1=1
+               ) V2
+         WHERE 1=1
+           AND RN = 1
+    </select>
+
+    <update id="saveSpMkPlantSchedule01">
+        /*1. 고객마스터(LC_ALLOCATE_AC201TB) 인서트 또는 업데이트*/
+        MERGE
+         INTO LC_ALLOCATE_AC201TB AA
+        USING (SELECT C1.AC201_CSMR_YR AS AC201_CSMR_YR
+                    , LPAD(TRIM(C1.AC201_CSMR_CD),7,'0') AS AC201_CSMR_CD
+                    , C1.AC201_CSMR_SEQ AS AC201_CSMR_SEQ
+                 FROM DUAL) BB
+           ON (    AA.AC201_CSMR_YR  = BB.AC201_CSMR_YR
+               AND AA.AC201_CSMR_CD  = BB.AC201_CSMR_CD
+               AND AA.AC201_CSMR_SEQ = BB.AC201_CSMR_SEQ)
+        WHEN MATCHED THEN
+            UPDATE
+               SET AC201_CSMR_SER   = C1.AC201_CSMR_SER
+                 , AC201_CUST_NM    = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(C1.AC201_CUST_NM))) > 0 THEN TRIM(TO_SINGLE_BYTE(C1.AC201_CUST_NM)) ELSE C1.AC201_CUST_NM END)
+                 , AC201_ID_NO      = '' --TRIM(#ID_NO#)
+                 , AC201_TEL_CO     = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_CO))) > 0 THEN TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_CO)) ELSE C1.AC201_TEL_CO END)
+                 , AC201_HP_NO1     = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(CIPENC('df',C1.AC201_HP_NO1)))) > 0 THEN TRIM(TO_SINGLE_BYTE(CIPENC('df',C1.AC201_HP_NO1))) ELSE C1.AC201_HP_NO1 END)
+                 , AC201_HP_NO2     = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(C1.AC201_HP_NO2))) > 0 THEN TRIM(TO_SINGLE_BYTE(C1.AC201_HP_NO2)) ELSE C1.AC201_HP_NO2 END)
+                 , AC201_TEL_AR     = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_AR))) > 0 THEN TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_AR)) ELSE AC201_TEL_AR END)
+                 , AC201_TEL_NO1    = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(CIPENC('df',C1.AC201_TEL_NO1)))) > 0 THEN TRIM(TO_SINGLE_BYTE(CIPENC('df',C1.AC201_TEL_NO1))) ELSE C1.AC201_TEL_NO1 END)
+                 , AC201_TEL_NO2    = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_NO2))) > 0 THEN TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_NO2)) ELSE C1.AC201_TEL_NO2 END)
+                 , AC201_ZIP_NO1    = (CASE WHEN LENGTH(TRIM(C1.AC201_ZIP_NO1)) > 0 THEN TRIM(C1.AC201_ZIP_NO1) ELSE C1.AC201_ZIP_NO1 END)
+                 , AC201_ZIP_NO2    = (CASE WHEN LENGTH(TRIM(C1.AC201_ZIP_NO2)) > 0 THEN TRIM(C1.AC201_ZIP_NO2) ELSE C1.AC201_ZIP_NO2 END)
+                 , AC201_ADD        = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(C1.AC201_ADD))) > 0 THEN TRIM(TO_SINGLE_BYTE(C1.AC201_ADD)) ELSE C1.AC201_ADD END)
+                 , AC201_ADD_DTL    = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(C1.AC201_ADD_DTL))) > 0 THEN TRIM(TO_SINGLE_BYTE(C1.AC201_ADD_DTL)) ELSE C1.AC201_ADD_DTL END)
+                 , AC201_ADD_REFER  = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(C1.AC201_ADD_REFER))) > 0 THEN TRIM(TO_SINGLE_BYTE(C1.AC201_ADD_REFER)) ELSE C1.AC201_ADD_REFER END)
+                 , AC201_ADD_GB     = (CASE WHEN LENGTH(C1.AC201_ADD_GB) > 0 THEN C1.AC201_ADD_GB ELSE C1.AC201_ADD_GB END)
+
+
+                 , AC201_SALE_GB    = (CASE WHEN LENGTH(C1.AC201_SALE_GB) > 0 THEN C1.AC201_SALE_GB ELSE C1.AC201_SALE_GB END)   --판매구분 1 EDU   4 TM    7 LC   8 직원 10 회사
+                 , AC201_MGT_GB     = (CASE WHEN LENGTH(C1.AC201_MGT_GB) > 0 THEN C1.AC201_MGT_GB ELSE C1.AC201_MGT_GB END)   --판매시유형   1 할부  2 렌탈  3 멤버  4 회사
+                 /*19.03.07 마스터 상품 변경은 해당월에 */
+                 --, AC201_GDS_CD     = C1.AC201_GDS_CD
+                 , AC201_DEG        = (CASE WHEN LENGTH(C1.AC201_DEG) > 0 THEN C1.AC201_DEG END)
+    --
+                 , AC201_USGE       = (CASE WHEN LENGTH(TRIM(C1.AC201_USGE)) > 0 THEN TRIM(C1.AC201_USGE) ELSE C1.AC201_USGE END)
+                 , AC201_SALE_TYP   = '2'
+    --                 , AC201_CYCL_TYP  = (CASE WHEN LENGTH(TRIM(REPLACE(C1.AC201_CYCL_TYP,'M0', 'M1'))) > 0 THEN TRIM(REPLACE(C1.AC201_CYCL_TYP,'M0', 'M1')) ELSE AC201_CYCL_TYP END)
+                 , AC201_DUTY_MTHS  = '0'
+                 , AC201_AS_MTHS    = (CASE WHEN C1.AC201_BS_MTHS = '999' THEN C1.AC201_BS_MTHS
+                                            WHEN C1.AC201_BS_MTHS > 1 THEN MONTHS_BETWEEN(SUBSTR(C1.REQ_VST_DT,1,6) || '01', SUBSTR(C1.AC201_INST_DT,1,6)||'01') + C1.AC201_BS_MTHS
+                                            ELSE MONTHS_BETWEEN(SUBSTR(C1.REQ_VST_DT,1,6) || '01', SUBSTR(C1.AC201_INST_DT,1,6)||'01')
+                                       END)
+                 , AC201_BS_MTHS    = (CASE WHEN C1.AC201_BS_MTHS = '999' THEN C1.AC201_BS_MTHS
+                                            WHEN C1.AC201_BS_MTHS > 1 THEN MONTHS_BETWEEN(SUBSTR(C1.REQ_VST_DT,1,6) || '01', SUBSTR(C1.AC201_INST_DT,1,6)||'01') + C1.AC201_BS_MTHS
+                                            ELSE MONTHS_BETWEEN(SUBSTR(C1.REQ_VST_DT,1,6) || '01', SUBSTR(C1.AC201_INST_DT,1,6)||'01')
+                                       END)
+                 , AC201_CONT_DT    = TRIM(C1.AC201_CONT_DT)
+    --                 , AC201_INST_DT   = (CASE WHEN LENGTH(TRIM(C1.AC201_INST_DT)) > 0 THEN TRIM(C1.AC201_INST_DT) ELSE AC201_INST_DT END)
+
+
+                 , AC201_COMP_YN    = TRIM(C1.AC201_COMP_YN)
+                 , AC201_RET_YN     = TRIM(C1.AC201_RET_YN)
+                 , AC201_MKD_CO     = TRIM(C1.AC201_MKD_CO)
+                 , AC201_CSMR_YR_B  = TRIM(C1.AC201_CSMR_YR_B)
+                 , AC201_CSMR_CD_B  = TRIM(LPAD(C1.AC201_CSMR_CD_B,7,'0'))
+                 , AC201_CSMR_SEQ_B = TRIM(C1.AC201_CSMR_SEQ_B)
+
+                 , AC201_ETC_1      = TRIM(C1.AC201_ETC_1)
+                 , AC201_ETC_3      = TRIM(C1.AC201_ETC_3)
+                 , AC201_ETC_9      = TRIM(C1.AC201_ETC_9)
+
+                 , AC201_UPD_DT    = TO_CHAR(SYSDATE,'YYYYMMDD')
+                 , AC201_UPD_TM    = TO_CHAR(SYSDATE,'HH24MISS')
+                 , AC201_UPD_ID    = 'PLA_SCH'
+        WHEN NOT MATCHED THEN
+            INSERT ( AC201_CSMR_YR
+                   , AC201_CSMR_CD
+                   , AC201_CSMR_SEQ
+                   , AC201_CSMR_SER
+                   , AC201_RECD_DT
+                   , AC201_CO_CD
+                   , AC201_SALE_GB
+                   , AC201_MGT_GB
+                   , AC201_INST_GB
+
+                   , AC201_EMP_ID_PTNR
+                   , AC201_TEL_CO_PTNR
+                   , AC201_HP_NO1_PTNR
+                   , AC201_HP_NO2_PTNR
+                   , AC201_EMP_ID_CH
+                   , AC201_TEL_CO_CH
+                   , AC201_HP_NO1_CH
+                   , AC201_HP_NO2_CH
+
+                   , AC201_CUST_NM
+                   , AC201_ID_NO
+                   , AC201_TEL_CO
+                   , AC201_HP_NO1
+                   , AC201_HP_NO2
+                   , AC201_TEL_AR
+                   , AC201_TEL_NO1
+                   , AC201_TEL_NO2
+                   , AC201_ZIP_NO1
+                   , AC201_ZIP_NO2
+                   , AC201_ADD
+                   , AC201_ADD_DTL
+                   , AC201_ADD_REFER
+                   , AC201_ADD_GB
+                   , AC201_GDS_CD
+                   , AC201_GDS_QTY
+                   , AC201_DEG
+                   , AC201_USGE
+                   , AC201_SALE_TYP
+                   , AC201_CYCL_TYP
+                   , AC201_DUTY_MTHS
+                   , AC201_AS_MTHS
+                   , AC201_BS_MTHS
+                   , AC201_CONT_DT
+                   , AC201_INST_DT
+
+
+                   , AC201_COMP_YN
+                   , AC201_RET_YN
+                   , AC201_MKD_CO
+
+                   , AC201_CSMR_YR_B
+                   , AC201_CSMR_CD_B
+                   , AC201_CSMR_SEQ_B
+
+                   , AC201_ETC_1
+                   , AC201_ETC_3
+                   , AC201_ETC_9
+                   , AC201_BS_GB1
+                   , AC201_BS_GB2
+
+                   , AC201_REG_DT
+                   , AC201_REG_TM
+                   , AC201_REG_ID
+                     )
+            VALUES ( C1.AC201_CSMR_YR
+                   , LPAD(TRIM(C1.AC201_CSMR_CD),7,'0')
+                   , C1.AC201_CSMR_SEQ
+                   , C1.AC201_CSMR_SER
+                   , TO_CHAR(SYSDATE,'YYYYMMDD')
+                   , '10'
+                   , C1.AC201_SALE_GB
+                   , C1.AC201_MGT_GB
+                   , C1.AC201_INST_GB
+
+                   , C1.AC201_EMP_ID_PTNR
+                   , C1.AC201_TEL_CO_PTNR
+                   , TRIM(TO_SINGLE_BYTE(CIPENC('df',C1.AC201_HP_NO1_PTNR)))
+                   , C1.AC201_HP_NO2_PTNR
+                   , C1.AC201_EMP_ID_CH
+                   , C1.AC201_TEL_CO_CH
+                   , TRIM(TO_SINGLE_BYTE(CIPENC('df',C1.AC201_HP_NO1_CH)))
+                   , C1.AC201_HP_NO2_CH
+
+                   , TRIM(TO_SINGLE_BYTE(C1.AC201_CUST_NM))
+                   , '' --TRIM(#ID_NO#)
+                   , TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_CO))
+                   , TRIM(TO_SINGLE_BYTE(CIPENC('df',C1.AC201_HP_NO1)))
+                   , TRIM(TO_SINGLE_BYTE(C1.AC201_HP_NO2))
+                   , TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_AR))
+                   , TRIM(TO_SINGLE_BYTE(CIPENC('df',C1.AC201_TEL_NO1)))
+                   , TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_NO2))
+                   , TRIM(C1.AC201_ZIP_NO1)
+                   , TRIM(C1.AC201_ZIP_NO2)
+                   , TRIM(TO_SINGLE_BYTE(C1.AC201_ADD))
+                   , TRIM(TO_SINGLE_BYTE(C1.AC201_ADD_DTL))
+                   , TRIM(TO_SINGLE_BYTE(C1.AC201_ADD_REFER))
+                   , C1.AC201_ADD_GB
+                   , C1.AC201_GDS_CD
+                   , '1'
+                   , C1.AC201_DEG
+                   , TRIM(C1.AC201_USGE)
+                   , '2'    --TRIM(C1.AC201_SALE_TYP)
+                   , TRIM(REPLACE(C1.AC201_CYCL_TYP,'M0', 'M1'))
+                   , '0'    --C1.AC201_DUTY_MTHS
+                   , (CASE WHEN C1.AC201_BS_MTHS > 1 THEN MONTHS_BETWEEN(SUBSTR(C1.REQ_VST_DT,1,6) || '01', SUBSTR(C1.AC201_INST_DT,1,6)||'01') + C1.AC201_BS_MTHS
+                           ELSE MONTHS_BETWEEN(SUBSTR(C1.REQ_VST_DT,1,6) || '01', SUBSTR(C1.AC201_INST_DT,1,6)||'01')
+                      END)  --C1.AC201_AS_MTHS
+                   , (CASE WHEN C1.AC201_BS_MTHS > 1 THEN MONTHS_BETWEEN(SUBSTR(C1.REQ_VST_DT,1,6) || '01', SUBSTR(C1.AC201_INST_DT,1,6)||'01') + C1.AC201_BS_MTHS
+                           ELSE MONTHS_BETWEEN(SUBSTR(C1.REQ_VST_DT,1,6) || '01', SUBSTR(C1.AC201_INST_DT,1,6)||'01')
+                      END)  --C1.AC201_BS_MTHS
+                   , TRIM(C1.AC201_CONT_DT)
+                   , TRIM(C1.AC201_INST_DT)
+
+
+                   , TRIM(C1.AC201_COMP_YN)
+                   , TRIM(C1.AC201_RET_YN)
+                   , TRIM(C1.AC201_MKD_CO)
+
+                   , TRIM(C1.AC201_CSMR_YR_B)
+                   , TRIM(LPAD(C1.AC201_CSMR_CD_B,7,'0'))
+                   , TRIM(C1.AC201_CSMR_SEQ_B)
+
+                   , TRIM(C1.AC201_ETC_1)
+                   , TRIM(C1.AC201_ETC_3)
+                   , TRIM(C1.AC201_ETC_9)
+                   , TRIM(C1.AC201_BS_GB1)
+                   , TRIM(C1.AC201_BS_GB2)
+                   , TO_CHAR(SYSDATE,'YYYYMMDD')
+                   , TO_CHAR(SYSDATE,'HH24MISS')
+                   , 'PLA_SCH'
+                     )
+    </update>
+
+    <update id="updateSpMkPlantSchedule02">
+        /*2. 모종의 스케쥴을 생성한다.*/
+        /* 19.03.06 이영진, 일시불 12개월 구매건 적용,  -1을 하는 이유는 마지막 방문 생성 안되게 하려고 모종은 시작시점에 출고가 되는 형태이기 때문에 */
+        SP_LC_SERVICEVISIT_482_LST_I06( C1.AC201_CSMR_YR
+                                      , C1.AC201_CSMR_CD
+                                      , C1.AC201_CSMR_SEQ
+                                      , C1.AC201_GDS_CD
+                                      , C1.AC201_CYCL_TYP
+                                      , C1.AC201_USGE
+                                      , C1.AC201_SALE_TYP
+                                      , C1.AC201_INST_DT
+                                      , SUBSTR(C1.REQ_VST_DT,1,6) || '01'
+                                      , C1.REQ_VST_DT
+                                      , (CASE WHEN C1.AC201_BS_MTHS > 1 THEN MONTHS_BETWEEN(SUBSTR(C1.REQ_VST_DT,1,6) || '01', SUBSTR(C1.AC201_INST_DT,1,6)||'01') + C1.AC201_BS_MTHS
+                                              ELSE MONTHS_BETWEEN(SUBSTR(C1.REQ_VST_DT,1,6) || '01', SUBSTR(C1.AC201_INST_DT,1,6)||'01')
+                                         END)
+                                      , ''
+                                      , '2'
+                                      , 'PLA_SCH'
+                                      , MSG)
+    </update>
+
+    <update id="updateSpMkPlantSchedule03">
+        /*3. 디바이스의 스케쥴을 생성한다. */
+        SP_LC_SERVICEVISIT_482_LST_I06( C1.D_CSMR_YR
+                                      , C1.D_CSMR_CD
+                                      , '00'
+                                      , C1.D_GDS_CD
+                                      , '2M9'   /*모종배송 강제세팅*/
+                                      , C1.D_USGE
+                                      , C1.D_SALE_TYP
+                                      , C1.D_INST_DT
+                                      , SUBSTR(C1.REQ_VST_DT,1,6) || '01'
+                                      , C1.REQ_VST_DT
+                                      , (CASE WHEN C1.AC201_BS_MTHS > 1 THEN MONTHS_BETWEEN(SUBSTR(C1.REQ_VST_DT,1,6) || '01', SUBSTR(C1.AC201_INST_DT,1,6)||'01') + C1.AC201_BS_MTHS
+                                              ELSE MONTHS_BETWEEN(SUBSTR(C1.REQ_VST_DT,1,6) || '01', SUBSTR(C1.AC201_INST_DT,1,6)||'01')
+                                         END)
+                                      , ''
+                                      , '2'
+                                      , 'PLA_SCH'
+                                      , MSG)
+    </update>
+
+    <update id="updateSpMkPlantSchedule04">
+        UPDATE LC_ALLOCATE_AC201TB
+           SET AC201_GDS_CD = C1.AC201_GDS_CD
+             , AC201_UPD_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
+             , AC201_UPD_TM = TO_CHAR(SYSDATE,'HH24MISS')
+             , AC201_UPD_ID = '4250'
+         WHERE 1=1
+           AND AC201_CSMR_YR = C1.AC201_CSMR_YR
+           AND AC201_CSMR_CD = C1.AC201_CSMR_CD
+           AND AC201_CSMR_SEQ = C1.AC201_CSMR_SEQ
+    </update>
+
+    <update id="updateSpMkPlantSchedule05">
+        UPDATE LC_ALLOCATE_AC202TB
+           SET AC202_GDS_CD = C1.AC201_GDS_CD
+             , AC202_UPD_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
+             , AC202_UPD_TM = TO_CHAR(SYSDATE,'HH24MISS')
+             , AC202_UPD_ID = '4250'
+         WHERE 1=1
+           AND AC202_MGT_YM = (SELECT MAX(AC202_MGT_YM)
+                                 FROM LC_ALLOCATE_AC202TB
+                                WHERE 1=1
+                                  AND AC202_CSMR_YR = C1.AC201_CSMR_YR
+                                  AND AC202_CSMR_CD = C1.AC201_CSMR_CD
+                                  AND AC202_CSMR_SEQ = C1.AC201_CSMR_SEQ)
+           AND AC202_CSMR_YR = C1.AC201_CSMR_YR
+           AND AC202_CSMR_CD = C1.AC201_CSMR_CD
+           AND AC202_CSMR_SEQ = C1.AC201_CSMR_SEQ
+    </update>
+
+    <update id="updateSpMkPlantSchedule06">
+        SP_LC_SERVICEVISIT_482_LST_I03( SUBSTR(C1.REQ_VST_DT,1,6)
+                                      , C1.AC201_CSMR_YR
+                                      , C1.AC201_CSMR_CD
+                                      , C1.AC201_CSMR_SEQ
+                                      , 'PLA_SCH'
+                                      , MSG)
+    </update>
+
+    <update id="updateSpMkPlantSchedule07">
+        SP_LC_SERVICEVISIT_482_LST_I03( SUBSTR(C1.REQ_VST_DT,1,6)
+                                      , C1.D_CSMR_YR
+                                      , C1.D_CSMR_CD
+                                      , '00'
+                                      , 'PLA_SCH'
+                                      , MSG)
+    </update>
+
+    <delete id="deleteSpMkPlantSchedule08">
+        /*1. 모종의 스케쥴을 삭제 한다.*/
+        DELETE
+          FROM LC_VISIT_VS107TB
+         WHERE VS107_CSMR_YR = C1.AC201_CSMR_YR
+           AND VS107_CSMR_CD = C1.AC201_CSMR_CD
+           AND VS107_CSMR_SEQ= '00'
+           AND VS107_VST_DT >= C1.REQ_VST_DT
+           AND VS107_VST_DT >= TO_CHAR(SYSDATE, 'YYYYMM') || '01'
+           AND VS107_WRK_DT IS NULL
+    </delete>
+
+    <delete id="deleteSpMkPlantSchedule09">
+        /*2. 디바이스의 스케쥴을 삭제한다. */
+        DELETE
+          FROM LC_VISIT_VS107TB
+         WHERE VS107_CSMR_YR = C1.D_CSMR_YR
+           AND VS107_CSMR_CD = C1.D_CSMR_CD
+           AND VS107_CSMR_SEQ= '00'
+           AND VS107_VST_DT >= C1.REQ_VST_DT
+           AND VS107_VST_DT >= TO_CHAR(SYSDATE, 'YYYYMM') || '01'
+           AND VS107_WRK_DT IS NULL
+    </delete>
+
+    <update id="updateSpMkPlantSchedule10">
+        /*3.모종의 배정을 삭제한다. */
+        SP_LC_SERVICEVISIT_482_LST_I07( TO_CHAR(SYSDATE, 'YYYYMM')
+                                      , C1.AC201_CSMR_YR
+                                      , C1.AC201_CSMR_CD
+                                      , C1.AC201_CSMR_SEQ
+                                      , 'PLA_SCH'
+                                      , MSG)
+    </update>
+
+    <update id="updateSpMkPlantSchedule11">
+        /*4.디바이스의 배정을 삭제한다. */
+        SP_LC_SERVICEVISIT_482_LST_I07( TO_CHAR(SYSDATE, 'YYYYMM')
+                                      , C1.D_CSMR_YR
+                                      , C1.D_CSMR_YR
+                                      , '00'
+                                      , 'PLA_SCH'
+                                      , MSG)
+    </update>
+
+    <select id="selectSpMkRedginsengSchedule"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncBsPeriodChartResDvo">
+        /*홍삼 정기배송 고객 조회*/
+        SELECT LPAD(LCYEAR,4,'0')               AS AC201_CSMR_YR            /** [ 0]LCYEAR 년도 **/
+             , LPAD(LCCODE,7,'0')               AS AC201_CSMR_CD            /** [ 1]LCCODE 고객코드 **/
+             , '00'                             AS AC201_CSMR_SEQ           /** [ 2]LCSEQN 순번 **/
+             , TO_CHAR(LCSEQN)                  AS AC201_CSMR_SER           /** [ 3]LCSERI 일련번호 **/
+             , TO_CHAR(SYSDATE,'YYYYMMDD')      AS AC201_RECD_DT
+             , '10'                             AS AC201_CO_CD              /** [ 4]LCCOMP 회사코드 **/
+             , TO_CHAR(LCSALE)                  AS AC201_SALE_GB            /** [ 5]LCSALE 판매구분 **/
+             , LCTYPE                           AS AC201_MGT_GB             /** [ 6]LCTYPE 판매유형 **/
+             , TO_CHAR(LCDCDE)                  AS AC201_EMP_ID_PTNR        /** [ 7]LCDCDE 파트너 **/
+             , (SELECT TRIM(AKDBTD)
+                  FROM KWMART.AK0400P
+                 WHERE AKDGUB = LD30.LCSALE
+                   AND AKDCDE = LD30.LCDCDE)    AS AC201_TEL_CO_PTNR        /** [ 8]LCDTL1 전화１**/
+             , (SELECT CIPDEC('df', AKDBT1)
+                  FROM KWMART.AK0400P
+                 WHERE AKDGUB = LD30.LCSALE
+                   AND AKDCDE = LD30.LCDCDE)    AS AC201_HP_NO1_PTNR        /** [ 9]LCDTL2 전화２ **/
+             , (SELECT AKDBT2
+                  FROM KWMART.AK0400P
+                 WHERE AKDGUB = LD30.LCSALE
+                   AND AKDCDE = LD30.LCDCDE)    AS AC201_HP_NO2_PTNR        /** [10]LCDTL3 전화３ **/
+             , TO_CHAR(LCDBON)                  AS AC201_EMP_ID_CH          /** [11]LCDBON 지점장 **/
+             , (SELECT TRIM(AKDBTD)
+                  FROM KWMART.AK0400P
+                 WHERE AKDGUB = LD30.LCSALE
+                   AND AKDCDE = LD30.LCDBON)    AS AC201_TEL_CO_CH          /** [12]LCBTL1 전화１ **/
+             , (SELECT CIPDEC('df',  AKDBT1)
+                  FROM KWMART.AK0400P
+                 WHERE AKDGUB = LD30.LCSALE
+                   AND AKDCDE = LD30.LCDBON)    AS AC201_HP_NO1_CH          /** [13]LCBTL2 전화２ **/
+             , (SELECT AKDBT2
+                  FROM KWMART.AK0400P
+                 WHERE AKDGUB = LD30.LCSALE
+                   AND AKDCDE = LD30.LCDBON)    AS AC201_HP_NO2_CH          /** [14]LCBTL3 전화３ **/
+             , LCWGUB                           AS AC201_INST_GB            /** [15]LCWGUB 구분 **/
+             , TO_SINGLE_BYTE(LCWNAM)           AS AC201_CUST_NM            /** [16]LCWNAM 고객명 **/
+             , '0'                              AS AC201_ID_NO              /** [17]LCWINO 주민／사업 NO **/
+             , TRIM(LCWNO1)                     AS AC201_TEL_CO             /** [18]LCWNO1 휴대폰１ **/
+             , CIPDEC('df', LD30.LCWNO2)        AS AC201_HP_NO1             /** [19]LCWNO2 휴대폰２  2015.05.31 김경희 DB암호화 **/
+             , LCWNO3                           AS AC201_HP_NO2             /** [20]LCWNO3 휴대폰３ **/
+             , LCWDDD                           AS AC201_TEL_AR             /** [21]LCWDDD 전화지역 **/
+             , CIPDEC('df', LD30.LCWTL1)        AS AC201_TEL_NO1            /** [22]LCWTL1 전화국    2015.05.31 김경희 DB암호화 **/
+             , LCWTL2                           AS AC201_TEL_NO2            /** [23]LCWTL2 전화번호 **/
+             , LD30.LCWZP1                      AS AC201_ZIP_NO1            /** [24]LCWZP1 우편１ **/
+             , LD30.LCWZP2                      AS AC201_ZIP_NO2            /** [25]LCWZP2 우편２ **/
+             , TO_SINGLE_BYTE(LD30.LCWAD1)      AS AC201_ADD                /** [26]LCWAD1 주소１ **/
+             , TO_SINGLE_BYTE(LD30.LCWAD2)      AS AC201_ADD_DTL            /** [27]LCWAD2 주소２ **/
+
+             , '66'||TO_CHAR(LCST12)||'000000'  AS AC201_GDS_CD             /** [28]LCICDE 상품코드 2016.10.28 이충관 수정 - 기존 LCICDE를 LCNCDE로 변경(단종상품관련) **/
+             , '1'                              AS AC201_GDS_QTY            /** [29]LCIQTY 상품수량 **/
+             , 'A'                              AS AC201_DEG                /** [30]LCIGRD 상품등급 (일단제외) **/
+             , LCIUSE                           AS AC201_USGE               /** [31]LCIUSE 상품용도 **/
+             , '2'                              AS AC201_SALE_TYP           /** [32]LCVGU1 관리구분   1 할부  2 렌탈  3 멤버  4 회사  9 **/
+             , TRIM(TO_CHAR(LD30.LCIMON)) || 'M' || NVL(REPLACE(TO_CHAR(LD30.LCIUSE), '0', '1'),'1') AS AC201_CYCL_TYP /** [32]LCVGU2 방문주기 **/
+             --, '2M1' AS AC201_CYCL_TYP /** [32]LCVGU2 방문주기 **/
+             , TO_CHAR(LD30.LCDUTY)             AS AC201_DUTY_MTHS          /** [34]LCVGU3 의무사용 (무상기간) **/
+
+             , LCMONT AS AC201_AS_MTHS            /** [35]LCVGU4 무상 A/S **/
+             , LCMONT AS AC201_BS_MTHS            /** [36]LCVGU5 무상 B/S **/
+
+             , LPAD(TO_CHAR(LD30.LCCRTY),4,'0')||
+               LPAD(TO_CHAR(LD30.LCCRTM),2,'0')||
+               LPAD(TO_CHAR(LD30.LCCRTD),2,'0')     AS AC201_CONT_DT        /** [37]LCCRTT 계약일자 **/
+             , (CASE WHEN LD30.LCSLEY = 0 THEN /*접수되면 바로 배송 처리를 위해서 설치일자 세팅*/
+                                               TO_CHAR(SYSDATE, 'YYYYMMDD')
+                     ELSE LPAD(TO_CHAR(LD30.LCSLEY),4,'0')||
+                          LPAD(TO_CHAR(LD30.LCSLEM),2,'0')||
+                          LPAD(TO_CHAR(LD30.LCSLED),2,'0')
+                END)                                AS AC201_INST_DT        /** [38]LCSETT 설치일자 **/
+             , ''                                   AS AC201_CHNG_DT        /** [39]LCCHGT 교체일자 **/
+             , (CASE WHEN LD30.LCCANY !=0
+                     THEN LPAD(TO_CHAR(LD30.LCCANY),4,'0')||
+                          LPAD(TO_CHAR(LD30.LCCANM),2,'0')||
+                          LPAD(TO_CHAR(LD30.LCCAND),2,'0')
+                     ELSE ''
+                END)                                AS AC201_REMV_DT        /** [40]LCREMT 철거일자 **/
+             , (CASE WHEN LD30.LCCANY !=0
+                     THEN LPAD(TO_CHAR(LD30.LCCANY),4,'0')||
+                          LPAD(TO_CHAR(LD30.LCCANM),2,'0')||
+                          LPAD(TO_CHAR(LD30.LCCAND),2,'0')
+                     ELSE ''
+                END)                                AS AC201_CANC_DT        /** [41]LCCANT 취소일자 **/
+             , ''                                   AS AC201_COMP_DT        /** [42]LCCOMT 보상일자 **/
+             , ''                                   AS AC201_STOP_DT
+             , ''                               AS AC201_COMP_YN            /** [43]LCBGU1 보상유무 **/
+             , ''                               AS AC201_RET_YN             /** [44]LCBGU2 회수유무 **/
+             , ''                               AS AC201_MKD_CO             /** [45]LCBCMP 제조회사 **/
+             , (SELECT CASE WHEN TRIM(LCTYP2) != '' THEN LCTYP2 ELSE LCTYP1 END
+                  FROM KWMART.LC2290P
+                 WHERE 1=1
+                   AND LCYEAR = LD30.LCYEAR
+                   AND LCCODE = LD30.LCCODE)    AS AC201_CSMR_YR_B          /** [46]LCBTYP **/
+             , (SELECT CASE WHEN LCYER2 != 0 THEN LCYER2 ELSE LCYER1 END
+                  FROM KWMART.LC2290P
+                 WHERE 1=1
+                   AND LCYEAR = LD30.LCYEAR
+                   AND LCCODE = LD30.LCCODE)    AS AC201_CSMR_CD_B          /** [46]LCBYER 년도 **/
+             , (SELECT CASE WHEN LCCOD2 != 0 THEN LCCOD2 ELSE LCCOD1 END
+                  FROM KWMART.LC2290P
+                 WHERE 1=1
+                   AND LCYEAR = LD30.LCYEAR
+                   AND LCCODE = LD30.LCCODE)    AS AC201_CSMR_SEQ_B         /** [47]LCBCDE 고객코드 **/
+             , LD30.LCWAGB                      AS AC201_ADD_GB             /** [64]LCWAGB 주소구분(1:도로명,2:지번) - 2015.01.02 정찬영 추가 - 도로명주소 **/
+             , TO_SINGLE_BYTE(LD30.LCWAD3)      AS AC201_ADD_REFER          /** [65]LCWAD3 주소3 **/
+             , '66'||TO_CHAR(LCPKAG)||'000000'  AS AC201_GDS_CD_OLD
+             , '00' AS AC201_BS_GB1
+             , '2' AS AC201_BS_GB2
+             , '' AS AC201_ETC_1
+             , '' AS AC201_ETC_3
+             , '' AS AC201_ETC_9
+             , TO_CHAR(SYSDATE+2, 'YYYYMMDD') AS REQ_VST_DT
+             , T1.AC201_CSMR_SER AS P_AC201_CSMR_SER
+             , LD30.LCIMON AS LCIMON
+          FROM KWMART.LD3000P LD30
+             , LC_ALLOCATE_AC201TB T1
+         WHERE 1=1
+           AND TO_CHAR(LCYEAR) = T1.AC201_CSMR_YR(+)
+           AND TO_CHAR(LPAD(LCCODE,7,'0')) = T1.AC201_CSMR_CD(+)
+           AND T1.AC201_INST_DT(+) IS NULL
+
+           AND LCSLEY = 0       /*매출확정 자료가 아니고*/
+           AND LCPRD1 = 0       /*0: 홍삼/화장품, 1:웰스팜, 2:캡슐 */
+           AND LCSEQN = 1       /*홍삼, 캡슐은 순번이 무조건 1*/
+           AND LCST05 = '1'     /*LCST05 배송형태 1:정기배송, 2:일시불*/
+
+           AND LCST12 NOT IN ('613')     /*613은 화장품 정기배송*/
+           AND LCST12 IN ('611', '612', '614', '615', '616', '617')     /*2022.01.06 김지혜 매니저 요청 614추가*/ /*2022.02.07 김지혜 매니저 요청 615추가, 활력슬림쏙*/ /*2022.03.30 김지혜 매니저 요청 616, 617 추가, 백수오*/
+           --AND LCTAMT-LCRAMT >= 0 /*유상판매*/
+
+           AND LCUGUB  = 'Y'    /*매출 확정 자료*/
+           /*현재 만들어진 주기가 없거나, 취소일자가 다른경우, 패키지가 다른 경우 */
+           AND ((TO_NUMBER(LPAD(TO_CHAR(LD30.LCCANY),4,'0') || LPAD(TO_CHAR(LD30.LCCANM),2,'0') || LPAD(TO_CHAR(LD30.LCCAND),2,'0')) || '' != NVL(T1.AC201_CANC_DT, '0'))
+             OR (TO_CHAR(LCST12) != NVL(SUBSTR(T1.AC201_GDS_CD,3,3),0))
+             OR (LCCANY = 0 AND NVL((SELECT COUNT(1)
+                                       FROM LC_VISIT_VS107TB
+                                      WHERE 1=1
+                                        AND VS107_CSMR_YR = T1.AC201_CSMR_YR
+                                        AND VS107_CSMR_CD = T1.AC201_CSMR_CD)
+                                      , 0) = 0)
+               )
+
+           AND LCYEAR || LCCODE NOT IN ('20214673911', '20216633057', '20216660111')  /*--전아영 매니저 테스트 건*/
+    </select>
+
+    <update id="saveSpMkRedginsengSchedule01">
+        /*1. 고객마스터(LC_ALLOCATE_AC201TB) 인서트 또는 업데이트*/
+        MERGE
+         INTO LC_ALLOCATE_AC201TB AA
+        USING (SELECT C1.AC201_CSMR_YR AS AC201_CSMR_YR
+                    , LPAD(TRIM(C1.AC201_CSMR_CD),7,'0') AS AC201_CSMR_CD
+                    , C1.AC201_CSMR_SEQ AS AC201_CSMR_SEQ
+                 FROM DUAL) BB
+           ON (    AA.AC201_CSMR_YR  = BB.AC201_CSMR_YR
+               AND AA.AC201_CSMR_CD  = BB.AC201_CSMR_CD
+               AND AA.AC201_CSMR_SEQ = BB.AC201_CSMR_SEQ)
+        WHEN MATCHED THEN
+            UPDATE
+               SET AC201_CSMR_SER   = C1.AC201_CSMR_SER
+                 , AC201_CUST_NM    = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(C1.AC201_CUST_NM))) > 0 THEN TRIM(TO_SINGLE_BYTE(C1.AC201_CUST_NM)) ELSE C1.AC201_CUST_NM END)
+                 , AC201_ID_NO      = '' --TRIM(#ID_NO#)
+                 , AC201_TEL_CO     = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_CO))) > 0 THEN TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_CO)) ELSE C1.AC201_TEL_CO END)
+                 , AC201_HP_NO1     = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(CIPENC('df',C1.AC201_HP_NO1)))) > 0 THEN TRIM(TO_SINGLE_BYTE(CIPENC('df',C1.AC201_HP_NO1))) ELSE C1.AC201_HP_NO1 END)
+                 , AC201_HP_NO2     = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(C1.AC201_HP_NO2))) > 0 THEN TRIM(TO_SINGLE_BYTE(C1.AC201_HP_NO2)) ELSE C1.AC201_HP_NO2 END)
+                 , AC201_TEL_AR     = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_AR))) > 0 THEN TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_AR)) ELSE AC201_TEL_AR END)
+                 , AC201_TEL_NO1    = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(CIPENC('df',C1.AC201_TEL_NO1)))) > 0 THEN TRIM(TO_SINGLE_BYTE(CIPENC('df',C1.AC201_TEL_NO1))) ELSE C1.AC201_TEL_NO1 END)
+                 , AC201_TEL_NO2    = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_NO2))) > 0 THEN TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_NO2)) ELSE C1.AC201_TEL_NO2 END)
+                 , AC201_ZIP_NO1    = (CASE WHEN LENGTH(TRIM(C1.AC201_ZIP_NO1)) > 0 THEN TRIM(C1.AC201_ZIP_NO1) ELSE C1.AC201_ZIP_NO1 END)
+                 , AC201_ZIP_NO2    = (CASE WHEN LENGTH(TRIM(C1.AC201_ZIP_NO2)) > 0 THEN TRIM(C1.AC201_ZIP_NO2) ELSE C1.AC201_ZIP_NO2 END)
+                 , AC201_ADD        = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(C1.AC201_ADD))) > 0 THEN TRIM(TO_SINGLE_BYTE(C1.AC201_ADD)) ELSE C1.AC201_ADD END)
+                 , AC201_ADD_DTL    = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(C1.AC201_ADD_DTL))) > 0 THEN TRIM(TO_SINGLE_BYTE(C1.AC201_ADD_DTL)) ELSE C1.AC201_ADD_DTL END)
+                 , AC201_ADD_REFER  = (CASE WHEN LENGTH(TRIM(TO_SINGLE_BYTE(C1.AC201_ADD_REFER))) > 0 THEN TRIM(TO_SINGLE_BYTE(C1.AC201_ADD_REFER)) ELSE C1.AC201_ADD_REFER END)
+                 , AC201_ADD_GB     = (CASE WHEN LENGTH(C1.AC201_ADD_GB) > 0 THEN C1.AC201_ADD_GB ELSE C1.AC201_ADD_GB END)
+
+
+                 , AC201_SALE_GB    = (CASE WHEN LENGTH(C1.AC201_SALE_GB) > 0 THEN C1.AC201_SALE_GB ELSE C1.AC201_SALE_GB END)   --판매구분 1 EDU   4 TM    7 LC   8 직원 10 회사
+                 , AC201_MGT_GB     = (CASE WHEN LENGTH(C1.AC201_MGT_GB) > 0 THEN C1.AC201_MGT_GB ELSE C1.AC201_MGT_GB END)   --판매시유형   1 할부  2 렌탈  3 멤버  4 회사
+
+                 , AC201_GDS_CD     = C1.AC201_GDS_CD
+                 , AC201_DEG        = (CASE WHEN LENGTH(C1.AC201_DEG) > 0 THEN C1.AC201_DEG END)
+    --
+                 , AC201_USGE       = (CASE WHEN LENGTH(TRIM(C1.AC201_USGE)) > 0 THEN TRIM(C1.AC201_USGE) ELSE C1.AC201_USGE END)
+                 , AC201_SALE_TYP   = '2'
+    --                 , AC201_CYCL_TYP  = (CASE WHEN LENGTH(TRIM(REPLACE(C1.AC201_CYCL_TYP,'M0', 'M1'))) > 0 THEN TRIM(REPLACE(C1.AC201_CYCL_TYP,'M0', 'M1')) ELSE AC201_CYCL_TYP END)
+                 , AC201_DUTY_MTHS  = AC201_DUTY_MTHS
+                 , AC201_AS_MTHS    = C1.AC201_AS_MTHS
+                 , AC201_BS_MTHS    = C1.AC201_BS_MTHS
+                 , AC201_CONT_DT    = TRIM(C1.AC201_CONT_DT)
+                 , AC201_INST_DT   = (CASE WHEN LENGTH(TRIM(C1.AC201_INST_DT)) > 0 THEN TRIM(C1.AC201_INST_DT) ELSE AC201_INST_DT END)
+
+
+                 , AC201_COMP_YN    = TRIM(C1.AC201_COMP_YN)
+                 , AC201_RET_YN     = TRIM(C1.AC201_RET_YN)
+                 , AC201_MKD_CO     = TRIM(C1.AC201_MKD_CO)
+                 , AC201_CSMR_YR_B  = TRIM(C1.AC201_CSMR_YR_B)
+                 , AC201_CSMR_CD_B  = TRIM(LPAD(C1.AC201_CSMR_CD_B,7,'0'))
+                 , AC201_CSMR_SEQ_B = TRIM(C1.AC201_CSMR_SEQ_B)
+
+                 , AC201_ETC_1      = TRIM(C1.AC201_ETC_1)
+                 , AC201_ETC_3      = TRIM(C1.AC201_ETC_3)
+                 , AC201_ETC_9      = TRIM(C1.AC201_ETC_9)
+
+                 , AC201_UPD_DT    = TO_CHAR(SYSDATE,'YYYYMMDD')
+                 , AC201_UPD_TM    = TO_CHAR(SYSDATE,'HH24MISS')
+                 , AC201_UPD_ID    = 'SPMKJIN'
+        WHEN NOT MATCHED THEN
+            INSERT ( AC201_CSMR_YR
+                   , AC201_CSMR_CD
+                   , AC201_CSMR_SEQ
+                   , AC201_CSMR_SER
+                   , AC201_RECD_DT
+                   , AC201_CO_CD
+                   , AC201_SALE_GB
+                   , AC201_MGT_GB
+                   , AC201_INST_GB
+
+                   , AC201_EMP_ID_PTNR
+                   , AC201_TEL_CO_PTNR
+                   , AC201_HP_NO1_PTNR
+                   , AC201_HP_NO2_PTNR
+                   , AC201_EMP_ID_CH
+                   , AC201_TEL_CO_CH
+                   , AC201_HP_NO1_CH
+                   , AC201_HP_NO2_CH
+
+                   , AC201_CUST_NM
+                   , AC201_ID_NO
+                   , AC201_TEL_CO
+                   , AC201_HP_NO1
+                   , AC201_HP_NO2
+                   , AC201_TEL_AR
+                   , AC201_TEL_NO1
+                   , AC201_TEL_NO2
+                   , AC201_ZIP_NO1
+                   , AC201_ZIP_NO2
+                   , AC201_ADD
+                   , AC201_ADD_DTL
+                   , AC201_ADD_REFER
+                   , AC201_ADD_GB
+                   , AC201_GDS_CD
+                   , AC201_GDS_QTY
+                   , AC201_DEG
+                   , AC201_USGE
+                   , AC201_SALE_TYP
+                   , AC201_CYCL_TYP
+                   , AC201_DUTY_MTHS
+                   , AC201_AS_MTHS
+                   , AC201_BS_MTHS
+                   , AC201_CONT_DT
+                   , AC201_INST_DT
+
+
+                   , AC201_COMP_YN
+                   , AC201_RET_YN
+                   , AC201_MKD_CO
+
+                   , AC201_CSMR_YR_B
+                   , AC201_CSMR_CD_B
+                   , AC201_CSMR_SEQ_B
+
+                   , AC201_ETC_1
+                   , AC201_ETC_3
+                   , AC201_ETC_9
+                   , AC201_BS_GB1
+                   , AC201_BS_GB2
+
+                   , AC201_REG_DT
+                   , AC201_REG_TM
+                   , AC201_REG_ID
+                     )
+            VALUES ( C1.AC201_CSMR_YR
+                   , LPAD(TRIM(C1.AC201_CSMR_CD),7,'0')
+                   , C1.AC201_CSMR_SEQ
+                   , C1.AC201_CSMR_SER
+                   , TO_CHAR(SYSDATE,'YYYYMMDD')
+                   , '10'
+                   , C1.AC201_SALE_GB
+                   , C1.AC201_MGT_GB
+                   , C1.AC201_INST_GB
+
+                   , C1.AC201_EMP_ID_PTNR
+                   , C1.AC201_TEL_CO_PTNR
+                   , TRIM(TO_SINGLE_BYTE(CIPENC('df',C1.AC201_HP_NO1_PTNR)))
+                   , C1.AC201_HP_NO2_PTNR
+                   , C1.AC201_EMP_ID_CH
+                   , C1.AC201_TEL_CO_CH
+                   , TRIM(TO_SINGLE_BYTE(CIPENC('df',C1.AC201_HP_NO1_CH)))
+                   , C1.AC201_HP_NO2_CH
+
+                   , TRIM(TO_SINGLE_BYTE(C1.AC201_CUST_NM))
+                   , '' --TRIM(#ID_NO#)
+                   , TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_CO))
+                   , TRIM(TO_SINGLE_BYTE(CIPENC('df',C1.AC201_HP_NO1)))
+                   , TRIM(TO_SINGLE_BYTE(C1.AC201_HP_NO2))
+                   , TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_AR))
+                   , TRIM(TO_SINGLE_BYTE(CIPENC('df',C1.AC201_TEL_NO1)))
+                   , TRIM(TO_SINGLE_BYTE(C1.AC201_TEL_NO2))
+                   , TRIM(C1.AC201_ZIP_NO1)
+                   , TRIM(C1.AC201_ZIP_NO2)
+                   , TRIM(TO_SINGLE_BYTE(C1.AC201_ADD))
+                   , TRIM(TO_SINGLE_BYTE(C1.AC201_ADD_DTL))
+                   , TRIM(TO_SINGLE_BYTE(C1.AC201_ADD_REFER))
+                   , C1.AC201_ADD_GB
+                   , C1.AC201_GDS_CD
+                   , '1'
+                   , C1.AC201_DEG
+                   , TRIM(C1.AC201_USGE)
+                   , '2'    --TRIM(C1.AC201_SALE_TYP)
+                   , TRIM(REPLACE(C1.AC201_CYCL_TYP,'M0', 'M1'))
+                   , C1.AC201_DUTY_MTHS
+                   , C1.AC201_AS_MTHS
+                   , C1.AC201_BS_MTHS
+                   , TRIM(C1.AC201_CONT_DT)
+                   , TRIM(C1.AC201_INST_DT)
+
+
+                   , TRIM(C1.AC201_COMP_YN)
+                   , TRIM(C1.AC201_RET_YN)
+                   , TRIM(C1.AC201_MKD_CO)
+
+                   , TRIM(C1.AC201_CSMR_YR_B)
+                   , TRIM(LPAD(C1.AC201_CSMR_CD_B,7,'0'))
+                   , TRIM(C1.AC201_CSMR_SEQ_B)
+
+                   , TRIM(C1.AC201_ETC_1)
+                   , TRIM(C1.AC201_ETC_3)
+                   , TRIM(C1.AC201_ETC_9)
+                   , TRIM(C1.AC201_BS_GB1)
+                   , TRIM(C1.AC201_BS_GB2)
+                   , TO_CHAR(SYSDATE,'YYYYMMDD')
+                   , TO_CHAR(SYSDATE,'HH24MISS')
+                   , 'SPMKJIN'
+                     )
+    </update>
+
+    <delete id="deleteSpMkRedginsengSchedule02">
+        /* 주기표 강제 생성 */
+        /*무결성 제약 조건 오류 방지*/
+        DELETE FROM LC_VISIT_VS107TB
+         WHERE 1=1
+           AND VS107_CSMR_YR = C1.AC201_CSMR_YR
+           AND VS107_CSMR_CD = C1.AC201_CSMR_CD
+           AND VS107_CSMR_SEQ = C1.AC201_CSMR_SEQ
+           AND VS107_WRK_DT IS NULL
+    </delete>
+
+    <update id="updateSpMkRedginsengSchedule03">
+        /*2. 스케쥴을 생성한다.*/
+        SP_LC_SERVICEVISIT_482_LST_I06( C1.AC201_CSMR_YR
+                                      , C1.AC201_CSMR_CD
+                                      , C1.AC201_CSMR_SEQ
+                                      , C1.AC201_GDS_CD
+                                      , C1.AC201_CYCL_TYP
+                                      , C1.AC201_USGE
+                                      , C1.AC201_SALE_TYP
+                                      , C1.AC201_INST_DT
+                                      , C1.REQ_VST_DT
+                                      , TO_CHAR(SYSDATE, 'YYYYMMDD')
+                                      , C1.AC201_BS_MTHS
+                                      , ''
+                                      , C1.LCIMON
+                                      , 'SPMKJIN'
+                                      , MSG)
+    </update>
+
+    <update id="updateSpMkRedginsengSchedule04">
+        /*3. 배정을 삭제한다. */
+        SP_LC_SERVICEVISIT_482_LST_I07( TO_CHAR(SYSDATE, 'YYYYMM')
+                                      , C1.AC201_CSMR_YR
+                                      , C1.AC201_CSMR_CD
+                                      , C1.AC201_CSMR_SEQ
+                                      , 'SPMKJIN'
+                                      , MSG)
+    </update>
+
+    <update id="updateSpMkRedginsengSchedule05">
+        /*사전방문 BS 생성*/
+        SP_LC_SERVICEVISIT_482_LST_I03(TO_CHAR(SYSDATE, 'YYYYMM')
+                                     , C1.AC201_CSMR_YR
+                                     , C1.AC201_CSMR_CD
+                                     , C1.AC201_CSMR_SEQ
+                                     , '4250'
+                                     , MSG)
+    </update>
+
+    <update id="updateSpMkRedginsengSchedule06">
+        /*BS 사전생성을 위해서 강제 입력한 설치일자 삭제 */
+        UPDATE LC_ALLOCATE_AC201TB
+           SET AC201_INST_DT = ''
+         WHERE 1=1
+           AND AC201_CSMR_YR = C1.AC201_CSMR_YR
+           AND AC201_CSMR_CD = C1.AC201_CSMR_CD
+           AND AC201_CSMR_SEQ = C1.AC201_CSMR_SEQ
+           AND AC201_SALE_DT IS NULL
+    </update>
+
+    <update id="updateSpMkRedginsengSchedule07">
+        /*취소일자 업데이트*/
+        UPDATE LC_ALLOCATE_AC201TB
+           SET AC201_CANC_DT = C1.AC201_CANC_DT
+         WHERE 1=1
+           AND AC201_CSMR_YR = C1.AC201_CSMR_YR
+           AND AC201_CSMR_CD = C1.AC201_CSMR_CD
+           AND AC201_CSMR_SEQ = C1.AC201_CSMR_SEQ
+    </update>
+
+    <delete id="deleteSpMkRedginsengSchedule08">
+        /*1. 스케쥴을 삭제 한다.*/
+        DELETE
+          FROM LC_VISIT_VS107TB
+         WHERE VS107_CSMR_YR = C1.AC201_CSMR_YR
+           AND VS107_CSMR_CD = C1.AC201_CSMR_CD
+           AND VS107_CSMR_SEQ= '00'
+           AND VS107_VST_DT >= TO_CHAR(SYSDATE, 'YYYYMM') || '01'
+           AND VS107_WRK_DT IS NULL
+    </delete>
+
+    <update id="updateSpMkRedginsengSchedule09">
+        /*3. 배정을 삭제한다. */
+        SP_LC_SERVICEVISIT_482_LST_I07( TO_CHAR(SYSDATE, 'YYYYMM')
+                                      , C1.AC201_CSMR_YR
+                                      , C1.AC201_CSMR_CD
+                                      , C1.AC201_CSMR_SEQ
+                                      , 'SPMKJIN'
+                                      , MSG)
+    </update>
+</mapper>

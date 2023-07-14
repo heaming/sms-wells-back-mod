@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbCustomerRglrBfsvcDlMapper">
+    <select id="selectBfsvcAsnIz"
+            resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbCustomerRglrBfsvcDlDvo">
+        SELECT CST_SV_ASN_NO
+             , ASN_OJ_YM
+             , CNTR_NO
+             , CNTR_SN
+             , SV_BIZ_MCLSF_CD
+             , SV_BIZ_DCLSF_CD
+             , WK_SN
+             , WK_EXCN_DT
+          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
+         WHERE 1=1
+           AND CST_SV_ASN_NO = #{cstSvAsnNo}
+           AND ASN_OJ_YM = #{asnOjYm}
+           AND DTA_DL_YN = 'N'
+    </select>
+
+    <update id="updateBfsvcAsnIz">
+        UPDATE TB_SVPD_CST_SV_BFSVC_ASN_IZ
+           SET DTA_DL_YN = 'Y'
+         WHERE 1=1
+           AND CST_SV_ASN_NO = #{cstSvAsnNo}
+           AND ASN_OJ_YM = #{asnOjYm}
+           AND DTA_DL_YN = 'N'
+    </update>
+
+    <insert id="insertBfsvcAsnHist">
+        INSERT INTO TB_SVPD_CST_SV_BFSVC_ASN_HIST (
+              BFSVC_EXCN_ASN_IZ_ID
+            , CST_SV_ASN_NO
+            , ASN_OJ_YM
+            , CNTR_NO
+            , CNTR_SN
+            , SV_BIZ_MCLSF_CD
+            , SV_BIZ_DCLSF_CD
+            , WK_SN
+            , ASN_PSIC_MNGT_DV_CD
+            , ASN_PSIC_DV_CD
+            , ASN_PSIC_PRTNR_OG_TP_CD
+            , ASN_PSIC_PRTNR_NO
+            , CNFM_PSIC_MNGT_DV_CD
+            , CNFM_PSIC_ASN_DT
+            , CNFM_PSIC_ASN_HH
+            , CNFM_PSIC_DV_CD
+            , CNFM_PSIC_PRTNR_OG_TP_CD
+            , CNFM_PSIC_PRTNR_NO
+            , VST_CNFMDT
+            , VST_CNFM_HH
+            , VST_OJ_LOCARA_CD
+            , MNGER_RGLVL_DV_CD
+            , LSTMM_CRDOVR_YN
+            , LSTMM_VST_CNFMDT
+            , LSTMM_VST_CNFM_HH
+            , VST_DUEDT
+            , VST_EXP_HH
+            , VST_PRGS_STAT_CD
+            , WK_EXCN_DT
+            , WK_CAN_RSON_CD
+            , ASN_TF_DV_CD
+            , SITE_AW_PD_GRP_CD
+            , SITE_AW_SV_TP_CD
+            , SITE_AW_ATC_CD
+            , CST_CNTC_DT
+            , CNTC_ICHR_PRTNR_OG_TP_CD
+            , CNTC_ICHR_PRTNR_NO
+            , CST_CNTC_CD
+            , CST_CNTC_MO_CN
+            , SPC_AS_TP_CD
+            , HPCALL_FW_YN
+            , ICHR_LOCARA_DV_CD
+            , ARV_DT
+            , ARV_HH
+            , WK_GRP_CD
+            , LOCARA_GD_CD
+            , LOCARA_CHAOS_GD_CD
+            , DTA_DL_YN
+            , FST_RGST_DTM
+            , FST_RGST_USR_ID
+            , FST_RGST_PRG_ID
+            , FST_RGST_DEPT_ID
+            , FNL_MDFC_DTM
+            , FNL_MDFC_USR_ID
+            , FNL_MDFC_PRG_ID
+            , FNL_MDFC_DEPT_ID
+        )
+        SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVPD_CST_SV_BFSVC_ASN_HIST$BFSVC_EXCN_ASN_IZ_ID.NEXTVAL, 12, '0') AS BFSVC_EXCN_ASN_IZ_ID
+             , CST_SV_ASN_NO
+             , ASN_OJ_YM
+             , CNTR_NO
+             , CNTR_SN
+             , SV_BIZ_MCLSF_CD
+             , SV_BIZ_DCLSF_CD
+             , WK_SN
+             , ASN_PSIC_MNGT_DV_CD
+             , ASN_PSIC_DV_CD
+             , ASN_PSIC_PRTNR_OG_TP_CD
+             , ASN_PSIC_PRTNR_NO
+             , CNFM_PSIC_MNGT_DV_CD
+             , CNFM_PSIC_ASN_DT
+             , CNFM_PSIC_ASN_HH
+             , CNFM_PSIC_DV_CD
+             , CNFM_PSIC_PRTNR_OG_TP_CD
+             , CNFM_PSIC_PRTNR_NO
+             , VST_CNFMDT
+             , VST_CNFM_HH
+             , VST_OJ_LOCARA_CD
+             , MNGER_RGLVL_DV_CD
+             , LSTMM_CRDOVR_YN
+             , LSTMM_VST_CNFMDT
+             , LSTMM_VST_CNFM_HH
+             , VST_DUEDT
+             , VST_EXP_HH
+             , VST_PRGS_STAT_CD
+             , WK_EXCN_DT
+             , WK_CAN_RSON_CD
+             , ASN_TF_DV_CD
+             , SITE_AW_PD_GRP_CD
+             , SITE_AW_SV_TP_CD
+             , SITE_AW_ATC_CD
+             , CST_CNTC_DT
+             , CNTC_ICHR_PRTNR_OG_TP_CD
+             , CNTC_ICHR_PRTNR_NO
+             , CST_CNTC_CD
+             , CST_CNTC_MO_CN
+             , SPC_AS_TP_CD
+             , HPCALL_FW_YN
+             , ICHR_LOCARA_DV_CD
+             , ARV_DT
+             , ARV_HH
+             , WK_GRP_CD
+             , LOCARA_GD_CD
+             , LOCARA_CHAOS_GD_CD
+             , DTA_DL_YN
+             , FST_RGST_DTM
+             , FST_RGST_USR_ID
+             , FST_RGST_PRG_ID
+             , FST_RGST_DEPT_ID
+             , FNL_MDFC_DTM
+             , FNL_MDFC_USR_ID
+             , FNL_MDFC_PRG_ID
+             , FNL_MDFC_DEPT_ID
+          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
+         WHERE 1=1
+           AND CST_SV_ASN_NO = #{cstSvAsnNo}
+           AND ASN_OJ_YM = #{asnOjYm}
+    </insert>
+
+    <delete id="deleteRgbsPuItmIz">
+        DELETE
+          FROM TB_SVPD_RGBS_PU_ITM_IZ
+         WHERE 1=1
+           AND ASN_OJ_YM = #{asnOjYm}
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND SV_BIZ_MCLSF_CD = #{svBizMclsfCd}
+           AND SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
+           AND WK_SN = #{wkSn}
+           AND CST_SV_ASN_NO = #{cstSvAsnNo}
+    </delete>
+
+    <delete id="deleteCstSvBfsvcOjIz">
+        DELETE
+          FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ
+         WHERE 1=1
+           AND ASN_OJ_YM = #{asnOjYm}
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND SV_BIZ_MCLSF_CD = #{svBizMclsfCd}
+           AND SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
+           AND WK_SN = #{wkSn}
+           AND CST_SV_ASN_NO = #{cstSvAsnNo}
+    </delete>
+
+</mapper>

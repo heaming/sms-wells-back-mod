@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbIndividualVisitPrdMapper">
+    <select id="selectCustomerInfo"
+            resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdDto$SearchRes">
+        WITH TB_MEMBER_START AS (
+            SELECT MIN(TEMP.HIST_STRT_DTM) AS HIST_STRT_DTM
+              FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST TEMP
+             WHERE 1=1
+               AND TEMP.CNTR_NO = #{cntrNo}
+               AND TEMP.CNTR_SN = #{cntrSn}
+               AND TEMP.CNTR_DTL_STAT_CD IN ('101')
+        )
+        , TB_MEMBER_END AS (
+            SELECT MAX(TEMP.HIST_STRT_DTM) AS HIST_STRT_DTM
+              FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST TEMP
+             WHERE 1=1
+               AND TEMP.CNTR_NO = #{cntrNo}
+               AND TEMP.CNTR_SN = #{cntrSn}
+               AND TEMP.CNTR_DTL_STAT_CD IN ('301', '302', '303', '401', '402')
+        )
+        SELECT TB_1.CNTR_NO
+             , TB_1.CNTR_SN
+             , TB_5.RCGVP_KNM
+             , TB_2.BASE_PD_CD
+             , TB_6.PD_NM
+             , TB_1.IST_DT
+             , (
+                 CASE WHEN TB_2.SELL_TP_CD = '3' THEN (
+                                                      SELECT TEMP.HIST_STRT_DTM
+                                                        FROM TB_MEMBER_START TEMP
+                                                       WHERE 1=1
+                                                      )
+                      ELSE ''
+                      END
+               ) AS MEMBER_START_DT
+             , (
+                 CASE WHEN TB_2.SELL_TP_CD = '3' THEN NVL((
+                                                          SELECT TEMP.HIST_STRT_DTM
+                                                            FROM TB_MEMBER_END TEMP
+                                                           WHERE 1=1
+                                                          ), '99991231235959')
+                      ELSE ''
+                      END
+               ) AS MEMBER_END_DT
+             , TB_2.SELL_TP_CD
+            -- , TB_1.CHK_PRD_CD
+             , '' AS CHK_PRD_CD
+             , TB_2.PD_GD_CD
+             , TB_3.FRISU_BFSVC_PTRM_N
+             , TB_1.SV_PD_CD
+             , TB_1.PDCT_PD_CD
+          FROM TB_SVPD_CST_SV_EXCN_IZ TB_1
+         INNER JOIN TB_SSCT_CNTR_DTL TB_2
+         ON (
+                TB_1.CNTR_NO = TB_2.CNTR_NO
+            AND TB_1.CNTR_SN = TB_2.CNTR_SN
+         )
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL TB_3
+         ON (
+                TB_1.CNTR_NO = TB_3.CNTR_NO
+            AND TB_1.CNTR_SN = TB_3.CNTR_SN
+         )
+         INNER JOIN TB_SSCT_CNTR_ADR_REL TB_4
+         ON (
+                TB_1.CNTR_NO = TB_4.DTL_CNTR_NO
+            AND TB_1.CNTR_SN = TB_4.DTL_CNTR_SN
+            AND TB_4.ADRPC_TP_CD = '3' /* 2:배송지 3:설치지 */
+         )
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS TB_5
+         ON (
+                TB_4.CNTR_ADRPC_ID = TB_5.CNTR_ADRPC_ID
+         )
+         INNER JOIN TB_PDBS_PD_BAS TB_6
+         ON (
+                TB_2.BASE_PD_CD = TB_6.PD_CD
+         )
+         WHERE 1=1
+           AND TB_1.CNTR_NO = #{cntrNo}
+           AND TB_1.CNTR_SN = #{cntrSn}
+           AND ROWNUM = 1
+    </select>
+
+    <select id="selectVisits"
+            resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdDto$SearchVstRes">
+        SELECT TB_1.VST_NMN_N
+             , TB_1.IST_NMN_N
+             , TB_1.VST_DUEDT
+             , TB_1.SV_BIZ_DCLSF_CD
+             , TB_1.FILT_CHNG_LV_CD
+             , TB_2.PD_NM
+             , TB_1.WK_DT
+             , TB_1.MTR_CAN_DT
+          FROM TB_SVPD_CST_SV_RGBSPR_IZ TB_1
+         INNER JOIN TB_PDBS_PD_BAS TB_2
+         ON (
+            TB_1.PART_PD_CD = TB_2.PD_CD
+         )
+         WHERE 1=1
+           AND TB_1.CNTR_NO = #{cntrNo}
+           AND TB_1.CNTR_SN = #{cntrSn}
+         ORDER BY TB_1.VST_NMN_N, TB_1.VST_DUEDT, TB_1.SV_BIZ_DCLSF_CD, TB_1.FILT_CHNG_LV_CD
+    </select>
+
+    <select id="selectPeriods"
+            resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdDto$SearchPeriodRes">
+        SELECT TB_1.VST_NMN_N
+             , TB_1.SV_BIZ_DCLSF_CD AS BFSVC_WK_DV_CD
+             , TB_1.FILT_CHNG_LV_CD
+             , TB_2.PD_NM
+             , TB_1.PART_USE_QTY
+             , TB_1.VST_DV_CD
+          FROM TB_PDBS_RGBS_WK_BASE_DTL TB_1
+         INNER JOIN TB_PDBS_PD_BAS TB_2
+         ON (
+            TB_1.PART_PD_CD = TB_2.PD_CD
+         )
+         WHERE 1=1
+           AND TB_1.SV_PD_CD = #{svPdCd}
+           AND TB_1.PDCT_PD_CD = #{pdctPdCd}
+         ORDER BY TB_1.VST_NMN_N, TB_1.SV_BIZ_DCLSF_CD, TB_1.FILT_CHNG_LV_CD
+    </select>
+
+    <select id="selectAsnNos"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dto.WsncBfsvcCrdovrAsnDto$SaveReq">
+        SELECT CST_SV_ASN_NO AS CST_SV_ASN_NO
+             , ASN_OJ_YM
+             , TO_CHAR(ADD_MONTHS(TO_DATE(#{asnOjYm}, 'YYYYMM'), 1), 'YYYYMM') AS CRDOVR_YM
+          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
+         WHERE 1=1
+           AND ASN_OJ_YM = #{asnOjYm}
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </select>
+
+    <select id="selectAsnNoTypeBs"
+            resultType="com.kyowon.sms.wells.web.service.visit.dto.WsnbCustomerRglrBfsvcDlDto$SaveReq">
+        SELECT CST_SV_ASN_NO AS CST_SV_ASN_NO
+             , ASN_OJ_YM AS ASN_OJ_YM
+          FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
+         WHERE 1=1
+           AND ASN_OJ_YM = #{asnOjYm}
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </select>
+
+    <delete id="deleteSvRgbsprIz">
+        DELETE
+          FROM TB_SVPD_CST_SV_RGBSPR_IZ
+         WHERE 1=1
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND WK_DT IS NULL
+           AND VST_DUEDT >= NVL(#{periodDeleteYmd}, '99991231')
+
+    </delete>
+
+</mapper>
