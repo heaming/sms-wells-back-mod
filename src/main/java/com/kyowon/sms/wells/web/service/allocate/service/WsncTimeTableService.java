@@ -163,15 +163,17 @@ public class WsncTimeTableService {
             dvo.getPdctPdCds().clear();
             dvo.getSdingCombins().clear();
 
-            for (int i = 0; i < contractDvos.size(); i++) {
-                dvo.getBasePdCds().add(contractDvos.get(i).getBasePdCd());
-                dvo.getPdctPdCds().add(contractDvos.get(i).getPdctPdCd());
-                dvo.getSdingCombins().add(contractDvos.get(i).getSdingCombin());
+            for (WsncTimeTableCntrDvo contractDvo : contractDvos) {
+                dvo.getBasePdCds().add(contractDvo.getBasePdCd());
+                dvo.getPdctPdCds().add(contractDvo.getPdctPdCd());
+                dvo.getSdingCombins().add(contractDvo.getSdingCombin());
             }
 
             String workTypeDtl = "";
+
             for (int i = 0; i < dvo.getBasePdCds().size(); i++)
                 workTypeDtl += (i == 0 ? "" : "|") + dvo.getBasePdCds().get(i) + "," + dvo.getSvBizDclsfCds().get(i);
+
             dvo.setWorkTypeDtl(workTypeDtl); // WP01120279,1110|WP01110622,3100
 
             WsncTimeTableCntrDvo contractDvo = contractDvos.get(0);
@@ -199,8 +201,6 @@ public class WsncTimeTableService {
 
         for (int i = 0; i < dvo.getBasePdCds().size(); i++) {
 
-            //dvo.setBasePdCd(dvo.getBasePdCds().get(i));
-            System.out.println("dvo.getBasePdCds().get(i) = " + dvo.getBasePdCds().get(i));
             /**
              * @param basePdCd
              * @param svDvCd
@@ -212,7 +212,7 @@ public class WsncTimeTableService {
             String spayYn = "3".equals(productDvo.getRglrSppPrcDvCd()) ? "Y" : "N"; // 일시불여부
             String hcrYn = productDvo.getHcrYn();
 
-            dvo.getPdctPdCds().set(i, productDvo.getPdctPdCd());
+            dvo.getPdctPdCds().add(productDvo.getPdctPdCd());
 
             if ("Y".equals(sidingYn)) {
 
@@ -475,10 +475,10 @@ public class WsncTimeTableService {
         dvo.setPdctPdCds(new ArrayList<>());
         dvo.setSdingCombins(new ArrayList<>());
 
-        for (int i = 0; i < contractDvos.size(); i++) {
-            dvo.getBasePdCds().add(contractDvos.get(i).getBasePdCd());
-            dvo.getPdctPdCds().add(contractDvos.get(i).getPdctPdCd());
-            dvo.getSdingCombins().add(contractDvos.get(i).getSdingCombin());
+        for (WsncTimeTableCntrDvo contractDvo : contractDvos) {
+            dvo.getBasePdCds().add(contractDvo.getBasePdCd());
+            dvo.getPdctPdCds().add(contractDvo.getPdctPdCd());
+            dvo.getSdingCombins().add(contractDvo.getSdingCombin());
         }
 
         String workTypeDtl = "";
@@ -641,10 +641,10 @@ public class WsncTimeTableService {
         dvo.getPdctPdCds().clear();
         dvo.getSdingCombins().clear();
 
-        for (int i = 0; i < contractDvos.size(); i++) {
-            dvo.getBasePdCds().add(contractDvos.get(i).getBasePdCd());
-            dvo.getPdctPdCds().add(contractDvos.get(i).getPdctPdCd());
-            dvo.getSdingCombins().add(contractDvos.get(i).getSdingCombin());
+        for (WsncTimeTableCntrDvo contractDvo : contractDvos) {
+            dvo.getBasePdCds().add(contractDvo.getBasePdCd());
+            dvo.getPdctPdCds().add(contractDvo.getPdctPdCd());
+            dvo.getSdingCombins().add(contractDvo.getSdingCombin());
         }
 
         String workTypeDtl = "";
