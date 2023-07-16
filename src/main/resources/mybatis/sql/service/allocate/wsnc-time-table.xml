@@ -80,7 +80,12 @@
            AND C6.CNTR_SN = C2.CNTR_SN
            AND C6.ASN_OJ_YM = SUBSTR(#{sellDate}, 0, 6)
          WHERE C2.CNTR_NO = #{cntrNo}
-           AND C2.CNTR_SN = #{cntrSn}
+         <if test='@MybatisUtils@isNotEmpty(cntrSns)'>
+           AND C2.CNTR_SN IN
+           <foreach item="item" index="index" open="(" close=")" collection="cntrSns" separator=",">
+           #{item}
+           </foreach>
+         </if>
     </select>
 
     <select id="selectProduct" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableProductDvo">
@@ -110,7 +115,6 @@
             ON P2.OJ_PD_CD = P5.PD_CD
            AND P5.PD_EXTS_PRP_GRP_CD = 'PART'
          WHERE P2.BASE_PD_CD = #{basePdCd} -- 기준/판매 상품코드
-           AND P2.OJ_PD_CD = #{pdctPdCd} -- 제품상품코드
     </select>
 
     <!--getMojongDays-->
@@ -181,7 +185,8 @@
                 AND (TO_CHAR(SYSDATE, 'HH24MI') <![CDATA[<]]> '0800' OR TO_CHAR(SYSDATE, 'HH24MI') > '1800')
 
             UNION ALL
-
+            -------------------------------------------------------------------------------------------------------------------------------------
+            -- QUERY 2
             /** 제주도 매트리스 4건 제한 최정문P 요청 2022.01.10(월) **/
             SELECT B.BASE_Y || '-' || TO_NUMBER(B.BASE_MM) || '-' || TO_NUMBER(B.BASE_D) AS DISABLE_DAYS
                  , B.BASE_Y || '-' || B.BASE_MM || '-' || B.BASE_D AS DISABLE_FULDAYS
@@ -206,16 +211,19 @@
                                    AND X2.DTA_DL_YN = 'N'
                                  WHERE 1 = 1
                                    AND X2.PD_PRP_VAL20 = '95'
-                                   AND X1.PD_CD IN (
-                                    <if test='@MybatisUtils@isNotEmpty(basePdCdList)'>
-                                        #{basePdCdList}
-                                    </if>
-                                    <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
-                                        #{basePdCd}
-                                    </if>
-                                   )
+                                   AND X1.PD_CD IN
+                                    <choose>
+                                        <when test="@MybatisUtils@isNotEmpty(basePdCds)">
+                                            <foreach item="item" index="index" open="(" close=")" collection="basePdCds" separator=",">
+                                            #{item}
+                                            </foreach>
+                                        </when>
+                                        <otherwise>
+                                        (#{basePdCd})
+                                        </otherwise>
+                                    </choose>
                             )
-                        AND T2.IST_ADR LIKE '%제주%')) > 4
+                        AND (SELECT RNADR||LTN_ADR FROM TB_GBCO_ADR_BAS Z WHERE Z.ADR_ID = T2.ADR_ID) LIKE '%제주%')) > 4
 
             UNION ALL
             -------------------------------------------------------------------------------------------------------------------------------------
@@ -275,7 +283,7 @@
                                AND RSTR_CNDT_VAL1 = #{rpbLocaraCd}
                                </if>
                                /* 지역구분 */
-                               AND INSTR(RSTR_CNDT_VAL1, #{svBizDclsfCd}) > 0 /* 작업유형상세 */
+                               AND INSTR(RSTR_CNDT_VAL1, #{workTypeDtl}) > 0 /* 작업유형상세 */
                                AND INSTR(RSTR_CNDT_VAL2, '3121') > 0
                                AND ROWNUM = 1
                             ) B
@@ -361,7 +369,7 @@
                                AND FN_SVPD_LDTM_TOT_01(#{prtnrNo}, A.BASE_Y || A.BASE_MM || A.BASE_D) + 6
                                 + (SELECT SUM(SUM_T) / 10 AS V_WRK_TOTAL_TIME
                                      FROM (
-                                           SELECT SUM(FN_SVPD_MMT_AV_LDTM_01((SELECT MAX(NEW_ADR_ZIP) FROM TB_GBCO_ADR_BAS WHERE RNADR = AC211.IST_ADR),AC211.PD_CD, AC211.SV_BIZ_DCLSF_CD, AC221.VST_CNFMDT)) AS SUM_T
+                                           SELECT SUM(FN_SVPD_MMT_AV_LDTM_01((SELECT MAX(NEW_ADR_ZIP) FROM TB_GBCO_ADR_BAS T WHERE T.ADR_ID = AC211.ADR_ID), AC211.PD_CD, AC211.SV_BIZ_DCLSF_CD, AC221.VST_CNFMDT)) AS SUM_T
                                              FROM TB_SVPD_CST_SVAS_IST_ASN_IZ /*LC_ALLOCATE_AC221TB*/ AC221 /*고객서비스AS설치배정내역*/
                                             INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ  /*LC_ALLOCATE_AC211TB*/ AC211 /*고객서비스AS설치대상내역*/
                                                ON AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
@@ -449,7 +457,7 @@
                     </if>
                     -------------------------------------------------------------------------------------------------------------------------------------
                     -- QUERY 9
-                    <if test="@MybatisUtils@equals(svBizHclsfCd, '1')">
+                    <if test="@MybatisUtils@equals(hcrYn, 'N')">
 
                         SELECT A.BASE_Y||'-'||TO_NUMBER(A.BASE_MM)||'-'|| TO_NUMBER(A.BASE_D) AS DISABLE_DAYS
                              , A.BASE_Y||'-'||A.BASE_MM||'-'||A.BASE_D AS DISABLE_FULDAYS
@@ -485,15 +493,18 @@
                                  WHERE B.RSTR_CNDT_ID = 'TC001'
                                    AND C.CHNL_APY_DV_VAL = #{chnlDvCd} /* 채널적용구분값 */
                                    AND BIZ_APY_DV_VAL = #{svDvCd} /* 업무구분 */
-                                   <if test='@MybatisUtils@isNotEmpty(basePdCdList)'>
-                                   AND B.RSTR_CNDT_VAL1 IN (
-                                        <if test='@MybatisUtils@isNotEmpty(basePdCdList)'>
-                                        #{basePdCdList}
-                                        </if>
-                                        <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
-                                        #{basePdCd}
-                                        </if>
-                                   )
+                                   <if test='@MybatisUtils@isNotEmpty(basePdCds)'>
+                                   AND B.RSTR_CNDT_VAL1 IN
+                                    <choose>
+                                        <when test="@MybatisUtils@isNotEmpty(basePdCds)">
+                                            <foreach item="item" index="index" open="(" close=")" collection="basePdCds" separator=",">
+                                            #{item}
+                                            </foreach>
+                                        </when>
+                                        <otherwise>
+                                        (#{basePdCd})
+                                        </otherwise>
+                                    </choose>
                                    </if>
                                    <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
                                    AND B.RSTR_CNDT_VAL1 = #{basePdCd}
@@ -537,14 +548,17 @@
                                            AND T2.DTA_DL_YN = 'N'
                                          WHERE 1 = 1
                                            AND T2.PD_PRP_VAL20 = '95' /* 상품그룹 PD_GRP_CD 95=매트리스 */
-                                           AND T1.PD_CD IN (
-                                                <if test='@MybatisUtils@isNotEmpty(basePdCdList)'>
-                                                    #{basePdCdList}
-                                                </if>
-                                                <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
-                                                    #{basePdCd}
-                                                </if>
-                                               )
+                                           AND T1.PD_CD IN
+                                            <choose>
+                                                <when test="@MybatisUtils@isNotEmpty(basePdCds)">
+                                                    <foreach item="item" index="index" open="(" close=")" collection="basePdCds" separator=",">
+                                                    #{item}
+                                                    </foreach>
+                                                </when>
+                                                <otherwise>
+                                                (#{basePdCd})
+                                                </otherwise>
+                                            </choose>
                                     ) C
                                 ON 1 = 1
                              WHERE A.BASE_Y||A.BASE_MM||A.BASE_D > TO_CHAR(SYSDATE, 'YYYYMMDD')
@@ -585,14 +599,17 @@
                                            AND T2.DTA_DL_YN = 'N'
                                          WHERE 1 = 1
                                            AND T2.PD_PRP_VAL20 = '95' /* 상품그룹 PD_GRP_CD 95=매트리스 */
-                                           AND T1.PD_CD IN (
-                                                <if test='@MybatisUtils@isNotEmpty(basePdCdList)'>
-                                                    #{basePdCdList}
-                                                </if>
-                                                <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
-                                                    #{basePdCd}
-                                                </if>
-                                               )
+                                           AND T1.PD_CD IN
+                                            <choose>
+                                                <when test="@MybatisUtils@isNotEmpty(basePdCds)">
+                                                    <foreach item="item" index="index" open="(" close=")" collection="basePdCds" separator=",">
+                                                    #{item}
+                                                    </foreach>
+                                                </when>
+                                                <otherwise>
+                                                (#{basePdCd})
+                                                </otherwise>
+                                            </choose>
                                     ) C
                                 ON 1 = 1
                              WHERE A.BASE_Y||A.BASE_MM||A.BASE_D > TO_CHAR(SYSDATE, 'YYYYMMDD')
@@ -675,14 +692,17 @@
                                                                                                        ON REL.BASE_PD_CD = BAS1.PD_CD
                                                                                                       AND BAS1.DTA_DL_YN = 'N'
                                                                                                     WHERE BAS.DTA_DL_YN = 'N'
-                                                                                                      AND BAS.PD_CD IN (
-                                                                                                            <if test='@MybatisUtils@isNotEmpty(basePdCdList)'>
-                                                                                                            #{basePdCdList}
-                                                                                                            </if>
-                                                                                                            <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
-                                                                                                            #{basePdCd}
-                                                                                                            </if>
-                                                                                                         )
+                                                                                                      AND BAS.PD_CD IN
+                                                                                                        <choose>
+                                                                                                            <when test="@MybatisUtils@isNotEmpty(basePdCds)">
+                                                                                                                <foreach item="item" index="index" open="(" close=")" collection="basePdCds" separator=",">
+                                                                                                                #{item}
+                                                                                                                </foreach>
+                                                                                                            </when>
+                                                                                                            <otherwise>
+                                                                                                            (#{basePdCd})
+                                                                                                            </otherwise>
+                                                                                                        </choose>
                                                                                               ) C
                                                                                            ON T.RSTR_CNDT_VAL1 = C.PD_CD
                                                                                         WHERE 1 = 1
@@ -703,7 +723,7 @@
             -- QUERY 14
             <if test='@MybatisUtils@isNotEmpty(svDvCd)'>
                 <if test="@MybatisUtils@equals(svDvCd, '4')">
-                    <if test="@MybatisUtils@equals(svBizHclsfCd, '2')">
+                    <if test="@MybatisUtils@equals(hcrYn, 'Y')">
                         SELECT A.BASE_Y||'-'||TO_NUMBER(A.BASE_MM)||'-'|| TO_NUMBER(A.BASE_D) AS DISABLE_DAYS
                              , A.BASE_Y||'-'||A.BASE_MM||'-'||A.BASE_D AS DISABLE_FULDAYS
                              , '홈케어 마감일관리' AS MSG
@@ -738,7 +758,7 @@
 
     <!--getMojongDays_ilsibul-->
     <select id="selectSidingDaysForSpay" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo">
-        SELECT SUBSTR(W3TH, 1, 4) || '-' || SUBSTR(W3TH, 5, 2) || '-' || SUBSTR(W3TH, 7, 2) AS ABL_DAYS
+        SELECT SUBSTR(W3TH, 1, 4) || '-' || SUBSTR(W3TH, 5, 2) || '-' || SUBSTR(W3TH, 7, 2) AS ENABLE_DAYS
              , W3TH
              , SUM(SUM_CNT) AS SUM_CNT
              , CASE WHEN #{sdingCombin} = '03' THEN (SELECT CLND.BASE_Y || CLND.BASE_MM || CLND.BASE_D
@@ -826,39 +846,37 @@
                                 ON AC211.CST_SV_ASN_NO = AC221.CST_SV_ASN_NO
                              WHERE 1 = 1
                                AND SUBSTR(AC211.CST_SV_ASN_NO, 0, 1) = #{svDvCd}
-                               AND (PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106345'
-                                                  WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106347'
-                                                  WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106349'
-                                                  WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106351'
-                                                  ELSE #{pdctPdCd}
-                                             END) OR PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106346'
-                                                                   WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106348'
-                                                                   WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106350'
-                                                                   WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106352'
-                                                                   ELSE #{pdctPdCd}
-                                                              END) OR PD_CD
-                                 = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106356'
-                                         WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106358'
-                                         WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106360'
-                                         WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106362'
-                                         ELSE #{pdctPdCd}
-                                    END) OR PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106356'
-                                                          WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106358'
-                                                          WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106360'
-                                                          WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106362'
-                                                          ELSE #{pdctPdCd}
-                                                     END) OR PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106364'
-                                                                           WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106366'
-                                                                           WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106368'
-                                                                           WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106370'
-                                                                           ELSE #{pdctPdCd}
-                                                                      END) OR PD_CD
-                                 = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106365'
-                                         WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106367'
-                                         WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106369'
-                                         WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106371'
-                                         ELSE #{pdctPdCd}
-                                    END))
+                               AND (   PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106345'
+                                                     WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106347'
+                                                     WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106349'
+                                                     WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106351'
+                                                     ELSE #{pdctPdCd} END)
+                                    OR PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106346'
+                                                     WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106348'
+                                                     WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106350'
+                                                     WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106352'
+                                                     ELSE #{pdctPdCd} END)
+                                    OR PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106356'
+                                                     WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106358'
+                                                     WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106360'
+                                                     WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106362'
+                                                     ELSE #{pdctPdCd} END)
+                                    OR PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106356'
+                                                     WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106358'
+                                                     WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106360'
+                                                     WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106362'
+                                                     ELSE #{pdctPdCd} END)
+                                    OR PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106364'
+                                                     WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106366'
+                                                     WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106368'
+                                                     WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106370'
+                                                     ELSE #{pdctPdCd} END)
+                                    OR PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106365'
+                                                     WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106367'
+                                                     WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106369'
+                                                     WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106371'
+                                                     ELSE #{pdctPdCd}
+                                                END))
                                AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
                                AND AC221.VST_CNFMDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
                              GROUP BY AC221.VST_CNFMDT
@@ -876,34 +894,32 @@
                                                        WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106347'
                                                        WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106349'
                                                        WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106351'
-                                                       ELSE #{pdctPdCd}
-                                                  END) OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106346'
-                                                                             WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106348'
-                                                                             WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106350'
-                                                                             WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106352'
-                                                                             ELSE #{pdctPdCd}
-                                                                        END) OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106355'
-                                                                                                   WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106357'
-                                                                                                   WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106359'
-                                                                                                   WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106361'
-                                                                                                   ELSE #{pdctPdCd}
-                                                                                              END) OR PDCT_PD_CD
-                                 = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106356'
-                                         WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106358'
-                                         WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106360'
-                                         WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106362'
-                                         ELSE #{pdctPdCd}
-                                    END) OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106364'
-                                                               WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106366'
-                                                               WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106368'
-                                                               WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106370'
-                                                               ELSE #{pdctPdCd}
-                                                          END) OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106365'
-                                                                                     WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106367'
-                                                                                     WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106369'
-                                                                                     WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106371'
-                                                                                     ELSE #{pdctPdCd}
-                                                                                END))
+                                                       ELSE #{pdctPdCd} END)
+                                 OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106346'
+                                                       WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106348'
+                                                       WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106350'
+                                                       WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106352'
+                                                       ELSE #{pdctPdCd} END)
+                                 OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106355'
+                                                       WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106357'
+                                                       WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106359'
+                                                       WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106361'
+                                                       ELSE #{pdctPdCd} END)
+                                 OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106356'
+                                                       WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106358'
+                                                       WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106360'
+                                                       WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106362'
+                                                       ELSE #{pdctPdCd} END)
+                                 OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106364'
+                                                       WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106366'
+                                                       WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106368'
+                                                       WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106370'
+                                                       ELSE #{pdctPdCd} END)
+                                 OR PDCT_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106365'
+                                                       WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106367'
+                                                       WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106369'
+                                                       WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106371'
+                                                       ELSE #{pdctPdCd} END))
                                AND AC261.VST_PRGS_STAT_CD IN ('00', '10')
                                AND AC261.VST_DUEDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
                                AND AC251.ASN_OJ_YM = TO_CHAR(SYSDATE, 'YYYYMM')
@@ -968,15 +984,15 @@
     </select>
 
     <select id="selectFnSvpdLocaraPrtnr01" resultType="java.lang.String">
-      SELECT FN_SVPD_LOCARA_PRTNR_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{svBizDclsfCd}, #{sellDate}) FROM DUAL
+      SELECT FN_SVPD_LOCARA_PRTNR_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{workTypeDtl}, #{sellDate}) FROM DUAL
     </select>
 
     <select id="selectFnSvpdLocaraPrtnrOwr01" resultType="java.lang.String">
-      SELECT FN_SVPD_LOCARA_PRTNR_OWR_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{svBizDclsfCd}, #{sellDate}) FROM DUAL
+      SELECT FN_SVPD_LOCARA_PRTNR_OWR_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{workTypeDtl}, #{sellDate}) FROM DUAL
     </select>
 
     <select id="selectFnSvpdLocaraPrtnrBs01" resultType="java.lang.String">
-      SELECT FN_SVPD_LOCARA_PRTNR_BS_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{svBizDclsfCd}, #{sellDate}, #{vstGb}) FROM DUAL
+      SELECT FN_SVPD_LOCARA_PRTNR_BS_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{workTypeDtl}, #{sellDate}, #{vstDvCd}) FROM DUAL
     </select>
 
     <select id="selectRpbLocaraPsic" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableRpbLocaraPsicDvo">
@@ -1016,7 +1032,7 @@
                      WHEN T3.WK_GRP_CD = '10' AND P.EGER_WRK_STAT_CD != '000' THEN 'N'
                      ELSE T3.UDSN_USE_YN
                 END) AS UDSN_USE_YN /*미지정사용여부*/
-             , FN_SVPD_WRK_CT_TOT_01(#{sellDate}, #{svBizDclsfCd}) AS WRK_CNT /*전체 작업 건수 합*/
+             , FN_SVPD_WRK_CT_TOT_01(#{sellDate}, #{workTypeDtl}) AS WRK_CNT /*전체 작업 건수 합*/
              , #{sellDate} AS SELL_DATE
              , VST_DOW_VAL AS VST_DOW_VAL_CD
              , #{svBizDclsfCd} AS SV_BIZ_DCLSF_CD
@@ -1041,16 +1057,16 @@
             ON T3.RPB_LOCARA_CD = T2.RPB_LOCARA_CD
            AND #{sellDate} BETWEEN T3.APY_STRTDT AND T3.APY_ENDDT /*적용기간*/
            <if test='@MybatisUtils@equals(svDvCd, "2")'>
-           AND WK_GRP_CD = (CASE WHEN #{vstGb} IN ('10', '11', '12') THEN '10'
-                                 WHEN #{vstGb} = '13' THEN '20'
-                                 WHEN #{vstGb} = '20' THEN '50'
-                                 ELSE FN_SVPD_WRK_GRP_01(#{pdctPdCd}, #{svBizDclsfCd}, #{sellDate})
+           AND WK_GRP_CD = (CASE WHEN #{vstDvCd} IN ('10', '11', '12') THEN '10'
+                                 WHEN #{vstDvCd} = '13' THEN '20'
+                                 WHEN #{vstDvCd} = '20' THEN '50'
+                                 ELSE FN_SVPD_WRK_GRP_01(#{pdctPdCd}, #{workTypeDtl}, #{sellDate})
                             END)
            </if>
 
 
            <if test='!@MybatisUtils@equals(svDvCd, "2")'>
-           AND WK_GRP_CD = FN_SVPD_WRK_GRP_01(#{pdctPdCd}, #{svBizDclsfCd}, #{sellDate})
+           AND WK_GRP_CD = FN_SVPD_WRK_GRP_01(#{pdctPdCd}, #{workTypeDtl}, #{sellDate})
            </if>
 
          INNER JOIN TB_OGBS_MM_PRTNR_IZ T4 /*월파트너내역*/

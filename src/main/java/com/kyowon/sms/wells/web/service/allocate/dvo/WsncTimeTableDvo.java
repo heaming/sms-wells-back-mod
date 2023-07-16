@@ -1,6 +1,12 @@
 package com.kyowon.sms.wells.web.service.allocate.dvo;
 
-import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto.AssignTime;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto.Days;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto.DisableDays;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto.MonthSchedule;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto.Psic;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto.SidingDays;
+import com.kyowon.sms.wells.web.service.allocate.dto.WsncTimeTableDto.SmPmNt;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -40,7 +46,8 @@ public class WsncTimeTableDvo {
 
     // --------------------------------------------------
     //판매인 경우 '1110:신규설치' fix
-    String svBizDclsfCd; // wrkTypDtl
+    String svBizDclsfCd;
+    List<String> svBizDclsfCds; // wrkTypDtl
     // --------------------------------------------------
 
     String basePdCd;
@@ -59,8 +66,8 @@ public class WsncTimeTableDvo {
     // 6: 반품처리
     // 7: 정보변경
     // 9: 삭제
-    String hcrYn; // addGb
-    String svBizHclsfCd; // addGb
+    String hcrYn;// addGb asis: 홈케어면 2 아니면 1, tobe: y/n 으로 변경
+    String hcrGb;
     // --------------------------------------------------
     // 접수구분
     // 1: 신규
@@ -69,7 +76,7 @@ public class WsncTimeTableDvo {
     String mtrStatCd; // dataStus
     // --------------------------------------------------
 
-    String basePdCdList;
+    //String basePdCdList;
     String exYn;
     String contDt;
     String wrkDt; // 접수일자(현재)
@@ -103,31 +110,37 @@ public class WsncTimeTableDvo {
     String sellDscDbCd; // lcetc3
     // --------------------------------------------------
 
-    String lcst09; // ???
-    String vstGb; // ???
+    String lcst09;
+    String vstDvCd; // 방문구분코드 VST_DV_CD
     String cstSvAsnNo;
-    String sdingCombin;
-    String sidingYn;
-    String spayYn;
+    String sdingCombin; // 모종패키지 분리여부
+    String sidingYn; // 모종여부
+    String spayYn; // 일시불 여부
     String sowDay; // PAJONG_DAY
     String rpbLocaraCd;
-    boolean isHcr = false;
+    //boolean isHcr = false;
+
+    String workTypeDtl = "";
+    List<String> cntrSns = new ArrayList<>();
+    List<String> basePdCds = new ArrayList<>();
+    List<String> pdctPdCds = new ArrayList<>();
+    List<String> sdingCombins = new ArrayList<>();
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     List<String> offDays;
-    List<WsncTimeTableDto.SidingDays> sidingDays; // list2 abledays
-    List<WsncTimeTableDto.DisableDays> disableDays;
-    WsncTimeTableDto.Psic psic; // left_info
-    List<WsncTimeTableDto.AssignTime> assignTimes;
+    List<SidingDays> sidingDays; // list2 abledays
+    List<DisableDays> disableDays;
+    Psic psic; // left_info
+    List<AssignTime> assignTimes;
 
-    List<WsncTimeTableDto.Days> days;
-    List<WsncTimeTableDto.MonthSchedule> monthSchedules;
+    List<Days> days;
+    List<MonthSchedule> monthSchedules;
 
-    List<WsncTimeTableDto.SmPmNt> smTimes = new ArrayList<>();
-    List<WsncTimeTableDto.SmPmNt> amTimes = new ArrayList<>();
-    List<WsncTimeTableDto.SmPmNt> pmTimes1 = new ArrayList<>();
-    List<WsncTimeTableDto.SmPmNt> pmTimes2 = new ArrayList<>();
-    List<WsncTimeTableDto.SmPmNt> ntTimes = new ArrayList<>();
+    List<SmPmNt> smTimes = new ArrayList<>();
+    List<SmPmNt> amTimes = new ArrayList<>();
+    List<SmPmNt> pmTimes1 = new ArrayList<>();
+    List<SmPmNt> pmTimes2 = new ArrayList<>();
+    List<SmPmNt> ntTimes = new ArrayList<>();
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
 }
