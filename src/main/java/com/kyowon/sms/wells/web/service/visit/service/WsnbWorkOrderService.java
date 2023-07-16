@@ -98,7 +98,7 @@ public class WsnbWorkOrderService {
 
         /* 3. 오더 생성(정보 변경이 아니면) */
         if (!StringUtils.startsWith(dvo.getNewSvBizDclsfCd(), "7")) {
-            saveOrder(dvo);
+            saveWorkOrder(dvo);
         }
 
         return dvo.getNewAsIstOjNo();
@@ -226,7 +226,7 @@ public class WsnbWorkOrderService {
         dvo.setCnslMoCn(newCounselorMemo.toString());
     }
 
-    private void saveOrder(WsnbWorkOrderDvo dvo) throws Exception {
+    private void saveWorkOrder(WsnbWorkOrderDvo dvo) throws Exception {
         if (List.of(MTR_STAT_CD_NEW, MTR_STAT_CD_MOD).contains(dvo.getMtrStatCd())) {
             int result = mapper.mergeInstallationObject(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
             BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");

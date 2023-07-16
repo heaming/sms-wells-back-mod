@@ -230,7 +230,7 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
         return CreateOrderReq.builder()
             .inChnlDvCd("1")
             .svBizHclsfCd("1")
-            .svBizDclsfCd("1121")
+            .svBizDclsfCd("1310")
             .cntrNo(cntrNo)
             .cntrSn(cntrSn)
             .mtrStatCd(mtrStatCd)
@@ -240,7 +240,7 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
             .cnslTpMclsfCd("E111")
             .cnslTpLclsfCd("EC10")
             .cnslMoCn("불량고객입니다. 조심하세요.")
-            .prchsMatList("A|1|1000,B|1|2000")
+            .prchsMatList("A,1,1000|B,1,2000")
             .smsFwYn("Y")
             .build();
     }
