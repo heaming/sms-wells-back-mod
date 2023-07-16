@@ -147,6 +147,7 @@ public class WsnbWorkOrderService {
             dvo.setNewMtrStatCd(asAssignReqDvo.getMtrStatCd());
             dvo.setNewWkAcpteDt(asAssignReqDvo.getWkAcpteDt());
             dvo.setNewWkPrgsStatCd(asAssignReqDvo.getWkPrgsStatCd());
+            dvo.setRcpdt(asAssignReqDvo.getRcpdt());
         } else {
             dvo.setNewSvBizDclsfCd(dvo.getSvBizDclsfCd());
         }
@@ -173,9 +174,11 @@ public class WsnbWorkOrderService {
 
     private void saveOrder(WsnbWorkOrderDvo dvo) throws Exception {
         if (List.of(MTR_STAT_CD_NEW, MTR_STAT_CD_MOD).contains(dvo.getMtrStatCd())) {
-            mapper.mergeInstallationObject(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
+            int result = mapper.mergeInstallationObject(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
         } else if (MTR_STAT_CD_DEL.equals(dvo.getMtrStatCd())) {
-            mapper.updateInstallationObjectMtrStatCd(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
+            int result = mapper.updateInstallationObjectMtrStatCd(dvo); /* TB_SVPD_CST_SVAS_IST_OJ_IZ */
+            BizAssert.isTrue(result == 1, "MSG_ALT_SVE_ERR");
         }
 
         setAssignKeyAndValue(dvo);

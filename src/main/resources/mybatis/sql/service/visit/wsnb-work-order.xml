@@ -72,6 +72,7 @@
              , S2.VST_CNFMDT AS WK_ACPTE_DT
              , S2.WK_PRGS_STAT_CD
              , S1.PD_CD PDCT_PD_CD
+             , S1.RCPDT
           FROM TB_SVPD_CST_SVAS_IST_OJ_IZ S1
     LEFT OUTER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ S2
             ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
@@ -204,18 +205,18 @@
         SELECT TRIM(#{inChnlDvCd}) AS NEW_IN_CHNL_DV_CD
              , TRIM(#{svBizHclsfCd}) AS NEW_SV_BIZ_HCLSF_CD
              , (CASE WHEN TRIM(#{inChnlDvCd}) IN ('3', '4') AND #{mtrStatCd} IN ('2','3') AND #{rcpdt} IS NULL THEN (SELECT I1.RCPDT
-                                                                                                                       FROM TB_SVPD_CST_SVAS_IST_OJ_IZ I1
-                                                                                                                      INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ I2
-                                                                                                                         ON I1.CST_SV_ASN_NO = I2.CST_SV_ASN_NO
-                                                                                                                        AND I2.DTA_DL_YN = 'N'
-                                                                                                                      WHERE 1=1
-                                                                                                                        AND I1.IN_CHNL_DV_CD   = TRIM(#{inChnlDvCd})
-                                                                                                                        AND I1.SV_BIZ_HCLSF_CD = TRIM(#{svBizHclsfCd})
-                                                                                                                        AND I1.SV_BIZ_DCLSF_CD = #{newSvBizDclsfCd}
-                                                                                                                        AND I2.WK_PRGS_STAT_CD = '00'
-                                                                                                                        AND I1.DTA_DL_YN       = 'N'
-                                                                                                                        AND I1.CNTR_NO         = #{cntrNo}
-                                                                                                                        AND I1.CNTR_SN         = #{cntrSn}
+                                                                                                                           FROM TB_SVPD_CST_SVAS_IST_OJ_IZ I1
+                                                                                                                          INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ I2
+                                                                                                                             ON I1.CST_SV_ASN_NO = I2.CST_SV_ASN_NO
+                                                                                                                            AND I2.DTA_DL_YN = 'N'
+                                                                                                                          WHERE 1=1
+                                                                                                                            AND I1.IN_CHNL_DV_CD   = TRIM(#{inChnlDvCd})
+                                                                                                                            AND I1.SV_BIZ_HCLSF_CD = TRIM(#{svBizHclsfCd})
+                                                                                                                            AND I1.SV_BIZ_DCLSF_CD = #{newSvBizDclsfCd}
+                                                                                                                            AND I2.WK_PRGS_STAT_CD = '00'
+                                                                                                                            AND I1.DTA_DL_YN       = 'N'
+                                                                                                                            AND I1.CNTR_NO         = #{cntrNo}
+                                                                                                                            AND I1.CNTR_SN         = #{cntrSn}
                                                                                                                     )
                      WHEN #{rcpdt} IS NULL THEN TO_CHAR(SYSDATE, 'YYYYMMDD')
                      ELSE #{rcpdt}

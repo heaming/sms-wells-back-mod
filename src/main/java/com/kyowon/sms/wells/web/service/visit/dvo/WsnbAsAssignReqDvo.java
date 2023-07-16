@@ -22,4 +22,5 @@ public class WsnbAsAssignReqDvo {
     String wkAcpteStatCd;
     String wkPrgsStatCd;
     String pdctPdCd; /*  pdCd*/
+    String rcpdt;
 }
