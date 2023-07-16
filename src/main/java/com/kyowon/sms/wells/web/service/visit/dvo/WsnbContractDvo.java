@@ -13,7 +13,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class WsnbContractReqDvo {
+public class WsnbContractDvo {
     String cntrNo; /* 계약번호 */
     String cntrSn; /* 계약일련번호 */
     String cntrCstNo;

@@ -6,12 +6,10 @@ import java.util.Optional;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbAsAssignReqDvo;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractReqDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 
 @Mapper
 public interface WsnbWorkOrderMapper {
-    WsnbContractReqDvo selectContract(String cntrNo, String cntrSn);
 
     Optional<WsnbAsAssignReqDvo> selectAsAssignByPk(String asIstOjNo);
 

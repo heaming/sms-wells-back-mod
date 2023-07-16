@@ -20,12 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdDtInService;
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbInstallationOrderConverter;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallationOrderDto.SaveReq;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractReqDvo;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbOjContractDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkProgStatDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbInstallationOrderMapper;
-import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -49,6 +48,8 @@ public class WsnbInstallationOrderService {
 
     private final WsnbWorkOrderService workOrderService; // 작업오더 서비스
 
+    private final WsnbContractService contractService;
+
     private final WctaInstallationReqdDtInService contractIstService; // 계약설치요청일자변경 서비스
 
     public String saveInstallationOrder(SaveReq dto) throws Exception {
@@ -67,7 +68,7 @@ public class WsnbInstallationOrderService {
         String asIstOjNo = null;
 
         // 계약 조회
-        WsnbContractReqDvo contract = this.getContractByPk(cntrNo, cntrSn);
+        WsnbContractDvo contract = contractService.getContract(cntrNo, cntrSn);
 
         // 1. 당일 계약취소 [AS-IS] LC_ASREGN_API_U03_T -> PR_KIWI_DEL_CSMR
         if (SV_BIZ_HCLSF_CD_DEL.equals(workOrder.getSvBizHclsfCd())) {
@@ -89,7 +90,7 @@ public class WsnbInstallationOrderService {
     }
 
     private String saveWorkOrder(
-        WsnbWorkOrderDvo workOrder, WsnbContractReqDvo contract
+        WsnbWorkOrderDvo workOrder, WsnbContractDvo contract
     ) throws Exception {
         String cntrNo = workOrder.getCntrNo();
         String cntrSn = workOrder.getCntrSn();
@@ -155,7 +156,7 @@ public class WsnbInstallationOrderService {
     }
 
     private void processContractCancel(
-        WsnbWorkOrderDvo workOrder, WsnbContractReqDvo contract
+        WsnbWorkOrderDvo workOrder, WsnbContractDvo contract
     ) throws Exception {
         String cntrNo = contract.getCntrNo();
         String cntrSn = contract.getCntrSn();
@@ -211,16 +212,6 @@ public class WsnbInstallationOrderService {
         mapper.deleteSvExcnIz(cntrNo, cntrSn); // 계약 삭제 후 고객서비스수행내역 삭제
         mapper.deleteIstAsnIz(cntrNo, cntrSn); // 작업할당 삭제 - 고객서비스설치배정내역
         mapper.deleteIstOjIz(cntrNo, cntrSn); // 작업할당 삭제 - 고객서비스설치대상내역
-    }
-
-    /**
-     * 계약상세일련번호로 계약정보 조회
-     * @param cntrNo
-     * @param cntrSn
-     * @return
-     */
-    public WsnbContractReqDvo getContractByPk(String cntrNo, String cntrSn) {
-        return mapper.selectContractByPk(cntrNo, cntrSn).orElseThrow(() -> new BizException("MSG_ALT_NO_DATA"));
     }
 
 }

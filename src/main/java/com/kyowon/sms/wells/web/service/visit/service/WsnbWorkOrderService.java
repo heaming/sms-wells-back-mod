@@ -17,7 +17,7 @@ import com.kyowon.sms.wells.web.service.common.mapper.WsnzHistoryMapper;
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbWorkOrderConverter;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbWorkOrderDto.SaveReq;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbAsAssignReqDvo;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractReqDvo;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbWorkOrderMapper;
 import com.sds.sflex.common.utils.DateUtil;
@@ -41,6 +41,8 @@ import lombok.extern.slf4j.Slf4j;
 public class WsnbWorkOrderService {
     private final WsnbWorkOrderMapper mapper;
     private final WsnbWorkOrderConverter converter;
+
+    private final WsnbContractService contractService;
 
     private final WsnzHistoryMapper historyMapper;
 
@@ -99,9 +101,9 @@ public class WsnbWorkOrderService {
 
     private void setOrderData(WsnbWorkOrderDvo dvo) {
         /* 계약 관련 정보 */
-        WsnbContractReqDvo contract = mapper.selectContract(dvo.getCntrNo(), dvo.getCntrSn());
+        WsnbContractDvo contract = contractService.getContract(dvo.getCntrNo(), dvo.getCntrSn());
         /* 계약 관련 정보 before */
-        WsnbContractReqDvo beforeContract = mapper.selectContract(dvo.getCntrNoB(), dvo.getCntrSnB());
+        WsnbContractDvo beforeContract = contractService.getContract(dvo.getCntrNoB(), dvo.getCntrSnB());
 
         // 계약정보 Extension
         dvo.setCntrCstNo(contract.getCntrCstNo());

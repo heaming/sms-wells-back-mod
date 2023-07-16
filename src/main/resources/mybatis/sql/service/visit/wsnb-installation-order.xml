@@ -1,35 +1,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbInstallationOrderMapper">
 
-    <select id="selectContractByPk" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractReqDvo">
-        SELECT C4.RCGVP_KNM
-             , C5.OJ_PD_CD AS PDCT_PD_CD /* 제품상품코드 */
-             , P2.PD_PRP_VAL20 AS PDCT_PD_GRP_CD
-             , C2.SELL_TP_CD
-          FROM TB_SSCT_CNTR_BAS C1
-         INNER JOIN TB_SSCT_CNTR_DTL C2
-            ON C1.CNTR_NO = C2.CNTR_NO
-         INNER JOIN TB_SSCT_CNTR_ADR_REL C3
-            ON C2.CNTR_NO = C3.DTL_CNTR_NO
-           AND C2.CNTR_SN = C3.DTL_CNTR_SN
-           AND C3.ADRPC_TP_CD IN ('2','3')
-           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
-         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C4
-            ON C3.CNTR_ADRPC_ID = C4.CNTR_ADRPC_ID
-         INNER JOIN TB_SSCT_CNTR_PD_REL C5
-            ON C2.CNTR_NO = C5.CNTR_NO
-           AND C2.CNTR_SN = C5.CNTR_SN
-           AND C2.BASE_PD_CD = C5.BASE_PD_CD
-           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C5.VL_STRT_DTM AND C5.VL_END_DTM
-           AND C5.PD_REL_TP_CD IN ('05', '18')
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P2
-            ON C5.OJ_PD_CD = P2.PD_CD
-           AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
-           AND P2.DTA_DL_YN = 'N'
-         WHERE 1 = 1
-           AND C2.CNTR_NO = #{cntrNo}
-           AND C2.CNTR_SN = ${cntrSn}
-    </select>
 
     <select id="selectWorkProgStat" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkProgStatDvo">
         SELECT SUM(CASE WHEN S1.WK_ACPTE_STAT_CD = 'Y' AND S1.WK_PRGS_STAT_CD IN ('00', '10') THEN 1 ELSE 0 END) AS ACPTE_CT /* 수락된오더 건수 */

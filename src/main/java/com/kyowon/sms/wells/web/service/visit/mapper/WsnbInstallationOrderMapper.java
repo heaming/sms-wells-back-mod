@@ -1,11 +1,9 @@
 package com.kyowon.sms.wells.web.service.visit.mapper;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractReqDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbOjContractDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkProgStatDvo;
@@ -21,8 +19,6 @@ import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkProgStatDvo;
  */
 @Mapper
 public interface WsnbInstallationOrderMapper {
-
-    Optional<WsnbContractReqDvo> selectContractByPk(String cntrNo, String cntrSn);
 
     int insertAsIstCancel(WsnbWorkOrderDvo dvo);
 
