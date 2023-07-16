@@ -116,7 +116,7 @@
                                 AND T2.DTA_DL_YN = 'N'
                               WHERE 1=1
                                 AND T1.DTA_DL_YN = 'N'
-                                AND T1.ADRPC_TP_CD = '3'        /* 설치처 */
+                                AND T1.ADRPC_TP_CD IN ('2', '3')        /* 설치처 */
                                 AND T1.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
                                 AND T1.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
                             ) T3

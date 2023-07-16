@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.allocate.mapper.WsncVisitPeriodRecrtMapper">
+    <select id="selectPeriodPdInfo"
+            resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncVisitPeriodRecrtDvo">
+        SELECT TB_1.CNTR_NO
+             , TB_1.CNTR_SN
+             , TB_1.PDCT_PD_CD
+             , TB_2.SVPD_ITEM_GR
+          FROM TB_SVPD_CST_SV_EXCN_IZ TB_1
+         INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) TB_2
+         ON (
+            TB_1.PDCT_PD_CD = TB_2.SVPD_PD_CD
+         )
+         WHERE 1=1
+           AND TB_1.CNTR_NO = #{cntrNo}
+           AND TB_1.CNTR_SN = #{cntrSn}
+    </select>
+
+</mapper>

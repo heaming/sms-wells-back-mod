@@ -39,7 +39,6 @@
            AND T1.CNTR_SN = '00'
          WHERE T1.CNTR_NO      = #{CNTR_NO}
            AND T2.AS_IST_OJ_NO = #{AS_IST_OJ_NO}
-           AND T1.CNTR_SN      = '00'
            AND T1.SV_BIZ_HCLSF_CD IN ('9','1','4')
     </select>
 
