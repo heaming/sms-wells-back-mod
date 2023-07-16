@@ -203,6 +203,8 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
         // when & then
         callRestApi(List.of(editDto));
 
+        Thread.sleep(1000L);
+
         /* TEST CASE3(삭제) */
         // given
         CreateOrderReq removeDto = CreateOrderReq.builder()
