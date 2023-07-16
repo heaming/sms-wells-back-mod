@@ -21,7 +21,7 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.service.WctaInstallationReqdD
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbInstallationOrderConverter;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbInstallationOrderDto.SaveReq;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractDvo;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbOjContractDvo;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractRelationDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkProgStatDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbInstallationOrderMapper;
@@ -103,12 +103,12 @@ public class WsnbInstallationOrderService {
         if (workOrder.getSvBizDclsfCd().startsWith(SV_BIZ_MCLSF_CD_IST)
             && PG_GRP_CD_WELLS_FARM.equals(contract.getPdctPdGrpCd())) {
             // 모종계약 조회
-            List<WsnbOjContractDvo> sdingContracts = mapper
-                .selectOjContract(new WsnbOjContractDvo(cntrNo, cntrSn, CNTR_REL_DTL_CD_SDING_COMBI));
+            List<WsnbContractRelationDvo> sdingContractRelations = contractService
+                .getContractRelation(cntrNo, cntrSn, CNTR_REL_DTL_CD_SDING_COMBI);
 
-            for (WsnbOjContractDvo sdingContract : sdingContracts) {
-                String sdingCntrNo = sdingContract.getCntrNo();
-                String sdingCntrSn = sdingContract.getCntrSn();
+            for (WsnbContractRelationDvo sdingContractRelation : sdingContractRelations) {
+                String sdingCntrNo = sdingContractRelation.getOjDtlCntrNo();
+                String sdingCntrSn = sdingContractRelation.getOjDtlCntrSn();
 
                 workOrder.setCntrNo(sdingCntrNo);
                 workOrder.setCntrSn(sdingCntrSn);
@@ -124,12 +124,12 @@ public class WsnbInstallationOrderService {
         }
 
         // 홈케어 맴버쉽 패키지 설치오더 생성 [AS-IS] LC_ASREGN_API_U06_T
-        List<WsnbOjContractDvo> homecares = mapper
-            .selectOjContract(new WsnbOjContractDvo(cntrNo, cntrSn, CNTR_REL_DTL_CD_HOMECARE_MEMBERSHIP));
+        List<WsnbContractRelationDvo> homeCareContractRelations = contractService
+            .getContractRelation(cntrNo, cntrSn, CNTR_REL_DTL_CD_HOMECARE_MEMBERSHIP);
 
-        for (WsnbOjContractDvo homecare : homecares) {
-            workOrder.setCntrNo(homecare.getCntrNo());
-            workOrder.setCntrSn(homecare.getCntrSn());
+        for (WsnbContractRelationDvo homeCareContractRelation : homeCareContractRelations) {
+            workOrder.setCntrNo(homeCareContractRelation.getOjDtlCntrNo());
+            workOrder.setCntrSn(homeCareContractRelation.getOjDtlCntrSn());
             workOrderService.saveWorkOrders(workOrder); // 작업오더 호출
         }
 
@@ -181,13 +181,13 @@ public class WsnbInstallationOrderService {
 
         if (PG_GRP_CD_WELLS_FARM.equals(contract.getPdctPdGrpCd())) { // 웰스팜기기
             // 모종계약번호 조회
-            List<WsnbOjContractDvo> seedingDvos = mapper
-                .selectOjContract(new WsnbOjContractDvo(cntrNo, cntrSn, CNTR_REL_DTL_CD_SDING_COMBI));
+            List<WsnbContractRelationDvo> sdingContractRelations = contractService
+                .getContractRelation(cntrNo, cntrSn, CNTR_REL_DTL_CD_SDING_COMBI);
 
             // 모종계약 삭제
-            for (WsnbOjContractDvo seedingDvo : seedingDvos) {
-                String sdingCntrNo = seedingDvo.getCntrNo();
-                String sdingCntrSn = seedingDvo.getCntrSn();
+            for (WsnbContractRelationDvo sdingContractRelation : sdingContractRelations) {
+                String sdingCntrNo = sdingContractRelation.getOjDtlCntrNo();
+                String sdingCntrSn = sdingContractRelation.getOjDtlCntrSn();
 
                 this.removeContract(sdingCntrNo, sdingCntrSn); // 계약 삭제 및 작업할당 삭제
 

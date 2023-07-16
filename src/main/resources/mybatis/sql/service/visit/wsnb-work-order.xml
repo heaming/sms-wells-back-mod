@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbWorkOrderMapper">
 
-    <select id="selectAsAssignByPk" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbAsAssignReqDvo">
+    <select id="selectAsAssignByPk" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbAssignAsWorkDvo">
         SELECT S2.CST_SV_ASN_NO
              , S1.SV_BIZ_HCLSF_CD
              , S1.SV_BIZ_DCLSF_CD
@@ -179,13 +179,7 @@
                  END) AS NEW_REQ
           FROM DUAL
     </select>
-    <select id="selectMexnoEncr" resultType="String">
-            SELECT MEXNO_ENCR
-              FROM TB_OGBS_PRTNR_BAS
-             WHERE 1=1
-               AND PRTNR_NO = #{userId}
-               AND OG_TP_CD = #{rcpOgTpCd}
-    </select>
+
 
     <insert id="mergeInstallationObject">
         MERGE INTO TB_SVPD_CST_SVAS_IST_OJ_IZ S1
@@ -232,29 +226,7 @@
                      , P1.SV_PD_TP_CD AS PD_USWY_CD /*상품용도코드*/
                      , '' AS CST_SV_ASN_NO /*고객서비스배정번호*/
                      , #{cnslDtlpTpCd} AS CNSL_DTLP_TP_CD /*상담 세부유형*/
-                     , (CASE WHEN #{newInChnlDvCd} = '1' THEN REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
-                             WHEN #{newInChnlDvCd} = '2' THEN
-                                  REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '') ||
-                                  (SELECT CASE WHEN B.OG_TP_CD = 'W02' THEN CHR(13) || CHR(10) || B.PRTNR_KNM || 'WM('  || A.CRAL_LOCARA_TNO ||'-'|| #{mexnoEncr} ||'-'|| A.CRAL_IDV_TNO || ')'
-                                               WHEN B.OG_TP_CD = 'W06' THEN CHR(13) || CHR(10) || B.PRTNR_KNM || 'ENG(' || A.CRAL_LOCARA_TNO ||'-'|| #{mexnoEncr} ||'-'|| A.CRAL_IDV_TNO || ')'
-                                               ELSE CHR(13) || CHR(10) || B.PRTNR_KNM || '(' || A.CRAL_LOCARA_TNO ||'-'|| #{mexnoEncr} ||'-'|| A.CRAL_IDV_TNO || ')'
-                                           END
-                                     FROM TB_OGBS_MM_PRTNR_IZ B
-                               INNER JOIN TB_OGBS_PRTNR_BAS A
-                                       ON B.OG_TP_CD = A.OG_TP_CD
-                                      AND B.PRTNR_NO = A.PRTNR_NO
-                                    WHERE 1 = 1
-                                      AND B.PRTNR_NO = #{userId}
-                                      AND B.BASE_YM = SUBSTR(#{vstRqdt},1,6)
-                                      AND B.OG_TP_CD != 'HR1')
-                             WHEN #{newInChnlDvCd} = '3' THEN (CASE WHEN #{newSvBizDclsfCd} IN ('1121', '1122')
-                                                                    THEN F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_DCLSF_CD', #{newSvBizDclsfCd}, #{session.langId}) || ': ' || SUBSTR(TRIM(#{cntrNoB}), 1, 4) || '-' || SUBSTR(TRIM(#{cntrNoB}), 5) || ' '  ||
-                                                                         (SELECT T2.PD_ABBR_NM FROM TB_SSCT_CNTR_DTL T1 INNER JOIN TB_PDBS_PD_BAS T2 ON T1.BASE_PD_CD = T2.PD_CD WHERE CNTR_NO = #{cntrNoB} AND CNTR_SN = #{cntrSnB})
-                                                                         || CHR(13) || CHR(10) || REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
-                                                                    ELSE REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
-                                                                END)
-                             ELSE REPLACE(REPLACE(REPLACE(#{cnslMoCn},CHR(2),''), CHR(15), ''), CHR(26), '')
-                       END) AS CNSL_MO_CN /*상담메모내용*/
+                     , #{cnslMoCn} CNSL_MO_CN /*상담메모내용*/
                      , C4.RCGVP_KNM AS ISTLL_KNM /*설치고객명*/
                      , C4.ADR_ID AS ADR_ID
                      , 'N' AS DTA_DL_YN
@@ -503,7 +475,6 @@
             <include refid="COMMON.updateSystemField"/>
        WHERE 1=1
          AND CST_SV_ASN_NO = #{asnCstSvAsnNo}
-         AND WK_PRGS_STAT_CD IN ('00', '10')
     </update>
 
     <update id="deleteSeedingShipping">

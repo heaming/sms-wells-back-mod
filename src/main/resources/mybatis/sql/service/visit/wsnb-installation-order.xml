@@ -14,19 +14,6 @@
            AND S1.CNTR_SN = ${cntrSn}
     </select>
 
-    <select id="selectOjContract" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbOjContractDvo">
-        SELECT C1.OJ_DTL_CNTR_NO AS CNTR_NO
-             , C1.OJ_DTL_CNTR_SN AS CNTR_SN
-             , C1.CNTR_REL_DTL_CD AS REL_DTL_CD
-          FROM TB_SSCT_CNTR_REL C1
-         WHERE 1 = 1
-           AND C1.CNTR_REL_DTL_CD = #{relDtlCd} /* 216 :모종결합, 221: 홈케어멤버십 */
-           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C1.VL_STRT_DTM AND C1.VL_END_DTM
-           AND C1.DTA_DL_YN = 'N'
-           AND C1.BASE_DTL_CNTR_NO = #{cntrNo}
-           AND C1.BASE_DTL_CNTR_SN = ${cntrSn}
-    </select>
-
     <select id="selectSdingAsIstOjNos" resultType="java.lang.String">
         SELECT S1.AS_IST_OJ_NO
           FROM TB_SVPD_CST_SVAS_IST_OJ_IZ S1

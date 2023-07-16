@@ -129,6 +129,8 @@ public class SnServiceConst {
     /**
      * 계약관계상세코드
      */
+    public static final String CNTR_REL_DTL_CD_BEFORE_CONTRACT = "215";
+
     // 모종결합 "216"
     public static final String CNTR_REL_DTL_CD_SDING_COMBI = "216";
 

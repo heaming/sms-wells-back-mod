@@ -25,8 +25,9 @@ public class WsnbContractDvo {
     String istDt; /* 설치일자 */
     String reqdDt; /* 철거일자 */
     String cpsDt; /* 보상일자 */
-    String basePdCd; /* saleCd */
-    String basePdNm; /* saleNm */
+    String basePdCd;
+    String basePdNm;
+    String basePdAbbrNm;
     String pdctPdCd; /* pdCd */
     String pdctPdGrpCd; /**/
     String pdctPdSize; /**/

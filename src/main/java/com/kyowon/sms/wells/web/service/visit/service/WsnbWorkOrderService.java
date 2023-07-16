@@ -1,6 +1,5 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_AUTO;
 import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_KMEMBERS;
 import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_SALES;
 import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_WEB;
@@ -16,11 +15,15 @@ import org.springframework.stereotype.Service;
 import com.kyowon.sms.wells.web.service.common.mapper.WsnzHistoryMapper;
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbWorkOrderConverter;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbWorkOrderDto.SaveReq;
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbAsAssignReqDvo;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbAssignAsWorkDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbWorkOrderMapper;
+import com.sds.sflex.common.common.dvo.CodeDetailDvo;
+import com.sds.sflex.common.common.service.CodeService;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
@@ -43,6 +46,8 @@ public class WsnbWorkOrderService {
     private final WsnbWorkOrderConverter converter;
 
     private final WsnbContractService contractService;
+
+    private final CodeService codeService;
 
     private final WsnzHistoryMapper historyMapper;
 
@@ -73,7 +78,7 @@ public class WsnbWorkOrderService {
         }
 
         /* 1. ORDER 데이터 세팅 */
-        setOrderData(dvo);
+        setWorkOrderExtendData(dvo);
 
         /* 2. Validation Check */
         // 1) TODAY Request Reject
@@ -99,11 +104,9 @@ public class WsnbWorkOrderService {
         return dvo.getNewAsIstOjNo();
     }
 
-    private void setOrderData(WsnbWorkOrderDvo dvo) {
+    private void setWorkOrderExtendData(WsnbWorkOrderDvo dvo) {
         /* 계약 관련 정보 */
         WsnbContractDvo contract = contractService.getContract(dvo.getCntrNo(), dvo.getCntrSn());
-        /* 계약 관련 정보 before */
-        WsnbContractDvo beforeContract = contractService.getContract(dvo.getCntrNoB(), dvo.getCntrSnB());
 
         // 계약정보 Extension
         dvo.setCntrCstNo(contract.getCntrCstNo());
@@ -117,21 +120,33 @@ public class WsnbWorkOrderService {
         dvo.setBasePdCd(contract.getBasePdCd());
         dvo.setBasePdNm(contract.getBasePdNm());
 
-        if (List.of(IN_CHNL_DV_CD_SALES, IN_CHNL_DV_CD_AUTO).contains(dvo.getInChnlDvCd())
-            && List.of(MTR_STAT_CD_NEW).contains(dvo.getMtrStatCd())
+        boolean isExistWorkOrder = List.of(MTR_STAT_CD_MOD, MTR_STAT_CD_DEL).contains(dvo.getMtrStatCd());
+        WsnbAssignAsWorkDvo assignAsWork = new WsnbAssignAsWorkDvo();
+        if (isExistWorkOrder) {
+            assignAsWork = mapper.selectAsAssignByPk(dvo.getAsIstOjNo())
+                .orElseThrow(() -> new BizException("MSG_ALT_RCP_DIFF_WAY", new String[] {dvo.getRcgvpKnm()}));
+        }
+
+        if (List.of(MTR_STAT_CD_NEW).contains(dvo.getMtrStatCd())
             && !StringUtils.startsWith(dvo.getSvBizDclsfCd(), "7")) {
 
-            /* 보상 여부가 Y면 */
             if ("Y".equals(dvo.getCpsYn())) {
+                /* 보상판매 */
                 dvo.setNewSvBizDclsfCd("1124");
-            } else if ("Y".equals(dvo.getRetYn()) || "D".equals(dvo.getRetYn())) {
+            } else if (StringUtils.isNotEmpty(dvo.getRetYn())) {
+                /* 기기변경 */
+                // 이전계약 확인
+                WsnbContractDvo beforeContract = contractService.getBeforeContract(dvo.getCntrNo(), dvo.getCntrSn());
+
+                dvo.setCntrNoB(beforeContract.getCntrNo());
+                dvo.setCntrSnB(beforeContract.getCntrSn());
 
                 if ("91".equals(beforeContract.getPdctPdGrpCd())
                     && !"91".equals(contract.getPdctPdGrpCd())) {
                     dvo.setNewSvBizDclsfCd("1126"); //이종간기변
                 } else if ((StringUtils.isEmpty(beforeContract.getReqdDt())
                     && StringUtils.isEmpty(beforeContract.getCpsDt())
-                    && !"303".equals(beforeContract.getCntrDtlStatCd())) && "D".equals(dvo.getRetYn())) {
+                    && !"303".equals(beforeContract.getCntrDtlStatCd())) && "N".equals(dvo.getRetYn())) {
                     dvo.setNewSvBizDclsfCd("1122"); //자사미회수
                 } else {
                     dvo.setNewSvBizDclsfCd("1121"); //자사회수
@@ -140,21 +155,16 @@ public class WsnbWorkOrderService {
                 dvo.setNewSvBizDclsfCd(dvo.getSvBizDclsfCd());
             }
 
-        } else if (List.of(MTR_STAT_CD_MOD, MTR_STAT_CD_DEL).contains(dvo.getMtrStatCd())) {
-            WsnbAsAssignReqDvo asAssignReqDvo = mapper.selectAsAssignByPk(dvo.getAsIstOjNo())
-                .orElseThrow(() -> new BizException("MSG_ALT_RCP_DIFF_WAY", new String[] {dvo.getRcgvpKnm()}));
-
-            dvo.setNewSvBizDclsfCd(asAssignReqDvo.getSvBizDclsfCd());
-            dvo.setNewWkAcpteStatCd(asAssignReqDvo.getWkAcpteStatCd());
-            dvo.setNewMtrStatCd(asAssignReqDvo.getMtrStatCd());
-            dvo.setNewWkAcpteDt(asAssignReqDvo.getWkAcpteDt());
-            dvo.setNewWkPrgsStatCd(asAssignReqDvo.getWkPrgsStatCd());
-            dvo.setRcpdt(asAssignReqDvo.getRcpdt());
+        } else if (isExistWorkOrder) {
+            dvo.setNewSvBizDclsfCd(assignAsWork.getSvBizDclsfCd());
+            dvo.setNewWkAcpteStatCd(assignAsWork.getWkAcpteStatCd());
+            dvo.setNewMtrStatCd(assignAsWork.getMtrStatCd());
+            dvo.setNewWkAcpteDt(assignAsWork.getWkAcpteDt());
+            dvo.setNewWkPrgsStatCd(assignAsWork.getWkPrgsStatCd());
+            dvo.setRcpdt(assignAsWork.getRcpdt());
         } else {
             dvo.setNewSvBizDclsfCd(dvo.getSvBizDclsfCd());
         }
-
-        dvo.setMexnoEncr(mapper.selectMexnoEncr(dvo.getUserId())); /* 전화번호 가운데 복호화 */
 
         /*LC_ALLOCATE_AC211TB 키를 생성한다.
         P_IN_GB 입력구분 1:CC, 2:KIWI, 3:KSS 1이면 CC에서 입력된 P_WRK_DT, P_SEQ 사용 아니면 자체 생성
@@ -172,6 +182,48 @@ public class WsnbWorkOrderService {
         dvo.setNewReq(keyForAsReceipt.getNewReq());
         dvo.setNewAsIstOjNo(newAsIstOjNo);
         dvo.setPuCstSvAsnNo(puCstSvAsnNo);
+
+        // 상담메시지설정
+        setCounselorMemo(dvo);
+    }
+
+    private void setCounselorMemo(WsnbWorkOrderDvo dvo) {
+        StringBuilder newCounselorMemo = new StringBuilder();
+        if ("2".equals(dvo.getNewInChnlDvCd())) {
+            String partnerContactPoint = "";
+
+            UserSessionDvo userSession = SFLEXContextHolder.getContext()
+                .getUserSession();
+
+            String mobileNo = String.format(
+                "%s-%s-%s", userSession.getCralLocaraTno(), userSession.getMexnoGbencr(), userSession.getCralIdvTno()
+            );
+            if ("W02".equals(userSession.getOgTpCd())) {
+                partnerContactPoint = String.format("%sWM(%s)", userSession.getUserName(), mobileNo);
+            } else if ("W06".equals(userSession.getOgTpCd())) {
+                partnerContactPoint = String.format("%sENG(%s)", userSession.getUserName(), mobileNo);
+            } else {
+                partnerContactPoint = String.format("%s(%s)", userSession.getUserName(), mobileNo);
+            }
+
+            newCounselorMemo.append(dvo.getCnslMoCn()).append("\n")
+                .append(partnerContactPoint);
+        } else if ("3".equals(dvo.getNewInChnlDvCd()) && List.of("1121", "1122").contains(dvo.getNewSvBizDclsfCd())) {
+            CodeDetailDvo code = codeService.getCodeDetailByPk(
+                "SV_BIZ_DCLSF_CD",
+                dvo.getNewSvBizDclsfCd()
+            );
+
+            WsnbContractDvo beforeContract = contractService.getContract(dvo.getCntrNoB(), dvo.getCntrSnB());
+
+            newCounselorMemo.append(code.getCodeName()).append(": ").append(dvo.getCntrNoB()).append(" ")
+                .append(beforeContract.getBasePdAbbrNm()).append("\n")
+                .append(dvo.getCnslMoCn());
+        } else {
+            newCounselorMemo.append(dvo.getCnslMoCn());
+        }
+
+        dvo.setCnslMoCn(newCounselorMemo.toString());
     }
 
     private void saveOrder(WsnbWorkOrderDvo dvo) throws Exception {

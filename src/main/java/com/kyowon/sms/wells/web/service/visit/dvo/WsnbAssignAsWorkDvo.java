@@ -13,7 +13,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class WsnbAsAssignReqDvo {
+public class WsnbAssignAsWorkDvo {
     String cstSvAsnNo;
     String svBizHclsfCd;
     String svBizDclsfCd;

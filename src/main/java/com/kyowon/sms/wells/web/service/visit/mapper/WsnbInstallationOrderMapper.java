@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbOjContractDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkProgStatDvo;
 
@@ -29,8 +28,6 @@ public interface WsnbInstallationOrderMapper {
     int deleteIstAsnIz(String cntrNo, String cntrSn);
 
     int deleteIstOjIz(String cntrNo, String cntrSn);
-
-    List<WsnbOjContractDvo> selectOjContract(WsnbOjContractDvo dvo);
 
     List<String> selectSdingAsIstOjNos(String cntrNo, String cntrSn);
 

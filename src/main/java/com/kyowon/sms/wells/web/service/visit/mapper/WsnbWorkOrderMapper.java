@@ -5,13 +5,13 @@ import java.util.Optional;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.kyowon.sms.wells.web.service.visit.dvo.WsnbAsAssignReqDvo;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbAssignAsWorkDvo;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 
 @Mapper
 public interface WsnbWorkOrderMapper {
 
-    Optional<WsnbAsAssignReqDvo> selectAsAssignByPk(String asIstOjNo);
+    Optional<WsnbAssignAsWorkDvo> selectAsAssignByPk(String asIstOjNo);
 
     WsnbWorkOrderDvo selectAsAssignOganizationByPk(WsnbWorkOrderDvo dvo);
 
@@ -28,8 +28,6 @@ public interface WsnbWorkOrderMapper {
     int selectWorkOutStorageCount(String cntrNo, String cntrSn);
 
     WsnbWorkOrderDvo selectAsIstOjIzKey(WsnbWorkOrderDvo dvo);
-
-    String selectMexnoEncr(String userId);
 
     int mergeInstallationObject(WsnbWorkOrderDvo dvo);
 
