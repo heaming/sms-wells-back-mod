@@ -150,6 +150,8 @@ public class WsncTimeTableService {
         /*-----------------------------------------------------------------------------------------------*/
         if (StringUtil.isNotEmpty(dvo.getCntrNo())) {
 
+            mapper.selectAdrId(dvo.getCntrNo()).orElseThrow(() -> new BizException("주소기본 정보에 데이터가 없습니다."));
+
             if (StringUtil.isEmpty(dvo.getCntrSn()))
                 dvo.setCntrSn("1");
 
@@ -160,8 +162,9 @@ public class WsncTimeTableService {
              * @param sellDate
              */
             List<WsncTimeTableCntrDvo> contractDvos = mapper.selectContract(dvo);
-            if (contractDvos.size() == 0)
-                new BizException("MSG_ALT_NO_PRODUCT_FOUND");
+            //                .orElseThrow(() -> new BizException("MSG_ALT_NO_PRODUCT_FOUND"));
+            if (contractDvos.size() == 0 || contractDvos == null)
+                throw new BizException("MSG_ALT_NO_PRODUCT_FOUND");
 
             dvo.getBasePdCds().clear();
             dvo.getPdctPdCds().clear();
@@ -218,7 +221,8 @@ public class WsncTimeTableService {
 
             dvo.getPdctPdCds().add(productDvo.getPdctPdCd());
 
-            if(i == 0) dvo.setPdctPdCd(productDvo.getPdctPdCd());
+            if (i == 0)
+                dvo.setPdctPdCd(productDvo.getPdctPdCd());
 
             if ("Y".equals(sidingYn)) {
 
@@ -470,14 +474,16 @@ public class WsncTimeTableService {
         dvo.setCntrSns(Arrays.asList(dvo.getCntrSn().split(",")));
 
         /*---------------------------------------------------------------------------*/
+        mapper.selectAdrId(dvo.getCntrNo()).orElseThrow(() -> new BizException("주소기본 정보에 데이터가 없습니다."));
         /*
          * @param cntrNo
          * @param cntrSn
          * @param sellDate
          */
         List<WsncTimeTableCntrDvo> contractDvos = mapper.selectContract(dvo);
+        //            .orElseThrow(() -> new BizException("MSG_ALT_NO_PRODUCT_FOUND"))
         if (contractDvos.size() == 0)
-            new BizException("MSG_ALT_NO_PRODUCT_FOUND");
+            throw new BizException("MSG_ALT_NO_PRODUCT_FOUND");
 
         dvo.setBasePdCds(new ArrayList<>());
         dvo.setPdctPdCds(new ArrayList<>());
@@ -636,14 +642,16 @@ public class WsncTimeTableService {
             dvo.setVstDvCd(mapper.selectVstDvCd(dvo)); // 방문구분코드
 
         /*---------------------------------------------------------------------------*/
+        mapper.selectAdrId(dvo.getCntrNo()).orElseThrow(() -> new BizException("주소기본 정보에 데이터가 없습니다."));
         /*
          * @param cntrNo
          * @param cntrSn
          * @param sellDate
          */
         List<WsncTimeTableCntrDvo> contractDvos = mapper.selectContract(dvo);
+        //            .orElseThrow(() -> new BizException("MSG_ALT_NO_PRODUCT_FOUND"));
         if (contractDvos.size() == 0)
-            new BizException("MSG_ALT_NO_PRODUCT_FOUND");
+            throw new BizException("MSG_ALT_NO_PRODUCT_FOUND");
 
         dvo.getBasePdCds().clear();
         dvo.getPdctPdCds().clear();
