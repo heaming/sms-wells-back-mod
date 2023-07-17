@@ -59,17 +59,17 @@
     </select>
 
     <select id="selectCustomerSingleViewPayments" resultType="com.kyowon.sms.wells.web.customer.contract.dto.WcsaCustomerSingleViewDto$PaymentRes">
-        SELECT SUM(CASE WHEN T2.SELL_TP_CD IN ('2', '6')    /* 2: 렌탈/리스, 6: 정기배송 */
-                         AND T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') /* 현재 유효한 계약상태 */
-                            THEN T2.FNL_AMT
-                        ELSE 0
-                    END) AS THIS_RENTAL_AMT
-             , MAX(T3.PY_AMT) AS PY_AMT
-             , MAX(T4.CANCEL_FEE_AMT) AS CANCEL_FEE_AMT
-             , MAX(T4.CANCEL_COUNT) AS CANCEL_COUNT
-             , MAX(T5.DLQ_AMT) AS DLQ_AMT
-             , MAX(T5.DLQ_MCN) AS DLQ_MCN
-             , MAX(T5.DLQ_PD_COUNT) AS DLQ_PD_COUNT
+        SELECT NVL(SUM(CASE WHEN T2.SELL_TP_CD IN ('2', '6')    /* 2: 렌탈/리스, 6: 정기배송 */
+                             AND T2.CNTR_DTL_STAT_CD NOT IN ('301','302','303') /* 현재 유효한 계약상태 */
+                                THEN T2.FNL_AMT
+                            ELSE 0
+                        END), 0) AS THIS_RENTAL_AMT
+             , NVL(MAX(T3.PY_AMT), 0) AS PY_AMT
+             , NVL(MAX(T4.CANCEL_FEE_AMT), 0) AS CANCEL_FEE_AMT
+             , NVL(MAX(T4.CANCEL_COUNT), 0) AS CANCEL_COUNT
+             , NVL(MAX(T5.DLQ_AMT), 0) AS DLQ_AMT
+             , NVL(MAX(T5.DLQ_MCN), 0) AS DLQ_MCN
+             , NVL(MAX(T5.DLQ_PD_COUNT), 0) AS DLQ_PD_COUNT
              , MAX(T5.FNL_PY_DT) AS FNL_PY_DT
           FROM TB_SSCT_CNTR_BAS T1
          INNER JOIN TB_SSCT_CNTR_DTL T2
