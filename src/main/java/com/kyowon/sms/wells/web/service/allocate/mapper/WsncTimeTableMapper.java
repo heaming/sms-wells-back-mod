@@ -16,6 +16,8 @@ public interface WsncTimeTableMapper {
     List<WsncTimeTableDaysDvo> selectTimeTableDates(String baseYm);
 
     //WsncTimeTablePackageDvo selectPackage(String sidingCd, String baePdCd, String cntrNo);
+    Optional<String> selectAdrId(String cntrNo);
+
     List<WsncTimeTableCntrDvo> selectContract(WsncTimeTableDvo dvo);
 
     Optional<WsncTimeTableProductDvo> selectProduct(String svDvCd, String basePdCd);

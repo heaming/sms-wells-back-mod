@@ -1516,4 +1516,17 @@
        WHERE C1.CST_SV_ASN_NO = #{cstSvAsnNo}
     </select>
 
+    <select id="selectAdrId" resultType="java.lang.String">
+      SELECT A1.ADR_ID
+        FROM TB_SSCT_CNTR_BAS C1
+       INNER JOIN TB_SSCT_CNTR_ADR_REL   C3
+          ON C1.CNTR_NO = C3.DTL_CNTR_NO AND C3.ADRPC_TP_CD IN ('2', '3') -- 계약지유형(1:계약주소, 2:배달주소, 3:설치주소)
+         AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
+       INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C4
+          ON C3.CNTR_ADRPC_ID = C4.CNTR_ADRPC_ID
+       INNER JOIN TB_GBCO_ADR_BAS        A1
+          ON C4.ADR_ID = A1.ADR_ID
+       WHERE C1.CNTR_NO = #{cntrNo}
+    </select>
+
 </mapper>
