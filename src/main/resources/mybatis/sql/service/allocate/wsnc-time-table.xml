@@ -165,8 +165,8 @@
     <select id="selectDisableDays" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableDisableDaysDvo">
         SELECT DISTINCT /*DISABLE_DAYS,*/ DISABLE_FULDAYS, MAX(MSG) AS TC_MSG
         FROM (
-            -------------------------------------------------------------------------------------------------------------------------------------
-            -- QUERY 1
+            /*-------------------------------------------------------------------------------------------------------------------------------------*/
+            /*QUERY 1*/
             SELECT BASE_Y||'-'||TO_NUMBER(BASE_MM)||'-'|| TO_NUMBER(BASE_D) AS DISABLE_DAYS
                  , BASE_Y||'-'|| BASE_MM||'-'|| BASE_D AS DISABLE_FULDAYS
                  , B.RSTR_CNDT_SRN_MARK_CN AS MSG
@@ -185,8 +185,8 @@
                 AND (TO_CHAR(SYSDATE, 'HH24MI') <![CDATA[<]]> '0800' OR TO_CHAR(SYSDATE, 'HH24MI') > '1800')
 
             UNION ALL
-            -------------------------------------------------------------------------------------------------------------------------------------
-            -- QUERY 2
+            /*-------------------------------------------------------------------------------------------------------------------------------------*/
+            /*QUERY 2*/
             /** 제주도 매트리스 4건 제한 최정문P 요청 2022.01.10(월) **/
             SELECT B.BASE_Y || '-' || TO_NUMBER(B.BASE_MM) || '-' || TO_NUMBER(B.BASE_D) AS DISABLE_DAYS
                  , B.BASE_Y || '-' || B.BASE_MM || '-' || B.BASE_D AS DISABLE_FULDAYS
@@ -207,7 +207,7 @@
                                   FROM TB_PDBS_PD_BAS X1
                                  INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL X2
                                     ON X1.PD_CD = X2.PD_CD
-                                   AND X2.PD_EXTS_PRP_GRP_CD IN ('PART', 'PDCT')
+                                   AND X2.PD_EXTS_PRP_GRP_CD = 'PART'
                                    AND X2.DTA_DL_YN = 'N'
                                  WHERE 1 = 1
                                    AND X2.PD_PRP_VAL20 = '95'
@@ -226,8 +226,8 @@
                         AND (SELECT RNADR||LTN_ADR FROM TB_GBCO_ADR_BAS Z WHERE Z.ADR_ID = T2.ADR_ID) LIKE '%제주%')) > 4
 
             UNION ALL
-            -------------------------------------------------------------------------------------------------------------------------------------
-            -- QUERY 3
+            /*-------------------------------------------------------------------------------------------------------------------------------------*/
+            /*QUERY 3*/
             <if test="@MybatisUtils@equals(svDvCd, '3')">
                 <if test="!@MybatisUtils@equals(chnlDvCd, 'M')">
                     <if test="!@MybatisUtils@equals(chnlDvCd, 'I')">
@@ -262,7 +262,7 @@
                                        AND AC221.SV_BIZ_HCLSF_CD = '3')) > RSTR_CNDT_VAL1 /*CO720_COL01*/
 
                     UNION ALL
-                    -------------------------------------------------------------------------------------------------------------------------------------
+                    /*-------------------------------------------------------------------------------------------------------------------------------------*/
                     -- QUERY 4
                     SELECT A.BASE_Y || '-' || TO_NUMBER(A.BASE_MM) || '-' || TO_NUMBER(A.BASE_D) AS DISABLE_DAYS, A.BASE_Y || '-' || A.BASE_MM || '-' || A.BASE_D AS DISABLE_FULDAYS, B.RSTR_CNDT_SRN_MARK_CN AS MSG
                       FROM TB_SVPD_SV_CLND_BAS A /* 서비스달력기본 */
@@ -292,7 +292,7 @@
                     UNION ALL
                     </if>
                 </if>
-                -------------------------------------------------------------------------------------------------------------------------------------
+                /*-------------------------------------------------------------------------------------------------------------------------------------*/
                 -- QUERY 5
                 <if test="@MybatisUtils@equals(chnlDvCd, 'M')">
 
@@ -340,7 +340,7 @@
                     UNION ALL
                 </if>
             </if>
-            -------------------------------------------------------------------------------------------------------------------------------------
+            /*-------------------------------------------------------------------------------------------------------------------------------------*/
             -- QUERY 6
             <if test='@MybatisUtils@isNotEmpty(exYn)'>
                 <if test="@MybatisUtils@equals(exYn, 'Y')">
@@ -369,7 +369,8 @@
                                AND FN_SVPD_LDTM_TOT_01(#{prtnrNo}, A.BASE_Y || A.BASE_MM || A.BASE_D) + 6
                                 + (SELECT SUM(SUM_T) / 10 AS V_WRK_TOTAL_TIME
                                      FROM (
-                                           SELECT SUM(FN_SVPD_MMT_AV_LDTM_01((SELECT MAX(NEW_ADR_ZIP) FROM TB_GBCO_ADR_BAS T WHERE T.ADR_ID = AC211.ADR_ID), AC211.PD_CD, AC211.SV_BIZ_DCLSF_CD, AC221.VST_CNFMDT)) AS SUM_T
+                                           /*SELECT SUM(FN_SVPD_MMT_AV_LDTM_01((SELECT MAX(NEW_ADR_ZIP) FROM TB_GBCO_ADR_BAS T WHERE T.ADR_ID = AC211.ADR_ID), AC211.PD_CD, AC211.SV_BIZ_DCLSF_CD, AC221.VST_CNFMDT)) AS SUM_T*/
+                                           SELECT SUM(FN_SVPD_MMT_AV_LDTM_01((SELECT MAX(NEW_ADR_ZIP) FROM TB_GBCO_ADR_BAS WHERE ADR_ID = AC211.ADR_ID), AC211.PD_CD, AC211.SV_BIZ_DCLSF_CD, AC221.VST_CNFMDT)) AS SUM_T
                                              FROM TB_SVPD_CST_SVAS_IST_ASN_IZ /*LC_ALLOCATE_AC221TB*/ AC221 /*고객서비스AS설치배정내역*/
                                             INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ  /*LC_ALLOCATE_AC211TB*/ AC211 /*고객서비스AS설치대상내역*/
                                                ON AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
@@ -401,7 +402,7 @@
                     </if>
                 </if>
             </if>
-            -------------------------------------------------------------------------------------------------------------------------------------
+            /*-------------------------------------------------------------------------------------------------------------------------------------*/
             -- QUERY 7
             <if test='@MybatisUtils@isEmpty(exYn)'>
 
@@ -416,7 +417,7 @@
                 UNION ALL
 
             </if>
-            -------------------------------------------------------------------------------------------------------------------------------------
+            /*-------------------------------------------------------------------------------------------------------------------------------------*/
             -- QUERY 8
             <if test='@MybatisUtils@isNotEmpty(svDvCd)'>
                 <if test="@MybatisUtils@equals(svDvCd, '1')">
@@ -455,7 +456,7 @@
 
                         UNION ALL
                     </if>
-                    -------------------------------------------------------------------------------------------------------------------------------------
+                    /*-------------------------------------------------------------------------------------------------------------------------------------*/
                     -- QUERY 9
                     <if test="@MybatisUtils@equals(hcrYn, 'N')">
 
@@ -477,7 +478,7 @@
                         OR (A.BASE_Y||A.BASE_MM||A.BASE_D <![CDATA[<]]> B.BIZ_STRTDT ))
 
                         UNION ALL
-                        -------------------------------------------------------------------------------------------------------------------------------------
+                        /*-------------------------------------------------------------------------------------------------------------------------------------*/
                         -- QUERY 10
                         -- 2019.01.01(월) 상품 접수 제한
                         SELECT A.BASE_Y||'-'||TO_NUMBER(A.BASE_MM)||'-'|| TO_NUMBER(A.BASE_D) AS DISABLE_DAYS
@@ -513,7 +514,7 @@
                           WHERE 1 = 1
 
                         UNION ALL
-                        -------------------------------------------------------------------------------------------------------------------------------------
+                        /*-------------------------------------------------------------------------------------------------------------------------------------*/
                         -- QUERY 11
                         -- 2020.03.03(화) 매트리스 접수 일 기준 D+6일 이후 설치 요청 일자 선택 가능
                         -- 2020.05.01 기준으로 삭제
@@ -566,7 +567,7 @@
                          WHERE RN <![CDATA[<]]> RSTR_CNDT_VAL1 /* 최대 노출일수 */
 
                         UNION ALL
-                        -------------------------------------------------------------------------------------------------------------------------------------
+                        /*-------------------------------------------------------------------------------------------------------------------------------------*/
                         -- QUERY 12
                         -- 2022.04.29(금) 단기렌탈 제품 D+5 영업일 이후부터 설치
                         SELECT DISABLE_DAYS, DISABLE_FULDAYS, MSG
@@ -619,7 +620,7 @@
                          WHERE RN <![CDATA[<]]> RSTR_CNDT_VAL1 /* 최대 노출일수 */
 
                         UNION ALL
-                        -------------------------------------------------------------------------------------------------------------------------------------
+                        /*-------------------------------------------------------------------------------------------------------------------------------------*/
                         -- QUERY 13
                         -- 2019.08.13(화) 계약 접수일 기준 D+10 배정 접수 가능 LCWGUB  (1: 개인, 2:법인)
                         -- 2019.08.16(금) 영업부의 불편이 우려되어 재고부족 건, 설치 가능일로부터 D+10일로 설치일 배정
@@ -719,7 +720,7 @@
                     </if>
                 </if>
             </if>
-            -------------------------------------------------------------------------------------------------------------------------------------
+            /*-------------------------------------------------------------------------------------------------------------------------------------*/
             -- QUERY 14
             <if test='@MybatisUtils@isNotEmpty(svDvCd)'>
                 <if test="@MybatisUtils@equals(svDvCd, '4')">
@@ -739,7 +740,7 @@
                     </if>
                 </if>
             </if>
-            -------------------------------------------------------------------------------------------------------------------------------------
+            /*-------------------------------------------------------------------------------------------------------------------------------------*/
             -- QUERY 15
             --  센터별날짜막기:  전체 적용 Depth 센터, 요일별
             SELECT SUBSTR(ASN_DT,1,4)||'-'||TO_NUMBER(SUBSTR(ASN_DT,5,2))||'-'|| TO_NUMBER(SUBSTR(ASN_DT,7,2)) AS DISABLE_DAYS
@@ -933,12 +934,13 @@
                                                                      WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106349'
                                                                      WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106351'
                                                                      ELSE #{pdctPdCd}
-                                                                END) OR SLIM_SDING_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106346'
-                                                                                                 WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106348'
-                                                                                                 WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106350'
-                                                                                                 WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106352'
-                                                                                                 ELSE #{pdctPdCd}
-                                                                                            END))
+                                                                END)
+                                        OR  SLIM_SDING_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106346'
+                                                                     WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106348'
+                                                                     WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106350'
+                                                                     WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106352'
+                                                                     ELSE #{pdctPdCd}
+                                                                END))
                                        AND LIM_SN = (SELECT LPAD(NVL(MAX(FA105.LIM_SN), 0), 2, '0')
                                                        FROM TB_SVPD_DCBY_SDING_RCP_LIM_IZ FA105 /*LC_FARM_FA105TB 일별모종접수한도내역*/
                                                       WHERE FA105.VST_DT = T1.VST_DT
@@ -999,19 +1001,18 @@
         -- selectTimeAssign_v2_step1
         SELECT DISTINCT  T3.RPB_LOCARA_CD /*책임지역코드*/
              , T2.CTPV_NM || ' ' || T2.CTCTY_NM || ' ' || T2.LAWC_EMD_NM || ':' || T2.AMTD_NM AS LOCAL_NM
-             , T3.WK_GRP_CD /*작업그룹코드 wkGrpCd*/
+             , T3.WK_GRP_CD /*작업그룹코드*/
              , OG_CD /*조직코드*/
              , OG_NM /*조직명*/
-             --, HMNRSC_EMPNO hmnrscEmpno /*인사사원번호*/
              , T3.ICHR_PRTNR_NO
              , PRTNR_KNM /*파트너한글명*/
              , T4.OG_TP_CD
-             , #{inflwChnl} AS INFLW_CHNL -- IN_GB, inGb
+             , #{inflwChnl} AS INFLW_CHNL /*IN_GB, inGb*/
              , #{chnlDvCd} AS CHNL_DV_CD
              , NVL(TRIM(SAT_WRK_YN), 'N') AS SAT_WRK_YN /*토요일근무여부*/
              , NVL(TRIM(DF_YN), 'N') AS DF_YN /*휴무여부*/
              , DOW_DV_CD AS DOW_DV_CD /*요일구분코드*/
-             , T2.FR2P_LGLD_CD /*앞2자리법정동코드 -- AC112_ADM_CD*/
+             , T2.FR2P_LGLD_CD /*앞2자리법정동코드*/
              , CD_CNTN AS VST_DOW_VAL /*방문요일*/
              , (CASE WHEN (CASE WHEN DF_YN = 'Y' AND SAT_WRK_YN = 'Y' THEN 'Y' ELSE 'N' END) = 'Y' THEN '방문가능'
                      WHEN (PHLD_YN) = 'Y' THEN '해당일 방문불가'
@@ -1071,7 +1072,8 @@
 
          INNER JOIN TB_OGBS_MM_PRTNR_IZ T4 /*월파트너내역*/
             ON T4.DTA_DL_YN = 'N'
-           AND T4.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           /*AND T4.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')*/
+           AND T4.BASE_YM = SUBSTR(#{sellDate}, 1, 6)
            AND T4.OG_TP_CD = T3.ICHR_PRTNR_OG_TP_CD
            AND T4.PRTNR_NO = T3.ICHR_PRTNR_NO
          INNER JOIN TB_SVPD_SV_CLND_BAS C /*서비스달력기본*/
@@ -1165,48 +1167,52 @@
     </select>
 
     <select id="selectPsic" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTablePsicDvo">
-        SELECT OG1.PRTNR_NO -- AS AC021_EMP_ID
+        SELECT OG1.PRTNR_NO
              , 'http://kiwi-m.kyowon.co.kr/KIWI-M/upload_file/upload_file/' || OG1.PRTNR_NO || '.jpg' AS EMP_PIC
-             , #{sellDate} AS SELL_DATE--AC221_CFRM_DT
-             , OG2.OG_NM -- AS AC125_DEPT_NM
-             , OG2.OG_ID -- AS AC125_DEPT_CD
-             , OG1.PRTNR_KNM -- AS AC021_EMP_NM
+             , #{sellDate} AS SELL_DATE
+             , OG2.OG_NM
+             , OG2.OG_ID
+             , OG1.PRTNR_KNM
              , F_CMZ_CD_NM(#{session.tenantId}, 'PRTNR_GD_CD', OG1.PRTNR_GD_CD) AS ISCGUB_NM
              , LOC.DEG_NM
              , LOC.AM_WRK_CNT
              , LOC.PM_WRK_CNT
              , #{wrkCnt} AS TOTAL_WRK_CNT
-             , OG1.RSB_DV_CD -- AC025_EMP_OR --EGER_RSB_CD -- EGER_RSB_CD
-             , OG3.LOCARA_TNO -- 지역전화번호
-             , OG3.EXNO_ENCR -- 전화국번호암호화
-             , OG3.IDV_TNO -- 개별전화번호
-             , OG3.CRAL_LOCARA_TNO -- 휴대지역전화번호
-             , OG3.MEXNO_ENCR -- 휴대전화국번호암호화
-             , OG3.CRAL_IDV_TNO -- 휴대개별전화
+             , OG1.RSB_DV_CD
+             , OG3.LOCARA_TNO
+             , OG3.EXNO_ENCR
+             , OG3.IDV_TNO
+             , OG3.CRAL_LOCARA_TNO
+             , OG3.MEXNO_ENCR
+             , OG3.CRAL_IDV_TNO
              , F_CMZ_CD_NM('TNT_WELLS', 'ROL_DV_CD', OG1.ROL_DV_CD, 'ko') AS ROL_DV_NM
-             , OG4.PRTNR_KNM AS PRTNR_KNM2--AC021_EMP_NM1
+             , OG4.PRTNR_KNM AS PRTNR_KNM2
              , OG4.CRAL_LOCARA_TNO AS SJ_HP1
              , OG4.MEXNO_ENCR AS SJ_HP2
              , OG4.CRAL_IDV_TNO AS SJ_HP3
              , F_CMZ_CD_NM('TNT_WELLS', 'ROL_DV_CD', OG5.ROL_DV_CD, 'ko') AS ROL_DV_NM2
-             , #{vstDowVal} AS VST_DOW_VAL -- AC146_VST_CYCL
+             , #{vstDowVal} AS VST_DOW_VAL
              , #{vstPos} AS VST_POS
-             , #{rstrCndtUseYn} AS RSTR_CNDT_USE_YN -- AC146_TTB_USE
-             , #{udsnUseYn} AS UDSN_USE_YN -- AC146_UA_USE
-             , #{rpbLocaraCd} AS RPB_LOCARA_CD--AC146_LOCAL_GB
-             , #{satWrkYn} AS SAT_WRK_YN -- AC146_SAT13_WRK_YN
-             , #{dfYn} AS DF_YN -- CO160_OFFDAY_GB
-             , #{dowDvCd} AS DOW_DV_CD -- CO160_DAYS
-             , #{fr2pLgldCd} AS FR2P_LGLD_CD -- AC112_ADM_CD
+             , #{rstrCndtUseYn} AS RSTR_CNDT_USE_YN
+             , #{udsnUseYn} AS UDSN_USE_YN
+             , #{rpbLocaraCd} AS RPB_LOCARA_CD
+             , #{satWrkYn} AS SAT_WRK_YN
+             , #{dfYn} AS DF_YN
+             , #{dowDvCd} AS DOW_DV_CD
+             , #{fr2pLgldCd} AS FR2P_LGLD_CD
              , (SELECT NVL(COUNT(1), 0)
                   FROM TB_SVPD_CST_SVAS_IST_ASN_IZ AC221 /*설치및A/S배정정보*/
                  INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ  AC211 /*A/S 및 설치 배정대상정보*/
                     ON AC221.CST_SV_ASN_NO = AC211.CST_SV_ASN_NO
+                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL PRP
+                    ON  PRP.PD_CD = AC211.PD_CD
+                   AND PRP.PD_EXTS_PRP_GRP_CD = 'PART'
                  WHERE AC221.VST_CNFMDT = #{sellDate}
                    AND AC221.ICHR_PRTNR_NO = #{ichrPrtnrNo}
                    AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
                    AND AC221.SV_BIZ_HCLSF_CD IN ('1', '4')
-                   AND AC211.PD_CD NOT LIKE '60%'
+                   /*AND AC211.PD_CD NOT LIKE '60%'*/
+                   AND PRP.PD_PRP_VAL20 != '11'
                    AND AC211.PD_CD NOT IN ('WM04100200', 'WM04100192', 'WM04100194', 'WM02100244', 'WM03100250', 'WM07100662', 'WM04100193', 'WM02100258', 'WM02100248', 'WM03100965',
                                            'WM05100129', 'WM05100196', 'WM04100156', 'WM07101114', 'WM03100251', 'WM04100202', 'WM04100201', 'WM05100128', 'WM05100125', 'WM04100166',
                                            'WM07101222', 'WM07100663', 'WM02100249', 'WM05100126', 'WM05100131', 'WM05100130', 'WM02100259', 'WM05100124', 'WM02100257', 'WM04100153',
@@ -1216,12 +1222,16 @@
                   FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261 /*B/S배정정보*/
                  INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ  AC251/*B/S배정대상정보*/
                     ON AC261.CST_SV_ASN_NO = AC251.CST_SV_ASN_NO
+                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL  PRP /*상품각사속성상세*/
+                    ON  PRP.PD_CD = AC251.PDCT_PD_CD
+                   AND PRP.PD_EXTS_PRP_GRP_CD = 'PART'
                  WHERE AC251.ASN_OJ_YM = SUBSTR(#{sellDate}, 1, 6)
                    AND SUBSTR(AC261.CST_SV_ASN_NO, 2, 8) = SUBSTR(#{sellDate}, 1, 6) || '00'
                    AND AC261.VST_DUEDT = #{sellDate}
                    AND AC261.CNFM_PSIC_PRTNR_NO = #{ichrPrtnrNo}
                    AND AC261.VST_PRGS_STAT_CD IN ('00', '10')
-                   AND AC251.PDCT_PD_CD NOT LIKE '60%'
+                   /*AND AC251.PDCT_PD_CD NOT LIKE '60%'*/
+                   AND PRP.PD_PRP_VAL20 != '11' /*모종*/
                    AND AC261.VST_EXP_HH >= '080000'
                    AND (AC251.PDCT_PD_CD NOT IN ('WM04100200', 'WM04100192', 'WM04100194', 'WM02100244', 'WM03100250', 'WM07100662', 'WM04100193', 'WM02100258', 'WM02100248', 'WM03100965',
                                                  'WM05100129', 'WM05100196', 'WM04100156', 'WM07101114', 'WM03100251', 'WM04100202', 'WM04100201', 'WM05100128', 'WM05100125', 'WM04100166',
@@ -1288,7 +1298,8 @@
            AND OG5.PRTNR_NO = OG2.HOO_PRTNR_NO
          WHERE OG1.PRTNR_NO = #{ichrPrtnrNo}
            AND OG1.OG_TP_CD = 'W06'
-           AND OG1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           /*AND OG1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')*/
+           AND OG1.BASE_YM = SUBSTR(#{sellDate}, 1, 6)
     </select>
 
     <select id="selectAssignTimes" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableAssignTimeDvo">
@@ -1296,8 +1307,8 @@
              , EMP_ID /*담당자*/
              , TM /*시간*/
              , WRK_CNT /*해당 시간 작업건수*/
-             , WRK_T_CNT /*현재 순번 이전까지 총 작업건수*/ -- 지정 합
-             , WRK_C_CNT /*연속으로 등록된 작업건수 합*/ -- 총건(지정+미지정)
+             , WRK_T_CNT /*현재 순번 이전까지 총 작업건수 -- 지정 합*/
+             , WRK_C_CNT /*연속으로 등록된 작업건수 합-- 총건(지정+미지정)*/
              , WRK_T_CHK /*해당지역등급 가능 시간대*/
              , WRK_T_RN /*해당지역등급 가능 시간대 순번*/
              , WRK_NEXT_CHK /*건수 계산 하여 막아야 할 다음 시간대 순번*/
@@ -1359,9 +1370,6 @@
                              , MIN(WRK_NEXT_CHK) OVER (ORDER BY WRK_T_RN ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS WRK_NEXT_CHK2
                              , (CASE WHEN WRK_T_CHK = 'Y' AND WRK_CNT = 0 AND GREATEST(WRK_T_CNT, WRK_NEXT_CHK) <![CDATA[<]]> WRK_T_RN THEN 'Y' ELSE 'N' END) AS WRK_CHK_1 /*배정 가능 여부 체크 - 지역 작업 가능 시간에 배정이 없는 시간*/
                              , RANK() OVER (PARTITION BY (CASE WHEN WRK_T_CHK = 'Y' AND WRK_CNT = 0 AND GREATEST(WRK_T_CNT, WRK_NEXT_CHK) <![CDATA[<]]> WRK_T_RN THEN 'Y' ELSE 'N' END) ORDER BY TM ASC) AS WRK_CHK_1_RN /*가능시간대와 불가능시간대 각각의 순번*/
-                             -- EMP_T_WRK_CNT
-                             --, DEG_WRK_CNT
-                             --, T_WRK_CNT
                           FROM (SELECT VST_DT /*방문일자*/
                                      , EMP_ID /*담당자*/
                                      , TM /*시간*/
@@ -1449,8 +1457,8 @@
 
     <select id="selectOffDays" resultType="java.lang.String">
         SELECT CLD.BASE_Y || CLD.BASE_MM || CLD.BASE_D || ICHR_PRTNR_NO AS HS_OFF_DAYS
-          FROM TB_OGPS_EGER_VCN_IZ /*엔지니어휴가내역*/ /*LC_ATTEND_AT210TB 근태사유 관리*/ AT210
-         INNER JOIN TB_OGBS_MM_PRTNR_IZ /*파트너기본*/ /*LC_ALLOCATE_AC021TB 인사마스타*/ AC021
+          FROM TB_OGPS_EGER_VCN_IZ /*엔지니어휴가내역*/ AT210
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ /*파트너기본*/ AC021
             ON AC021.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
            AND AT210.OG_TP_CD = AC021.OG_TP_CD
            AND AT210.PRTNR_NO = AC021.PRTNR_NO

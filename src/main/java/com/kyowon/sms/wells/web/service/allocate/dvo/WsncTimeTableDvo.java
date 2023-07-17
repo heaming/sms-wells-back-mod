@@ -47,7 +47,6 @@ public class WsncTimeTableDvo {
     // --------------------------------------------------
     //판매인 경우 '1110:신규설치' fix
     String svBizDclsfCd;
-    List<String> svBizDclsfCds; // wrkTypDtl
     // --------------------------------------------------
 
     String basePdCd;
@@ -125,6 +124,7 @@ public class WsncTimeTableDvo {
     List<String> basePdCds = new ArrayList<>();
     List<String> pdctPdCds = new ArrayList<>();
     List<String> sdingCombins = new ArrayList<>();
+    List<String> svBizDclsfCds = new ArrayList<>(); // wrkTypDtl
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     List<String> offDays;
