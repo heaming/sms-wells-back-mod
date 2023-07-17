@@ -79,12 +79,13 @@ public class WsncTimeTableService {
         dvo.getPmTimes2().clear();
         dvo.getNtTimes().clear();
 
-        //-----------------------------------------------------------------------------------------------
+        dvo.getSvBizDclsfCds().clear();
+
+        /*-----------------------------------------------------------------------------------------------*/
         //다건 svBizDclsfCds 처리
+        dvo.getSvBizDclsfCds().add(dvo.getSvBizDclsfCd());
         if (StringUtil.nvl(dvo.getSvBizDclsfCd(), "").contains(",")) {
-
             dvo.setSvBizDclsfCds(Arrays.asList(dvo.getSvBizDclsfCd().split("\\,")));
-
             dvo.setSvBizDclsfCd(dvo.getSvBizDclsfCds().get(0));
         }
 
@@ -110,10 +111,10 @@ public class WsncTimeTableService {
             dvo.setWorkTypeDtl(dvo.getBasePdCd() + "," + dvo.getSvBizDclsfCd());
         }
 
-        log.debug("-- basePdCds = " + Arrays.toString(dvo.getBasePdCds().toArray()));
-        log.debug("-- svBizDclsfCds = " + Arrays.toString(dvo.getSvBizDclsfCds().toArray()));
-        log.debug("-- workTypeDtl = " + dvo.getWorkTypeDtl());
-        //-----------------------------------------------------------------------------------------------
+        //        log.debug("-- basePdCds = " + Arrays.toString(dvo.getBasePdCds().toArray()));
+        //        log.debug("-- svBizDclsfCds = " + Arrays.toString(dvo.getSvBizDclsfCds().toArray()));
+        //        log.debug("-- workTypeDtl = " + dvo.getWorkTypeDtl());
+        /*-----------------------------------------------------------------------------------------------*/
 
         // 00000001
         dvo.setSeq(StringUtils.leftPad(StringUtil.nvl(req.seq(), "1"), 8, "0"));
@@ -146,8 +147,11 @@ public class WsncTimeTableService {
         if (StringUtil.isNotEmpty(dvo.getCstSvAsnNo()))
             dvo.setVstDvCd(mapper.selectVstDvCd(dvo)); // 방문구분코드
 
-        //-----------------------------------------------------------------------------------------------
+        /*-----------------------------------------------------------------------------------------------*/
         if (StringUtil.isNotEmpty(dvo.getCntrNo())) {
+
+            if (StringUtil.isEmpty(dvo.getCntrSn()))
+                dvo.setCntrSn("1");
 
             dvo.setCntrSns(Arrays.asList(dvo.getCntrSn().split(",")));
             /**
@@ -195,7 +199,7 @@ public class WsncTimeTableService {
                 StringUtil.isEmpty(req.cstSvAsnNo()) ? contractDvo.getCstSvAsnNo() : req.cstSvAsnNo()
             );
         }
-        //-----------------------------------------------------------------------------------------------
+        /*-----------------------------------------------------------------------------------------------*/
 
         dvo.getPdctPdCds().clear();
 
@@ -213,6 +217,8 @@ public class WsncTimeTableService {
             String hcrYn = productDvo.getHcrYn();
 
             dvo.getPdctPdCds().add(productDvo.getPdctPdCd());
+
+            if(i == 0) dvo.setPdctPdCd(productDvo.getPdctPdCd());
 
             if ("Y".equals(sidingYn)) {
 
@@ -269,6 +275,8 @@ public class WsncTimeTableService {
          * @param sellDate
          * @param vstDvCd
          **/
+        log.debug("-- PdctPdCd = " + dvo.getPdctPdCd());
+        log.debug("-- PdctPdCds = " + Arrays.toString(dvo.getPdctPdCds().toArray()));
         String prtnrNo01 = mapper.selectFnSvpdLocaraPrtnr01(dvo);
         String prtnrNoBS01 = mapper.selectFnSvpdLocaraPrtnrBs01(dvo);
         String prtnrNoOwr01 = mapper.selectFnSvpdLocaraPrtnrOwr01(dvo);
@@ -448,10 +456,10 @@ public class WsncTimeTableService {
         if (StringUtil.isEmpty(dvo.getCntrNo()) || StringUtil.isEmpty(dvo.getCntrSn()))
             throw new BizException("MSG_ALT_CNTR_NO_NOT_EXIST");
 
-        //---------------------------------------------------------------------------
+        /*---------------------------------------------------------------------------*/
         dvo.setSellDate(StringUtil.nvl(req.sellDate(), nowDay));
         dvo.setSvDvCd("M".equals(dvo.getChnlDvCd()) /*매니저*/ ? "3" /*A/S*/ : StringUtil.nvl(dvo.getSvDvCd(), ""));
-        //---------------------------------------------------------------------------
+        /*---------------------------------------------------------------------------*/
 
         //다건 svBizDclsfCds 처리
         if (StringUtil.nvl(dvo.getSvBizDclsfCd(), "").contains(",")) {
@@ -461,7 +469,7 @@ public class WsncTimeTableService {
 
         dvo.setCntrSns(Arrays.asList(dvo.getCntrSn().split(",")));
 
-        //---------------------------------------------------------------------------
+        /*---------------------------------------------------------------------------*/
         /*
          * @param cntrNo
          * @param cntrSn
@@ -502,7 +510,7 @@ public class WsncTimeTableService {
             StringUtil.isEmpty(req.cstSvAsnNo()) ? contractDvo.getCstSvAsnNo() : req.cstSvAsnNo()
         );
         dvo.setRpbLocaraCd("");
-        //---------------------------------------------------------------------------
+        /*---------------------------------------------------------------------------*/
 
         dvo.getPdctPdCds().clear();
         dvo.setPrtnrNo("3".equals(dvo.getSvDvCd()) ? mapper.selectFnSvpdLocaraPrtnr01(dvo) : dvo.getPrtnrNo());
@@ -627,7 +635,7 @@ public class WsncTimeTableService {
         if (StringUtil.isNotEmpty(dvo.getCstSvAsnNo()))
             dvo.setVstDvCd(mapper.selectVstDvCd(dvo)); // 방문구분코드
 
-        //---------------------------------------------------------------------------
+        /*---------------------------------------------------------------------------*/
         /*
          * @param cntrNo
          * @param cntrSn
@@ -668,7 +676,7 @@ public class WsncTimeTableService {
             StringUtil.isEmpty(req.cstSvAsnNo()) ? contractDvo.getCstSvAsnNo() : req.cstSvAsnNo()
         );
         dvo.setRpbLocaraCd("");
-        //---------------------------------------------------------------------------
+        /*---------------------------------------------------------------------------*/
 
         /*
          * @param newAdrZip
