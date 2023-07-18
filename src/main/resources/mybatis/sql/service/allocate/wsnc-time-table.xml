@@ -126,12 +126,11 @@
           FROM (SELECT VST_DT
                      , SDING_QTY
                   FROM TB_SVPD_DCBY_SDING_QTY_IZ
-                 WHERE SDING_PKG_CD = (SELECT SDING_PKG_CD
+                 WHERE SDING_PKG_CD = (SELECT SDING_PKG_GRP_CD
                                          FROM TB_SVPD_SDING_PKG_ITM_IZ
-                                        WHERE SDING_PKG_CD NOT LIKE '@%'
-                                          AND SDING_PD_CD = #{basePdCd})
+                                        WHERE SDING_PD_CD = #{basePdCd})
                    AND SDING_QTY > 0
-                   AND VST_DT >= TO_CHAR(SYSDATE + 3 , 'YYYYMMDD')  /** 이희준매니저님 D+3 적용요청 **/
+                   AND VST_DT >= TO_CHAR(SYSDATE + 3 , 'YYYYMMDD')    /** 이희준매니저님 D+3 적용요청 **/
          )
     </select>
 
@@ -1527,6 +1526,7 @@
        INNER JOIN TB_GBCO_ADR_BAS        A1
           ON C4.ADR_ID = A1.ADR_ID
        WHERE C1.CNTR_NO = #{cntrNo}
+         AND DTL_CNTR_SN = NVL(#{cntrSn}, '1')
     </select>
 
 </mapper>

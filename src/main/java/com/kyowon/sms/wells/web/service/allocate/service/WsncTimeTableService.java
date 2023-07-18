@@ -150,10 +150,11 @@ public class WsncTimeTableService {
         /*-----------------------------------------------------------------------------------------------*/
         if (StringUtil.isNotEmpty(dvo.getCntrNo())) {
 
-            mapper.selectAdrId(dvo.getCntrNo()).orElseThrow(() -> new BizException("주소기본 정보에 데이터가 없습니다."));
-
             if (StringUtil.isEmpty(dvo.getCntrSn()))
                 dvo.setCntrSn("1");
+
+            mapper.selectAdrId(dvo.getCntrNo(), dvo.getCntrSn())
+                .orElseThrow(() -> new BizException("주소기본 정보에 데이터가 없습니다."));
 
             dvo.setCntrSns(Arrays.asList(dvo.getCntrSn().split(",")));
             /**
@@ -267,8 +268,10 @@ public class WsncTimeTableService {
                     sidingDays = mapper.selectSidingDays(dvo.getBasePdCds().get(i));
 
                 List<SidingDays> sidingDaysCollection = dvo.getSidingDays();
-                sidingDaysCollection.retainAll(converter.mapSidingDaysDvoToDto(sidingDays)); // 교집합
-                dvo.setSidingDays(sidingDaysCollection); // list2 = sidingDays
+                if (sidingDaysCollection != null) {
+                    sidingDaysCollection.retainAll(converter.mapSidingDaysDvoToDto(sidingDays)); // 교집합
+                    dvo.setSidingDays(sidingDaysCollection); // list2 = sidingDays
+                }
             }
         }
 
@@ -474,7 +477,7 @@ public class WsncTimeTableService {
         dvo.setCntrSns(Arrays.asList(dvo.getCntrSn().split(",")));
 
         /*---------------------------------------------------------------------------*/
-        mapper.selectAdrId(dvo.getCntrNo()).orElseThrow(() -> new BizException("주소기본 정보에 데이터가 없습니다."));
+        mapper.selectAdrId(dvo.getCntrNo(), dvo.getCntrSn()).orElseThrow(() -> new BizException("주소기본 정보에 데이터가 없습니다."));
         /*
          * @param cntrNo
          * @param cntrSn
@@ -642,7 +645,7 @@ public class WsncTimeTableService {
             dvo.setVstDvCd(mapper.selectVstDvCd(dvo)); // 방문구분코드
 
         /*---------------------------------------------------------------------------*/
-        mapper.selectAdrId(dvo.getCntrNo()).orElseThrow(() -> new BizException("주소기본 정보에 데이터가 없습니다."));
+        mapper.selectAdrId(dvo.getCntrNo(), dvo.getCntrSn()).orElseThrow(() -> new BizException("주소기본 정보에 데이터가 없습니다."));
         /*
          * @param cntrNo
          * @param cntrSn
