@@ -5,6 +5,7 @@ import javax.validation.constraints.NotBlank;
 import com.sds.sflex.common.utils.StringUtil;
 
 import io.swagger.annotations.ApiModel;
+import lombok.Builder;
 
 /**
  * <pre>
@@ -17,6 +18,7 @@ import io.swagger.annotations.ApiModel;
  */
 public class WsnbInstallationOrderDto {
 
+    @Builder
     @ApiModel(value = "WsnbInstallationOrderDto-SaveReq")
     public record SaveReq(
         @NotBlank
@@ -42,6 +44,7 @@ public class WsnbInstallationOrderDto {
         String cstCnrRefriDvCd, /* 기타정보 */
         @NotBlank
         String cntrNo, /* 계약번호 */
+        @NotBlank
         String cntrSn, /* 계약일련번호 */
         String rcgvpKnm, /* 고객한글명 */
         String rnadr, /* 고객도로명주소 */

@@ -54,7 +54,6 @@ public class WsnbInstallationOrderService {
 
     public String saveInstallationOrder(SaveReq dto) throws Exception {
         WsnbWorkOrderDvo workOrderDvo = converter.mapSaveReqToWorkOrderDvo(dto);
-        workOrderDvo.setInChnlDvCd(dto.inflwChnl());
 
         // TODO: 파라미터 로그 저장
 

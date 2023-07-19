@@ -197,6 +197,30 @@ datasource:
 #        prepstmtcachesize: 250
 #        prepstmtcachesqlLimit: 2048
 
+#
+#datasource:
+#    ########### PROD #######################
+#    pri:
+#        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+#        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.30.120:1535/PITGKW
+#        username: WSMDEV
+#        password: wsm$DEV4708#$
+#        maximumpoolsize: 10
+#        auto-commit: false
+#        cacheprepstmts: true
+#        prepstmtcachesize: 250
+#        prepstmtcachesqlLimit: 2048
+#    sec:
+#        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+#        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.30.120:1535/PITGKW
+#        username: WSMDEV
+#        password: wsm$DEV4708#$
+#        maximumpoolsize: 10
+#        auto-commit: false
+#        cacheprepstmts: true
+#        prepstmtcachesize: 250
+#        prepstmtcachesqlLimit: 2048
+
 
 ############## LOGGING Setting ############
 logging:

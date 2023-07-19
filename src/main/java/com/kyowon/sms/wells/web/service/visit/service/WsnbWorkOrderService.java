@@ -452,24 +452,22 @@ public class WsnbWorkOrderService {
     }
 
     private void checkValidationExistOrder(WsnbWorkOrderDvo dvo) {
+        BizAssert.notNull(dvo.getNewWkPrgsStatCd(), "AS접수상태정보가 없습니다.");
+
         String[] cstNm = {dvo.getNewRcgvpKnm()};
 
-        if (dvo.getNewWkPrgsStatCd() != null) {
+        boolean canChangeWkPrgsStatCd = List.of("00", "10").contains(dvo.getNewWkPrgsStatCd());
+        BizAssert.isTrue(canChangeWkPrgsStatCd, "MSG_ALT_NOT_MDFC_CAN_STAT");
 
-            boolean canChangeWkPrgsStatCd = List.of("00", "10").contains(dvo.getNewWkPrgsStatCd());
-            BizAssert.isTrue(canChangeWkPrgsStatCd, "MSG_ALT_NOT_MDFC_CAN_STAT");
-
-            String nowDayString = DateUtil.getNowDayString();
-            if (nowDayString.equals(dvo.getNewWkAcpteDt())
-                && !"3460".equals(dvo.getNewSvBizDclsfCd())) {
-                throw new BizException("MSG_ALT_TOD_VST_MDFC_CAN_IMP", cstNm);
-            }
-            /* 수락 상태이면 수정/취소 안되게 */
-            BizAssert.isFalse("Y".equals(dvo.getNewWkAcpteStatCd()), "MSG_ALT_ARDY_ACPTE_STAT", cstNm);
-            /* 취소 상태이면 수정/취소 안되게 */
-            BizAssert
-                .isFalse(MTR_STAT_CD_DEL.equals(dvo.getNewMtrStatCd()), "MSG_ALT_ARDY_CAN_STAT", cstNm);
+        String nowDayString = DateUtil.getNowDayString();
+        if (nowDayString.equals(dvo.getNewWkAcpteDt())
+            && !"3460".equals(dvo.getNewSvBizDclsfCd())) {
+            throw new BizException("MSG_ALT_TOD_VST_MDFC_CAN_IMP", cstNm);
         }
-
+        /* 수락 상태이면 수정/취소 안되게 */
+        BizAssert.isFalse("Y".equals(dvo.getNewWkAcpteStatCd()), "MSG_ALT_ARDY_ACPTE_STAT", cstNm);
+        /* 취소 상태이면 수정/취소 안되게 */
+        BizAssert
+            .isFalse(MTR_STAT_CD_DEL.equals(dvo.getNewMtrStatCd()), "MSG_ALT_ARDY_CAN_STAT", cstNm);
     }
 }
