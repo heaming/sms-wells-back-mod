@@ -28,6 +28,7 @@ public class WsnbInstallationOrderDto {
         @NotBlank
         String svBizHclsfCd, /* 서비스업무대분류코드 */
         String rcpdt, /* 접수일자 */
+        @NotBlank
         String mtrStatCd, /* 자료상태코드 */
         String svBizDclsfCd, /* 서비스업무세분류코드 */
         String urgtYn, /* 긴급여부 */
