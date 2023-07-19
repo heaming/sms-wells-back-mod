@@ -2,7 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsOutStorageFinishMapper">
 
-
     <select id="selectItmOstrFshRcvEtxt" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageFinishDvo">
         SELECT D1.LINK_OCRN_ID                                    /* 연계발생ID */
              , D1.OSTR_CNFM_QTY                                   /* 출고확정수량 */
@@ -47,6 +46,7 @@
            AND D5.PD_EXTS_PRP_GRP_CD = 'PART'   /* AS부품 */
            AND D1.TF_YN              = 'N'
            AND D1.TF_DTM IS NULL
+           AND D2.OSTR_AK_NO         = #{ostrAkNo}
          ORDER BY D2.OSTR_AK_NO, D2.OSTR_AK_SN
     </select>
 
