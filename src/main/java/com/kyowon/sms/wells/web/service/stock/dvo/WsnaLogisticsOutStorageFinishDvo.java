@@ -22,8 +22,8 @@ public class WsnaLogisticsOutStorageFinishDvo {
     // 출고확정수량 (OSTR_CNFM_QTY)
     private int ostrCnfmQty;
 
-    // 출고번호 (OSTR_NO)
-    private String ostrNo;
+    // 출고번호 (ITM_OSTR_NO)
+    private String itmOstrNo;
 
     // 출고일련번호 (OSTR_SN)
     private int ostrSn;

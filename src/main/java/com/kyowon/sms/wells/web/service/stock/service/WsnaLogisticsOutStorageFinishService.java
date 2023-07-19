@@ -2,9 +2,6 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -138,6 +135,11 @@ public class WsnaLogisticsOutStorageFinishService {
             iostDvo.setMngtUnitCd(itm.getMngtUnitCd());
             iostDvo.setStrQty(itm.getOstrCnfmQty());
 
+            iostDvo.setOstrAkNo(itm.getOstrAkNo());
+            iostDvo.setOstrAkSn(itm.getOstrAkSn());
+            iostDvo.setItmOstrNo(itm.getItmOstrNo());
+            iostDvo.setOstrSn(itm.getOstrSn());
+
             iostDvo.setOstrOjWareNo(LGST_WARE_NO);
             iostDvo.setOstrWareDvCd(LGST_WARE_DV_CD);
             iostDvo.setOstrDt(itm.getOstrDt());
@@ -152,12 +154,6 @@ public class WsnaLogisticsOutStorageFinishService {
             // 품목재고내역 등록 - 입고창고
             WsnaItemStockItemizationReqDvo strStockReq = this.convertStockItemizationCreateReq(iostDvo, GUBUN_STR);
             this.stockService.createStock(strStockReq);
-
-            // 품목입고내역 입고처리
-            this.mapper.updateItmStrIzForStr(iostDvo);
-
-            // 고객서비스품목재고내역 수량 처리
-            this.mapper.updateCstSvItmStocForStr(iostDvo);
 
             // 출고요청내역 UPDATE
             this.mapper.updateItmOstrAkIz(itm);
@@ -206,6 +202,11 @@ public class WsnaLogisticsOutStorageFinishService {
             iostDvo.setMngtUnitCd(itm.getMngtUnitCd());
             iostDvo.setStrQty(itm.getOstrCnfmQty());
 
+            iostDvo.setOstrAkNo(itm.getOstrAkNo());
+            iostDvo.setOstrAkSn(itm.getOstrAkSn());
+            iostDvo.setItmOstrNo(itm.getItmOstrNo());
+            iostDvo.setOstrSn(itm.getOstrSn());
+
             iostDvo.setOstrOjWareNo(LGST_WARE_NO);
             iostDvo.setOstrWareDvCd(LGST_WARE_DV_CD);
             iostDvo.setOstrDt(itm.getOstrDt());
@@ -220,12 +221,6 @@ public class WsnaLogisticsOutStorageFinishService {
             // 품목재고내역 등록 - 입고창고
             WsnaItemStockItemizationReqDvo strStockReq = this.convertStockItemizationCreateReq(iostDvo, GUBUN_STR);
             this.stockService.createStock(strStockReq);
-
-            // 품목입고내역 입고처리
-            this.mapper.updateItmStrIzForStr(iostDvo);
-
-            // 고객서비스품목재고내역 수량 처리
-            this.mapper.updateCstSvItmStocForStr(iostDvo);
 
             // 수불 데이터 생성
             if (strSn == 1) {
@@ -330,14 +325,6 @@ public class WsnaLogisticsOutStorageFinishService {
 
         // 출고요청내역 UPDATE
         this.mapper.updateItmOstrAkIzForHgr(hgrIostDvo);
-    }
-
-    /**
-     * distinct 함수
-     */
-    private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
-        Map<Object, Boolean> map = new ConcurrentHashMap<>();
-        return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
     /**

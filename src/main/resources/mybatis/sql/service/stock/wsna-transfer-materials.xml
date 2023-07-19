@@ -22,6 +22,8 @@
              , D5.WARE_DV_CD         AS STR_HGR_DV_CD             /* 입고 상위 창고구분코드 */
              , D5.WARE_MNGT_PRTNR_NO AS STR_HGR_PRTNR_NO          /* 입고 상위 파트너번호 */
              , D5.OG_TP_CD           AS STR_HGR_PRTNR_OG_TP_CD    /* 입고 상위 파트너 조직유형코드 */
+             , D1.OSTR_AK_NO                                      /* 출고요청번호 */
+             , D1.OSTR_AK_SN                                      /* 출고요청일련번호 */
           FROM TB_SVST_ITM_OSTR_AK_IZ D1      /* 품목출고요청내역 */
          INNER JOIN TB_SVST_MCBY_WARE_IZ D2   /* 월별창고내역(출고) */
             ON D2.APY_YM  = TO_CHAR(SYSDATE, 'YYYYMM')

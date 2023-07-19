@@ -58,4 +58,9 @@ public class WsnaTransferMaterialsDataDvo {
     private String strHgrPrtnrNo;
     // 입고 상위 파트너 조직유형코드
     private String strHgrPrtnrOgTpCd;
+
+    // 출고요청번호
+    private String ostrAkNo;
+    // 출고요청일련번호
+    private int ostrAkSn;
 }
