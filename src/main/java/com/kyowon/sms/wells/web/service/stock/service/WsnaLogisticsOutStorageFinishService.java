@@ -155,12 +155,6 @@ public class WsnaLogisticsOutStorageFinishService {
             WsnaItemStockItemizationReqDvo strStockReq = this.convertStockItemizationCreateReq(iostDvo, GUBUN_STR);
             this.stockService.createStock(strStockReq);
 
-            // 품목입고내역 입고처리
-            this.mapper.updateItmStrIzForStr(iostDvo);
-
-            // 고객서비스품목재고내역 수량 처리
-            this.mapper.updateCstSvItmStocForStr(iostDvo);
-
             // 출고요청내역 UPDATE
             this.mapper.updateItmOstrAkIz(itm);
 
@@ -227,12 +221,6 @@ public class WsnaLogisticsOutStorageFinishService {
             // 품목재고내역 등록 - 입고창고
             WsnaItemStockItemizationReqDvo strStockReq = this.convertStockItemizationCreateReq(iostDvo, GUBUN_STR);
             this.stockService.createStock(strStockReq);
-
-            // 품목입고내역 입고처리
-            this.mapper.updateItmStrIzForStr(iostDvo);
-
-            // 고객서비스품목재고내역 수량 처리
-            this.mapper.updateCstSvItmStocForStr(iostDvo);
 
             // 수불 데이터 생성
             if (strSn == 1) {
