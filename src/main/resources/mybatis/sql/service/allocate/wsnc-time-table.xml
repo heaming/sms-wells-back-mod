@@ -126,7 +126,7 @@
           FROM (SELECT VST_DT
                      , SDING_QTY
                   FROM TB_SVPD_DCBY_SDING_QTY_IZ
-                 WHERE SDING_PKG_CD = (SELECT SDING_PKG_GRP_CD
+                 WHERE SDING_PKG_GRP_CD = (SELECT SDING_PKG_GRP_CD
                                          FROM TB_SVPD_SDING_PKG_ITM_IZ
                                         WHERE SDING_PD_CD = #{basePdCd})
                    AND SDING_QTY > 0
