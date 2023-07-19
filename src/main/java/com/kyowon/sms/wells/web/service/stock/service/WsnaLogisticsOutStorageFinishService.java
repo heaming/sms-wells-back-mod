@@ -2,9 +2,6 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -138,6 +135,11 @@ public class WsnaLogisticsOutStorageFinishService {
             iostDvo.setMngtUnitCd(itm.getMngtUnitCd());
             iostDvo.setStrQty(itm.getOstrCnfmQty());
 
+            iostDvo.setOstrAkNo(itm.getOstrAkNo());
+            iostDvo.setOstrAkSn(itm.getOstrAkSn());
+            iostDvo.setItmOstrNo(itm.getItmOstrNo());
+            iostDvo.setOstrSn(itm.getOstrSn());
+
             iostDvo.setOstrOjWareNo(LGST_WARE_NO);
             iostDvo.setOstrWareDvCd(LGST_WARE_DV_CD);
             iostDvo.setOstrDt(itm.getOstrDt());
@@ -205,6 +207,11 @@ public class WsnaLogisticsOutStorageFinishService {
             iostDvo.setItmGdCd(itm.getItmGdCd());
             iostDvo.setMngtUnitCd(itm.getMngtUnitCd());
             iostDvo.setStrQty(itm.getOstrCnfmQty());
+
+            iostDvo.setOstrAkNo(itm.getOstrAkNo());
+            iostDvo.setOstrAkSn(itm.getOstrAkSn());
+            iostDvo.setItmOstrNo(itm.getItmOstrNo());
+            iostDvo.setOstrSn(itm.getOstrSn());
 
             iostDvo.setOstrOjWareNo(LGST_WARE_NO);
             iostDvo.setOstrWareDvCd(LGST_WARE_DV_CD);
@@ -330,14 +337,6 @@ public class WsnaLogisticsOutStorageFinishService {
 
         // 출고요청내역 UPDATE
         this.mapper.updateItmOstrAkIzForHgr(hgrIostDvo);
-    }
-
-    /**
-     * distinct 함수
-     */
-    private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
-        Map<Object, Boolean> map = new ConcurrentHashMap<>();
-        return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
     /**
