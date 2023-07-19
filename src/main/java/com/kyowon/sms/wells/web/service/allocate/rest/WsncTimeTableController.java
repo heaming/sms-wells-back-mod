@@ -32,17 +32,17 @@ public class WsncTimeTableController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "", paramType = "query"),
-        @ApiImplicitParam(name = "chnlDvCd", value = "", paramType = "query"), // GB_CD
-        @ApiImplicitParam(name = "inflwChnl", value = "", paramType = "query"), // P_IN_GB
-        @ApiImplicitParam(name = "svDvCd", value = "", paramType = "query"), // P_DATA_GB
-        @ApiImplicitParam(name = "wrkDt", value = "", paramType = "query"), // P_WRK_DT
-        @ApiImplicitParam(name = "mtrStatCd", value = "", paramType = "query"), // P_DATA_STUS
-        @ApiImplicitParam(name = "svBizDclsfCd", value = "", paramType = "query"), // P_WRK_TYP_DTL
-        @ApiImplicitParam(name = "empId", value = "", paramType = "query"), // P_USER_ID
-        @ApiImplicitParam(name = "basePdCd", value = "", paramType = "query"), // P_GDS_CD
-        @ApiImplicitParam(name = "sellDate", value = "", paramType = "query"), // P_SELDATE
-        @ApiImplicitParam(name = "mkCo", value = "", paramType = "query"), // P_MK_CO
-        @ApiImplicitParam(name = "returnurl", value = "", paramType = "query"), // returnurl
+        @ApiImplicitParam(name = "chnlDvCd", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "inflwChnl", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "svDvCd", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "wrkDt", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "mtrStatCd", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "svBizDclsfCd", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "empId", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "basePdCd", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "sellDate", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "mkCo", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "returnurl", value = "", paramType = "query"),
     })
     @GetMapping("/time-assign")
     public WsncTimeTableDto.FindRes getTmeAssign(WsncTimeTableDto.FindTimeAssignReq req)
@@ -54,13 +54,13 @@ public class WsncTimeTableController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "cntrNo", value = "", paramType = "query"),
         @ApiImplicitParam(name = "cntrSn", value = "", paramType = "query"),
-        @ApiImplicitParam(name = "chnlDvCd", value = "", paramType = "query"), // GB_CD
-        @ApiImplicitParam(name = "sellDate", value = "", paramType = "query"), // P_IN_GB
-        @ApiImplicitParam(name = "svDvCd", value = "", paramType = "query"), // P_DATA_GB
-        @ApiImplicitParam(name = "svBizDclsfCd", value = "", paramType = "query"), // P_WRK_DT
-        @ApiImplicitParam(name = "prtnrNo", value = "", paramType = "query"), // P_DATA_STUS
-        @ApiImplicitParam(name = "ordDt", value = "", paramType = "query"), // P_WRK_TYP_DTL
-        @ApiImplicitParam(name = "ordSeq", value = "", paramType = "query"), // P_USER_ID
+        @ApiImplicitParam(name = "chnlDvCd", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "sellDate", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "svDvCd", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "svBizDclsfCd", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "prtnrNo", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "ordDt", value = "", paramType = "query"),
+        @ApiImplicitParam(name = "ordSeq", value = "", paramType = "query"),
     })
     @GetMapping("/schedule-choice")
     public WsncTimeTableDto.FindRes getScheduleChoice(WsncTimeTableDto.FindScheChoReq req)

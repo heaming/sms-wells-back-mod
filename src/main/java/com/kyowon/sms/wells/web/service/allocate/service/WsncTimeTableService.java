@@ -184,6 +184,8 @@ public class WsncTimeTableService {
 
             String workTypeDtl = "";
 
+            BizAssert.isFalse(dvo.getBasePdCds().size() != dvo.getSvBizDclsfCds().size(), "SvBizDclsfCd가 복수값이 아닙니다. (SvBizDclsfCd=1110,3100");
+
             for (int i = 0; i < dvo.getBasePdCds().size(); i++)
                 workTypeDtl += (i == 0 ? "" : "|") + dvo.getBasePdCds().get(i) + "," + dvo.getSvBizDclsfCds().get(i);
 
@@ -472,14 +474,23 @@ public class WsncTimeTableService {
             ObjectUtils.isEmpty(dvo.getCntrSn()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"cntrSn"}
         );
 
+        log.debug("--------------------------------------------------------------------------");
+        log.debug(dvo.getCntrNo());
+        log.debug(dvo.getCntrSn());
+        log.debug(dvo.getSellDate());
+        log.debug(dvo.getSvDvCd());
+        log.debug(dvo.getSvBizDclsfCd());
+        log.debug(dvo.getSvBizDclsfCds().toString());
+        log.debug("--------------------------------------------------------------------------");
+
         /*---------------------------------------------------------------------------*/
         dvo.setSellDate(StringUtil.nvl(req.sellDate(), nowDay));
         dvo.setSvDvCd("M".equals(dvo.getChnlDvCd()) /*매니저*/ ? "3" /*A/S*/ : StringUtil.nvl(dvo.getSvDvCd(), ""));
         /*---------------------------------------------------------------------------*/
 
         //다건 svBizDclsfCds 처리
+        dvo.setSvBizDclsfCds(Arrays.asList(dvo.getSvBizDclsfCd()));
         if (StringUtil.nvl(dvo.getSvBizDclsfCd(), "").contains(",")) {
-            dvo.setSvBizDclsfCds(Arrays.asList(dvo.getSvBizDclsfCd().split("\\,")));
             dvo.setSvBizDclsfCd(dvo.getSvBizDclsfCds().get(0));
         }
 
