@@ -19,7 +19,7 @@ import com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageFinishI
 @Mapper
 public interface WsnaLogisticsOutStorageFinishMapper {
 
-    List<WsnaLogisticsOutStorageFinishDvo> selectItmOstrFshRcvEtxt();
+    List<WsnaLogisticsOutStorageFinishDvo> selectItmOstrFshRcvEtxt(String ostrAkNo);
 
     String selectNewItmStrNo(String strTpCd);
 

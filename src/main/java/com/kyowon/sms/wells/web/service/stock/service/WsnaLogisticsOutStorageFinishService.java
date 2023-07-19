@@ -64,14 +64,13 @@ public class WsnaLogisticsOutStorageFinishService {
     @Transactional
     public void saveLogisticsOutStorageFinish(Map<String, String> map) {
 
+        // 출고요청번호
+        String ostrAkNo = map.get("PARAM1");
+
         // 출고완료 수신 테이블 조회
-        List<WsnaLogisticsOutStorageFinishDvo> dvos = this.mapper.selectItmOstrFshRcvEtxt();
+        List<WsnaLogisticsOutStorageFinishDvo> dvos = this.mapper.selectItmOstrFshRcvEtxt(ostrAkNo);
 
         if (CollectionUtils.isNotEmpty(dvos)) {
-            // 출고요청번호, 출고유형으로 필터링
-            List<WsnaLogisticsOutStorageFinishDvo> filterDvos = dvos.stream()
-                .filter(distinctByKey(dvo -> dvo.getOstrAkNo() + " " + dvo.getOstrAkTpCd())).toList();
-
             UserSessionDvo userSession = SFLEXContextHolder.getContext().getUserSession();
             // Batch Interface에서 호출하면 session langId가 없음.
             if (userSession != null && StringUtils.isEmpty(userSession.getLangId())) {
@@ -81,40 +80,32 @@ public class WsnaLogisticsOutStorageFinishService {
             // 비고내용 - 직배창고 물량배정
             String rmkCn = this.messageService.getMessage("MSG_TXT_DIDY_WARE_QOM_ASN");
 
-            for (WsnaLogisticsOutStorageFinishDvo item : filterDvos) {
-                // 출고요청번호
-                String ostrAkNo = item.getOstrAkNo();
-                // 출고유형
-                String ostrAkTpCd = item.getOstrAkTpCd();
-                // 출고요청번호에 해당하는 품목 리스트
-                List<WsnaLogisticsOutStorageFinishDvo> itms = dvos.stream()
-                    .filter(itm -> ostrAkNo.equals(itm.getOstrAkNo())).toList();
+            // 출고유형
+            String ostrAkTpCd = dvos.get(0).getOstrAkTpCd();
 
-                // 정상출고, 자동출고
-                if (SnServiceConst.OSTR_AK_TP_CD_NOM_OSTR.equals(ostrAkTpCd)
-                    || SnServiceConst.OSTR_AK_TP_CD_AUTO_OSTR.equals(ostrAkTpCd)) {
+            // 정상출고, 자동출고
+            if (SnServiceConst.OSTR_AK_TP_CD_NOM_OSTR.equals(ostrAkTpCd)
+                || SnServiceConst.OSTR_AK_TP_CD_AUTO_OSTR.equals(ostrAkTpCd)) {
 
-                    this.saveOutOfStorage(itms);
+                this.saveOutOfStorage(dvos);
 
-                    // 물량배정
-                } else if (SnServiceConst.OSTR_AK_TP_CD_QOM_ASN.equals(ostrAkTpCd)) {
-                    this.saveQuantityOfMaterialsAssign(itms, rmkCn);
+                // 물량배정
+            } else if (SnServiceConst.OSTR_AK_TP_CD_QOM_ASN.equals(ostrAkTpCd)) {
+                this.saveQuantityOfMaterialsAssign(dvos, rmkCn);
 
-                    // 그외
-                } else {
-                    for (WsnaLogisticsOutStorageFinishDvo itm : itms) {
-                        // 출고요청내역 UPDATE
-                        this.mapper.updateItmOstrAkIz(itm);
+                // 그외
+            } else {
+                for (WsnaLogisticsOutStorageFinishDvo itm : dvos) {
+                    // 출고요청내역 UPDATE
+                    this.mapper.updateItmOstrAkIz(itm);
 
-                        // 연계발생ID
-                        String linkOcrnId = itm.getLinkOcrnId();
-                        // TB_IFIN_ITM_OSTR_FSH_RCV_ETXT - 품목출고완료수신전문 상태 변경
-                        this.mapper.updateItmOstrFshRcvEtxt(linkOcrnId);
-                    }
-                } // 출고유형 if-end
-            } // 필터링 list for-end
+                    // 연계발생ID
+                    String linkOcrnId = itm.getLinkOcrnId();
+                    // TB_IFIN_ITM_OSTR_FSH_RCV_ETXT - 품목출고완료수신전문 상태 변경
+                    this.mapper.updateItmOstrFshRcvEtxt(linkOcrnId);
+                }
+            } // 출고유형 if-end
         }
-
     }
 
     /**
