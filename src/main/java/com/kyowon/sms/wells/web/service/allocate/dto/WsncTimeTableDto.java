@@ -174,7 +174,9 @@ public class WsncTimeTableDto {
         String seq, // P_IN_GB + P_WRK_GB + P_WRK_DT + LEFTPAD(P_SEQ, 8,"0")
         String cstSvAsnNo,
         String prtnrNo,
-        String newAdrZip
+        String newAdrZip,
+        String orgDt,
+        String ordSeq
     ) {
         public FindTimeChoReq {
 

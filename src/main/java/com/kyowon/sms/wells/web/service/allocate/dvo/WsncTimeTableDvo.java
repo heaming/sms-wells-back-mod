@@ -96,6 +96,8 @@ public class WsncTimeTableDvo {
     String pdGrpCd;
     String pdGrpNm;
     String cntrDt;
+    String ordDt;
+    String ordSeq;
     // --------------------------------------------------
     //법인격구분
     //1:개인
