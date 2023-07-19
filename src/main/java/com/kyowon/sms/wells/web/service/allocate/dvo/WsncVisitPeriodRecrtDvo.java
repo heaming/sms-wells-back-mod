@@ -10,4 +10,5 @@ public class WsncVisitPeriodRecrtDvo {
     String cntrSn;
     String pdctPdCd;
     String svpdItemGr;
+    String periodDeleteYmd;
 }

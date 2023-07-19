@@ -128,7 +128,7 @@ public class WsnbIndividualVisitPrdService {
     public int processVisitPeriodRegen(WsnbIndividualVisitPrdDto.SearchProcessReq dto) throws Exception {
         //방문주기 삭제 후 생성
         processVisitPeriodDelete(dto);
-        WsncVisitPeriodRecrtDto.SaveReq param = new WsncVisitPeriodRecrtDto.SaveReq(dto.cntrNo(), dto.cntrSn());
+        WsncVisitPeriodRecrtDto.SaveReq param = new WsncVisitPeriodRecrtDto.SaveReq(dto.cntrNo(), dto.cntrSn(), dto.periodDeleteYmd());
         return wsncVisitPeriodRecrtService.saveVisitPeriodRecrt(param);
     }
 

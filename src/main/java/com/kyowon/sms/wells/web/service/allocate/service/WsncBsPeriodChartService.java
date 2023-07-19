@@ -33,6 +33,10 @@ public class WsncBsPeriodChartService {
      */
     @Transactional
     public int processBsPeriodChartBs03(WsncBsPeriodChartDto.SearchReq dto, boolean isMembership) throws Exception {
+        return processBsPeriodChartBs03(dto, isMembership, "");
+    }
+    @Transactional
+    public int processBsPeriodChartBs03(WsncBsPeriodChartDto.SearchReq dto, boolean isMembership, String validateVstDt) throws Exception {
         WsncBsPeriodChartResDvo baseInfoRes = mapper.selectPeriodChartBaseInfo(dto);
 
         //AC201_BS_GB1 != '00' 일 경우 아무것도 처리 하지 않는다.
@@ -149,6 +153,12 @@ public class WsncBsPeriodChartService {
                 if (DateUtil.getLastDateOfMonth(chekVstDt).compareTo(chekVstDt) < 0) {
                     chekVstDt = DateUtil.getLastDateOfMonth(chekVstDt);
                 }
+
+                //시작점이 존재할 경우, 그 이전 시점은 skip
+                if(!isVstDtValid(validateVstDt, chekVstDt)){
+                    log.info("WsncBsPeriodChartService.processBsPeriodChartBs03 ::: Invalid date check ::: " + validateVstDt + " / " + chekVstDt);
+                    continue;
+                }
                 processParam.setChekVstDt(chekVstDt);
 
                 newWrkTypDtl = chart07Res.getWrkTypDtl();
@@ -190,6 +200,10 @@ public class WsncBsPeriodChartService {
      */
     @Transactional
     public int processBsPeriodChartBs04(WsncBsPeriodChartDto.SearchReq dto) throws Exception {
+        return processBsPeriodChartBs04(dto, "");
+    }
+    @Transactional
+    public int processBsPeriodChartBs04(WsncBsPeriodChartDto.SearchReq dto, String validateVstDt) throws Exception {
         WsncBsPeriodChartResDvo baseInfoRes = mapper.selectPeriodChartBaseInfo(dto);
 
         //AC201_BS_GB1 != '00' 일 경우 아무것도 처리 하지 않는다.
@@ -249,6 +263,12 @@ public class WsncBsPeriodChartService {
             if (DateUtil.getLastDateOfMonth(chekVstDt).compareTo(chekVstDt) < 0) {
                 chekVstDt = DateUtil.getLastDateOfMonth(chekVstDt);
             }
+
+            //시작점이 존재할 경우, 그 이전 시점은 skip
+            if(!isVstDtValid(validateVstDt, chekVstDt)){
+                log.info("WsncBsPeriodChartService.processBsPeriodChartBs04 ::: Invalid date check ::: " + validateVstDt + " / " + chekVstDt);
+                continue;
+            }
             processParam.setChekVstDt(chekVstDt);
             processParam.setChekCyclMths(chart06Res.getVstNmnN());     // 방문차월 수 세팅 - js
             processParam.setDtlSn(chart06Res.getDtlSn());       // js - 다중 for문 제어를 위해 추가
@@ -289,6 +309,10 @@ public class WsncBsPeriodChartService {
      */
     @Transactional
     public int processBsPeriodChartBs01(WsncBsPeriodChartDto.SearchReq dto) throws Exception {
+        return processBsPeriodChartBs01(dto, "");
+    }
+    @Transactional
+    public int processBsPeriodChartBs01(WsncBsPeriodChartDto.SearchReq dto, String validateVstDt) throws Exception {
 
         WsncBsPeriodChartResDvo baseInfoRes = mapper.selectPeriodChartBaseInfo(dto);
 
@@ -356,6 +380,7 @@ public class WsncBsPeriodChartService {
             if (DateUtil.getLastDateOfMonth(chekVstDt).compareTo(chekVstDt) < 0) {
                 chekVstDt = DateUtil.getLastDateOfMonth(chekVstDt);
             }
+
             processParam.setChekVstDt(chekVstDt);
 
             newGdsCd = mapper.selectBsPeriodChartBs01_22(processParam);
@@ -375,6 +400,12 @@ public class WsncBsPeriodChartService {
                 vVs104CfrmDt = mapper.selectBsPeriodChartBs03_11(processParam);
                 if(StringUtils.isNotEmpty(vVs104CfrmDt)){
                     chekVstDt = vVs104CfrmDt;
+                }
+
+                //시작점이 존재할 경우, 그 이전 시점은 skip
+                if(!isVstDtValid(validateVstDt, chekVstDt)){
+                    log.info("WsncBsPeriodChartService.processBsPeriodChartBs01 ::: Invalid date check ::: " + validateVstDt + " / " + chekVstDt);
+                    continue;
                 }
                 processParam.setChekVstDt(chekVstDt);
                 processParam.setNewWrkTypDtl(newWrkTypDtl);
@@ -401,6 +432,10 @@ public class WsncBsPeriodChartService {
      */
     @Transactional
     public int processBsPeriodChartBs05(WsncBsPeriodChartDto.SearchReq dto) throws Exception {
+        return processBsPeriodChartBs05(dto, "");
+    }
+    @Transactional
+    public int processBsPeriodChartBs05(WsncBsPeriodChartDto.SearchReq dto, String validateVstDt) throws Exception {
 
         WsncBsPeriodChartResDvo baseInfoRes = mapper.selectPeriodChartBaseInfo(dto);
 
@@ -533,6 +568,11 @@ public class WsncBsPeriodChartService {
                     chekVstDt = vVs104CfrmDt;
                 }
 
+                //시작점이 존재할 경우, 그 이전 시점은 skip
+                if(!isVstDtValid(validateVstDt, chekVstDt)){
+                    log.info("WsncBsPeriodChartService.processBsPeriodChartBs05 ::: Invalid date check ::: " + validateVstDt + " / " + chekVstDt);
+                    continue;
+                }
                 processParam.setChekVstDt(chekVstDt);
                 processParam.setNewVstGb(newVstGb);
                 processParam.setChekCyclMths(chart07Res.getVstMths());
@@ -667,4 +707,25 @@ public class WsncBsPeriodChartService {
         return 1;
     }
 
+    /*
+     * fromDate, toDate 날짜 우선순위 비교
+     */
+    public boolean isVstDtValid(String fromDate, String toDate){
+        //둘 중 하나라도 빈값일 경우, 하던거 마저 하라고 return true
+        if(StringUtils.isEmpty(fromDate) || StringUtils.isEmpty(toDate)){
+            log.info("WsncBsPeriodChartService.isVstDtValid ::: empty date");
+            return true;
+        }
+
+        //둘 중 하나라도 YYYYMMDD가 아닐 경우, 하던거 마저 하라고 return true
+        if(!DateUtil.isValid(fromDate, "yyyyMMdd") || !DateUtil.isValid(toDate, "yyyyMMdd")){
+            log.info("WsncBsPeriodChartService.isVstDtValid ::: invalid date");
+            return true;
+        }
+
+        if(DateUtil.getDays(fromDate, toDate) < 0){
+            return false;
+        }
+        return true;
+    }
 }

@@ -61,20 +61,21 @@ public class WsncVisitPeriodRecrtService {
             if(dvo == null){
                 return 1;
             }
+            dvo.setPeriodDeleteYmd(req.getPeriodDeleteYmd());
 
             switch (dvo.getSvpdItemGr()) {
                 //배송
                 case  "12", "13", "14", "15", "16"
-                    -> wsncBsPeriodChartService.processBsPeriodChartBs01(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo));
+                    -> wsncBsPeriodChartService.processBsPeriodChartBs01(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo), dvo.getPeriodDeleteYmd());
                 //모종
                 case "11"
-                    -> wsncBsPeriodChartService.processBsPeriodChartBs05(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo));
+                    -> wsncBsPeriodChartService.processBsPeriodChartBs05(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo), dvo.getPeriodDeleteYmd());
                 //삼성전자 에어컨
                 case "삼성전자 에어컨"
-                    -> wsncBsPeriodChartService.processBsPeriodChartBs04(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo));
+                    -> wsncBsPeriodChartService.processBsPeriodChartBs04(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo), dvo.getPeriodDeleteYmd());
                 //멤버십, 기타
                 default
-                    -> wsncBsPeriodChartService.processBsPeriodChartBs03(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo), true);
+                    -> wsncBsPeriodChartService.processBsPeriodChartBs03(converter.mapVisitPeriodDvoToBsPeriodSearchReq(dvo), true, dvo.getPeriodDeleteYmd());
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -13,6 +13,7 @@ public class WsncVisitPeriodRecrtDto {
         @NotBlank
         String cntrNo,
         @NotBlank
-        String cntrSn
+        String cntrSn,
+        String periodDeleteYmd
     ) {}
 }
