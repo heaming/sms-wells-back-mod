@@ -158,8 +158,8 @@ public class WsncTimeTableService {
             if (StringUtil.isEmpty(dvo.getCntrSn()))
                 dvo.setCntrSn("1");
 
-//            mapper.selectAdrId(dvo.getCntrNo(), dvo.getCntrSn())
-//                .orElseThrow(() -> new BizException("주소기본 정보에 데이터가 없습니다."));
+            //            mapper.selectAdrId(dvo.getCntrNo(), dvo.getCntrSn())
+            //                .orElseThrow(() -> new BizException("주소기본 정보에 데이터가 없습니다."));
 
             dvo.setCntrSns(Arrays.asList(dvo.getCntrSn().split(",")));
             /**
@@ -183,6 +183,8 @@ public class WsncTimeTableService {
             }
 
             String workTypeDtl = "";
+
+            BizAssert.isFalse(dvo.getBasePdCds().size() != dvo.getSvBizDclsfCds().size(), "SvBizDclsfCd가 복수값이 아닙니다. (SvBizDclsfCd=1110,3100");
 
             for (int i = 0; i < dvo.getBasePdCds().size(); i++)
                 workTypeDtl += (i == 0 ? "" : "|") + dvo.getBasePdCds().get(i) + "," + dvo.getSvBizDclsfCds().get(i);
@@ -465,8 +467,21 @@ public class WsncTimeTableService {
         dvo.getPmTimes2().clear();
         dvo.getNtTimes().clear();
 
-        if (StringUtil.isEmpty(dvo.getCntrNo()) || StringUtil.isEmpty(dvo.getCntrSn()))
-            throw new BizException("MSG_ALT_CNTR_NO_NOT_EXIST");
+        BizAssert.isFalse(
+            ObjectUtils.isEmpty(dvo.getCntrNo()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"cntrNo"}
+        );
+        BizAssert.isFalse(
+            ObjectUtils.isEmpty(dvo.getCntrSn()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"cntrSn"}
+        );
+
+        log.debug("--------------------------------------------------------------------------");
+        log.debug(dvo.getCntrNo());
+        log.debug(dvo.getCntrSn());
+        log.debug(dvo.getSellDate());
+        log.debug(dvo.getSvDvCd());
+        log.debug(dvo.getSvBizDclsfCd());
+        log.debug(dvo.getSvBizDclsfCds().toString());
+        log.debug("--------------------------------------------------------------------------");
 
         /*---------------------------------------------------------------------------*/
         dvo.setSellDate(StringUtil.nvl(req.sellDate(), nowDay));
@@ -474,8 +489,8 @@ public class WsncTimeTableService {
         /*---------------------------------------------------------------------------*/
 
         //다건 svBizDclsfCds 처리
+        dvo.setSvBizDclsfCds(Arrays.asList(dvo.getSvBizDclsfCd()));
         if (StringUtil.nvl(dvo.getSvBizDclsfCd(), "").contains(",")) {
-            dvo.setSvBizDclsfCds(Arrays.asList(dvo.getSvBizDclsfCd().split("\\,")));
             dvo.setSvBizDclsfCd(dvo.getSvBizDclsfCds().get(0));
         }
 
@@ -483,7 +498,7 @@ public class WsncTimeTableService {
 
         /*---------------------------------------------------------------------------*/
         //mapper.selectAdrId(dvo.getCntrNo(), dvo.getCntrSn()).orElseThrow(() -> new BizException("주소기본 정보에 데이터가 없습니다."));
-        /*
+        /**
          * @param cntrNo
          * @param cntrSn
          * @param sellDate
@@ -615,10 +630,14 @@ public class WsncTimeTableService {
 
         WsncTimeTableDvo dvo = converter.mapTimeChoReqToDvo(req);
         /*---------------------------------------------------------------------------*/
-        BizAssert.isFalse(ObjectUtils.isEmpty(dvo.getSvBizDclsfCd()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"svBizDclsfCd"});
-        BizAssert.isFalse(ObjectUtils.isEmpty(dvo.getChnlDvCd()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"chnlDvCd"});
+        BizAssert.isFalse(
+            ObjectUtils.isEmpty(dvo.getSvBizDclsfCd()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"svBizDclsfCd"}
+        );
+        BizAssert
+            .isFalse(ObjectUtils.isEmpty(dvo.getChnlDvCd()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"chnlDvCd"});
         BizAssert.isFalse(ObjectUtils.isEmpty(dvo.getSvDvCd()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"svDvCd"});
-        BizAssert.isFalse(ObjectUtils.isEmpty(dvo.getSellDate()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"sellDate"});
+        BizAssert
+            .isFalse(ObjectUtils.isEmpty(dvo.getSellDate()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"sellDate"});
         BizAssert.isFalse(ObjectUtils.isEmpty(dvo.getCntrNo()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"cntrNo"});
         // BizAssert.isFalse(
         //     ObjectUtils.isEmpty(dvo.getCntrNo()) && ObjectUtils.isEmpty(dvo.getNewAdrZip()),
