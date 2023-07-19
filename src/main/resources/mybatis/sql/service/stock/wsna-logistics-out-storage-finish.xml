@@ -8,46 +8,51 @@
              , D1.OSTR_NO                                         /* 출고번호 */
              , D1.OSTR_SN                                         /* 출고일련번호 */
              , D1.OSTR_DT                                         /* 출고일자 */
-             , D2.OSTR_AK_NO                                      /* 출고요청번호 */
-             , D2.OSTR_AK_SN                                      /* 출고요청일련번호 */
-             , D2.OSTR_AK_TP_CD                                   /* 출고요청유형코드 */
-             , D2.STR_OJ_WARE_NO                                  /* 입고대상창고번호 */
-             , D2.OSTR_AK_WARE_DV_CD                              /* 출고요청창고구분코드 */
-             , D2.WARE_MNGT_PRTNR_NO                              /* 창고관리파트너번호 */
-             , D2.WARE_MNGT_PRTNR_OG_TP_CD                        /* 창고관리파트너조직유형코드 */
-             , D3.HGR_WARE_NO        AS STR_HGR_WARE_NO           /* 입고대상 상위창고번호 */
-             , D4.WARE_DV_CD         AS STR_HGR_DV_CD             /* 입고 상위 창고구분코드 */
-             , D4.WARE_MNGT_PRTNR_NO AS STR_HGR_PRTNR_NO          /* 입고 상위 파트너번호 */
-             , D4.OG_TP_CD           AS STR_HGR_PRTNR_OG_TP_CD    /* 입고 상위 파트너 조직유형코드 */
-             , D5.PD_PRP_VAL19       AS ITM_KND_CD                /* 품목종류코드 */
-             , D2.ITM_PD_CD                                       /* 품목상품코드 */
-             , D2.ITM_GD_CD                                       /* 품목등급코드 */
-             , D2.MNGT_UNIT_CD                                    /* 관리단위코드 */
-             , D2.BOX_UNIT_QTY                                    /* 박스단위수량 */
-          FROM TB_IFIN_ITM_OSTR_FSH_RCV_ETXT D1   /* 품목출고완료수신전문 */
-         INNER JOIN TB_SVST_ITM_OSTR_AK_IZ D2     /* 품목출고요청내역 */
-            ON D2.OSTR_AK_NO = D1.OSTR_AK_NO
-           AND D2.OSTR_AK_SN = D1.OSTR_AK_SN
-         INNER JOIN TB_SVST_MCBY_WARE_IZ D3       /* 월별창고내역(입고) */
-            ON D3.APY_YM  = SUBSTR(D2.OSTR_AK_RGST_DT, 1, 6)
-           AND D3.WARE_NO = D2.STR_OJ_WARE_NO
-         INNER JOIN TB_SVST_MCBY_WARE_IZ D4       /* 월별창고내역(입고상위) */
-            ON D4.APY_YM  = SUBSTR(D2.OSTR_AK_RGST_DT, 1, 6)
-           AND D4.WARE_NO = D3.HGR_WARE_NO
-         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D5    /* 상품각사속성상세 */
-            ON D5.PD_CD = D2.ITM_PD_CD
+             , D3.OSTR_AK_NO                                      /* 출고요청번호 */
+             , D3.OSTR_AK_SN                                      /* 출고요청일련번호 */
+             , D3.OSTR_AK_TP_CD                                   /* 출고요청유형코드 */
+             , D3.STR_OJ_WARE_NO                                  /* 입고대상창고번호 */
+             , D3.OSTR_AK_WARE_DV_CD                              /* 출고요청창고구분코드 */
+             , D3.WARE_MNGT_PRTNR_NO                              /* 창고관리파트너번호 */
+             , D3.WARE_MNGT_PRTNR_OG_TP_CD                        /* 창고관리파트너조직유형코드 */
+             , D4.HGR_WARE_NO        AS STR_HGR_WARE_NO           /* 입고대상 상위창고번호 */
+             , D5.WARE_DV_CD         AS STR_HGR_DV_CD             /* 입고 상위 창고구분코드 */
+             , D5.WARE_MNGT_PRTNR_NO AS STR_HGR_PRTNR_NO          /* 입고 상위 파트너번호 */
+             , D5.OG_TP_CD           AS STR_HGR_PRTNR_OG_TP_CD    /* 입고 상위 파트너 조직유형코드 */
+             , D6.PD_PRP_VAL19       AS ITM_KND_CD                /* 품목종류코드 */
+             , D3.ITM_PD_CD                                       /* 품목상품코드 */
+             , D3.ITM_GD_CD                                       /* 품목등급코드 */
+             , D3.MNGT_UNIT_CD                                    /* 관리단위코드 */
+             , D3.BOX_UNIT_QTY                                    /* 박스단위수량 */
+          FROM TB_IFIN_ITM_OSTR_FSH_RCV_ETXT D1        /* 품목출고완료수신전문 */
+         INNER JOIN TB_IFIN_OSTR_AK_DTL_SEND_ETXT D2   /* 출고요청상세송신전문 */
+            ON D2.SAP_PLNT_CD     = D1.SAP_PLNT_CD
+           AND D2.LGST_OSTR_AK_NO = D1.OSTR_AK_NO
+           AND D2.OSTR_AK_SN      = D1.OSTR_AK_SN
+         INNER JOIN TB_SVST_ITM_OSTR_AK_IZ D3          /* 품목출고요청내역 */
+            ON D3.OSTR_AK_NO = D2.REL_NO
+           AND D3.OSTR_AK_SN = D2.REL_SN
+         INNER JOIN TB_SVST_MCBY_WARE_IZ D4            /* 월별창고내역(입고) */
+            ON D4.APY_YM  = SUBSTR(D3.OSTR_AK_RGST_DT, 1, 6)
+           AND D4.WARE_NO = D3.STR_OJ_WARE_NO
+         INNER JOIN TB_SVST_MCBY_WARE_IZ D5            /* 월별창고내역(입고상위) */
+            ON D5.APY_YM  = SUBSTR(D3.OSTR_AK_RGST_DT, 1, 6)
+           AND D5.WARE_NO = D4.HGR_WARE_NO
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D6         /* 상품각사속성상세 */
+            ON D6.PD_CD = D3.ITM_PD_CD
          WHERE D1.DTA_DL_YN          = 'N'
            AND D2.DTA_DL_YN          = 'N'
            AND D3.DTA_DL_YN          = 'N'
-           AND D3.WARE_USE_YN        = 'Y'
            AND D4.DTA_DL_YN          = 'N'
            AND D4.WARE_USE_YN        = 'Y'
            AND D5.DTA_DL_YN          = 'N'
-           AND D5.PD_EXTS_PRP_GRP_CD = 'PART'   /* AS부품 */
+           AND D5.WARE_USE_YN        = 'Y'
+           AND D6.DTA_DL_YN          = 'N'
+           AND D6.PD_EXTS_PRP_GRP_CD = 'PART'   /* AS부품 */
            AND D1.TF_YN              = 'N'
            AND D1.TF_DTM IS NULL
-           AND D2.OSTR_AK_NO         = #{ostrAkNo}
-         ORDER BY D2.OSTR_AK_NO, D2.OSTR_AK_SN
+           AND D3.OSTR_AK_NO         = #{ostrAkNo}
+         ORDER BY D3.OSTR_AK_NO, D3.OSTR_AK_SN
     </select>
 
     <select id="selectNewItmOstrNo" resultType="java.lang.String">
