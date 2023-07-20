@@ -21,6 +21,6 @@ import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 public interface WsnbInstallationOrderConverter {
 
     @Mapping(source = "inflwChnl", target = "inChnlDvCd")
-    List<WsnbWorkOrderDvo> mapSaveReqToWorkOrderDvo(List<SaveReq> dto);
+    List<WsnbWorkOrderDvo> mapAllSaveReqToWorkOrderDvo(List<SaveReq> dto);
 
 }

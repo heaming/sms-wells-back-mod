@@ -45,7 +45,7 @@ public class WsnbInstallationOrderService {
     private final WctaInstallationReqdDtInService contractIstService; // 계약설치요청일자변경 서비스
 
     public List<String> saveInstallationOrder(List<SaveReq> dtos) throws Exception {
-        List<WsnbWorkOrderDvo> workOrderDvo = converter.mapSaveReqToWorkOrderDvo(dtos);
+        List<WsnbWorkOrderDvo> workOrderDvo = converter.mapAllSaveReqToWorkOrderDvo(dtos);
 
         // TODO: 파라미터 로그 저장
 

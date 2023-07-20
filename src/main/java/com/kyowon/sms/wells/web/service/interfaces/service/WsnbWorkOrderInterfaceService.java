@@ -82,11 +82,7 @@ public class WsnbWorkOrderInterfaceService {
         WsnbWorkOrderDvo workOrderDvo = converter.convertInterfaceDvoToDvo(install);
 
         // W-SV-S-0001 [설치/AS/BS/홈케어 서비스 작업 오더] 호출
-        List<String> asIstOjNos = installationOrderService.saveInstallationOrderByDvo(new ArrayList<>() {
-            {
-                add(workOrderDvo);
-            }
-        });
+        List<String> asIstOjNos = installationOrderService.saveInstallationOrderByDvo(List.of(workOrderDvo));
         return new CreateOrderRes(asIstOjNos.get(0));
     }
 
