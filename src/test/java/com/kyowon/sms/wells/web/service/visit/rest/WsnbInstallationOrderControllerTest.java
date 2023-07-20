@@ -26,8 +26,8 @@ class WsnbInstallationOrderControllerTest extends SpringTestSupport {
     void saveInstallationOrder() throws Exception {
         // given
         SaveReq dto = SaveReq.builder()
-            .inflwChnl("3")
-            .asIstOjNo("312023072000000000")
+            .inChnlDvCd("3")
+            .asIstOjNo("")
             .svBizHclsfCd("1")
             .svBizDclsfCd("3420")
             .urgtYn("N")

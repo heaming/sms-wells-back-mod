@@ -22,6 +22,4 @@ public interface WsnbInstallationOrderConverter {
 
     List<WsnbWorkOrderDvo> mapAllSaveReqToWorkOrderDvo(List<SaveReq> dto);
 
-    @Mapping(source = "inflwChnl", target = "inChnlDvCd")
-    WsnbWorkOrderDvo mapSaveReqToWorkOrderDvo(SaveReq dto);
 }
