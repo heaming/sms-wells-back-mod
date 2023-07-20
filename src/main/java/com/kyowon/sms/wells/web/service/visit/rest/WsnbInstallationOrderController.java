@@ -1,6 +1,9 @@
 package com.kyowon.sms.wells.web.service.visit.rest;
 
+import java.util.List;
+
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,7 +33,8 @@ public class WsnbInstallationOrderController {
     public SaveResponse saveInstallationOrder(
         @Valid
         @RequestBody
-        SaveReq dto
+        @NotEmpty
+        List<SaveReq> dto
     ) throws Exception {
         return SaveResponse.builder()
             .processCount(1)

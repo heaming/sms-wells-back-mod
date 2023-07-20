@@ -1,16 +1,8 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.CNTR_REL_DTL_CD_HOMECARE_MEMBERSHIP;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.CNTR_REL_DTL_CD_SDING_COMBI;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_WEB;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.MTR_STAT_CD_DEL;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.PG_GRP_CD_WELLS_FARM;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.PG_GRP_CD_WELLS_SEEDING;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_HCLSF_CD_DEL;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_HCLSF_CD_HOME_CARE;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_MCLSF_CD_IST;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_MCLSF_CD_NEW;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -52,8 +44,8 @@ public class WsnbInstallationOrderService {
 
     private final WctaInstallationReqdDtInService contractIstService; // 계약설치요청일자변경 서비스
 
-    public String saveInstallationOrder(SaveReq dto) throws Exception {
-        WsnbWorkOrderDvo workOrderDvo = converter.mapSaveReqToWorkOrderDvo(dto);
+    public List<String> saveInstallationOrder(List<SaveReq> dtos) throws Exception {
+        List<WsnbWorkOrderDvo> workOrderDvo = converter.mapAllSaveReqToWorkOrderDvo(dtos);
 
         // TODO: 파라미터 로그 저장
 
@@ -61,31 +53,34 @@ public class WsnbInstallationOrderService {
     }
 
     @Transactional
-    public String saveInstallationOrderByDvo(WsnbWorkOrderDvo workOrder) throws Exception {
-        String cntrNo = workOrder.getCntrNo();
-        String cntrSn = workOrder.getCntrSn();
-        String asIstOjNo = null;
+    public List<String> saveInstallationOrderByDvo(List<WsnbWorkOrderDvo> workOrders) throws Exception {
+        List<String> asIstOjNos = new ArrayList<>();
 
-        // 계약 조회
-        WsnbContractDvo contract = contractService.getContract(cntrNo, cntrSn);
+        for (WsnbWorkOrderDvo workOrder : workOrders) {
+            String cntrNo = workOrder.getCntrNo();
+            String cntrSn = workOrder.getCntrSn();
 
-        // 1. 당일 계약취소 [AS-IS] LC_ASREGN_API_U03_T -> PR_KIWI_DEL_CSMR
-        if (SV_BIZ_HCLSF_CD_DEL.equals(workOrder.getSvBizHclsfCd())) {
-            processContractCancel(workOrder, contract);
+            // 계약 조회
+            WsnbContractDvo contract = contractService.getContract(cntrNo, cntrSn);
+
+            // 1. 당일 계약취소 [AS-IS] LC_ASREGN_API_U03_T -> PR_KIWI_DEL_CSMR
+            if (SV_BIZ_HCLSF_CD_DEL.equals(workOrder.getSvBizHclsfCd())) {
+                processContractCancel(workOrder, contract);
+            }
+
+            // 2. 설치("11%", "41%")이면 계약-예정일자 업데이트 LC_ASREGN_API_U02_T
+            if (workOrder.getSvBizDclsfCd().startsWith(SV_BIZ_MCLSF_CD_IST)
+                || workOrder.getSvBizDclsfCd().startsWith(SV_BIZ_MCLSF_CD_NEW)) {
+                processContractUpdate(workOrder);
+            }
+
+            // 3. 작업오더 호출
+            if (!SV_BIZ_HCLSF_CD_DEL.equals(workOrder.getSvBizHclsfCd())) {
+                asIstOjNos.add(saveWorkOrder(workOrder, contract));
+            }
         }
 
-        // 2. 설치("11%", "41%")이면 계약-예정일자 업데이트 LC_ASREGN_API_U02_T
-        if (workOrder.getSvBizDclsfCd().startsWith(SV_BIZ_MCLSF_CD_IST)
-            || workOrder.getSvBizDclsfCd().startsWith(SV_BIZ_MCLSF_CD_NEW)) {
-            processContractUpdate(workOrder);
-        }
-
-        // 3. 작업오더 호출
-        if (!SV_BIZ_HCLSF_CD_DEL.equals(workOrder.getSvBizHclsfCd())) {
-            asIstOjNo = saveWorkOrder(workOrder, contract);
-        }
-
-        return asIstOjNo;
+        return asIstOjNos;
     }
 
     private String saveWorkOrder(

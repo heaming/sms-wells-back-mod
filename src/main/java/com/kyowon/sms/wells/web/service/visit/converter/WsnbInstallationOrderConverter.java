@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.converter;
 
+import java.util.List;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -19,6 +21,6 @@ import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 public interface WsnbInstallationOrderConverter {
 
     @Mapping(source = "inflwChnl", target = "inChnlDvCd")
-    WsnbWorkOrderDvo mapSaveReqToWorkOrderDvo(SaveReq dto);
+    List<WsnbWorkOrderDvo> mapAllSaveReqToWorkOrderDvo(List<SaveReq> dto);
 
 }
