@@ -477,12 +477,12 @@ public class WsncTimeTableService {
             ObjectUtils.isEmpty(dvo.getCntrSn()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"cntrSn"}
         );
 
-        dvo.setSellDate(StringUtil.nvl(req.sellDate(), nowDay));
+        dvo.setSellDate(ObjectUtils.isEmpty(req.sellDate()) ? nowDay : req.sellDate());
         dvo.setSvDvCd("M".equals(dvo.getChnlDvCd()) /*매니저*/ ? "3" /*A/S*/ : StringUtil.nvl(dvo.getSvDvCd(), ""));
 
         //다건 svBizDclsfCds 처리
-        dvo.setSvBizDclsfCds(Arrays.asList(dvo.getSvBizDclsfCd()));
-        if (StringUtil.nvl(dvo.getSvBizDclsfCd(), "").contains(",")) {
+        dvo.setSvBizDclsfCds(Arrays.asList(dvo.getSvBizDclsfCd().split("\\,")));
+        if (StringUtil.nvl(dvo.getSvBizDclsfCd(), "").contains("\\,")) {
             dvo.setSvBizDclsfCd(dvo.getSvBizDclsfCds().get(0));
         }
 
@@ -509,9 +509,18 @@ public class WsncTimeTableService {
             dvo.getSdingCombins().add(contractDvo.getSdingCombin());
         }
 
+        log.debug(dvo.getBasePdCds().toString());
+        log.debug(dvo.getSvBizDclsfCds().toString());
+
         String workTypeDtl = "";
-        for (int i = 0; i < dvo.getBasePdCds().size(); i++)
-            workTypeDtl += (i == 0 ? "" : "|") + dvo.getBasePdCds().get(i) + "," + dvo.getSvBizDclsfCds().get(i);
+
+        for (int i = 0; i < dvo.getBasePdCds().size(); i++) {
+            workTypeDtl += (i == 0 ? "" : "|");
+            workTypeDtl += dvo.getBasePdCds().get(i);
+            workTypeDtl += ","; //
+            workTypeDtl += dvo.getSvBizDclsfCds().get(i);
+        }
+
         dvo.setWorkTypeDtl(workTypeDtl); // WP01120279,1110|WP01110622,3100
 
         WsncTimeTableCntrDvo contractDvo = contractDvos.get(0);
@@ -533,7 +542,18 @@ public class WsncTimeTableService {
         /*---------------------------------------------------------------------------*/
 
         dvo.getPdctPdCds().clear();
-        dvo.setPrtnrNo("3".equals(dvo.getSvDvCd()) ? mapper.selectFnSvpdLocaraPrtnr01(dvo) : dvo.getPrtnrNo());
+
+        //dvo.setPrtnrNo("3".equals(dvo.getSvDvCd()) ? mapper.selectFnSvpdLocaraPrtnr01(dvo) : dvo.getPrtnrNo());
+        dvo.setPrtnrNo(
+            ObjectUtils.isEmpty(dvo.getPrtnrNo()) ? mapper.selectFnSvpdLocaraPrtnr01(dvo) : dvo.getPrtnrNo()
+        );
+
+        log.debug("------------------------");
+        log.debug("selectFnSvpdLocaraPrtnr01=" + mapper.selectFnSvpdLocaraPrtnr01(dvo));
+        log.debug("getPrtnrNo=" + dvo.getPrtnrNo());
+        log.debug("getSellDate=" + dvo.getSellDate());
+        log.debug("getSellDate=" + req.sellDate());
+        log.debug("------------------------");
 
         BizAssert.isFalse(
             ObjectUtils.isEmpty(dvo.getPrtnrNo()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"prtnrNo"}
@@ -644,6 +664,7 @@ public class WsncTimeTableService {
             dvo.setSvBizDclsfCds(Arrays.asList(dvo.getSvBizDclsfCd()));
         }
 
+        dvo.setCntrSns(Arrays.asList(dvo.getCntrSn().split("\\,")));
         dvo.setSellDate(StringUtil.nvl(dvo.getSellDate(), nowDay));
         dvo.setSvDvCd("M".equals(dvo.getChnlDvCd()) /*매니저*/ ? "3" /*A/S*/ : StringUtil.nvl(dvo.getSvDvCd(), ""));
 
@@ -674,8 +695,8 @@ public class WsncTimeTableService {
 
         String workTypeDtl = "";
         for (int i = 0; i < dvo.getBasePdCds().size(); i++) {
-            System.out.println(dvo.getBasePdCds().get(i));
-            System.out.println(dvo.getSvBizDclsfCds().get(i));
+            //            System.out.println(dvo.getBasePdCds().get(i));
+            //            System.out.println(dvo.getSvBizDclsfCds().get(i));
             workTypeDtl += (i == 0 ? "" : "|") + dvo.getBasePdCds().get(i) + "," + dvo.getSvBizDclsfCds().get(i);
         }
 
