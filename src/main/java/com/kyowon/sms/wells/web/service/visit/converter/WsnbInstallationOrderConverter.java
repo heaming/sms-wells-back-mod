@@ -20,7 +20,8 @@ import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 @Mapper(componentModel = "spring")
 public interface WsnbInstallationOrderConverter {
 
-    @Mapping(source = "inflwChnl", target = "inChnlDvCd")
     List<WsnbWorkOrderDvo> mapAllSaveReqToWorkOrderDvo(List<SaveReq> dto);
 
+    @Mapping(source = "inflwChnl", target = "inChnlDvCd")
+    WsnbWorkOrderDvo mapSaveReqToWorkOrderDvo(SaveReq dto);
 }

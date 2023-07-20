@@ -3,6 +3,8 @@ package com.kyowon.sms.wells.web.service.visit.rest;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -25,27 +27,27 @@ class WsnbInstallationOrderControllerTest extends SpringTestSupport {
         // given
         SaveReq dto = SaveReq.builder()
             .inflwChnl("3")
-            .asIstOjNo("312023071900000000")
+            .asIstOjNo("312023072000000000")
             .svBizHclsfCd("1")
-            .svBizDclsfCd("1110")
+            .svBizDclsfCd("3420")
             .urgtYn("N")
-            .vstRqdt("20230720")
+            .vstRqdt("20230724")
             .vstAkHh("0910")
             .smsFwYn("N")
             .cnslMoCn("asdasd")
             .ogTpCd("W06")
-            .userId("1738565")
-            .cntrNo("W20234900311")
+            .userId("1750966")
+            .cntrNo("W20217003935")
             .cntrSn("1")
             .rcpOgTpCd("W01")
-            .rcpdt("20230719")
-            .mtrStatCd("")
+            .rcpdt("20230720")
+            .mtrStatCd("1")
             .build();
 
         // when & then
         MockHttpServletRequestBuilder request = post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(dto));
+            .content(objectMapper.writeValueAsString(List.of(dto)));
 
         String result = mockMvc.perform(request)
             .andExpect(status().isOk())
