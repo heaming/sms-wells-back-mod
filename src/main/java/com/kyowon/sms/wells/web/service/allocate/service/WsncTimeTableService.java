@@ -184,7 +184,10 @@ public class WsncTimeTableService {
 
             String workTypeDtl = "";
 
-            BizAssert.isFalse(dvo.getBasePdCds().size() != dvo.getSvBizDclsfCds().size(), "SvBizDclsfCd가 복수값이 아닙니다. (SvBizDclsfCd=1110,3100");
+            BizAssert.isFalse(
+                dvo.getBasePdCds().size() != dvo.getSvBizDclsfCds().size(),
+                "SvBizDclsfCd가 복수값이 아닙니다. (SvBizDclsfCd=1110,3100"
+            );
 
             for (int i = 0; i < dvo.getBasePdCds().size(); i++)
                 workTypeDtl += (i == 0 ? "" : "|") + dvo.getBasePdCds().get(i) + "," + dvo.getSvBizDclsfCds().get(i);
@@ -531,6 +534,10 @@ public class WsncTimeTableService {
 
         dvo.getPdctPdCds().clear();
         dvo.setPrtnrNo("3".equals(dvo.getSvDvCd()) ? mapper.selectFnSvpdLocaraPrtnr01(dvo) : dvo.getPrtnrNo());
+
+        BizAssert.isFalse(
+            ObjectUtils.isEmpty(dvo.getPrtnrNo()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"prtnrNo"}
+        );
 
         for (int i = 0; i < dvo.getBasePdCds().size(); i++) {
 
