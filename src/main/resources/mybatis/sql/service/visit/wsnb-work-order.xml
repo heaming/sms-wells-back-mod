@@ -203,7 +203,7 @@
                                   )
                          END) AS URGT_DV_CD
                      , #{vstRqdt} AS VST_RQDT /*방문요청일자*/
-                     , #{vstAkHh} AS VST_AK_HH /*방문요청시간*/
+                     , #{vstAkHh} || '00' AS VST_AK_HH /*방문요청시간*/
                      , #{cnslTpHclsfCd} AS CNSL_TP_HCLSF_CD /*상담유형 1(대)*/
                      , #{cnslTpMclsfCd} AS CNSL_TP_MCLSF_CD /*상담유형 2(중)*/
                      , #{cnslTpLclsfCd} AS CNSL_TP_LCLSF_CD/* 상담유형 3(소)*/
@@ -551,9 +551,9 @@
              , #{cntrSn}
              , #{cntrCstNo}
              , #{vstRqdt}
-             , #{vstAkHh}
+             , #{vstAkHh} || '00'
              , #{vstRqdt}
-             , #{vstAkHh}
+             , #{vstAkHh} || '00'
              , #{asnSvBizHclsfCd}
              , #{newSvBizDclsfCd}
              , #{ichrCnrCd}
