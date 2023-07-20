@@ -277,6 +277,23 @@ public class WsnaLogisticsInStorageAskService {
                 // 반품요청상세송신 데이터가 모두 삭제된 경우 상품 반품요청송신 데이터 삭제처리
                 WsnaLogisticsInStorageAskDvo askDvo = this.mapper.selectPdRtngdAkSendEtxtByRtngdAkNo(ostrNo);
                 if (ObjectUtils.isNotEmpty(askDvo)) {
+                    // 전송여부 조회
+                    String trsYn = this.mapper.selectPdRtngdAkSendTrsYn(askDvo);
+                    // 물류에서 이미 전송이 완료된 경우 취소 API 호출
+                    if (YN_Y.equals(trsYn)) {
+                        WsnaLogisticsInStorageAskDtlDvo askDtlDvo = new WsnaLogisticsInStorageAskDtlDvo();
+                        askDtlDvo.setSapPlntCd(askDvo.getSapPlntCd());
+                        askDtlDvo.setLgstStrAkNo(askDvo.getLgstStrAkNo());
+
+                        // 물류 취소 API 호출
+                        LogisticsInStorageCancelResIvo resIvo = this.cancelLogisticsInStorage(askDtlDvo);
+                        // Exception 처리
+                        if (ObjectUtils.isNotEmpty(resIvo) && !RESULT_CODE_S.equals(resIvo.getResultCode())) {
+                            // 이미 물류입고 처리되어 삭제할 수 없습니다.
+                            throw new BizException("MSG_ALT_ALRDY_LGST_STR_CANT_DEL");
+                        }
+                    }
+
                     askDvo.setDtaDlYn(YN_Y);
                     akCnt += this.mapper.updatePdRtngdAkSendEtxtForRemove(askDvo);
                 }

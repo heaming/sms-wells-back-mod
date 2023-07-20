@@ -2,8 +2,6 @@ package com.kyowon.sms.wells.web.service.stock.service;
 
 import java.util.List;
 
-import javax.validation.constraints.NotEmpty;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
@@ -283,6 +281,21 @@ public class WsnaLogisticsOutStorageAskService {
                 // 품목출고요청상세송신 데이터가 모두 삭제된 경우 품목 출고요청송신 데이터 삭제처리
                 WsnaLogisticsOutStorageAskDvo askDvo = this.mapper.selectItmOstrAkSendEtxtByOstrAkNo(ostrAkNo);
                 if (ObjectUtils.isNotEmpty(askDvo)) {
+                    // 전송여부 조회
+                    String trsYn = this.mapper.selectOstrAkSendTrsYn(askDvo);
+                    if (YN_Y.equals(trsYn)) {
+                        WsnaLogisticsOutStorageAskDtlDvo askDtlDvo = new WsnaLogisticsOutStorageAskDtlDvo();
+                        askDtlDvo.setSapPlntCd(askDvo.getSapPlntCd());
+                        askDtlDvo.setLgstOstrAkNo(askDvo.getLgstOstrAkNo());
+                        // 물류 취소 API 호출
+                        LogisticsOutOfStorageCancelResIvo resIvo = this.cancelLogisticsOutOfStorage(askDtlDvo);
+                        // Exception 처리
+                        if (ObjectUtils.isNotEmpty(resIvo) && !RESULT_CODE_S.equals(resIvo.getResultCode())) {
+                            // 이미 물류출고 처리되어 삭제할 수 없습니다.
+                            throw new BizException("MSG_ALT_ALRDY_LGST_OSTR_CANT_DEL");
+                        }
+                    }
+
                     askDvo.setDtaDlYn(YN_Y);
                     akCnt += this.mapper.updateItmOstrAkSendEtxtForRemove(askDvo);
                 }
@@ -301,9 +314,8 @@ public class WsnaLogisticsOutStorageAskService {
      * @param askDtlDvo (필수) 출고요청상세송신전문 데이터
      * @return 물류 출고요청 취소 Response Interface Dvo
      */
-    private LogisticsOutOfStorageCancelResIvo cancelLogisticsOutOfStorage(@NotEmpty
-    WsnaLogisticsOutStorageAskDtlDvo askDtlDvo
-    ) {
+    private LogisticsOutOfStorageCancelResIvo cancelLogisticsOutOfStorage(WsnaLogisticsOutStorageAskDtlDvo askDtlDvo) {
+        ValidAssert.notNull(askDtlDvo);
 
         // 사용자 세션
         UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
