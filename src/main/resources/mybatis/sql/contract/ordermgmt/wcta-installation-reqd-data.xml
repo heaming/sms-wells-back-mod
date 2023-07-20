@@ -123,6 +123,15 @@
         AND CNTR_SN = #{cntrSn}
     </update>
 
+    <update id="updateContractDetailPdStrtdt">
+        UPDATE TB_SSCT_CNTR_DTL
+        SET CNTR_PD_STRTDT           = TO_CHAR(SYSDATE, 'YYYYMMDD')  /* 계약상품시작일자 */
+        <include refid="COMMON.updateSystemField"/>
+        WHERE 1 = 1
+        AND CNTR_NO                  = #{cntrNo}                  /* 계약번호 */
+        AND CNTR_SN                  = #{cntrSn}                  /* 계약일련번호 */
+    </update>
+
     <update id="updateContractDetailHist">
         UPDATE TB_SSCT_CNTR_DCH_HIST /* 계약WELLS상세변경이력 */
         SET HIST_END_DTM             = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')  /* 이력종료일시 */
