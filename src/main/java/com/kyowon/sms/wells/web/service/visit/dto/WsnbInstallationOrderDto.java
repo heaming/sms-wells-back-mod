@@ -22,14 +22,13 @@ public class WsnbInstallationOrderDto {
     @ApiModel(value = "WsnbInstallationOrderDto-SaveReq")
     public record SaveReq(
         @NotBlank
-        String inflwChnl, /* 입력채널구분코드 1: CubicCC, 3: KSS */
-        String gbCd, /* 구분코드 W: 웰스, K: KSS, C: CubicCC, P: K-MEMBERS, I || E: 엔지니어, M : 매니저 */
-        String asIstOjNo, /* AS설치대상번호 */
+        String inChnlDvCd, /* 입력채널구분코드 */
         @NotBlank
         String svBizHclsfCd, /* 서비스업무대분류코드 */
-        String rcpdt, /* 접수일자 */
         @NotBlank
         String mtrStatCd, /* 자료상태코드 */
+        String asIstOjNo, /* AS설치대상번호 */
+        String rcpdt, /* 접수일자 */
         String svBizDclsfCd, /* 서비스업무세분류코드 */
         String urgtYn, /* 긴급여부 */
         String vstRqdt, /* 방문요청일자 */
