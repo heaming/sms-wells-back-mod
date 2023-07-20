@@ -474,19 +474,8 @@ public class WsncTimeTableService {
             ObjectUtils.isEmpty(dvo.getCntrSn()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"cntrSn"}
         );
 
-        log.debug("--------------------------------------------------------------------------");
-        log.debug(dvo.getCntrNo());
-        log.debug(dvo.getCntrSn());
-        log.debug(dvo.getSellDate());
-        log.debug(dvo.getSvDvCd());
-        log.debug(dvo.getSvBizDclsfCd());
-        log.debug(dvo.getSvBizDclsfCds().toString());
-        log.debug("--------------------------------------------------------------------------");
-
-        /*---------------------------------------------------------------------------*/
         dvo.setSellDate(StringUtil.nvl(req.sellDate(), nowDay));
         dvo.setSvDvCd("M".equals(dvo.getChnlDvCd()) /*매니저*/ ? "3" /*A/S*/ : StringUtil.nvl(dvo.getSvDvCd(), ""));
-        /*---------------------------------------------------------------------------*/
 
         //다건 svBizDclsfCds 처리
         dvo.setSvBizDclsfCds(Arrays.asList(dvo.getSvBizDclsfCd()));
@@ -494,9 +483,8 @@ public class WsncTimeTableService {
             dvo.setSvBizDclsfCd(dvo.getSvBizDclsfCds().get(0));
         }
 
-        dvo.setCntrSns(Arrays.asList(dvo.getCntrSn().split(",")));
+        dvo.setCntrSns(Arrays.asList(dvo.getCntrSn().split("\\,")));
 
-        /*---------------------------------------------------------------------------*/
         //mapper.selectAdrId(dvo.getCntrNo(), dvo.getCntrSn()).orElseThrow(() -> new BizException("주소기본 정보에 데이터가 없습니다."));
         /**
          * @param cntrNo
@@ -629,7 +617,6 @@ public class WsncTimeTableService {
     public FindRes getTimeChoice(FindTimeChoReq req) {
 
         WsncTimeTableDvo dvo = converter.mapTimeChoReqToDvo(req);
-        /*---------------------------------------------------------------------------*/
         BizAssert.isFalse(
             ObjectUtils.isEmpty(dvo.getSvBizDclsfCd()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"svBizDclsfCd"}
         );
@@ -639,46 +626,16 @@ public class WsncTimeTableService {
         BizAssert
             .isFalse(ObjectUtils.isEmpty(dvo.getSellDate()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"sellDate"});
         BizAssert.isFalse(ObjectUtils.isEmpty(dvo.getCntrNo()), "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"cntrNo"});
-        // BizAssert.isFalse(
-        //     ObjectUtils.isEmpty(dvo.getCntrNo()) && ObjectUtils.isEmpty(dvo.getNewAdrZip()),
-        //     "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"newAdrZip"}
-        // );
-        // BizAssert.isFalse(
-        //     ObjectUtils.isEmpty(dvo.getCntrNo()) && ObjectUtils.isEmpty(dvo.getBasePdCd()),
-        //     "MSG_ALT_NCELL_REQUIRED_ITEM", new String[] {"basePdCd"}
-        // );
-        /*---------------------------------------------------------------------------*/
 
         //다건 svBizDclsfCds 처리
         if (StringUtil.nvl(dvo.getSvBizDclsfCd(), "").contains(",")
             || StringUtil.nvl(dvo.getBasePdCd(), "").contains(",")) {
-
             dvo.setSvBizDclsfCds(Arrays.asList(dvo.getSvBizDclsfCd().split("\\,")));
             dvo.setSvBizDclsfCd(dvo.getSvBizDclsfCds().get(0));
-
-            //if (ObjectUtils.isEmpty(dvo.getCntrNo()) && StringUtil.nvl(dvo.getBasePdCd(), "").contains(",")) {
-            //    dvo.setBasePdCds(Arrays.asList(dvo.getBasePdCd().split("\\,")));
-            //    dvo.setBasePdCd(dvo.getBasePdCds().get(0));
-            //
-            //    String workTypeDtl = "";
-            //    for (int i = 0; i < dvo.getSvBizDclsfCds().size(); i++)
-            //        workTypeDtl += (i == 0 ? "" : "|") + dvo.getBasePdCds().get(i) + ","
-            //            + dvo.getSvBizDclsfCds().get(i);
-            //
-            //    dvo.setWorkTypeDtl(workTypeDtl);
-            //}
-
         } else {
-
             //단건 basePdCd, svBizDclsfCds, workTypeDtl 처리
             dvo.setSvBizDclsfCds(Arrays.asList(dvo.getSvBizDclsfCd()));
-
-            //if (ObjectUtils.isEmpty(dvo.getCntrNo()) && StringUtil.isNotEmpty(dvo.getBasePdCd())) {
-            //    dvo.setBasePdCds(Arrays.asList(dvo.getBasePdCd()));
-            //    dvo.setWorkTypeDtl(dvo.getBasePdCd() + "," + dvo.getSvBizDclsfCd());
-            //}
         }
-        /*---------------------------------------------------------------------------*/
 
         dvo.setSellDate(StringUtil.nvl(dvo.getSellDate(), nowDay));
         dvo.setSvDvCd("M".equals(dvo.getChnlDvCd()) /*매니저*/ ? "3" /*A/S*/ : StringUtil.nvl(dvo.getSvDvCd(), ""));
@@ -686,7 +643,6 @@ public class WsncTimeTableService {
         if (StringUtil.isNotEmpty(dvo.getCstSvAsnNo()) && "2".equals(dvo.getSvDvCd()))
             dvo.setVstDvCd(mapper.selectVstDvCd(dvo)); // 방문구분코드
 
-        /*---------------------------------------------------------------------------*/
         //mapper.selectAdrId(dvo.getCntrNo(), dvo.getCntrSn()).orElseThrow(() -> new BizException("주소기본 정보에 데이터가 없습니다."));
 
         /**
@@ -734,7 +690,6 @@ public class WsncTimeTableService {
             StringUtil.isEmpty(req.cstSvAsnNo()) ? contractDvo.getCstSvAsnNo() : req.cstSvAsnNo()
         );
         dvo.setRpbLocaraCd("");
-        /*---------------------------------------------------------------------------*/
 
         /**
          * @param newAdrZip
