@@ -38,6 +38,8 @@ public interface WsnaLogisticsInStorageAskMapper {
 
     Integer selectRtngdAkDtlSendEtxtCount(String ostrNo);
 
+    String selectPdRtngdAkSendTrsYn(WsnaLogisticsInStorageAskDvo dvo);
+
     int updatePdRtngdAkSendEtxtForRemove(WsnaLogisticsInStorageAskDvo dvo);
 
 }

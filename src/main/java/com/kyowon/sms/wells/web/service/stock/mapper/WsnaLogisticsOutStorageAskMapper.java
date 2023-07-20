@@ -39,6 +39,8 @@ public interface WsnaLogisticsOutStorageAskMapper {
 
     Integer selectOstrAkDtlSendEtxtCount(String ostrAkNo);
 
+    String selectOstrAkSendTrsYn(WsnaLogisticsOutStorageAskDvo dvo);
+
     int updateItmOstrAkSendEtxtForRemove(WsnaLogisticsOutStorageAskDvo dvo);
 
     int insertOstrAkPcsvSendEtxt(WsnaLogisticsOutStorageAskPcsvDvo dvo);
