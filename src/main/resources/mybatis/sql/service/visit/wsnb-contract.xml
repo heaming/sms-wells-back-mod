@@ -19,7 +19,6 @@
              , M1.MCHN_CLN_OJ_YN AS RET_YN /* 회수유무 */
              , M1.OJ_CNTR_NO AS CNTR_NO_B /* 대상계약번호 */
              , M1.OJ_CNTR_SN AS CNTR_SN_B /* 대상계약일련번호 */
-             , T1.ALNC_BZS_CD /* 제휴업체코드 */
              , C1.CNTR_CST_NO
           FROM TB_SSCT_CNTR_BAS C1
          INNER JOIN TB_SSCT_CNTR_DTL C2
@@ -48,10 +47,6 @@
             ON C5.OJ_PD_CD = P2.PD_CD
            AND P2.PD_EXTS_PRP_GRP_CD = 'PART'
            AND P2.DTA_DL_YN = 'N'
-         INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T1 /* 고객서비스수행내역 */
-            ON T1.CNTR_NO = C2.CNTR_NO
-           AND T1.CNTR_SN = C2.CNTR_SN
-           AND T1.DTA_DL_YN = 'N'
           LEFT OUTER JOIN (SELECT V1.BASE_CNTR_NO
                                 , V1.BASE_CNTR_SN
                                 , NVL(TRIM(V1.MCHN_CLN_OJ_YN), 'Y') AS MCHN_CLN_OJ_YN
