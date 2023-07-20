@@ -1,9 +1,6 @@
 package com.kyowon.sms.wells.web.service.interfaces.service;
 
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_HCLSF_CD_INFO_CHANGE;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_LCLSF_CD_REINSTALL;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_LCLSF_CD_SEP;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.SV_BIZ_MCLSF_CD_IST;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,8 +82,12 @@ public class WsnbWorkOrderInterfaceService {
         WsnbWorkOrderDvo workOrderDvo = converter.convertInterfaceDvoToDvo(install);
 
         // W-SV-S-0001 [설치/AS/BS/홈케어 서비스 작업 오더] 호출
-        String asIstOjNo = installationOrderService.saveInstallationOrderByDvo(workOrderDvo);
-        return new CreateOrderRes(asIstOjNo);
+        List<String> asIstOjNos = installationOrderService.saveInstallationOrderByDvo(new ArrayList<>() {
+            {
+                add(workOrderDvo);
+            }
+        });
+        return new CreateOrderRes(asIstOjNos.get(0));
     }
 
     /**
