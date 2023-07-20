@@ -206,6 +206,14 @@
            AND ROWNUM    = 1
     </select>
 
+    <select id="selectPdRtngdAkSendTrsYn" resultType="java.lang.String">
+        SELECT TRS_YN
+          FROM TB_IFIN_PD_RTNGD_AK_SEND_ETXT
+         WHERE DTA_DL_YN      = 'N'
+           AND SAP_PLNT_CD    = #{sapPlntCd}     /* SAP플랜트코드 */
+           AND LGST_STR_AK_NO = #{lgstStrAkNo}   /* 물류입고요청번호 */
+    </select>
+
     <update id="updatePdRtngdAkSendEtxtForRemove">
         UPDATE TB_IFIN_PD_RTNGD_AK_SEND_ETXT   /* 상품반품요청송신전문 */
            SET DTA_DL_YN = #{dtaDlYn}   /* 데이터삭제여부 */

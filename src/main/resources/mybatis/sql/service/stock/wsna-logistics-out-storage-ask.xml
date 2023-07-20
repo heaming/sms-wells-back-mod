@@ -205,6 +205,14 @@
            AND ROWNUM    = 1
     </select>
 
+    <select id="selectOstrAkSendTrsYn" resultType="java.lang.String">
+        SELECT TRS_YN   /* 전송여부 */
+          FROM TB_IFIN_ITM_OSTR_AK_SEND_ETXT
+         WHERE DTA_DL_YN       = 'N'
+           AND SAP_PLNT_CD     = #{sapPlntCd}      /* SAP플랜트코드 */
+           AND LGST_OSTR_AK_NO = #{lgstOstrAkNo}   /* 물류출고요청번호 */
+    </select>
+
     <update id="updateItmOstrAkSendEtxtForRemove">
         UPDATE TB_IFIN_ITM_OSTR_AK_SEND_ETXT   /* 품목출고요청송신전문 */
            SET DTA_DL_YN = #{dtaDlYn}   /* 데이터삭제여부 */
