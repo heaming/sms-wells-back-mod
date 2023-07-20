@@ -185,8 +185,8 @@
         MERGE INTO TB_SVPD_CST_SVAS_IST_OJ_IZ S1
         USING (
                 SELECT #{newAsIstOjNo} AS AS_IST_OJ_NO
-                     , A.CNTR_NO AS CNTR_NO
-                     , A.CNTR_SN AS CNTR_SN
+                     , C0.CNTR_NO AS CNTR_NO
+                     , C0.CNTR_SN AS CNTR_SN
                      , C1.CNTR_CST_NO AS CNTR_CST_NO
                      , #{newInChnlDvCd} AS IN_CHNL_DV_CD
                      , #{newSvBizHclsfCd} AS SV_BIZ_HCLSF_CD
@@ -207,10 +207,10 @@
                      , #{cnslTpHclsfCd} AS CNSL_TP_HCLSF_CD /*상담유형 1(대)*/
                      , #{cnslTpMclsfCd} AS CNSL_TP_MCLSF_CD /*상담유형 2(중)*/
                      , #{cnslTpLclsfCd} AS CNSL_TP_LCLSF_CD/* 상담유형 3(소)*/
-                     , DECODE(A.IST_DT,NULL,NULL,'00000000',NULL
-                                      ,DECODE(SIGN(TO_DATE(TO_CHAR(SYSDATE,'YYYYMMDD')) - ADD_MONTHS(TO_DATE(A.IST_DT,'YYYYMMDD'),C9.FRISU_AS_PTRM_N)),1,'2','1')) AS AS_REFRI_DV_CD /*AS유무상구분코드*/
-                     , DECODE(A.IST_DT,NULL,NULL,'00000000',NULL
-                                      ,DECODE(SIGN(TO_DATE(TO_CHAR(SYSDATE,'YYYYMMDD')) - ADD_MONTHS(TO_DATE(A.IST_DT,'YYYYMMDD'),C9.FRISU_BFSVC_PTRM_N)),1,'2','1')) AS BFSVC_REFRI_DV_CD /*BS유무상구분코드*/
+                     , DECODE(C9.IST_DT,NULL,NULL,'00000000',NULL
+                                      ,DECODE(SIGN(TO_DATE(TO_CHAR(SYSDATE,'YYYYMMDD')) - ADD_MONTHS(TO_DATE(C9.IST_DT,'YYYYMMDD'),C9.FRISU_AS_PTRM_N)),1,'2','1')) AS AS_REFRI_DV_CD /*AS유무상구분코드*/
+                     , DECODE(C9.IST_DT,NULL,NULL,'00000000',NULL
+                                      ,DECODE(SIGN(TO_DATE(TO_CHAR(SYSDATE,'YYYYMMDD')) - ADD_MONTHS(TO_DATE(C9.IST_DT,'YYYYMMDD'),C9.FRISU_BFSVC_PTRM_N)),1,'2','1')) AS BFSVC_REFRI_DV_CD /*BS유무상구분코드*/
                      , #{cstCnrRefriDvCd} AS CST_CNR_REFRI_DV_CD /*고객센터유무상구분코드*/
                      , #{smsFwYn} AS SMS_FW_YN /*SMS발송여부*/
                      , #{dpDvCd} AS DP_DV_CD /*입금구분코드*/
@@ -221,7 +221,15 @@
                            AND PRTNR_NO = FN_SVPD_LOCARA_PRTNR_01(TRIM(T3.NEW_ADR_ZIP), PDCT_PD_CD, #{newSvBizDclsfCd}, NVL(#{vstRqdt}, TO_CHAR(SYSDATE, 'YYYYMMDD')))
                            AND OG_TP_CD = 'W06') AS SV_CNR_OG_ID /*서비스센터조직ID*/
                      , #{mtrStatCd} AS MTR_STAT_CD /*자료상태코드*/
-                     , A.PDCT_PD_CD AS PD_CD /*상품코드*/
+                     , (SELECT TEMP.OJ_PD_CD
+                          FROM TB_SSCT_CNTR_PD_REL TEMP
+                         WHERE TEMP.BASE_PD_CD = C0.BASE_PD_CD
+                           AND TEMP.PD_REL_TP_CD IN ('05', '18')
+                           AND TEMP.CNTR_NO = C0.CNTR_NO
+                           AND TEMP.CNTR_SN = C0.CNTR_SN
+                           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN TEMP.VL_STRT_DTM AND TEMP.VL_END_DTM
+                           AND ROWNUM = 1
+                          ) AS PD_CD /*상품코드*/
                      , C0.PD_GD_CD AS PD_GD_CD /*상품등급코드*/
                      , P1.SV_PD_TP_CD AS PD_USWY_CD /*상품용도코드*/
                      , '' AS CST_SV_ASN_NO /*고객서비스배정번호*/
@@ -230,11 +238,7 @@
                      , C4.RCGVP_KNM AS ISTLL_KNM /*설치고객명*/
                      , C4.ADR_ID AS ADR_ID
                      , 'N' AS DTA_DL_YN
-                  FROM TB_SVPD_CST_SV_EXCN_IZ A
-                 INNER JOIN TB_SSCT_CNTR_DTL C0 /*계약상세*/
-                    ON C0.CNTR_NO   = A.CNTR_NO
-                   AND C0.CNTR_SN   = A.CNTR_SN
-                   AND C0.DTA_DL_YN = 'N'
+                  FROM TB_SSCT_CNTR_DTL C0 /*계약상세*/
                  INNER JOIN TB_SSCT_CNTR_WELLS_DTL C9 /*계약WELLS상세*/
                     ON C9.CNTR_NO = C0.CNTR_NO
                    AND C9.CNTR_SN = C0.CNTR_SN
@@ -254,11 +258,15 @@
                  INNER JOIN TB_GBCO_ADR_BAS T3 /*주소기본*/
                     ON T3.ADR_ID = C4.ADR_ID
                    AND T3.DTA_DL_YN = 'N'
-            LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품각사속성상세*/
+                 LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ A
+            		ON A.CNTR_NO = C0.CNTR_NO
+            	   AND A.CNTR_SN = C0.CNTR_SN
+            	   AND A.DTA_DL_YN = 'N'
+                  LEFT OUTER JOIN TB_PDBS_PD_BAS P1 /*상품각사속성상세*/
                     ON P1.PD_CD = A.SV_PD_CD /*서비스상품코드*/
                  WHERE 1=1
-                   AND A.CNTR_NO = #{cntrNo}
-                   AND A.CNTR_SN = #{cntrSn}
+                   AND C0.CNTR_NO = #{cntrNo}
+                   AND C0.CNTR_SN = #{cntrSn}
                    AND ROWNUM = 1 /* 데이터 불안정해 중복건 발생할 수 있어 임시조치. */
             ) S2
         ON (S1.AS_IST_OJ_NO = S2.AS_IST_OJ_NO)
