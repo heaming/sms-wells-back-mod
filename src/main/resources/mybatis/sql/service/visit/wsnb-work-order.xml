@@ -221,15 +221,23 @@
                            AND PRTNR_NO = FN_SVPD_LOCARA_PRTNR_01(TRIM(T3.NEW_ADR_ZIP), PDCT_PD_CD, #{newSvBizDclsfCd}, NVL(#{vstRqdt}, TO_CHAR(SYSDATE, 'YYYYMMDD')))
                            AND OG_TP_CD = 'W06') AS SV_CNR_OG_ID /*서비스센터조직ID*/
                      , #{mtrStatCd} AS MTR_STAT_CD /*자료상태코드*/
-                     , (SELECT TEMP.OJ_PD_CD
-                          FROM TB_SSCT_CNTR_PD_REL TEMP
-                         WHERE TEMP.BASE_PD_CD = C0.BASE_PD_CD
-                           AND TEMP.PD_REL_TP_CD IN ('05', '18')
-                           AND TEMP.CNTR_NO = C0.CNTR_NO
-                           AND TEMP.CNTR_SN = C0.CNTR_SN
+                     ,  NVL((
+                        SELECT TEMP.OJ_PD_CD
+                          FROM TB_PDBS_PD_REL TEMP
+                         WHERE 1=1
+                           AND TEMP.BASE_PD_CD = C0.BASE_PD_CD
+                           AND TEMP.PD_REL_TP_CD = '18'
                            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN TEMP.VL_STRT_DTM AND TEMP.VL_END_DTM
                            AND ROWNUM = 1
-                          ) AS PD_CD /*상품코드*/
+                        ), (
+                        SELECT TEMP.OJ_PD_CD
+                          FROM TB_PDBS_PD_REL TEMP
+                         WHERE 1=1
+                           AND TEMP.BASE_PD_CD = C0.BASE_PD_CD
+                           AND TEMP.PD_REL_TP_CD = '05'
+                           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN TEMP.VL_STRT_DTM AND TEMP.VL_END_DTM
+                           AND ROWNUM = 1
+                        )) AS PD_CD /*상품코드*/
                      , C0.PD_GD_CD AS PD_GD_CD /*상품등급코드*/
                      , P1.SV_PD_TP_CD AS PD_USWY_CD /*상품용도코드*/
                      , '' AS CST_SV_ASN_NO /*고객서비스배정번호*/
