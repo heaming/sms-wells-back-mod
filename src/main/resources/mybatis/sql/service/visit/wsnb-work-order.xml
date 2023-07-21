@@ -493,10 +493,8 @@
          AND CST_SV_ASN_NO = #{asnCstSvAsnNo}
     </update>
 
-    <update id="deleteSeedingShipping">
-        UPDATE TB_SVPD_SDING_SPP_EXP_IZ
-           SET DTA_DL_YN = 'Y'
-              <include refid="COMMON.updateSystemField"/>
+    <delete id="deleteSeedingShipping">
+        DELETE FROM TB_SVPD_SDING_SPP_EXP_IZ
          WHERE 1=1
            AND (CNTR_NO, CNTR_SN, SV_BIZ_HCLSF_CD, SV_BIZ_DCLSF_CD, SPP_ORD_NO, SPP_PLAN_SN) IN (SELECT CNTR_NO, CNTR_SN, SV_BIZ_HCLSF_CD, SV_BIZ_DCLSF_CD, SPP_ORD_NO, SPP_PLAN_SN
                                                                                                    FROM TB_SVPD_SDING_SPP_PLAN_IZ
@@ -509,7 +507,19 @@
                                                                                                     AND WK_DT IS NULL
                                                                                                     AND CAN_DT IS NULL
                                                                                                 )
-    </update>
+    </delete>
+    <delete id="deleteSeedingPlan">
+        DELETE FROM TB_SVPD_SDING_SPP_PLAN_IZ
+         WHERE 1=1
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND SV_BIZ_HCLSF_CD = #{newSvBizHclsfCd}
+           AND SPP_ORD_NO = #{newSvBizHclsfCd} || #{newRcpdt} || #{newReq}
+           AND SV_BIZ_DCLSF_CD = #{newSvBizDclsfCd}
+           AND OSTR_CNFMDT IS NULL
+           AND WK_DT IS NULL
+           AND CAN_DT IS NULL
+    </delete>
 
     <insert id="insertAsInstallationAssign">
         INSERT INTO TB_SVPD_CST_SVAS_IST_ASN_IZ(
@@ -827,5 +837,108 @@
               <include refid="COMMON.updateSystemField"/>
          WHERE AS_IST_OJ_NO = #{newAsIstOjNo}
     </update>
+    <insert id="insertSeedingExp">
+        INSERT INTO TB_SVPD_SDING_SPP_EXP_IZ
+        SELECT CNTR_NO
+             , CNTR_SN
+             , SV_BIZ_HCLSF_CD
+             , SV_BIZ_DCLSF_CD
+             , SPP_ORD_NO
+             , SPP_PLAN_SN
+             , ROW_NUMBER() OVER(ORDER BY SOW_DT, SDING_PD_CD ASC) AS SDING_SN /* 파종예정일, SDING_PD_CD 순으로 순번부여 */
+             , SDING_PD_CD AS SDING_PKG_PD_CD /* 모종상품코드 */
+             , SDING_QTY
+             , RECAP_CS_AMT
+             , SOW_DT
+             , 'N' AS DTA_DL_YN
+            <include refid="COMMON.insertSystemFieldValue"/>
+          FROM (/* 모종 + (WIDE + SLIM)  */
+                SELECT D.CNTR_NO AS CNTR_NO
+                     , D.CNTR_SN AS CNTR_SN
+                     , D.SV_BIZ_HCLSF_CD AS SV_BIZ_HCLSF_CD
+                     , D.SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
+                     , D.SPP_ORD_NO AS SPP_ORD_NO
+                     , D.SPP_PLAN_SN AS SPP_PLAN_SN
+                     , '' AS SDING_SN
+                     , TEMP.OJ_PD_CD  AS SDING_PD_CD  /* 모종상품코드 */
+                     , TEMP.PD_QTY AS SDING_QTY /*모종수량*/
+                     , 0 AS RECAP_CS_AMT /*추후 확인 필요*/
+                     , TO_CHAR(TO_DATE(D.VST_DUEDT) - nvl(P.PD_PRP_VAL06,0)) AS SOW_DT  /* 파종예정일 = 방문예정일 - 리드타임 */
+                  FROM TB_SVPD_SDING_SPP_PLAN_IZ D /*모종배송계획내역*/
+                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P /*상품각사속성상세*/
+                    ON  P.PD_CD = D.SDING_PKG_PD_CD
+                   AND P.PD_EXTS_PRP_GRP_CD = 'PART'
+                   AND P.DTA_DL_YN = 'N'
+                 INNER JOIN TB_SSCT_CNTR_DTL C /*계약상세*/
+                    ON C.CNTR_NO = D.CNTR_NO
+                   AND C.CNTR_SN = D.CNTR_SN
+                 INNER JOIN TB_SSCT_CNTR_PD_REL TEMP
+                   ON TEMP.BASE_PD_CD = C.BASE_PD_CD
+                  AND TEMP.PD_REL_TP_CD = '05'
+                  AND TEMP.CNTR_NO = C.CNTR_NO
+                  AND TEMP.CNTR_SN = C.CNTR_SN
+                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN TEMP.VL_STRT_DTM AND TEMP.VL_END_DTM
+                 WHERE 1=1
+                   AND D.CNTR_NO = #{cntrNo}
+                   AND D.CNTR_SN = #{cntrSn}
+                UNION ALL
+                /* 배양액 */
+                SELECT D.CNTR_NO AS CNTR_NO
+                     , D.CNTR_SN AS CNTR_SN
+                     , D.SV_BIZ_HCLSF_CD AS SV_BIZ_HCLSF_CD
+                     , D.SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
+                     , D.SPP_ORD_NO AS SPP_ORD_NO
+                     , D.SPP_PLAN_SN AS SPP_PLAN_SN
+                     , '' AS SDING_SN
+                     , B.PD_CD AS SDING_PD_CD /*모종상품코드*/
+                     , TO_NUMBER(P.PD_PRP_VAL12) AS SDING_QTY /*제품선택 총갯수*/
+                     , 0 AS RECAP_CS_AMT
+                     , '' AS SOW_DT  /* 파종예정일 */
+                  FROM TB_SVPD_SDING_SPP_PLAN_IZ D /*모종배송계획내역 - 모종패키지*/
+                 INNER JOIN TB_PDBS_PD_BAS B /*상품기본*/
+                    ON B.PD_CD IN ('WM07105708', 'WM07105709', 'WM07105751', 'WM07105752', 'WM07105773', 'WM07105774') /* 모종배양액*/
+                 INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P /*상품각사속성상세*/
+                    ON  P.PD_CD = B.PD_CD
+                WHERE 1=1
+                  AND D.CNTR_NO = #{cntrNo}
+                  AND D.CNTR_SN = #{cntrSn}
+                  AND ((P.PD_PRP_VAL15 = '1' AND B.PD_CD IN ('WM07105708', 'WM07105709', 'WM07105751', 'WM07105752')) /* 기기유형 : 1 wide, 2 slim */
+                    OR (P.PD_PRP_VAL15 = '2' AND B.PD_CD IN ('WM07105773', 'WM07105774'))
+                      )
+                 UNION ALL
+                /* 모종스트로폼 */
+                SELECT DISTINCT D.CNTR_NO AS CNTR_NO
+                     , D.CNTR_SN AS CNTR_SN
+                     , D.SV_BIZ_HCLSF_CD AS SV_BIZ_HCLSF_CD
+                     , D.SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
+                     , D.SPP_ORD_NO AS SPP_ORD_NO
+                     , D.SPP_PLAN_SN AS SPP_PLAN_SN
+                     , '' AS SDING_SN
+                     , B.PD_CD AS SDING_PD_CD /*모종상품코드*/
+                     , TO_NUMBER(P.PD_PRP_VAL12) AS SDING_QTY /*제품선택 총갯수*/
+                     , 0 AS RECAP_CS_AMT
+                     , '' AS SOW_DT  /* 파종예정일 */
+                  FROM TB_SVPD_SDING_SPP_PLAN_IZ D /*모종배송계획내역 - 모종패키지*/
+                 INNER JOIN TB_SSCT_CNTR_DTL C0
+                   ON D.CNTR_NO = C0.CNTR_NO
+                  AND D.CNTR_SN = C0.CNTR_SN
+                 INNER JOIN TB_SSCT_CNTR_PD_REL TEMP
+                   ON TEMP.BASE_PD_CD = C0.BASE_PD_CD
+                  AND TEMP.PD_REL_TP_CD = '05'
+                  AND TEMP.CNTR_NO = C0.CNTR_NO
+                  AND TEMP.CNTR_SN = C0.CNTR_SN
+                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN TEMP.VL_STRT_DTM AND TEMP.VL_END_DTM
+                INNER JOIN TB_PDBS_PD_BAS B /*상품기본*/
+                   ON B.PD_CD = 'WM07105712' /* 모종스티로폼*/
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P /*상품각사속성상세*/
+                   ON B.PD_CD = P.PD_CD
+                INNER JOIN TB_PDBS_PD_BAS B1 /*상품기본-판매상품명*/
+                   ON B1.PD_CD = TEMP.OJ_PD_CD
+                  AND B1.PD_NM NOT LIKE '새싹%'/*새싹씨앗패키지가 아니고*/
+                WHERE 1=1
+                  AND D.CNTR_NO = #{cntrNo}
+                  AND D.CNTR_SN = #{cntrSn}
+               )
 
+    </insert>
 </mapper>
