@@ -101,8 +101,8 @@ public class WsnbInstallationOrderService {
                 .getContractRelation(cntrNo, cntrSn, CNTR_REL_DTL_CD_SDING_COMBI);
 
             for (WsnbContractRelationDvo sdingContractRelation : sdingContractRelations) {
-                String sdingCntrNo = sdingContractRelation.getOjDtlCntrNo();
-                String sdingCntrSn = sdingContractRelation.getOjDtlCntrSn();
+                String sdingCntrNo = sdingContractRelation.getBaseDtlCntrNo();
+                String sdingCntrSn = sdingContractRelation.getBaseDtlCntrSn();
 
                 workOrder.setCntrNo(sdingCntrNo);
                 workOrder.setCntrSn(sdingCntrSn);

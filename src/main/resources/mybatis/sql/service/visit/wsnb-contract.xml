@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbContractMapper">
+
     <select id="selectContract" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbContractDvo">
         SELECT C2.CNTR_NO
              , C2.CNTR_SN
@@ -26,7 +27,7 @@
          INNER JOIN TB_SSCT_CNTR_ADR_REL C3
             ON C2.CNTR_NO = C3.DTL_CNTR_NO
            AND C2.CNTR_SN = C3.DTL_CNTR_SN
-           AND C3.ADRPC_TP_CD IN ('2','3') /* TODO: 확인 필요 */
+           AND C3.ADRPC_TP_CD IN ('2','3')
            AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN C3.VL_STRT_DTM AND C3.VL_END_DTM
          INNER JOIN TB_SSCT_CNTR_ADRPC_BAS C4
             ON C4.CNTR_ADRPC_ID = C3.CNTR_ADRPC_ID
@@ -81,12 +82,12 @@
            /* CNTR_REL_DTL_CD => 215: 1+1연계, 216 :모종결합, 221: 홈케어멤버십 */
            AND C1.CNTR_REL_DTL_CD = #{cntrRelDtlCd}
 
-        <if test="cntrRelDtlCd == '215'">
+        <if test="cntrRelDtlCd == '215' or cntrRelDtlCd == '216'">
            AND C1.OJ_DTL_CNTR_NO = #{cntrNo}
            AND C1.OJ_DTL_CNTR_SN = ${cntrSn}
         </if>
 
-        <if test="cntrRelDtlCd == '216' or cntrRelDtlCd == '221'">
+        <if test="cntrRelDtlCd == '221'">
            AND C1.BASE_DTL_CNTR_NO = #{cntrNo}
            AND C1.BASE_DTL_CNTR_SN = ${cntrSn}
         </if>
