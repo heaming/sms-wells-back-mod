@@ -1,13 +1,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbInstallationOrderMapper">
 
-
     <select id="selectWorkProgStat" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkProgStatDvo">
         SELECT SUM(CASE WHEN S1.WK_ACPTE_STAT_CD = 'Y' AND S1.WK_PRGS_STAT_CD IN ('00', '10') THEN 1 ELSE 0 END) AS ACPTE_CT /* 수락된오더 건수 */
              , SUM(CASE WHEN S1.VST_CNFMDT = TO_CHAR(SYSDATE, 'YYYYMMDD') AND S1.WK_PRGS_STAT_CD IN ('00', '10') THEN 1 ELSE 0 END) AS VST_CNFM_CT /* 당일방문예정오더 건수 */
              , SUM(CASE WHEN S1.SV_BIZ_DCLSF_CD != '3130' AND S1.WK_PRGS_STAT_CD IN ('20') THEN 1 ELSE 0 END) AS FSH_CT /* 완료건수(설치환경점검은 제외) */
-          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S1
-         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ S2
+          FROM TB_SVPD_CST_SVAS_IST_ASN_IZ S1 /* 고객서비스AS설치배정내역 */
+         INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ S2 /* 고객서비스AS설치대상내역 */
             ON S1.CST_SV_ASN_NO = S2.CST_SV_ASN_NO
          WHERE 1 = 1
            AND S1.CNTR_NO = #{cntrNo}
@@ -16,7 +15,7 @@
 
     <select id="selectSdingAsIstOjNos" resultType="java.lang.String">
         SELECT S1.AS_IST_OJ_NO
-          FROM TB_SVPD_CST_SVAS_IST_OJ_IZ S1
+          FROM TB_SVPD_CST_SVAS_IST_OJ_IZ S1 /* 고객서비스AS설치대상내역 */
          WHERE 1 = 1
            AND S1.CNTR_NO = #{cntrNo}
            AND S1.CNTR_SN = ${cntrSn}
@@ -28,7 +27,7 @@
              , IN_CHNL_DV_CD   /* 입력채널구분코드 */
              , CNTR_NO         /* 계약번호 */
              , CNTR_SN         /* 계약일련번호 */
-             , HIST_CH_DTM
+             , HIST_CH_DTM     /* 이력변경일시 */
              , DTA_DL_YN       /* 데이터삭제여부 */
              <include refid="COMMON.insertSystemField" />)
         VALUES (
@@ -69,18 +68,14 @@
     </delete>
 
     <delete id="deleteSdingSppPlan">
-        UPDATE TB_SVPD_SDING_SPP_PLAN_IZ /* 모종배송계획내역 */
-           SET DTA_DL_YN = 'Y'
-               <include refid="COMMON.updateSystemField"/>
+        DELETE FROM TB_SVPD_SDING_SPP_PLAN_IZ /* 모종배송계획내역 */
          WHERE 1 = 1
            AND CNTR_NO = #{cntrNo} /* 계약번호 */
            AND CNTR_SN = ${cntrSn} /* 계약일련번호 */
     </delete>
 
     <delete id="deleteSdingSppExpIz">
-        UPDATE TB_SVPD_SDING_SPP_EXP_IZ /* 모종배송예정내역 */
-           SET DTA_DL_YN = 'Y'
-               <include refid="COMMON.updateSystemField"/>
+        DELETE FROM TB_SVPD_SDING_SPP_EXP_IZ /* 모종배송예정내역 */
          WHERE 1 = 1
            AND CNTR_NO = #{cntrNo} /* 계약번호 */
            AND CNTR_SN = ${cntrSn} /* 계약일련번호 */
