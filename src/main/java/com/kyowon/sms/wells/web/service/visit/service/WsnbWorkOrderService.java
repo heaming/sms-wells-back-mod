@@ -1,16 +1,12 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_KMEMBERS;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_SALES;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.IN_CHNL_DV_CD_WEB;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.MTR_STAT_CD_DEL;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.MTR_STAT_CD_MOD;
-import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.MTR_STAT_CD_NEW;
+import static com.kyowon.sms.wells.web.service.zcommon.constants.SnServiceConst.*;
 
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sms.wells.web.service.common.mapper.WsnzHistoryMapper;
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbWorkOrderConverter;
@@ -71,6 +67,7 @@ public class WsnbWorkOrderService {
         return this.saveWorkOrders(dvo);
     }
 
+    @Transactional
     public String saveWorkOrders(WsnbWorkOrderDvo dvo) throws Exception {
 
         if (StringUtils.isNotEmpty(dvo.getAsIstOjNo()) && "00000000".equals(dvo.getAsIstOjNo().substring(10))) {
@@ -248,7 +245,8 @@ public class WsnbWorkOrderService {
             if (isWellsFarmSeeding) {
                 /*확정되지 않은 배송오더의 예정 모종 삭제*/
                 mapper.deleteSeedingShipping(dvo);
-                /* TODO: 확정되지않은 배송오더삭제 */
+                /* 확정되지않은 배송오더삭제 */
+                mapper.deleteSeedingPlan(dvo);
             }
         }
 
@@ -303,6 +301,7 @@ public class WsnbWorkOrderService {
     }
 
     private void saveAsPuItem(WsnbWorkOrderDvo dvo) {
+
         /*TB_SVPD_CST_SVAS_PU_ITM_IZ 이전 정보를 삭제 */
         mapper.deleteAsPutItem(dvo);
 
@@ -326,6 +325,7 @@ public class WsnbWorkOrderService {
         for (WsnbWorkOrderDvo putItem : putItems) {
             mapper.insertAsPutItem(putItem); /* TB_SVPD_CST_SVAS_PU_ITM_IZ */
         }
+
     }
 
     private void createSeedingPlan(WsnbWorkOrderDvo dvo) {
@@ -357,8 +357,8 @@ public class WsnbWorkOrderService {
         mapper.insertSeedingPlan(dvo);
 
         if (dvo.getExpMat() == 0) { /*인터페이스 된 출고 예정 자재 건수가 0 이라면 */
-            /* 모종정보 인서트(TODO : DB2 테이블확인필요) */
-
+            /* 모종정보 인서트 */
+            mapper.insertSeedingExp(dvo);
         } else { /*구매/AS 고객이라면*/
             /* 모종정보 인서트 */
             mapper.insertSeedingExpByAs(dvo);

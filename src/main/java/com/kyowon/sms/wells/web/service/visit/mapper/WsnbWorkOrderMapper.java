@@ -50,6 +50,8 @@ public interface WsnbWorkOrderMapper {
     /**/
     int deleteSeedingShipping(WsnbWorkOrderDvo dvo);
 
+    int deleteSeedingPlan(WsnbWorkOrderDvo dvo);
+
     int insertAsInstallationAssign(WsnbWorkOrderDvo dvo);
 
     Optional<String> selectVstDtChk(String vstRqDt);
@@ -67,4 +69,6 @@ public interface WsnbWorkOrderMapper {
     int updateInstallationObjectKey(WsnbWorkOrderDvo dvo);
 
     WsnbWorkOrderDvo selectCustomerServiceNewAssignNo(WsnbWorkOrderDvo dvo);
+
+    int insertSeedingExp(WsnbWorkOrderDvo dvo);
 }
