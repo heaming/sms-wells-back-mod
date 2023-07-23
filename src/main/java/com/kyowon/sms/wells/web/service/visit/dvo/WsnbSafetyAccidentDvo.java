@@ -19,11 +19,14 @@ public class WsnbSafetyAccidentDvo {
     String agrDocRcvYn;
     String pdCd;
     String pdNm;
+    String istZip;
+    String adrId;
+    String adrDvCd;
     String istAdr;
     String istDtlAdr;
     String istReferAdr;
     String cpsPrgsCd;
-    String fstRgstUsrId;
+    String cpsPrgsNm;
     String fshDt;
     String vstDt;
     String locaraTno;
@@ -36,7 +39,6 @@ public class WsnbSafetyAccidentDvo {
     @DBEncField
     String mexnoEncr;
     String cralIdvTno;
-    String slDt;
     String fstRgstDtm;
     String rcpMoCn;
     String acdnCausCn;
@@ -45,13 +47,14 @@ public class WsnbSafetyAccidentDvo {
     String fnlMdfcDtm;
     String rptrNm;
     String svCnrOgId;
-    String brchNm;
     String imptaRsonCd;
+    String krnTotCpsAmtMrkNm;
     int totCpsAmt;
     int kwCpsAmt;
     int insrcoCpsAmt;
     String rcpdt;
     String svCnrNm;
+    String cnrldNo;
     String cnrldNm;
     String istLctDtlCn;
     String imptaRsonNm;
@@ -80,4 +83,8 @@ public class WsnbSafetyAccidentDvo {
     String rfndBnkNm;
     String fmlRelDvNm2;
     String wrteDt;
+    String istDt;
+    String acdnPhoApnDocId;
+    String acdnPictrApnDocId;
+    String causAnaApnDocId;
 }

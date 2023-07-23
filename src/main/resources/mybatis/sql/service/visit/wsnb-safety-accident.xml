@@ -2,157 +2,198 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.visit.mapper.WsnbSafetyAccidentMapper">
 
     <select id="selectSafetyAccidents" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbSafetyAccidentDvo">
-        SELECT CNTR_NO --계약상세번호
-             , CNTR_SN
-             , CST_NM --고객명
-             , RCPDT --접수일
-             , ACDN_RCP_ID
-             , ACDN_RCP_NM --제목
-             , ACDN_DTM --사고일시
-             , AGR_DOC_RCV_YN --합의서수신여부
-             , PD_NM --제품명
-             , IST_ADR --설치주소
-             , IST_DTL_ADR --설치상세주소
-             , IST_REFER_ADR --설치참고주소
-             , CPS_PRGS_CD
-             , F_CMZ_CD_NM(#{session.tenantId}, 'CPS_PRGS_CD', CPS_PRGS_CD, #{session.langId}) AS CPS_PRGS_NM
-             , FST_RGST_USR_ID --등록자
-             , FSH_DT --완료여부
-             , VST_DT --방문일자
-             , LOCARA_TNO --전화번호
-             , EXNO_ENCR
-             , IDV_TNO
-             , CRAL_LOCARA_TNO --휴대전화번호
-             , MEXNO_ENCR
-             , CRAL_IDV_TNO
-             , SL_DT --매출일
-             , FST_RGST_DTM --등록일시
-             , RCP_MO_CN --접수내용
-             , ACDN_CAUS_CN --사고원인
-             , CST_DMD_CN --고객요구
-             , ACDN_RS_CN --결과
-             , FNL_MDFC_DTM --수정일자
-             , RPTR_NM --보고자
-             , SV_CNR_NM --센터명
-             , BRCH_NM --지점명
-             , IMPTA_RSON_CD
-             , F_CMZ_CD_NM(#{session.tenantId}, 'IMPTA_RSON_CD', IMPTA_RSON_CD, #{session.langId}) AS IMPTA_RSON_NM
-             , TOT_CPS_AMT --총보상액
-             , KW_CPS_AMT --교원부담
-             , INSRCO_CPS_AMT --보험사부담
-          FROM TB_SVPD_ACDN_DOAN_IZ
+        SELECT T1.CNTR_NO --계약상세번호
+             , T1.CNTR_SN
+             , T1.CST_NM --고객명
+             , T1.RCPDT --접수일
+             , T1.ACDN_RCP_ID
+             , T1.ACDN_RCP_NM --제목
+             , T1.ACDN_DTM --사고일시
+             , T1.AGR_DOC_RCV_YN --합의서수신여부
+             , T1.PD_NM --제품명
+             , T1.IST_ADR --설치주소
+             , T1.IST_DTL_ADR --설치상세주소
+             , T1.IST_REFER_ADR --설치참고주소
+             , T1.CPS_PRGS_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'CPS_PRGS_CD', T1.CPS_PRGS_CD, #{session.langId}) AS CPS_PRGS_NM
+             , O1.HOO_PRTNR_NO AS CNRLD_NO --등록자사번(센터장사번)
+             , T1.CNRLD_NM -- 등록자명(센터장명)
+             , T1.FSH_DT --완료여부
+             , T1.VST_DT --방문일자
+             , T1.LOCARA_TNO --전화번호
+             , T1.EXNO_ENCR
+             , T1.IDV_TNO
+             , T1.CRAL_LOCARA_TNO --휴대전화번호
+             , T1.MEXNO_ENCR
+             , T1.CRAL_IDV_TNO
+             , T1.IST_DT --설치일
+             , T1.FST_RGST_DTM --등록일시
+             , T1.RCP_MO_CN --접수내용
+             , T1.ACDN_CAUS_CN --사고원인
+             , T1.CST_DMD_CN --고객요구
+             , T1.ACDN_RS_CN --결과
+             , T1.FNL_MDFC_DTM --수정일자
+             , T1.SV_CNR_NM --센터명
+             , T1.IMPTA_RSON_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'IMPTA_RSON_CD', T1.IMPTA_RSON_CD, #{session.langId}) AS IMPTA_RSON_NM
+             , T1.TOT_CPS_AMT --총보상액
+             , T1.KW_CPS_AMT --교원부담
+             , T1.INSRCO_CPS_AMT --보험사부담
+          FROM TB_SVPD_ACDN_DOAN_IZ T1
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ O1
+            ON O1.BASE_YM = SUBSTR(T1.RCPDT,1,6)
+           AND O1.OG_ID = T1.SV_CNR_OG_ID
+           AND O1.OG_LEVL_DV_CD = '1'
+           AND O1.DTA_DL_YN = 'N'
          WHERE 1=1
-           AND DTA_DL_YN = 'N'
-           AND VST_DT BETWEEN #{vstDtFrom} AND #{vstDtTo}
+           AND T1.DTA_DL_YN = 'N'
+        <if test='@MybatisUtils@equals(device, "M")'>
+           AND T1.VST_DT BETWEEN #{vstDtFrom} AND #{vstDtTo}
+        </if>
         <if test='@MybatisUtils@isNotEmpty(svCnrOgId)'>
-           AND SV_CNR_OG_ID = #{svCnrOgId}
+           AND T1.SV_CNR_OG_ID = #{svCnrOgId}
         </if>
         <if test='@MybatisUtils@isNotEmpty(cstNm)'>
-           AND CST_NM LIKE '%' || #{cstNm} || '%'
+           AND T1.CST_NM LIKE '%' || #{cstNm} || '%'
         </if>
         <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
-           AND CNTR_NO = #{cntrNo}
-           AND CNTR_SN = #{cntrsSn}
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrsSn}
         </if>
         <if test='@MybatisUtils@isNotEmpty(pdNm)'>
-           AND PD_NM LIKE '%' || #{pdNm} || '%'
+           AND T1.PD_NM LIKE '%' || #{pdNm} || '%'
         </if>
         <if test='@MybatisUtils@equals(device, "W")'>
             <if test='@MybatisUtils@isNotEmpty(acdnRcpNm)'>
-              AND ACDN_RCP_NM LIKE '%' || #{acdnRcpNm} || '%'
+              AND T1.ACDN_RCP_NM LIKE '%' || #{acdnRcpNm} || '%'
             </if>
             <if test='@MybatisUtils@isNotEmpty(cpsPrgsCd)'>
-              AND CPS_PRGS_CD = #{cpsPrgsCd}
+              AND T1.CPS_PRGS_CD = #{cpsPrgsCd}
             </if>
             <if test='@MybatisUtils@isNotEmpty(imptaRsonCd)'>
-              AND IMPTA_RSON_CD = #{imptaRsonCd}
+              AND T1.IMPTA_RSON_CD = #{imptaRsonCd}
             </if>
             <if test='@MybatisUtils@isNotEmpty(totCpsAmt)'>
-              AND TOT_CPS_AMT = ${totCpsAmt}
+              AND T1.TOT_CPS_AMT = ${totCpsAmt}
             </if>
-            <if test='@MybatisUtils@isNotEmpty(rgstDtmFrom) and @MybatisUtils@isNotEmpty(rgstDtmTo)'>
-              AND FST_RGST_DTM BETWEEN #{rgstDtmFrom} AND #{rgstDtmTo}
+            <if test='@MybatisUtils@equals(searchOption, "1")'>
+                <if test='@MybatisUtils@isNotEmpty(searchDtFrom)'>
+                    AND T1.FST_RGST_DTM <![CDATA[ >= ]]> #{searchDtFrom}
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(searchDtTo)'>
+                    AND T1.FST_RGST_DTM <![CDATA[ <= ]]> #{searchDtTo}
+                </if>
             </if>
-            <if test='@MybatisUtils@equals(fshDtYn, "N") and @MybatisUtils@isNotEmpty(fshDtFrom) and @MybatisUtils@isNotEmpty(fshDtTo)'>
-              AND FSH_DT BETWEEN #{fshDtFrom} AND #{fshDtTo}
+            <if test='@MybatisUtils@equals(searchOption, "2")'>
+                <if test='@MybatisUtils@isNotEmpty(searchDtFrom)'>
+                    AND T1.FSH_DT <![CDATA[ >= ]]> #{searchDtFrom}
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(searchDtTo)'>
+                    AND T1.FSH_DT <![CDATA[ <= ]]> #{searchDtTo}
+                </if>
             </if>
         </if>
     </select>
 
     <select id="selectSafetyAccident" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbSafetyAccidentDvo">
-        SELECT CNTR_NO /*계약정보*/
-             , CNTR_SN
-             , CST_NM
-             , PD_CD
-             , PD_NM
-             , ACDN_RCP_ID
-             , ACDN_RCP_NM
-             , IST_ADR
-             , IST_DTL_ADR
-             , IST_REFER_ADR
-             , LOCARA_TNO --전화번호
-             , EXNO_ENCR
-             , IDV_TNO
-             , CRAL_LOCARA_TNO --휴대전화번호
-             , MEXNO_ENCR
-             , CRAL_IDV_TNO
-             , SL_DT --매출일
-             , RCPDT --접수일
-             , VST_DT --방문일
-             , ACDN_DTM -- 사고일시
-             , SV_CNR_NM --센터명
-             , BRCH_NM --지점명
-             , CNRLD_NM --센터장명
-             , IST_LCT_DTL_CN --위치
-             , F_CMZ_CD_NM(#{session.tenantId}, 'IMPTA_RSON_CD', IMPTA_RSON_CD, #{session.langId}) AS IMPTA_RSON_NM  --귀책사유
-             , RCP_MO_CN --접수내용
-             , ACDN_CAUS_CN --사고원인 /* 사고정보 */
-             , CST_DMD_CN --고객요구
-             , CPS_DV_CD
-             , FSH_DT
-             , F_CMZ_CD_NM(#{session.tenantId}, 'CPS_PRGS_CD', CPS_PRGS_CD, #{session.langId}) AS CPS_PRGS_NM
-             , AGR_DOC_FW_YN
-             , NVL(TOT_CPS_AMT,0) AS TOT_CPS_AMT
-             , NVL(KW_CPS_AMT,0) AS KW_CPS_AMT
-             , NVL(INSRCO_CPS_AMT,0) AS INSRCO_CPS_AMT
-             , PSIC_NM --보상담당자
-             , VST_IZ
-             , DAMG_IZ
-             , EST_IZ
-             , AGR_IZ
-             , NVL(TOT_RDU_AMT,0) AS TOT_RDU_AMT
-             , CST_SIGN_CN AS SIGN_CN
-             , MAAS_BRYY_MMDD AS MAAS_BIRTH_DATE
-             , MAAS_FNM
-             , F_CMZ_CD_NM(#{session.tenantId}, 'CST_REL_CD', FML_REL_DV_CD1, #{session.langId}) AS FML_REL_DV_NM1
-             , RFND_ACNO_ENCR
-             , RFND_ACOWN_NM
-             , F_CMZ_CD_NM(#{session.tenantId}, 'BNK_CD', RFND_BNK_CD, #{session.langId}) AS RFND_BNK_NM
-             , F_CMZ_CD_NM(#{session.tenantId}, 'CST_REL_CD', FML_REL_DV_CD2, #{session.langId}) AS FML_REL_DV_NM2
-             , NVL(WRTE_DT,TO_CHAR(SYSDATE, 'YYYYMMDD')) AS WRTE_DT
-        FROM TB_SVPD_ACDN_DOAN_IZ
+        SELECT T1.CNTR_NO /*계약정보*/
+             , T1.CNTR_SN
+             , T1.CST_NM
+             , T1.PD_CD
+             , T1.PD_NM
+             , T1.ACDN_RCP_ID
+             , T1.ACDN_RCP_NM
+             , T1.IST_ZIP
+             , T1.IST_ADR
+             , T1.IST_DTL_ADR
+             , T1.IST_REFER_ADR
+             , T1.LOCARA_TNO --전화번호
+             , T1.EXNO_ENCR
+             , T1.IDV_TNO
+             , T1.CRAL_LOCARA_TNO --휴대전화번호
+             , T1.MEXNO_ENCR
+             , T1.CRAL_IDV_TNO
+             , T1.IST_DT --매출일
+             , T1.RCPDT --접수일
+             , T1.VST_DT --방문일
+             , T1.ACDN_DTM -- 사고일시
+             , T1.SV_CNR_OG_ID --센터id
+             , T1.SV_CNR_NM --센터명
+             , O1.HOO_PRTNR_NO AS CNRLD_NO --등록자사번(센터장사번)
+             , T1.CNRLD_NM --센터장명
+             , T1.IST_LCT_DTL_CN --위치
+             , T1.IMPTA_RSON_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'IMPTA_RSON_CD', T1.IMPTA_RSON_CD, #{session.langId}) AS IMPTA_RSON_NM  --귀책사유
+             , T1.AGR_DOC_FW_YN
+             , T1.AGR_DOC_RCV_YN
+             , T1.RCP_MO_CN --접수내용
+             , T1.ACDN_CAUS_CN --사고원인 /* 사고정보 */
+             , T1.CST_DMD_CN --고객요구
+             , T1.ACDN_RS_CN --결과
+             , T1.CPS_DV_CD
+             , T1.FSH_DT
+             , T1.CPS_PRGS_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'CPS_PRGS_CD', T1.CPS_PRGS_CD, #{session.langId}) AS CPS_PRGS_NM
+             , NVL(T1.TOT_CPS_AMT,0) AS TOT_CPS_AMT
+             , T1.KRN_TOT_CPS_AMT_MRK_NM
+             , NVL(T1.KW_CPS_AMT,0) AS KW_CPS_AMT
+             , NVL(T1.INSRCO_CPS_AMT,0) AS INSRCO_CPS_AMT
+             , T1.PSIC_NM --보상담당자
+             , T1.VST_IZ
+             , T1.DAMG_IZ
+             , T1.EST_IZ
+             , T1.AGR_IZ
+             , NVL(T1.TOT_RDU_AMT,0) AS TOT_RDU_AMT
+             , T1.CST_SIGN_CN AS SIGN_CN
+             , T1.MAAS_BRYY_MMDD AS MAAS_BIRTH_DATE
+             , T1.MAAS_FNM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'CST_REL_CD', T1.FML_REL_DV_CD1, #{session.langId}) AS FML_REL_DV_NM1
+             , T1.RFND_ACNO_ENCR
+             , T1.RFND_ACOWN_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'BNK_CD', T1.RFND_BNK_CD, #{session.langId}) AS RFND_BNK_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'CST_REL_CD', T1.FML_REL_DV_CD2, #{session.langId}) AS FML_REL_DV_NM2
+             , NVL(T1.WRTE_DT,TO_CHAR(SYSDATE, 'YYYYMMDD')) AS WRTE_DT
+             , T1.ACDN_PHO_APN_DOC_ID
+             , T1.ACDN_PICTR_APN_DOC_ID
+             , T1.CAUS_ANA_APN_DOC_ID
+        FROM TB_SVPD_ACDN_DOAN_IZ T1
+        LEFT OUTER JOIN TB_OGBS_MM_OG_IZ O1
+          ON O1.BASE_YM = SUBSTR(T1.RCPDT,1,6)
+         AND O1.OG_ID = T1.SV_CNR_OG_ID
+         AND O1.OG_LEVL_DV_CD = '1'
+         AND O1.DTA_DL_YN = 'N'
        WHERE 1=1
-         AND ACDN_RCP_ID = #{acdnRcpId}
-         AND DTA_DL_YN = 'N'
+         AND T1.ACDN_RCP_ID = #{acdnRcpId}
+         AND T1.DTA_DL_YN = 'N'
     </select>
 
-    <update id="updateSafetyAccident">
+    <update id="updateSafetyAccidentResult">
         UPDATE TB_SVPD_ACDN_DOAN_IZ
            SET FSH_DT                  = #{fshDt}
              , CPS_PRGS_CD             = #{cpsPrgsCd}
              , INSRCO_CPS_AMT          = ${insrcoCpsAmt}
              , AGR_DOC_FW_YN           = #{agrDocFwYn}
              , TOT_CPS_AMT             = ${totCpsAmt}
+             , KRN_TOT_CPS_AMT_MRK_NM  = #{krnTotCpsAmtMrkNm}
              , KW_CPS_AMT              = ${kwCpsAmt}
-             , PSIC_NM                 = #{psicNm}
-             , VST_IZ                  = #{vstIz}
-             , DAMG_IZ                 = #{damgIz}
-             , EST_IZ                  = #{estIz}
-             , AGR_IZ                  = #{agrIz}
-             , TOT_RDU_AMT             = ${totRduAmt}
+             , ACDN_RS_CN              = #{acdnRsCn}
              , CPS_DV_CD               = ${cpsDvCd}
              <include refid="COMMON.updateSystemField"/>
          WHERE ACDN_RCP_ID = #{acdnRcpId}
+    </update>
+    <update id="updateWorkResult">
+        UPDATE TB_SVPD_CST_SV_WK_RS_IZ T1
+           SET T1.SFT_ACDN_YN='Y'
+         WHERE 1=1
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.CST_SV_ASN_NO = (SELECT MAX(CST_SV_ASN_NO)
+                                     FROM TB_SVPD_CST_SV_WK_RS_IZ
+                                    WHERE CNTR_NO  = T1.CNTR_NO
+                                      AND CNTR_SN  = T1.CNTR_SN
+                                      AND DTA_DL_YN = 'N'
+                                  )
     </update>
     <update id="updateSafetyAccidentBiztalk">
         UPDATE TB_SVPD_ACDN_DOAN_IZ
@@ -179,6 +220,289 @@
              , CST_SIGN_CN   = #{cstSignCn}
              <include refid="COMMON.updateSystemField"/>
          WHERE ACDN_RCP_ID = #{acdnRcpId}
+    </update>
+    <select id="selectSafetyAccidentInit" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbSafetyAccidentDvo">
+        SELECT C1.CNTR_NO /*계약번호*/
+             , C1.CNTR_SN /*계약일련번호*/
+             , T4.CST_KNM AS CST_NM /*설치고객명*/
+             , PD.PD_ABBR_NM AS PD_NM /*제품명*/
+             , C2.LOCARA_TNO /*설치자 지역전화번호*/
+             , C2.EXNO_ENCR /*설치자 전화국번호암호화*/
+             , C2.IDV_TNO /*설치자 개별전화번호*/
+             , C2.CRAL_LOCARA_TNO /*설치자 휴대지역전화번호*/
+             , C2.MEXNO_ENCR  /*설치자 휴대전화국번호암호화*/
+             , C2.CRAL_IDV_TNO /*설치자 휴대개별전화번호*/
+             , C1.CNTR_PD_STRTDT /* 매출일자 ??? */
+             , T5.NEW_ADR_ZIP AS IST_ZIP /* 설치우편번호 */
+             , T5.RNADR AS IST_ADR /* 설치자주소 */
+             , T5.RDADR AS IST_DTL_ADR /* 상세주소 */
+             , T1.RCPDT /* A/S접수일자 */
+             , T2.SV_CNR_OG_ID /* 센터 OG_ID */
+             , O1.HOO_PRTNR_NM AS CNR_LEADER_NM /* 센터장명 */
+             , D1.IST_LCT_DTL_CN /* 위치 */
+             , T1.CNSL_MO_CN AS RCP_MO_CN
+             , E1.IST_DT /* 설치일자 */
+          FROM TB_SSCT_CNTR_DTL C1
+          LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ E1
+            ON C1.CNTR_NO = E1.CNTR_NO
+           AND C1.CNTR_SN = E1.CNTR_SN
+          LEFT OUTER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T1 /*고객서비스AS설치대상내역*/
+            ON C1.CNTR_NO = T1.CNTR_NO
+           AND C1.CNTR_SN = T1.CNTR_SN
+           AND T1.AS_IST_OJ_NO = (SELECT MAX(AS_IST_OJ_NO)
+                                    FROM TB_SVPD_CST_SVAS_IST_OJ_IZ
+                                   WHERE CNTR_NO   = C1.CNTR_NO
+                                     AND CNTR_SN   = C1.CNTR_SN
+                                     AND DTA_DL_YN = 'N'
+                                  )
+          LEFT OUTER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ T2 /*고객서비스AS설치배정내역*/
+            ON T1.CST_SV_ASN_NO = T2.CST_SV_ASN_NO
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL CR1
+            ON CR1.DTL_CNTR_NO = C1.CNTR_NO
+           AND CR1.DTL_CNTR_SN = C1.CNTR_SN
+           AND CR1.ADRPC_TP_CD IN ('2', '3') /*계약주소*/
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS C2 /*계약주소지기본-계약주소*/
+            ON C2.CNTR_ADRPC_ID = CR1.CNTR_ADRPC_ID
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS T5 /*주소기본-설치주소*/
+            ON T5.ADR_ID  = C2.ADR_ID
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T4 /*고객기본-설치고객*/
+            ON T4.CST_NO  = C2.CNTR_CST_NO
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ O1 /* 월조직내역 */
+            ON O1.BASE_YM = SUBSTR(T2.ASN_DT, 1, 6)
+           AND O1.OG_ID   = T2.SV_CNR_OG_ID
+           AND O1.OG_LEVL_DV_CD = '1'
+          LEFT OUTER JOIN TB_PDBS_PD_BAS PD /*상품기본*/
+            ON PD.PD_CD  = C1.BASE_PD_CD
+          LEFT OUTER JOIN TB_SVPD_CNTR_PDCT_IST_LCT_DTL D1
+            ON D1.CNTR_NO = C1.CNTR_NO
+           AND D1.CNTR_SN = C1.CNTR_SN
+           AND D1.DTL_SN  = (SELECT MAX(DTL_SN)
+                               FROM TB_SVPD_CNTR_PDCT_IST_LCT_DTL
+                              WHERE CNTR_NO = D1.CNTR_NO
+                                AND CNTR_SN = D1.CNTR_SN
+                            )
+         WHERE C1.CNTR_NO = #{cntrNo}
+           AND C1.CNTR_SN = #{cntrSn}
+    </select>
+    <update id="mergeSafetyAccident">
+        MERGE INTO TB_SVPD_ACDN_DOAN_IZ
+        USING DUAL
+           ON ( ACDN_RCP_ID = #{acdnRcpId})
+        WHEN MATCHED THEN
+             UPDATE SET ACDN_RCP_NM            = #{acdnRcpNm}
+                      , CNTR_NO                = #{cntrNo}
+                      , CNTR_SN                = #{cntrSn}
+                      , CST_NM                 = #{cstNm}
+                      , PD_NM                  = #{pdNm}
+                      , LOCARA_TNO             = #{locaraTno}
+                      , EXNO_ENCR              = #{exnoEncr}
+                      , IDV_TNO                = #{idvTno}
+                      , CRAL_LOCARA_TNO        = #{cralLocaraTno}
+                      , MEXNO_ENCR             = #{mexnoEncr}
+                      , CRAL_IDV_TNO           = #{cralIdvTno}
+                      , ADR_ID                 = #{adrId}
+                      , IST_ZIP                = #{istZip}
+                      , IST_ADR                = #{istAdr}
+                      , IST_DTL_ADR            = #{istDtlAdr}
+                      , IST_DT                 = #{istDt}
+                      , RCPDT                  = #{rcpdt}
+                      , ACDN_DTM               = #{acdnDtm}
+                      , IST_LCT_DTL_CN         = #{istLctDtlCn}
+                      , SV_CNR_OG_ID           = #{svCnrOgId}
+                      , CNRLD_NM               = #{cnrldNm}
+                      , IMPTA_RSON_CD          = #{imptaRsonCd}
+                      , CPS_DV_CD              = #{cpsDvCd}
+                      , RCP_MO_CN              = #{rcpMoCn}
+                      , ACDN_CAUS_CN           = #{acdnCausCn}
+                      , CST_DMD_CN             = #{cstDmdCn}
+                      , ACDN_RS_CN             = #{acdnRsCn}
+                      , FSH_DT                 = #{fshDt}
+                      , TOT_CPS_AMT            = ${totCpsAmt}
+                      , INSRCO_CPS_AMT         = ${insrcoCpsAmt}
+                      , KW_CPS_AMT             = ${kwCpsAmt}
+                      , WRTE_DT                = TO_CHAR(SYSDATE,'YYYYMMDD')
+                    <if test='@MybatisUtils@isNotEmpty(acdnPhoApnDocId)'>
+                      , ACDN_PHO_FILE_APN_YN   = 'Y'
+                      , ACDN_PHO_APN_DOC_ID    = #{acdnPhoApnDocId}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(acdnPictrApnDocId)'>
+                      , ACDN_PICTR_FILE_APN_YN = 'Y'
+                      , ACDN_PICTR_APN_DOC_ID  = #{acdnPictrApnDocId}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(causAnaApnDocId)'>
+                      , CAUS_ANA_FILE_APN_YN = 'Y'
+                      , CAUS_ANA_APN_DOC_ID  = #{causAnaApnDocId}
+                    </if>
+                    <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+             INSERT (
+                    ACDN_RCP_ID
+                  , ACDN_RCP_NM
+                  , CNTR_NO
+                  , CNTR_SN
+                  , CST_NO
+                  , CNTR_ADRPC_ID
+                  , PD_HCLSF_ID
+                  , PD_MCLSF_ID
+                  , PD_LCLSF_ID
+                  , PD_CD
+                  , PD_NM
+                  , RCPDT
+                  , VST_DT
+                  , SL_DT
+                  , IST_DT
+                  , ACDN_DTM
+                  , CST_NM
+                  , LOCARA_TNO
+                  , EXNO_ENCR
+                  , IDV_TNO
+                  , CRAL_LOCARA_TNO
+                  , MEXNO_ENCR
+                  , CRAL_IDV_TNO
+                  , PIF_DL_YN
+                  , ADR_DV_CD
+                  , ADR_ID
+                  , IST_ZIP
+                  , IST_ADR
+                  , IST_DTL_ADR
+                  , IST_REFER_ADR
+                  , IST_LCT_DTL_CN
+                  , LSATR_NM
+                  , INSRP_NO
+                  , BZRNO
+                  , SV_CNR_OG_ID
+                  , BRCH_NM
+                  , SV_CNR_NM
+                  , CNRLD_NM
+                  , RPTR_NM
+                  , CPS_DV_CD
+                  , IMPTA_RSON_CD
+                  , FSH_YN
+                  , FSH_DT
+                  , CPS_PRGS_CD
+                  , TOT_CPS_AMT
+                  , KRN_TOT_CPS_AMT_MRK_NM
+                  , KW_CPS_AMT
+                  , INSRCO_CPS_AMT
+                  , RCP_MO_CN
+                  , ACDN_CAUS_CN
+                  , CST_DMD_CN
+                  , ACDN_RS_CN
+                  , ACDN_PHO_FILE_APN_YN
+                  , ACDN_PHO_APN_DOC_ID
+                  , ACDN_PICTR_FILE_APN_YN
+                  , ACDN_PICTR_APN_DOC_ID
+                  , CAUS_ANA_FILE_APN_YN
+                  , CAUS_ANA_APN_DOC_ID
+                  , AGR_DOC_FW_YN
+                  , AGR_DOC_FW_DTM
+                  , AGR_DOC_RCV_YN
+                  , PSIC_NM
+                  , VST_IZ
+                  , DAMG_IZ
+                  , EST_IZ
+                  , AGR_IZ
+                  , TOT_RDU_AMT
+                  , FML_REL_DV_CD1
+                  , ETC_CN1
+                  , MAAS_FNM
+                  , MAAS_BRYY_MMDD
+                  , MAAS_CRAL_LOCARA_TNO
+                  , MAAS_MEXNO_ENCR
+                  , MAAS_CRAL_IDV_TNO
+                  , FML_REL_DV_CD2
+                  , ETC_CN2
+                  , RFND_ACNO_ENCR
+                  , RFND_BNK_CD
+                  , RFND_ACOWN_NM
+                  , CST_SIGN_CN
+                  , WRTE_DT
+                  , DTA_DL_YN
+                  <include refid="COMMON.insertSystemField" />)
+             VALUES
+                  ( #{acdnRcpId} /* 시퀀스 채번필요. */
+                  , #{acdnRcpNm}
+                  , #{cntrNo}
+                  , #{cntrSn}
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , #{pdNm}
+                  , #{rcpdt}
+                  , ''
+                  , ''
+                  , #{acdnDtm}
+                  , #{cstNm}
+                  , #{locaraTno}
+                  , #{exnoEncr}
+                  , #{idvTno}
+                  , #{cralLocaraTno}
+                  , #{mexnoEncr}
+                  , #{cralIdvTno}
+                  , ''
+                  , #{adrDvCd}
+                  , #{adrId}
+                  , #{istZip}
+                  , #{istAdr}
+                  , #{istDtlAdr}
+                  , ''
+                  , #{istLctDtlCn}
+                  , ''
+                  , ''
+                  , ''
+                  , #{svCnrOgId}
+                  , ''
+                  , #{svCnrNm}
+                  , #{cnrldNm}
+                  , ''
+                  , ''
+                  , #{imptaRsonCd}
+                  , 'N'
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , #{rcpMoCn}
+                  , #{acdnCausCn}
+                  , #{cstDmdCn}
+                  , #{acdnRsCn}
+                  , (CASE WHEN #{acdnPhoApnDocId} IS NOT NULL THEN 'Y' ELSE 'N' END)
+                  , #{acdnPhoApnDocId}
+                  , (CASE WHEN #{acdnPictrApnDocId} IS NOT NULL THEN 'Y' ELSE 'N' END)
+                  , #{acdnPictrApnDocId}
+                  , (CASE WHEN #{causAnaApnDocId} IS NOT NULL THEN 'Y' ELSE 'N' END)
+                  , #{causAnaApnDocId}
+                  , 'N'
+                  , ''
+                  , 'N'
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , ''
+                  , TO_CHAR(SYSDATE,'YYYYMMDD')
+                  , 'N'
+                  <include refid="COMMON.insertSystemFieldValue" />
+                  )
     </update>
 
 </mapper>
