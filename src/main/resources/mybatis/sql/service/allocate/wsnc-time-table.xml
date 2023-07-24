@@ -985,15 +985,15 @@
     </select>
 
     <select id="selectFnSvpdLocaraPrtnr01" resultType="java.lang.String">
-      SELECT FN_SVPD_LOCARA_PRTNR_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{workTypeDtl}, #{sellDate}) FROM DUAL
+      SELECT FN_SVPD_LOCARA_PRTNR_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{svBizDclsfCd}, #{sellDate}) FROM DUAL
     </select>
 
     <select id="selectFnSvpdLocaraPrtnrOwr01" resultType="java.lang.String">
-      SELECT FN_SVPD_LOCARA_PRTNR_OWR_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{workTypeDtl}, #{sellDate}) FROM DUAL
+      SELECT FN_SVPD_LOCARA_PRTNR_OWR_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{svBizDclsfCd}, #{sellDate}) FROM DUAL
     </select>
 
     <select id="selectFnSvpdLocaraPrtnrBs01" resultType="java.lang.String">
-      SELECT FN_SVPD_LOCARA_PRTNR_BS_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{workTypeDtl}, #{sellDate}, #{vstDvCd}) FROM DUAL
+      SELECT FN_SVPD_LOCARA_PRTNR_BS_01(TRIM(#{newAdrZip}), #{pdctPdCd}, #{svBizDclsfCd}, #{sellDate}, #{vstDvCd}) FROM DUAL
     </select>
 
     <select id="selectRpbLocaraPsic" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableRpbLocaraPsicDvo">
