@@ -51,15 +51,23 @@ public class WsnbSafetyAccidentController {
         return service.getSafetyAccident(acdnRcpId);
     }
 
+    @ApiOperation(value = "안전사고 등록화면 초기화", notes = "안전사고등록화면에서 계약번호를 선택하면 초기 세팅해줄 값을 조회한다.")
+    @GetMapping("/init")
+    public FindInitRes getSafetyAccidentInit(
+        FindInitReq dto
+    ) {
+        return service.getSafetyAccidentInit(dto);
+    }
+
     @ApiOperation(value = "안전사고 결과 저장", notes = "안전사고 결과를 저장한다.")
-    @PutMapping
-    public SaveResponse editSafetyAccident(
+    @PutMapping("/result")
+    public SaveResponse editSafetyAccidentResult(
         @RequestBody
         @Valid
         EditReq dto
     ) throws Exception {
         return SaveResponse.builder()
-            .processCount(service.editSafetyAccident(dto))
+            .processCount(service.editSafetyAccidentResult(dto))
             .build();
     }
 
@@ -87,4 +95,15 @@ public class WsnbSafetyAccidentController {
             .build();
     }
 
+    @ApiOperation(value = "안전사고 저장", notes = "안전사고를 등록, 수정한다.")
+    @PostMapping
+    public SaveResponse saveSafetyAccident(
+        @RequestBody
+        @Valid
+        SaveReq dto
+    ) throws Exception {
+        return SaveResponse.builder()
+            .processCount(service.saveSafetyAccident(dto))
+            .build();
+    }
 }

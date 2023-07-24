@@ -34,4 +34,8 @@ public interface WsnbSafetyAccidentConverter {
     WsnbSafetyAccidentDvo mapBiztalkReqToWsnbSafetyAccidentDvo(BiztalkReq dto);
 
     WsnbSafetyAccidentDvo mapEditSignReqToWsnbSafetyAccidentDvo(EditSignReq dto);
+
+    WsnbSafetyAccidentDvo mapSaveReqToWsnbSafetyAccidentDvo(SaveReq dto);
+
+    FindInitRes mapWsnbSafetyAccidentDvoToFindInitRes(WsnbSafetyAccidentDvo dvo);
 }
