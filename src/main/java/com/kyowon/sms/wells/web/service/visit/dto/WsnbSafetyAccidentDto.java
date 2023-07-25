@@ -1,5 +1,7 @@
 package com.kyowon.sms.wells.web.service.visit.dto;
 
+import java.util.List;
+
 import javax.validation.constraints.NotBlank;
 
 import org.apache.commons.lang.StringUtils;
@@ -100,6 +102,8 @@ public class WsnbSafetyAccidentDto {
         String cstNm,
         String pdCd,
         String pdNm,
+        String adrId,
+        String istZip,
         String istAdr,
         String istDtlAdr,
         String istReferAdr,
@@ -117,6 +121,7 @@ public class WsnbSafetyAccidentDto {
         String acdnDtm, //사고일시
         String acdnDt,
         String acdnTm,
+        String svCnrOgId,
         String svCnrNm,
         String cnrldNo,
         String cnrldNm,
@@ -168,8 +173,10 @@ public class WsnbSafetyAccidentDto {
             mpno = cralLocaraTno + "-" + mexnoEncr + "-" + cralIdvTno;
             //계약상세번호
             cntrDtlNo = cntrNo + "-" + cntrSn;
-            acdnDt = acdnDtm.substring(0, 6);
-            acdnTm = acdnDtm.substring(6);
+            if (StringUtil.isNotBlank(acdnDtm)) {
+                acdnDt = acdnDtm.substring(0, 8);
+                acdnTm = acdnDtm.substring(8);
+            }
         }
     }
 
@@ -198,7 +205,6 @@ public class WsnbSafetyAccidentDto {
         String fmlRelDvCd2,
         String etcCn2,
         String maasFnm,
-        String maasBirthdate,
         String maasMpno,
         String cralLocaraTno,
         String mexnoEncr,
@@ -212,7 +218,10 @@ public class WsnbSafetyAccidentDto {
         int totCpsAmt,
         @NotBlank
         String mpno,
-        String cstNm
+        String cstNm,
+        String cntrNo,
+        String cntrSn,
+        String pdNm
     ) {}
 
     @Builder
@@ -292,6 +301,7 @@ public class WsnbSafetyAccidentDto {
         String acdnDtm,
         String istLctDtlCn,
         String svCnrOgId,
+        String svCnrNm,
         String cnrldNm,
         String imptaRsonCd,
         String cpsDvCd,
@@ -305,9 +315,9 @@ public class WsnbSafetyAccidentDto {
         int insrcoCpsAmt,
         int totCpsAmt,
         int kwCpsAmt,
-        AttachFileDto.AttachFile acdnPhoApnFile,
-        AttachFileDto.AttachFile acdnPictrApnFile,
-        AttachFileDto.AttachFile causAnaApnFile
+        List<AttachFileDto.AttachFile> acdnPhoApnFile,
+        List<AttachFileDto.AttachFile> acdnPictrApnFile,
+        List<AttachFileDto.AttachFile> causAnaApnFile
     ) {
         public SaveReq {
             String[] tnoArr = StringUtils.split(tno, "-");

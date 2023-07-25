@@ -71,7 +71,6 @@ public class WsnbSafetyAccidentDvo {
     String fmlRelDvCd2;
     String etcCn2;
     String maasFnm;
-    String maasBirthdate;
     String maasMpno;
     String rfndAcnoEncr;
     String rfndBnkCd;

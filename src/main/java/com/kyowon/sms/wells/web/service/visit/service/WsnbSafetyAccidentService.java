@@ -1,15 +1,17 @@
 package com.kyowon.sms.wells.web.service.visit.service;
 
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Base64Utils;
 import org.thymeleaf.util.StringUtils;
 
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
+import com.kyowon.sflex.common.system.service.QueryStringEncService;
+import com.kyowon.sflex.common.system.service.UrlShortenerService;
 import com.kyowon.sms.wells.web.service.visit.converter.WsnbSafetyAccidentConverter;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbSafetyAccidentDto.*;
 import com.kyowon.sms.wells.web.service.visit.dvo.WsnbSafetyAccidentDvo;
@@ -39,6 +41,9 @@ public class WsnbSafetyAccidentService {
     private final ConfigurationService configurationService;
     private final KakaoMessageService kakaoMessageService;
     private final AttachFileService attachFileService;
+    private final QueryStringEncService queryEncService;
+
+    private final UrlShortenerService urlService;
 
     /**
      * 안전사고 관리 조회 - 페이징
@@ -75,6 +80,13 @@ public class WsnbSafetyAccidentService {
      */
     public FindRes getSafetyAccident(String acdnRcpId) {
         WsnbSafetyAccidentDvo dvo = mapper.selectSafetyAccident(acdnRcpId);
+
+        String cstSignCn = "";
+        if (dvo.getSignCn() != null) {
+            cstSignCn = Base64Utils.encodeToString(dvo.getSignCn());
+            cstSignCn = "data:image/png;base64," + cstSignCn;
+            dvo.setCstSignCn(cstSignCn);
+        }
         return converter.mapWsnbSafetyAccidentDvoToFindRes(dvo);
     }
 
@@ -103,17 +115,17 @@ public class WsnbSafetyAccidentService {
         //첨부파일저장 후 docId 저장
         if (ObjectUtils.isNotEmpty(dto.acdnPhoApnFile())) {
             String acdnPhoApnFileId = IDGenUtil.getUUID("ATG");
-            attachFileService.saveAttachFile("ATG_SNB_ACDN_ALL", acdnPhoApnFileId, dto.acdnPhoApnFile());
+            attachFileService.saveAttachFiles("ATG_SNB_ACDN_ALL", acdnPhoApnFileId, dto.acdnPhoApnFile());
             dvo.setAcdnPhoApnDocId(acdnPhoApnFileId);
         }
         if (ObjectUtils.isNotEmpty(dto.acdnPictrApnFile())) {
             String acdnPictrApnFileId = IDGenUtil.getUUID("ATG");
-            attachFileService.saveAttachFile("ATG_SNB_ACDN_ALL", acdnPictrApnFileId, dto.acdnPictrApnFile());
+            attachFileService.saveAttachFiles("ATG_SNB_ACDN_ALL", acdnPictrApnFileId, dto.acdnPictrApnFile());
             dvo.setAcdnPictrApnDocId(acdnPictrApnFileId);
         }
         if (ObjectUtils.isNotEmpty(dto.causAnaApnFile())) {
             String causAnaApnFileId = IDGenUtil.getUUID("ATG");
-            attachFileService.saveAttachFile("ATG_SNB_ACDN_ALL", causAnaApnFileId, dto.causAnaApnFile());
+            attachFileService.saveAttachFiles("ATG_SNB_ACDN_ALL", causAnaApnFileId, dto.causAnaApnFile());
             dvo.setCausAnaApnDocId(causAnaApnFileId);
         }
         /* TB_SVPD_ACDN_DOAN_IZ 테이블 insert or update */
@@ -140,14 +152,20 @@ public class WsnbSafetyAccidentService {
         format1.setLenient(false);
         Date date = format1.parse(dto.rcpdt());
         final SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd");
-
+        /* TODO: url확인 후 수정. */
+        String url = "/anonymous/login?redirectUrl=/#/ns/wmsnb-safety-accident-agreement&acdnRcpId="
+            + dto.acdnRcpId();
+        url = urlService.getShortedUrl(queryEncService.getEncParamUrl(url));
         Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("cntrNo", dto.cntrNo());
+        paramMap.put("cntrSN", dto.cntrSn());
+        paramMap.put("cstNm", dto.cstNm());
+        paramMap.put("pdNm", dto.pdNm());
         paramMap.put("rcpdt", format2.format(date));
-        paramMap.put("totCpsAmt", NumberFormat.getInstance().format(dto.totCpsAmt()));
-        paramMap.put("url", "URL추후수정예정");
+        paramMap.put("url", url);
 
         KakaoSendReqDvo kakaoSendReqDvo = KakaoSendReqDvo.withTemplateCode()
-            .templateCode("TEMP_SFT_ACDN")
+            .templateCode("Wells18387")
             .templateParamMap(paramMap)
             .destInfo(dvo.getCstNm() + "^" + dvo.getMpno())
             .callback(callbackValue)
@@ -159,6 +177,11 @@ public class WsnbSafetyAccidentService {
         return processCount;
     }
 
+    /**
+     * 전자합의서 서명 저장
+     *
+     * @param dto
+     */
     public int editSafetyAccidentSign(EditSignReq dto) {
         int processCount = 0;
         WsnbSafetyAccidentDvo dvo = converter.mapEditSignReqToWsnbSafetyAccidentDvo(dto);
