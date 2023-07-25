@@ -118,7 +118,7 @@
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ /*월파트너내역*/ T3 ON T3.PRTNR_NO = T1.PRTNR_NO AND T3.OG_TP_CD = T1.OG_TP_CD AND T3.BASE_YM = TO_CHAR(SYSDATE, 'yyyyMM')
          WHERE T1.DTA_DL_YN = 'N'
            AND (T1.OG_CD LIKE 'V%'
-            OR T1.OG_CD IN (SELECT DEPT_CD FROM TB_OGBS_DEPT_BAS WHERE HGR_DEPT_CD = '71314')) --상위 소속이 Wells서비스관리팀 또는 Wells고객서비스부문
+            OR T1.OG_CD IN (SELECT DEPT_CD FROM TB_GBCO_DEPT_BAS WHERE HGR_DEPT_CD = '71314')) --상위 소속이 Wells서비스관리팀 또는 Wells고객서비스부문
            AND T3.FNL_CLTN_DT IS NULL
          ORDER BY T2.CLTN_DT, OG_CD, EMP_DV_VAL, EMP_ROL_DV_VAL_NM, EMP_ROL_DV_VAL DESC
 
@@ -335,7 +335,7 @@
           LEFT OUTER JOIN TB_OGBS_PRTNR_DTL /*파트너상세*/ T2 ON T1.PRTNR_NO = T2.PRTNR_NO AND T1.OG_TP_CD = T2.OG_TP_CD
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ /*월파트너내역*/ T3 ON T3.PRTNR_NO = T1.PRTNR_NO AND T3.OG_TP_CD = T1.OG_TP_CD AND T3.BASE_YM = TO_CHAR(SYSDATE, 'yyyyMM')
          WHERE T1.OG_CD IN (SELECT DEPT_CD
-                             FROM TB_OGBS_DEPT_BAS
+                             FROM TB_GBCO_DEPT_BAS
                             WHERE ENDDT IS NULL OR ENDDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
                               AND HGR_DEPT_CD = NVL(#{hgrDeptCd},'00810'))
             OR T1.PRTNR_NO = '32000'
