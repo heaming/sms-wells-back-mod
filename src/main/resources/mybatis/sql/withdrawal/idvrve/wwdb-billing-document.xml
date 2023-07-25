@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.withdrawal.idvrve.mapper.WwdbBillingDocumentMgtMapper">
+    <select id="selectBillingDocuments" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto$SearchRes">
+       SELECT 
+               MT.BILDC_PBL_NO AS BILDC_PBL_NO
+             , MAX(MT.CST_FNM) AS CST_FNM --고객성명     
+             , MAX(BILDC_WRTE_DT) AS BILDC_WRTE_DT 
+             , (SELECT MAX(FT.BILDC_FW_DTM)
+                  FROM TB_RVDW_BILDC_FW_IZ FT
+                 WHERE FT.BILDC_PBL_NO = MT.BILDC_PBL_NO)  AS BILDC_FW_DTM --발송일자             /*임시로 'TNT_BASE' 넣어두기*/
+             , MAX(MT.PD_NM) ||' '||F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_INC' , #{session.langId}) || 
+               COUNT(MT.BILDC_PBL_SN) || F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_VALUE_SORT' , #{session.langId}) AS PD_NM  --상품명
+             , SUM(MT.PD_QTY)         AS PD_QTY_SUM--총수량
+             , SUM(MT.PD_SELL_AMT)    AS PD_SELL_AMT_SUM --총금액
+             , MAX(MT.FST_RGST_DTM)   AS FST_RGST_DTM--작성일자
+             , F_CMZ_MLNG_NM(#{session.tenantId}, 'MSG_TXT_PSH_SEND' , #{session.langId})                  AS DUMMY_TEXT
+             , MAX(MT.SELL_PRTNR_NO)  AS SELL_PRTNR_NO /*파트너번호*/
+             , MAX(MT.SELL_PRTNR_NM)  AS SELL_PRTNR_NM /*파트너번호*/             
+          FROM (
+                 SELECT 
+                        MT.BILDC_PBL_NO 
+                      , ST.BILDC_PBL_SN 
+                      , MT.CST_FNM       AS CST_FNM       --고객성명       
+                      , MT.BILDC_WRTE_DT AS BILDC_WRTE_DT --작성일자 필요
+                      , FIRST_VALUE(ST.PD_NM) OVER(PARTITION BY ST.BILDC_PBL_NO ORDER BY ST.BILDC_PBL_SN) AS PD_NM --상품명
+                      , ST.PD_QTY       AS PD_QTY--총수량
+                      , ST.PD_SELL_AMT  AS PD_SELL_AMT --총금액
+                      , SUBSTR(MT.FNL_MDFC_DTM,0,8) AS FST_RGST_DTM
+                      , MT.SELL_PRTNR_NO AS SELL_PRTNR_NO  /*파트너번호*/
+                      , MT.SELL_PRTNR_NM AS SELL_PRTNR_NM  /*파트너번호*/
+                   FROM TB_RVDW_BILDC_PBL_BAS MT
+                  INNER JOIN TB_RVDW_BILDC_PBL_DTL ST 
+                     ON ( MT.BILDC_PBL_NO  = ST.BILDC_PBL_NO AND ST.DTA_DL_YN = 'N')                     
+                    AND MT.DTA_DL_YN = 'N'
+                    <if test='@MybatisUtils@isNotEmpty(cstFnm)'>
+                    AND MT.CST_FNM LIKE #{cstFnm}||'%'
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(bildcWrteDt)'>
+                    AND MT.BILDC_WRTE_DT = #{bildcWrteDt}
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(bildcPblNo)'>
+                    AND MT.BILDC_PBL_NO = #{bildcPblNo}
+                    </if>
+                ) MT
+         GROUP BY MT.BILDC_PBL_NO 
+         ORDER BY MT.BILDC_PBL_NO DESC   
+    </select>
+    
+    <update id="deleteBillingDocuments">
+        UPDATE TB_RVDW_BILDC_PBL_BAS
+           SET DTA_DL_YN = 'Y'           
+         WHERE BILDC_PBL_NO = #{bildcPblNo}     
+    </update>
+            
+    <insert id="insertBillingDocument">
+        INSERT INTO TB_RVDW_BILDC_PBL_BAS(
+              BILDC_PBL_NO
+            , SELL_PRTNR_NO
+            , SELL_PRTNR_NM
+            , CST_FNM      
+            , BILDC_WRTE_DT      
+            <include refid="COMMON.insertSystemField"/>
+        )VALUES(
+              #{bildcPblNo}
+            , #{sellPrtnrNo}
+            , #{sellPrtnrNm}
+            , #{cstFnm}    
+            , #{bildcWrteDt}        
+            <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+    
+    <update id="updateBillingDocument"> 
+        UPDATE TB_RVDW_BILDC_PBL_BAS 
+           SET BILDC_WRTE_DT = #{bildcWrteDt}
+           <include refid="COMMON.updateSystemField"/>
+         WHERE BILDC_PBL_NO = #{bildcPblNo}           
+    </update>
+           
+    <insert id="insertBillingDocumentHistory">
+        INSERT INTO TB_RVDW_BILDC_PBL_BAS_HIST(
+              BILDC_PBL_NO
+            , SELL_PRTNR_NO
+            , HIST_CH_DTM
+            , SELL_PRTNR_NM
+            , CST_FNM      
+            , BILDC_WRTE_DT      
+            <include refid="COMMON.insertSystemField"/>
+        )VALUES(
+              #{bildcPblNo}
+            , #{sellPrtnrNo}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{sellPrtnrNm}
+            , #{cstFnm}    
+            , #{bildcWrteDt}        
+            <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+    
+    <update id="updateBillingDocumentDtails">
+        UPDATE 
+               TB_RVDW_BILDC_PBL_DTL
+           SET PD_NM = #{pdNm}
+             , PD_QTY = #{pdQty}
+             , PD_UPRC = CEIL(#{pdSellAmt} / CASE WHEN #{pdQty} = 0 THEN 1 ELSE TO_NUMBER(#{pdQty}) END)
+             , PD_SELL_AMT = #{pdSellAmt}
+             , PD_SPL_AMT = CEIL(#{pdSellAmt} / 1.1) 
+             , PD_VAT = #{pdSellAmt} - (CEIL(#{pdSellAmt} / 1.1))
+             , RMK_CN = #{rmkCn}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE BILDC_PBL_NO = #{bildcPblNo}
+           AND BILDC_PBL_SN = #{bildcPblSn}
+    </update>
+    
+    <update id="deleteBillingDocumentDtails">
+        UPDATE TB_RVDW_BILDC_PBL_DTL
+           SET DTA_DL_YN = 'Y'          
+         WHERE BILDC_PBL_NO = #{bildcPblNo}
+           AND BILDC_PBL_SN = #{bildcPblSn}
+    </update>
+    
+    
+    
+    <insert id="insertBillingDocumentDtails">
+        INSERT INTO TB_RVDW_BILDC_PBL_DTL(
+               BILDC_PBL_NO
+             , BILDC_PBL_SN
+             , PD_NM
+             , PD_QTY
+             , PD_UPRC
+             , PD_SELL_AMT
+             , PD_SPL_AMT
+             , PD_VAT
+             , RMK_CN       
+             <include refid="COMMON.insertSystemField"/>
+        )    
+        VALUES(
+               #{bildcPblNo}
+             , (SELECT NVL(MAX(BILDC_PBL_SN),0) + 1
+                 FROM TB_RVDW_BILDC_PBL_DTL
+                WHERE BILDC_PBL_NO = #{bildcPblNo}
+               ) 
+             , #{pdNm}
+             , #{pdQty}
+             , CEIL(#{pdSellAmt} / CASE WHEN #{pdQty} = 0 THEN 1 ELSE TO_NUMBER(#{pdQty}) END)
+             , #{pdSellAmt}
+             , CEIL(#{pdSellAmt} / 1.1) 
+             , #{pdSellAmt} - (CEIL(#{pdSellAmt} / 1.1)) 
+             , #{rmkCn}  
+             <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+    
+    <insert id="insertBillingDocumentDtailsHistory">
+        INSERT INTO TB_RVDW_BILDC_PBL_DTL_HIST(
+               BILDC_PBL_NO
+             , HIST_CH_DTM               
+             , BILDC_PBL_SN
+             , PD_NM
+             , PD_QTY
+             , PD_UPRC
+             , PD_SELL_AMT
+             , PD_SPL_AMT
+             , PD_VAT
+             , RMK_CN       
+             <include refid="COMMON.insertSystemField"/>
+        )    
+        VALUES(
+               #{bildcPblNo}
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')  
+              <choose>
+                <when test='@MybatisUtils@isNotEmpty(bildcPblSn)'>                 
+             , #{bildcPblSn}
+                </when>
+                <otherwise>
+             , (SELECT NVL(MAX(BILDC_PBL_SN),0) + 1
+                  FROM TB_RVDW_BILDC_PBL_DTL
+                 WHERE BILDC_PBL_NO = #{bildcPblNo}
+               ) 
+                </otherwise>
+              </choose>
+             , #{pdNm}
+             , #{pdQty}
+             , CEIL(#{pdSellAmt} / CASE WHEN #{pdQty} = 0 THEN 1 ELSE TO_NUMBER(#{pdQty}) END)
+             , #{pdSellAmt}
+             , CEIL(#{pdSellAmt} / 1.1) 
+             , #{pdSellAmt} - (CEIL(#{pdSellAmt} / 1.1)) 
+             , #{rmkCn}  
+             <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+    
+    <select id="selectBillingDocumentPk" resultType="String">
+        SELECT 'RVB'||TO_CHAR(SYSDATE,'YYYYMMDD')||LPAD(COUNT(BILDC_PBL_NO)+1,9,'0') FROM TB_RVDW_BILDC_PBL_BAS
+    </select>
+    
+    <select id="selectBillingDocumentDetails" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto$SearchDtlsRes">
+        SELECT 
+               BILDC_PBL_NO
+             , BILDC_PBL_SN
+             , PD_NM
+             , PD_QTY
+             , PD_UPRC
+             , PD_SELL_AMT
+             , PD_SPL_AMT
+             , PD_VAT
+             , RMK_CN  
+          FROM TB_RVDW_BILDC_PBL_DTL
+         WHERE 1 = 1
+           AND BILDC_PBL_NO = #{bildcPblNo}
+           AND DTA_DL_YN = 'N'  
+    </select>
+    
+    <select id="selectBillingDocumentForwardings" resultType="com.kyowon.sms.wells.web.withdrawal.idvrve.dto.WwdbBillingDocumentMgtDto$SearchFwRes">
+        <choose>
+          <when test='@MybatisUtils@equals(bildcFwTpCd, "K")'>
+              SELECT
+                     A.BILDC_FW_TP_CD --발송유형
+                   , A.BILDC_FW_DTM --발송일자                    
+                   , REGEXP_REPLACE(A.BILDC_FW_DRM_NO1 , '(.{3})(.*)(.{4})', '\1-\2-\3') CALLBACK                   
+                   , REGEXP_REPLACE(A.BILDC_FW_DRM_NO2 , '(.{3})(.*)(.{4})', '\1-\2-\3') RECIPIENT_NUM
+                FROM TB_RVDW_BILDC_FW_IZ A 
+               WHERE A.BILDC_PBL_NO = #{bildcPblNo}
+                 AND A.DTA_DL_YN = 'N'       
+                 AND A.BILDC_FW_TP_CD = #{bildcFwTpCd}
+          </when>
+          <when test='@MybatisUtils@equals(bildcFwTpCd, "E")'>
+                SELECT 
+                       A.BILDC_FW_TP_CD --발송유형
+                     , A.BILDC_FW_DTM 
+                     , SEND_USR_EMAIL AS CALLBACK --발신
+                     , RECP_USR_EMAIL AS RECIPIENT_NUM --수신            
+                  FROM TB_RVDW_BILDC_FW_IZ A
+                 INNER JOIN T_CMM_EMAIL_M B
+                    ON A.BILDC_FW_DRM_NO1 = B.TENANT_ID 
+                   AND A.BILDC_FW_DRM_NO2 = B.EMAIL_UID 
+                 INNER JOIN T_CMM_EMAIL_RECP_USR_D C
+                    ON A.BILDC_FW_DRM_NO1 = B.TENANT_ID 
+                   AND A.BILDC_FW_DRM_NO2 = B.EMAIL_UID 
+                   AND B.TENANT_ID  = C.TENANT_ID 
+                   AND B.EMAIL_UID = C.EMAIL_UID 
+                 WHERE A.BILDC_PBL_NO = #{bildcPblNo}
+                   AND A.BILDC_FW_TP_CD = #{bildcFwTpCd}  
+                   AND A.DTA_DL_YN = 'N'
+          </when>    
+         </choose>
+           
+           
+          
+    </select>
+    
+    <insert id="insertBillingDocumentForwarding">
+        INSERT INTO TB_RVDW_BILDC_FW_IZ(
+               BILDC_PBL_NO
+             , BILDC_FW_SN
+             , BILDC_FW_TP_CD
+             , BILDC_FW_DTM
+             , BILDC_FW_DRM_NO1
+             , BILDC_FW_DRM_NO2 
+             <include refid="COMMON.insertSystemField"/>
+            ) 
+       VALUES
+            (  #{bildcPblNo}
+             , (SELECT NVL(MAX(BILDC_FW_SN),0) + 1
+                 FROM TB_RVDW_BILDC_FW_IZ
+                WHERE BILDC_PBL_NO = #{bildcPblNo}
+               ) 
+             , #{bildcFwTpCd}
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')
+             , #{bildcFwDrmNo1}
+             , #{bildcFwDrmNo2}
+             <include refid="COMMON.insertSystemFieldValue"/>
+             )
+    </insert>
+    
+    <select id="selectMmtSeq" resultType="String">
+        SELECT ATA_MMT_TRAN_SEQ.CURRVAL FROM DUAL
+    </select>
+</mapper>
