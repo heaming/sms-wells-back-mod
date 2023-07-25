@@ -324,7 +324,7 @@
              , FNL_MDFC_PRG_ID
              , FNL_MDFC_DEPT_ID
           FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
-         WHERE 1=1
+         WHERE 1 = 1
     </sql>
     <insert id="insertCstSvBfsvcAsnHistByPk">
         <include refid="insertCstSvBfsvcAsnHist" />
