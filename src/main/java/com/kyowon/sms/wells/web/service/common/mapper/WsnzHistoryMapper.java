@@ -24,4 +24,5 @@ public interface WsnzHistoryMapper {
 
     int insertCstBfsvcOjHistByMap(Map param);
 
+    int insertCstSvRgbsprHistByPk(String cntrNo, String cntrSn, String svBizDclsfCd, String wkSn);
 }
