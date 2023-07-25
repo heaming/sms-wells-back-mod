@@ -1167,7 +1167,8 @@
 
     <select id="selectPsic" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTablePsicDvo">
         SELECT OG1.PRTNR_NO
-             , 'http://kiwi-m.kyowon.co.kr/KIWI-M/upload_file/upload_file/' || OG1.PRTNR_NO || '.jpg' AS EMP_PIC
+             --, UTL_ENCODE.BASE64_ENCODE(UTL_RAW.CAST_TO_RAW('2023-0630-ENGINEER-' || OG1.PRTNR_NO)) AS EMP_PIC
+             , '2023-0630-ENGINEER-' || OG1.PRTNR_NO AS EMP_PIC
              , #{sellDate} AS SELL_DATE
              , OG2.OG_NM
              , OG2.OG_ID

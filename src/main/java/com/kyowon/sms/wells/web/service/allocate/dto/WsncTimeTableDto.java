@@ -6,6 +6,8 @@ import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 import io.swagger.annotations.ApiModel;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
 import lombok.Builder;
@@ -357,6 +359,14 @@ public class WsncTimeTableDto {
             exnoEncr = DbEncUtil.dec(exnoEncr);
             mexnoEncr = DbEncUtil.dec(mexnoEncr);
             sjHp2 = DbEncUtil.dec(sjHp2);
+
+            empPic = Base64.getEncoder().encodeToString(empPic.getBytes(StandardCharsets.UTF_8));
+
+            System.out.println("복호----------------------------------------------");
+            System.out.println("복호| exnoEncr: " + exnoEncr);
+            System.out.println("복호| mexnoEncr: " + mexnoEncr);
+            System.out.println("복호| sjHp2: " + sjHp2);
+            System.out.println("복호----------------------------------------------");
         }
     }
 
