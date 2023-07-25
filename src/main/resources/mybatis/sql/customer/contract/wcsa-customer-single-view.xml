@@ -84,7 +84,8 @@
                        FROM TB_RVDW_RVE_DTL
                       WHERE DTA_DL_YN = 'N'
                         AND CNTR_NO = T2.CNTR_NO
-                        AND CNTR_SN = T2.CNTR_SN) T3    /* 납입완료*/
+                        AND CNTR_SN = T2.CNTR_SN
+                        AND DP_DT >= SUBSTR(T1.CNTR_CNFM_DTM,1,8)) T3    /* 납입완료*/
             ON 1=1
           LEFT OUTER JOIN
              LATERAL(SELECT NVL(SUM(RVE_AMT), 0) AS CANCEL_FEE_AMT
@@ -92,6 +93,7 @@
                        FROM TB_RVDW_RVE_DTL
                       WHERE DTA_DL_YN = 'N'
                         AND RVE_DV_CD = '07'    /* '07' : 위약금 */
+                        AND NVL(RVE_AMT, 0) > 0
                         AND CNTR_NO = T2.CNTR_NO
                         AND CNTR_SN = T2.CNTR_SN) T4    /* 위약금 */
             ON 1=1
@@ -108,6 +110,7 @@
                        FROM TB_CBCL_DLQ_BAS A
                       WHERE A.DTA_DL_YN = 'N'
                         AND A.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE,-1), 'YYYYMM')
+                        AND NVL(A.EOT_DLQ_AMT, 0) > 0
                         AND A.CNTR_NO = T2.CNTR_NO
                         AND A.CNTR_SN = T2.CNTR_SN) T5  /* 연체 */
             ON 1=1
