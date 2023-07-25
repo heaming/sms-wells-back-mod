@@ -324,7 +324,7 @@
              , FNL_MDFC_PRG_ID
              , FNL_MDFC_DEPT_ID
           FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
-         WHERE 1=1
+         WHERE 1 = 1
     </sql>
     <insert id="insertCstSvBfsvcAsnHistByPk">
         <include refid="insertCstSvBfsvcAsnHist" />
@@ -751,5 +751,84 @@
              , #{dtaDlYn}
             <include refid="COMMON.insertSystemFieldValue"/>
         )
+    </insert>
+
+    <sql id="insertCstSvRgbsprHist">
+        INSERT INTO TB_SVPD_CST_SV_RGBSPR_HIST (
+               RGBSPR_CHT_CRT_HIST_ID
+             , CNTR_NO
+             , CNTR_SN
+             , SV_BIZ_MCLSF_CD
+             , SV_BIZ_DCLSF_CD
+             , WK_SN
+             , VST_DUEDT
+             , FILT_CHNG_LV_CD
+             , VST_DV_CD
+             , ITM_KND_CD
+             , IST_NMN_N
+             , VST_NMN_N
+             , PART_PD_CD
+             , PART_USE_QTY
+             , MTR_CAN_DT
+             , MTR_CAN_RSON_CD
+             , WK_DT
+             , WK_PSIC_DV_CD
+             , WK_PSIC_OG_TP_CD
+             , WK_PSIC_NO
+             , CPSN_ASN_RGST_DT
+             , CPSN_ASN_PRTNR_OG_TP_CD
+             , CPSN_ASN_PRTNR_NO
+             , DTA_DL_YN
+             , FST_RGST_DTM
+             , FST_RGST_USR_ID
+             , FST_RGST_PRG_ID
+             , FST_RGST_DEPT_ID
+             , FNL_MDFC_DTM
+             , FNL_MDFC_USR_ID
+             , FNL_MDFC_PRG_ID
+             , FNL_MDFC_DEPT_ID
+        )
+        SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVPD_CST_SV_BFSVC_ASN_HIST$BFSVC_EXCN_ASN_IZ_ID.NEXTVAL, 12, 0) AS RGBSPR_CHT_CRT_HIST_ID
+             , CNTR_NO
+             , CNTR_SN
+             , SV_BIZ_MCLSF_CD
+             , SV_BIZ_DCLSF_CD
+             , WK_SN
+             , VST_DUEDT
+             , FILT_CHNG_LV_CD
+             , VST_DV_CD
+             , ITM_KND_CD
+             , IST_NMN_N
+             , VST_NMN_N
+             , PART_PD_CD
+             , PART_USE_QTY
+             , MTR_CAN_DT
+             , MTR_CAN_RSON_CD
+             , WK_DT
+             , WK_PSIC_DV_CD
+             , WK_PSIC_OG_TP_CD
+             , WK_PSIC_NO
+             , CPSN_ASN_RGST_DT
+             , CPSN_ASN_PRTNR_OG_TP_CD
+             , CPSN_ASN_PRTNR_NO
+             , DTA_DL_YN
+             , FST_RGST_DTM
+             , FST_RGST_USR_ID
+             , FST_RGST_PRG_ID
+             , FST_RGST_DEPT_ID
+             , FNL_MDFC_DTM
+             , FNL_MDFC_USR_ID
+             , FNL_MDFC_PRG_ID
+             , FNL_MDFC_DEPT_ID
+          FROM TB_SVPD_CST_SV_RGBSPR_IZ
+         WHERE 1=1
+    </sql>
+    <insert id="insertCstSvRgbsprHistByPk">
+        <include refid="insertCstSvRgbsprHist" />
+        AND CNTR_NO = #{cntrNo}
+        AND CNTR_SN = #{cntrSn}
+        AND SV_BIZ_MCLSF_CD = SUBSTR(#{svBizDclsfCd}, 1, 2)
+        AND SV_BIZ_DCLSF_CD = #{svBizDclsfCd}
+        AND WK_SN = #{wkSn}
     </insert>
 </mapper>
