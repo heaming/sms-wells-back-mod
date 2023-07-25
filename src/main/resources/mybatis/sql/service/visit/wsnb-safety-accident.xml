@@ -158,7 +158,7 @@
              , T1.CAUS_ANA_APN_DOC_ID
         FROM TB_SVPD_ACDN_DOAN_IZ T1
         LEFT OUTER JOIN TB_OGBS_MM_OG_IZ O1
-          ON O1.BASE_YM = SUBSTR(T1.RCPDT,1,6)
+          ON O1.BASE_YM = SUBSTR(SYSDATE, 'YYYYMM')
          AND O1.OG_ID = T1.SV_CNR_OG_ID
          AND O1.OG_LEVL_DV_CD = '1'
          AND O1.DTA_DL_YN = 'N'
@@ -202,7 +202,6 @@
              , FML_REL_DV_CD2       = #{fmlRelDvCd2}
              , ETC_CN2              = #{etcCn2}
              , MAAS_FNM             = #{maasFnm}
-             , MAAS_BRYY_MMDD       = #{maasBirthdate}
              , MAAS_CRAL_LOCARA_TNO = #{cralLocaraTno}
              , MAAS_MEXNO_ENCR      = #{mexnoEncr}
              , MAAS_CRAL_IDV_TNO    = #{cralIdvTno}
@@ -321,18 +320,12 @@
                       , INSRCO_CPS_AMT         = ${insrcoCpsAmt}
                       , KW_CPS_AMT             = ${kwCpsAmt}
                       , WRTE_DT                = TO_CHAR(SYSDATE,'YYYYMMDD')
-                    <if test='@MybatisUtils@isNotEmpty(acdnPhoApnDocId)'>
-                      , ACDN_PHO_FILE_APN_YN   = 'Y'
+                      , ACDN_PHO_FILE_APN_YN   = (CASE WHEN #{acdnPhoApnDocId} IS NOT NULL THEN 'Y' ELSE 'N' END)
                       , ACDN_PHO_APN_DOC_ID    = #{acdnPhoApnDocId}
-                    </if>
-                    <if test='@MybatisUtils@isNotEmpty(acdnPictrApnDocId)'>
-                      , ACDN_PICTR_FILE_APN_YN = 'Y'
+                      , ACDN_PICTR_FILE_APN_YN = (CASE WHEN #{acdnPhoApnDocId} IS NOT NULL THEN 'Y' ELSE 'N' END)
                       , ACDN_PICTR_APN_DOC_ID  = #{acdnPictrApnDocId}
-                    </if>
-                    <if test='@MybatisUtils@isNotEmpty(causAnaApnDocId)'>
-                      , CAUS_ANA_FILE_APN_YN = 'Y'
-                      , CAUS_ANA_APN_DOC_ID  = #{causAnaApnDocId}
-                    </if>
+                      , CAUS_ANA_FILE_APN_YN   = (CASE WHEN #{acdnPictrApnDocId} IS NOT NULL THEN 'Y' ELSE 'N' END)
+                      , CAUS_ANA_APN_DOC_ID    = #{causAnaApnDocId}
                     <include refid="COMMON.updateSystemField"/>
         WHEN NOT MATCHED THEN
              INSERT (
@@ -420,7 +413,7 @@
                   , DTA_DL_YN
                   <include refid="COMMON.insertSystemField" />)
              VALUES
-                  ( #{acdnRcpId} /* 시퀀스 채번필요. */
+                  ( TO_CHAR(SYSDATE,'YYYYMMDD') || LPAD(SQ_SVPD_ACDN_DOAN_IZ$ACDN_RCP_ID.NEXTVAL,3,'0')
                   , #{acdnRcpNm}
                   , #{cntrNo}
                   , #{cntrSn}
@@ -433,6 +426,7 @@
                   , #{pdNm}
                   , #{rcpdt}
                   , ''
+                  , #{istDt}
                   , ''
                   , #{acdnDtm}
                   , #{cstNm}
