@@ -87,5 +87,7 @@ public class WsnaLogisticsOutStorageFinishDvo {
     private String ostrPrtnrNo;
     // 출고창고조직유형코드
     private String ostrPrtnrOgTpCd;
+    // 입고희망일자
+    private String strHopDt;
 
 }

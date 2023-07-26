@@ -147,6 +147,8 @@ public class WsnaLogisticsOutStorageFinishService {
 
             iostDvo.setOstrDt(itm.getOstrDt());
             iostDvo.setOstrTpCd(SnServiceConst.NOM_OSTR);
+            iostDvo.setBoxUnitQty(itm.getBoxUnitQty());
+            iostDvo.setStrHopDt(itm.getStrHopDt());
 
             // 품목출고내역 생성
             this.mapper.insertItmOstrIz(iostDvo);
@@ -229,6 +231,8 @@ public class WsnaLogisticsOutStorageFinishService {
 
             iostDvo.setOstrDt(itm.getOstrDt());
             iostDvo.setOstrTpCd(SnServiceConst.QOM_ASN_OSTR);
+            iostDvo.setBoxUnitQty(itm.getBoxUnitQty());
+            iostDvo.setStrHopDt(itm.getStrHopDt());
 
             // 품목출고내역 생성
             this.mapper.insertItmOstrIz(iostDvo);
