@@ -79,4 +79,13 @@ public class WsnaLogisticsOutStorageFinishDvo {
     // 박스단위수량 (BOX_UNIT_QTY)
     private Integer boxUnitQty;
 
+    // 출고대상창고번호
+    private String ostrOjWareNo;
+    // 출고대상창고구분코드
+    private String ostrWareDvCd;
+    // 출고창고파트너번호
+    private String ostrPrtnrNo;
+    // 출고창고조직유형코드
+    private String ostrPrtnrOgTpCd;
+
 }

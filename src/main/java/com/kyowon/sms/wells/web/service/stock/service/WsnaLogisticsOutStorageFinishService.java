@@ -42,11 +42,6 @@ public class WsnaLogisticsOutStorageFinishService {
     // 재고내역 서비스
     private final WsnaItemStockItemizationService stockService;
 
-    // 물류창고번호
-    private static final String LGST_WARE_NO = "100002";
-    // 물류창고구분코드
-    private static final String LGST_WARE_DV_CD = "1";
-
     // 출고
     private static final String GUBUN_OSTR = "O";
     // 입고
@@ -115,13 +110,20 @@ public class WsnaLogisticsOutStorageFinishService {
         ValidAssert.notEmpty(itms);
         // 입고번호 채번
         String newItmStrNo = this.mapper.selectNewItmStrNo(SnServiceConst.NOM_STR);
+        // 출고번호 채번
+        String newItmOstrNo = this.mapper.selectNewItmOstrNo(SnServiceConst.NOM_OSTR);
 
         WsnaLogisticsOutStorageFinishIostDvo iostDvo = new WsnaLogisticsOutStorageFinishIostDvo();
         iostDvo.setItmStrNo(newItmStrNo);
+        iostDvo.setItmOstrNo(newItmOstrNo);
 
         for (WsnaLogisticsOutStorageFinishDvo itm : itms) {
             int strSn = this.mapper.selectNewStrSn(newItmStrNo);
             iostDvo.setStrSn(strSn);
+
+            int ostrSn = this.mapper.selectNewOstrSn(newItmOstrNo);
+            iostDvo.setOstrSn(ostrSn);
+
             // 정상입고
             iostDvo.setStrTpCd(SnServiceConst.NOM_STR);
 
@@ -137,16 +139,24 @@ public class WsnaLogisticsOutStorageFinishService {
 
             iostDvo.setOstrAkNo(itm.getOstrAkNo());
             iostDvo.setOstrAkSn(itm.getOstrAkSn());
-            iostDvo.setItmOstrNo(itm.getItmOstrNo());
-            iostDvo.setOstrSn(itm.getOstrSn());
 
-            iostDvo.setOstrOjWareNo(LGST_WARE_NO);
-            iostDvo.setOstrWareDvCd(LGST_WARE_DV_CD);
+            iostDvo.setOstrOjWareNo(itm.getOstrOjWareNo());
+            iostDvo.setOstrWareDvCd(itm.getOstrWareDvCd());
+            iostDvo.setOstrPrtnrOgTpCd(itm.getOstrPrtnrOgTpCd());
+            iostDvo.setOstrPrtnrNo(itm.getOstrPrtnrNo());
+
             iostDvo.setOstrDt(itm.getOstrDt());
             iostDvo.setOstrTpCd(SnServiceConst.NOM_OSTR);
 
+            // 품목출고내역 생성
+            this.mapper.insertItmOstrIz(iostDvo);
+
             // 품목입고내역 생성
             this.mapper.insertItmStrIz(iostDvo);
+
+            // 품목재고내역 등록 - 출고창고
+            WsnaItemStockItemizationReqDvo ostrStockReq = this.convertStockItemizationCreateReq(iostDvo, GUBUN_OSTR);
+            this.stockService.createStock(ostrStockReq);
 
             // 품목재고내역 이동 - 입고창고
             WsnaItemStockItemizationReqDvo strMoveReq = this.convertStockItemizationMoveReq(iostDvo);
@@ -178,9 +188,12 @@ public class WsnaLogisticsOutStorageFinishService {
 
         // 입고번호 채번 - 물량배정
         String newItmStrNo = this.mapper.selectNewItmStrNo(SnServiceConst.QOM_ASN);
+        // 출고번호 채번
+        String newItmOstrNo = this.mapper.selectNewItmOstrNo(SnServiceConst.QOM_ASN_OSTR);
 
         WsnaLogisticsOutStorageFinishIostDvo iostDvo = new WsnaLogisticsOutStorageFinishIostDvo();
         iostDvo.setItmStrNo(newItmStrNo);
+        iostDvo.setItmOstrNo(newItmOstrNo);
 
         WsnaLogisticsOutStorageFinishIostDvo hgrIostDvo = new WsnaLogisticsOutStorageFinishIostDvo();
         hgrIostDvo.setRmkCn(rmkCn);
@@ -189,6 +202,10 @@ public class WsnaLogisticsOutStorageFinishService {
             // 입고창고번호 = 출고요청창고의 상위창고 번호, 출고창고번호 = 물류창고번호
             int strSn = this.mapper.selectNewStrSn(newItmStrNo);
             iostDvo.setStrSn(strSn);
+
+            int ostrSn = this.mapper.selectNewOstrSn(newItmOstrNo);
+            iostDvo.setOstrSn(ostrSn);
+
             // 물량배정
             iostDvo.setStrTpCd(SnServiceConst.QOM_ASN);
 
@@ -204,16 +221,24 @@ public class WsnaLogisticsOutStorageFinishService {
 
             iostDvo.setOstrAkNo(itm.getOstrAkNo());
             iostDvo.setOstrAkSn(itm.getOstrAkSn());
-            iostDvo.setItmOstrNo(itm.getItmOstrNo());
-            iostDvo.setOstrSn(itm.getOstrSn());
 
-            iostDvo.setOstrOjWareNo(LGST_WARE_NO);
-            iostDvo.setOstrWareDvCd(LGST_WARE_DV_CD);
+            iostDvo.setOstrOjWareNo(itm.getOstrOjWareNo());
+            iostDvo.setOstrWareDvCd(itm.getOstrWareDvCd());
+            iostDvo.setOstrPrtnrOgTpCd(itm.getOstrPrtnrOgTpCd());
+            iostDvo.setOstrPrtnrNo(itm.getOstrPrtnrNo());
+
             iostDvo.setOstrDt(itm.getOstrDt());
             iostDvo.setOstrTpCd(SnServiceConst.QOM_ASN_OSTR);
 
+            // 품목출고내역 생성
+            this.mapper.insertItmOstrIz(iostDvo);
+
             // 품목입고내역 생성
             this.mapper.insertItmStrIz(iostDvo);
+
+            // 품목재고내역 등록 - 출고창고
+            WsnaItemStockItemizationReqDvo ostrStockReq = this.convertStockItemizationCreateReq(iostDvo, GUBUN_OSTR);
+            this.stockService.createStock(ostrStockReq);
 
             // 품목재고내역 이동 - 입고창고
             WsnaItemStockItemizationReqDvo strMoveReq = this.convertStockItemizationMoveReq(iostDvo);
