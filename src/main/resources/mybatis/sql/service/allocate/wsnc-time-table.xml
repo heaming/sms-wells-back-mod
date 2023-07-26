@@ -928,23 +928,23 @@
                             SELECT NVL(LIM_QTY, 500), DAYS
                               FROM (SELECT T1.LIM_QTY, T1.VST_DT
                                       FROM TB_SVPD_DCBY_SDING_RCP_LIM_IZ T1 /*LC_FARM_FA105TB 일별모종접수한도내역*/
-                                     WHERE (WIDE_SDING_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106345'
-                                                                     WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106347'
-                                                                     WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106349'
-                                                                     WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106351'
-                                                                     ELSE #{pdctPdCd}
+                                     WHERE 1=1
+                                       /*AND (WIDE_SDING_PD_CD = (CASE WHEN {pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106345'
+                                                                     WHEN {pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106347'
+                                                                     WHEN {pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106349'
+                                                                     WHEN {pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106351'
+                                                                     ELSE {pdctPdCd}
                                                                 END)
-                                        OR  SLIM_SDING_PD_CD = (CASE WHEN #{pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106346'
-                                                                     WHEN #{pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106348'
-                                                                     WHEN #{pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106350'
-                                                                     WHEN #{pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106352'
-                                                                     ELSE #{pdctPdCd}
-                                                                END))
+                                        OR  SLIM_SDING_PD_CD = (CASE WHEN {pdctPdCd} IN ('WM05106364', 'WM05106365', 'WM05106345', 'WM05106355', 'WM05106356', 'WM05106346') THEN 'WM05106346'
+                                                                     WHEN {pdctPdCd} IN ('WM05106366', 'WM05106367', 'WM05106347', 'WM05106357', 'WM05106358', 'WM05106348') THEN 'WM05106348'
+                                                                     WHEN {pdctPdCd} IN ('WM05106368', 'WM05106369', 'WM05106360', 'WM05106359', 'WM05106349', 'WM05106350') THEN 'WM05106350'
+                                                                     WHEN {pdctPdCd} IN ('WM05106370', 'WM05106371', 'WM05106351', 'WM05106352', 'WM05106361', 'WM05106362') THEN 'WM05106352'
+                                                                     ELSE {pdctPdCd}
+                                                                END))*/
                                        AND LIM_SN = (SELECT LPAD(NVL(MAX(FA105.LIM_SN), 0), 2, '0')
                                                        FROM TB_SVPD_DCBY_SDING_RCP_LIM_IZ FA105 /*LC_FARM_FA105TB 일별모종접수한도내역*/
                                                       WHERE FA105.VST_DT = T1.VST_DT
-                                                        AND FA105.WIDE_SDING_PD_CD = T1.WIDE_SDING_PD_CD
-                                                        AND FA105.SLIM_SDING_PD_CD = T1.SLIM_SDING_PD_CD
+                                                        AND FA105.SDING_PKG_GRP_CD = T1.SDING_PKG_GRP_CD
                                                         AND FA105.SV_BIZ_HCLSF_CD = #{svDvCd})
                                        AND VST_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
                                        AND SV_BIZ_HCLSF_CD = #{svDvCd})
