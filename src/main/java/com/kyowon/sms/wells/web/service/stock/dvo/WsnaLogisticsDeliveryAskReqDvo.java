@@ -18,6 +18,8 @@ public class WsnaLogisticsDeliveryAskReqDvo {
 
     // 출고요청번호 (OSTR_AK_NO)
     private String ostrAkNo;
+    // 출고요청일련번호 (OSTR_AK_SN)
+    private int ostrAkSn;
 
     // 차수 (TCNT)
     private Integer tcnt;
