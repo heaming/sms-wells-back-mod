@@ -724,7 +724,7 @@
              , DTA_DL_YN
             <include refid="COMMON.insertSystemField"/>
         ) VALUES (
-               (SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVPD_CST_SV_BFSVC_OJ_HIST$BFSVC_OJ_IZ_ID.NEXTVAL, 12, '0') AS BFSVC_OJ_IZ_ID FROM DUAL)
+               (SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(SQ_SVPD_CST_SV_RGBSPR_HIST$RGBSPR_CHT_CRT_HIST_ID.NEXTVAL, 12, '0') AS BFSVC_OJ_IZ_ID FROM DUAL)
              , #{cntrNo}
              , #{asnOjYm}
              , #{cntrSn}
