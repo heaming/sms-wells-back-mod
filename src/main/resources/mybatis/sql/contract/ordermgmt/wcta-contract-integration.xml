@@ -252,7 +252,7 @@
                  ON T21.PD_CD = T10.BASE_PD_CD
                 AND T21.DTA_DL_YN = 'N'
                LEFT OUTER JOIN TB_GBCO_ADR_BAS T22           /* T.주소기본(계약자) */
-                 ON T22.ADR_ID = T15.ADR_ID
+                 ON T22.ADR_ID = T18.ADR_ID
                 AND T22.DTA_DL_YN = 'N'
                LEFT OUTER JOIN LATERAL (
                     SELECT /*+ ORDERED USE_NL(T24) INDEX(T23 PK_SVPD_MCBY_CST_SV_OJ_IZ) */
