@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiRequidationDateMapper">
+
+    <!--
+    EAI INTERFACE 통신 시 data key는 snake case를 사용함.
+    resultMap을 사용하여 response dto에 매핑함.
+    -->
+    <resultMap id="RequidationInfo" type="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiRequidationDateDto$FindRes">
+        <constructor>
+            <arg name="CNTR_NO" javaType="java.lang.String" column="CNTR_NO"/>
+            <arg name="CNTR_SN" javaType="java.lang.Integer" column="CNTR_SN"/>
+            <arg name="CNTR_DT" javaType="java.lang.String" column="CNTR_DT"/>
+            <arg name="IST_DT" javaType="java.lang.String" column="IST_DT"/>
+            <arg name="REQD_DT" javaType="java.lang.String" column="REQD_DT"/>
+            <arg name="REQD_IST_DC_GAP" javaType="java.lang.Integer" column="REQD_IST_DC_GAP"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectRequidationDate" resultMap="RequidationInfo">
+        SELECT WD.CNTR_NO
+             , WD.CNTR_SN
+             , SUBSTR(CB.CNTR_CNFM_APR_DTM, 0, 8) AS CNTR_DT
+             , WD.IST_DT
+             , WD.REQD_DT
+             , TO_DATE(WD.REQD_DT, 'YYYYMMDD')  - TO_DATE(WD.IST_DT, 'YYYYMMDD') AS REQD_IST_DC_GAP
+          FROM TB_SSCT_CNTR_WELLS_DTL WD
+         INNER JOIN TB_SSCT_CNTR_BAS CB
+            ON WD.CNTR_NO = CB.CNTR_NO
+           AND CB.DTA_DL_YN = 'N'
+         WHERE WD.CNTR_NO = #{CNTR_NO}
+           AND WD.CNTR_SN = #{CNTR_SN}
+           AND WD.DTA_DL_YN = 'N'
+    </select>
+</mapper>

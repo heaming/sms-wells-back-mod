@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaCreditInformationMapper">
+
+    <select id="selectCinfInqrHistory" resultType="String" >
+        SELECT CINF_INQR_RS_CD
+          FROM TB_SSCT_CINF_INQR_IZ CI
+         WHERE CO_CD = #{coCd}
+           AND CINF_INQR_USWY_CD = #{inqrUswy}
+           AND SFK_VAL = #{safeKey}
+           AND CINF_INQR_DT >= TO_CHAR(SYSDATE-14, 'YYYYMMDD')
+    </select>
+
+    <insert id="insertCinfInqr" parameterType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCreditInformationDvo">
+        <selectKey keyProperty="item.ksiseq" resultType="java.lang.String" order="BEFORE">
+            SELECT NVL(MAX(KSISEQ)+1,1) AS KSISEQ
+              FROM TB_IFIN_NICE_CINF_INQR_IZ
+        </selectKey>
+
+        INSERT INTO TB_IFIN_NICE_CINF_INQR_IZ(
+              KSCOMP
+            , KSIGUB
+            , KSIDNO
+            , KSQYMD
+            , KSISEQ
+            , KSSALE
+            , KSDCDE
+            , KSDBON
+            , KSJDIV
+            , KSTYPE
+            , CNTR_NO
+            , CNTR_SN
+            , KSUCDE
+            , KSICDE
+            , KSSMDT
+            , DTA_DL_YN
+            <include refid="COMMON.insertSystemField" />
+        )VALUES(
+              #{item.coCd}
+            , #{item.cstDvCd}
+            , #{item.safeKey}
+            , #{item.ksqymd}
+            , #{item.ksiseq}
+            , #{item.sellDvCd}
+            , #{item.sellerEpNo}
+            , #{item.dsmnEpNo}
+            , '1'
+            , '1'
+            , #{item.cntrNo}
+            , #{item.cntrSn}
+            , #{item.inqrUswy}
+            , #{session.employeeIDNumber}
+            , TO_CHAR(SYSDATE, 'YYYYMMDD')
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+
+    <update id="updateNiceCinfInqr">
+        UPDATE TB_IFIN_NICE_CINF_INQR_IZ
+           SET KSRCDE = #{data.KSRCDE}
+             , KSBCNT = #{data.KSBCNT}
+             , KSNAME = #{data.KSNAME}
+             , KSREST = #{data.KSREST}
+             , KSRMDT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , KSEMDT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , KSB101 = #{data.KSB101}
+             , KSB102 = #{data.KSB102}
+             , KSB103 = #{data.KSB103}
+             , KSB104 = #{data.KSB104}
+             , KSB105 = #{data.KSB105}
+             , KSB106 = #{data.KSB106}
+             , KSB107 = #{data.KSB107}
+             , KSB108 = #{data.KSB108}
+             , KSB109 = #{data.KSB109}
+             , KSB110 = #{data.KSB110}
+             , KSB111 = #{data.KSB111}
+             , KSB112 = #{data.KSB112}
+             , KSB113 = #{data.KSB113}
+             , KSB114 = #{data.KSB114}
+             , KSB201 = #{data.KSB201}
+             , KSB202 = #{data.KSB202}
+             , KSB203 = #{data.KSB203}
+             , KSB204 = #{data.KSB204}
+             , KSB205 = #{data.KSB205}
+             , KSB206 = #{data.KSB206}
+             , KSB207 = #{data.KSB207}
+             , KSB208 = #{data.KSB208}
+             , KSB209 = #{data.KSB209}
+             , KSB210 = #{data.KSB210}
+             , KSB211 = #{data.KSB211}
+             , KSB212 = #{data.KSB212}
+             , KSB213 = #{data.KSB213}
+             , KSB214 = #{data.KSB214}
+             , KSB301 = #{data.KSB301}
+             , KSB302 = #{data.KSB302}
+             , KSB303 = #{data.KSB303}
+             , KSB304 = #{data.KSB304}
+             , KSB305 = #{data.KSB305}
+             , KSB306 = #{data.KSB306}
+             , KSB307 = #{data.KSB307}
+             , KSB308 = #{data.KSB308}
+             , KSB309 = #{data.KSB309}
+             , KSB310 = #{data.KSB310}
+             , KSB311 = #{data.KSB311}
+             , KSB312 = #{data.KSB312}
+             , KSB313 = #{data.KSB313}
+             , KSB314 = #{data.KSB314}
+             , KSB401 = #{data.KSB401}
+             , KSB402 = #{data.KSB402}
+             , KSB403 = #{data.KSB403}
+             , KSB404 = #{data.KSB404}
+             , KSB405 = #{data.KSB405}
+             , KSB406 = #{data.KSB406}
+             , KSB407 = #{data.KSB407}
+             , KSB408 = #{data.KSB408}
+             , KSB409 = #{data.KSB409}
+             , KSB410 = #{data.KSB410}
+             , KSB411 = #{data.KSB411}
+             , KSB412 = #{data.KSB412}
+             , KSB413 = #{data.KSB413}
+             , KSB414 = #{data.KSB414}
+             , KSB501 = #{data.KSB501}
+             , KSB502 = #{data.KSB502}
+             , KSB503 = #{data.KSB503}
+             , KSB504 = #{data.KSB504}
+             , KSB505 = #{data.KSB505}
+             , KSB506 = #{data.KSB506}
+             , KSB507 = #{data.KSB507}
+             , KSB508 = #{data.KSB508}
+             , KSB509 = #{data.KSB509}
+             , KSB510 = #{data.KSB510}
+             , KSB511 = #{data.KSB511}
+             , KSB512 = #{data.KSB512}
+             , KSB513 = #{data.KSB513}
+             , KSB514 = #{data.KSB514}
+             , KSB601 = #{data.KSB601}
+             , KSB602 = #{data.KSB602}
+             , KSB603 = #{data.KSB603}
+             , KSB604 = #{data.KSB604}
+             , KSB605 = #{data.KSB605}
+             , KSB606 = #{data.KSB606}
+             , KSB607 = #{data.KSB607}
+             , KSB608 = #{data.KSB608}
+             , KSB609 = #{data.KSB609}
+             , KSB610 = #{data.KSB610}
+             , KSB611 = #{data.KSB611}
+             , KSB612 = #{data.KSB612}
+             , KSB613 = #{data.KSB613}
+             , KSB614 = #{data.KSB614}
+             , KSB701 = #{data.KSB701}
+             , KSB702 = #{data.KSB702}
+             , KSB703 = #{data.KSB703}
+             , KSB704 = #{data.KSB704}
+             , KSB705 = #{data.KSB705}
+             , KSB706 = #{data.KSB706}
+             , KSB707 = #{data.KSB707}
+             , KSB708 = #{data.KSB708}
+             , KSB709 = #{data.KSB709}
+             , KSB710 = #{data.KSB710}
+             , KSB711 = #{data.KSB711}
+             , KSB712 = #{data.KSB712}
+             , KSB713 = #{data.KSB713}
+             , KSB714 = #{data.KSB714}
+             , KSB801 = #{data.KSB801}
+             , KSB802 = #{data.KSB802}
+             , KSB803 = #{data.KSB803}
+             , KSB804 = #{data.KSB804}
+             , KSB805 = #{data.KSB805}
+             , KSB806 = #{data.KSB806}
+             , KSB807 = #{data.KSB807}
+             , KSB808 = #{data.KSB808}
+             , KSB809 = #{data.KSB809}
+             , KSB810 = #{data.KSB810}
+             , KSB811 = #{data.KSB811}
+             , KSB812 = #{data.KSB812}
+             , KSB813 = #{data.KSB813}
+             , KSB814 = #{data.KSB814}
+             , KSB901 = #{data.KSB901}
+             , KSB902 = #{data.KSB902}
+             , KSB903 = #{data.KSB903}
+             , KSB904 = #{data.KSB904}
+             , KSB905 = #{data.KSB905}
+             , KSB906 = #{data.KSB906}
+             , KSB907 = #{data.KSB907}
+             , KSB908 = #{data.KSB908}
+             , KSB909 = #{data.KSB909}
+             , KSB910 = #{data.KSB910}
+             , KSB911 = #{data.KSB911}
+             , KSB912 = #{data.KSB912}
+             , KSB913 = #{data.KSB913}
+             , KSB914 = #{data.KSB914}
+             , KSB001 = #{data.KSB001}
+             , KSB002 = #{data.KSB002}
+             , KSB003 = #{data.KSB003}
+             , KSB004 = #{data.KSB004}
+             , KSB005 = #{data.KSB005}
+             , KSB006 = #{data.KSB006}
+             , KSB007 = #{data.KSB007}
+             , KSB008 = #{data.KSB008}
+             , KSB009 = #{data.KSB009}
+             , KSB010 = #{data.KSB010}
+             , KSB011 = #{data.KSB011}
+             , KSB012 = #{data.KSB012}
+             , KSB013 = #{data.KSB013}
+             , KSB014 = #{data.KSB014}
+             <include refid="COMMON.updateSystemField"/>
+         WHERE KSCOMP = #{item.coCd}
+           AND KSIGUB = #{item.cstDvCd}
+           AND KSIDNO = #{item.safeKey}
+           AND KSQYMD = #{item.ksqymd}
+           AND KSISEQ = #{item.ksiseq}
+    </update>
+
+    <update id="mergeCinfInqr">
+        MERGE INTO TB_SSCT_CINF_INQR_IZ SC
+        USING ( SELECT KSCOMP
+                     , KSIGUB
+                     , KSIDNO
+                     , KSQYMD
+                     , KSISEQ
+                     , KSUCDE
+                     , KSNAME
+                     , CNTR_NO
+                     , KSBCNT
+                     , KSCCNT
+                     , KSREST
+                  FROM TB_IFIN_NICE_CINF_INQR_IZ
+                 WHERE KSCOMP = #{coCd}
+                   AND KSIGUB = #{cstDvCd}
+                   AND KSIDNO = #{safeKey}
+                   AND KSQYMD = #{ksqymd}
+                   AND KSISEQ = #{ksiseq}
+              ) NC
+           ON (SC.CINF_INQR_DT = NC.KSQYMD
+               AND SC.CO_CD = NC.KSCOMP
+               AND SC.SFK_VAL = NC.KSIDNO
+               AND SC.CINF_INQR_USWY_CD = NC.KSUCDE
+              )
+          WHEN MATCHED THEN
+               UPDATE
+                  SET CINF_INQR_FNM = NC.KSNAME
+                    , CNTR_NO = NC.CNTR_NO
+                    , OVRD_RGC_N = NC.KSBCNT
+                    , OVRD_RLS_CT = 0
+                    , CRD_OP_CT = NC.KSCCNT
+                    , CINF_INQR_DV_CD = 2
+                    , CINF_INQR_RS_CD = NC.KSREST
+                    <include refid="COMMON.updateSystemField"/>
+          WHEN NOT MATCHED THEN
+               INSERT (
+                  CINF_INQR_DT
+                , CO_CD
+                , SFK_VAL
+                , CINF_INQR_USWY_CD
+                , CINF_INQR_FNM
+                , CNTR_NO
+                , OVRD_RGC_N
+                , OVRD_RLS_CT
+                , CRD_OP_CT
+                , CINF_INQR_DV_CD
+                , CINF_INQR_RS_CD
+                , DTA_DL_YN
+                <include refid="COMMON.insertSystemField" />
+               )
+               VALUES (
+                 NC.KSQYMD
+               , NC.KSCOMP
+               , NC.KSIDNO
+               , NC.KSUCDE
+               , NC.KSNAME
+               , NC.CNTR_NO
+               , NC.KSBCNT
+               , 0
+               , NC.KSCCNT
+               , 2
+               , NC.KSREST
+               , 'N'
+               <include refid="COMMON.insertSystemFieldValue"/>
+               )
+    </update>
+
+    <select id="selectCbboDflt" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaCbboDefaultRegistDvo">
+        SELECT KW_GRP_CO_CD
+             , DFLT_MNGT_DV_CD
+             , SFK_VAL
+             , DFLT_RGST_DV_CD
+             , RLS_DT
+          FROM TB_CBBO_DFLT_RGST_BAS
+         WHERE KW_GRP_CO_CD = #{coCd}
+           AND DFLT_MNGT_DV_CD = '1'
+           AND SFK_VAL = #{safeKey}
+    </select>
+
+    <update id="updateCbboDflt">
+        MERGE INTO TB_CBBO_DFLT_RGST_BAS CD
+        USING DUAL
+           ON (CD.KW_GRP_CO_CD = #{kwGrpCoCd}
+               AND CD.DFLT_MNGT_DV_CD = '1'
+               AND CD.SFK_VAL = #{sfkVal}
+              )
+          WHEN MATCHED THEN
+               UPDATE
+                  SET RLS_DT = #{rlsDt}
+                <if test='@MybatisUtils@isNotEmpty(dfltRgstDvCd)'>, DFLT_RGST_DV_CD = #{dfltRgstDvCd}</if>
+                <if test='@MybatisUtils@isNotEmpty(cstNm)'>, CST_NM = #{cstNm}</if>
+                <if test='@MybatisUtils@isNotEmpty(cinfInqrRsonCd)'>, CINF_INQR_RSON_CD = #{cinfInqrRsonCd}</if>
+                <if test='@MybatisUtils@isNotEmpty(ocDt)'>, OC_DT = #{ocDt}</if>
+
+                <include refid="COMMON.updateSystemField"/>
+          WHEN NOT MATCHED THEN
+               INSERT (
+                  KW_GRP_CO_CD
+                , DFLT_MNGT_DV_CD
+                , SFK_VAL
+                <if test='@MybatisUtils@isNotEmpty(dfltRgstDvCd)'>, DFLT_RGST_DV_CD</if>
+                <if test='@MybatisUtils@isNotEmpty(cstNm)'>, CST_NM</if>
+                <if test='@MybatisUtils@isNotEmpty(cinfInqrRsonCd)'>, CINF_INQR_RSON_CD</if>
+                <if test='@MybatisUtils@isNotEmpty(ocDt)'>, OC_DT</if>
+                <if test='@MybatisUtils@isNotEmpty(rlsDt)'>, RLS_DT</if>
+                , DTA_DL_YN
+                <include refid="COMMON.insertSystemField" />
+               )
+               VALUES (
+                 #{kwGrpCoCd}
+               , #{dfltMngtDvCd}
+               , #{sfkVal}
+                <if test='@MybatisUtils@isNotEmpty(dfltRgstDvCd)'>, #{dfltRgstDvCd}</if>
+                <if test='@MybatisUtils@isNotEmpty(cstNm)'>, #{cstNm}</if>
+                <if test='@MybatisUtils@isNotEmpty(cinfInqrRsonCd)'>, #{cinfInqrRsonCd}</if>
+                <if test='@MybatisUtils@isNotEmpty(ocDt)'>, #{ocDt}</if>
+                <if test='@MybatisUtils@isNotEmpty(rlsDt)'>, #{rlsDt}</if>
+               , 'N'
+               <include refid="COMMON.insertSystemFieldValue"/>
+               )
+    </update>
+</mapper>

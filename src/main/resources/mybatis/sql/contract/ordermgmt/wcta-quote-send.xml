@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaQuoteSendMapper">
+    <select id="selectQuoteSendInf" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaQuoteSendDvo">
+        /* TABLE
+         * A1 TB_SSCT_CNTR_BAS    계약기본
+         * B1 TB_SSCT_CNTR_DTL    계약상세
+         * C1 TB_SSCT_CNTR_APR_IZ 계약승인내역
+         * D1 TB_CUBS_CST_BAS     고객기본
+         * E1 TB_PDBS_PD_BAS      상품기본
+         * F1 T_CMZ_CD_D          코드상세
+         * G1 TB_OGBS_PRTNR_BAS   파트너기본
+         */
+        WITH W1 AS
+           (
+            SELECT A1.CNTR_CST_NO /* 계약고객번호 */
+                 , D1.CST_KNM AS CNTR_CST_NM /* 계약고객명 [고객명] */
+                 , D1.CRAL_LOCARA_TNO AS CNTR_CST_CRAL_LOCARA_TNO/* 휴대지역전화번호 */
+                 , D1.MEXNO_ENCR AS CNTR_CST_MEXNO_ENCR /* 휴대전화국번호암호화 */
+                 , D1.CRAL_IDV_TNO AS CNTR_CST_CRAL_IDV_TNO /* 휴대개별전화번호 */
+                 , D1.EMADR /* 이메일주소 */
+                 , F_CMZ_CD_NM(#{session.tenantId}, 'COPN_DV_CD', A1.COPN_DV_CD) AS COPN_DV_NM /* 법인격구분코드명 [개인/법인 구분] */
+                 , B1.BASE_PD_CD /* 기준상품코드 */
+                 , (
+                    SELECT MAX(E1.PD_NM) /* 상품기본.상품명 */
+                      FROM TB_PDBS_PD_BAS E1 /* 상품기본 */
+                     WHERE E1.PD_CD = B1.BASE_PD_CD /* 상품기본.상품코드 = 계약상세.기준상품코드 */
+                       AND E1.DTA_DL_YN = 'N'
+                       AND E1.TEMP_SAVE_YN = 'N' /* 상품기본.임시저장여부 ='N' */
+                   ) AS BASE_PD_NM /* 기준상품명 [제품명] */
+                 , B1.SELL_DSC_TP_CD /* 판매할인유형코드 */
+                 , F_CMZ_CD_NM(#{session.tenantId}
+                              , (
+                                 SELECT F1.USER_DFN_02 AS ID
+                                   FROM T_CMZ_CD_D F1
+                                  WHERE F1.CD_ID = 'SELL_DSC_TP_CD'
+                                    AND F1.TENANT_ID = #{session.tenantId}
+                                    AND F1.CD_VLD_VAL = B1.SELL_TP_CD
+                                )
+                              , B1.SELL_DSC_TP_CD ) AS SELL_DSC_TP_NM /* 판매할인유형코드명 [유형/약정] */
+                 , B1.STPL_PTRM_UNIT_CD /* 약정기간단위코드 */
+                 , B1.STPL_PTRM /* 약정기간 [유형/약정] */
+                 , B1.SV_PTRM_UNIT_CD /* 서비스기간단위코드 */
+                 , B1.SV_PRD /* 서비스주기 [주기/용도]*/
+                 , F_CMZ_CD_NM(#{session.tenantId}, 'ALNCMP_CD', B1.ALNCMP_CD) AS ALNCMP_CD_NM /* 제휴사코드명 [제휴] */
+                 , B1.CNTR_AMT /* 계약금(등록비) [등록비] */
+                 , B1.PD_BASE_AMT /* 상품기준금액 [정상가] */
+                 , B1.FNL_AMT /* 최종금액 [할인적용가] */
+                 , 'http://wellsorder.kyowon.co.kr/cndcView/'||C1.CNTR_APR_ID||'/esdcView' AS LINK_URL /* [URL] AS-IS 'http://wellsorder.kyowon.co.kr/cndcView/"+esdcNo+"/esdcView' */
+                 , I1.PRTNR_KNM /* 파트너한글명 [판매자명] */
+                 , I1.CRAL_LOCARA_TNO AS PRTNR_CRAL_LOCARA_TNO /* 휴대지역전화번호 [판매자연락처] */
+                 , I1.MEXNO_ENCR AS PRTNR_MEXNO_ENCR /* 휴대전화국번호암호화 [판매자연락처] */
+                 , I1.CRAL_IDV_TNO AS PRTNR_CRAL_IDV_TNO /* 휴대개별전화번호 [판매자연락처] */
+                 , C1.CNTR_APR_ID /* 계약승인ID */
+              FROM TB_SSCT_CNTR_BAS A1/* 계약기본 */
+             INNER JOIN TB_SSCT_CNTR_DTL B1 /* 계약상세 */
+                ON B1.CNTR_NO = A1.CNTR_NO
+               AND B1.DTA_DL_YN = 'N'
+               AND A1.DTA_DL_YN = 'N'
+             /* 계약승인내역(TB_SSCT_CNTR_APR_IZ) JOIN이 필요한지 확인 필요 */
+             INNER JOIN TB_SSCT_CNTR_APR_IZ C1 /* 계약승인내역 */
+                ON C1.CNTR_NO = A1.CNTR_NO
+               AND C1.DTA_DL_YN = 'N'
+               AND A1.DTA_DL_YN = 'N'
+               --AND C1.APR_YN = 'Y' /* 승인여부 */
+             INNER JOIN TB_CUBS_CST_BAS D1 /* 고객기본 */
+                ON D1.CST_NO = A1.CNTR_CST_NO /* 고객기본.고객번호 = 계약기본.계약고객번호 */
+               AND D1.DTA_DL_YN = 'N'
+               AND D1.TEMP_SAVE_YN = 'N' /* 고객기본.임시저장여부 = 'N' */
+              LEFT OUTER JOIN LATERAL
+                 (
+                  SELECT G1.PRTNR_NO
+                       , MAX(G1.PRTNR_KNM) AS PRTNR_KNM /* 파트너 한글명 */
+                       , MAX(G1.CRAL_LOCARA_TNO) KEEP (DENSE_RANK FIRST ORDER BY NVL(G1.FNL_MDFC_DTM,G1.FST_RGST_DTM) DESC) AS CRAL_LOCARA_TNO
+                       , MAX(G1.MEXNO_ENCR) KEEP (DENSE_RANK FIRST ORDER BY NVL(G1.FNL_MDFC_DTM,G1.FST_RGST_DTM) DESC) AS MEXNO_ENCR
+                       , MAX(G1.CRAL_IDV_TNO) KEEP (DENSE_RANK FIRST ORDER BY NVL(G1.FNL_MDFC_DTM,G1.FST_RGST_DTM) DESC) AS CRAL_IDV_TNO
+                    FROM TB_OGBS_PRTNR_BAS G1 /* 파트너기본 */
+                   WHERE G1.OG_TP_CD = A1.SELL_OG_TP_CD
+                     AND G1.PRTNR_NO = A1.SELL_PRTNR_NO
+                     AND G1.DTA_DL_YN = 'N'
+                   GROUP BY G1.PRTNR_NO
+                 ) I1
+                ON I1.PRTNR_NO = A1.SELL_PRTNR_NO
+             WHERE A1.CNTR_TP_CD = '09' /* 계약유형코드='09'(견적서) */
+             AND B1.CNTR_NO = #{cntrNo}
+             AND B1.CNTR_SN = #{cntrSn}
+           )
+        SELECT * FROM W1
+    </select>
+    <select id="selectQuoteSendHists" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaQuoteSendDto$SearchRes">
+        SELECT RESERVED1 AS FW_TP_CD
+             , CALLBACK AS CALLBACK
+             , RECIPIENT_NUM AS RECIPIENT_NUM
+             , REG_DATE AS FW_DTM
+          FROM ATA_MMT_TRAN
+         WHERE 1=1
+           AND RESERVED2 = #{cntrNo}
+           AND RESERVED3 = #{cntrSn}
+    </select>
+</mapper>

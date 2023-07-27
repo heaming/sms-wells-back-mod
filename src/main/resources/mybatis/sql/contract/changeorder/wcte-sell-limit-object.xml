@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WcteSellLimitObjectMapper">
+    <select id="selectCrpJLmOjRgstYnInqr" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WcteSellLimitObjectDto$SearchRes">
+        SELECT SELL_LM_RSON_CD
+             , SELL_LM_RSON_CN
+          FROM TB_SSCT_SELL_LM_OJ_IZ T0
+         WHERE 1 = 1
+           AND T0.SELL_LM_BZRNO = #{sellLmBzrNo}
+           AND T0.SELL_LM_OJ_DRM_CD = '7'   /* 판매제한대상식별코드 7이면 사업자등록번호 */
+           AND T0.VL_END_DTM = '99991231235959' /* 유효종료일시가 마지막으로 유효한건 */
+           AND T0.SELL_LM_RLS_DTM IS NULL   /* 판매제한해제일시 미존재 */
+           AND T0.DTA_DL_YN = 'N'
+    </select>
+</mapper>

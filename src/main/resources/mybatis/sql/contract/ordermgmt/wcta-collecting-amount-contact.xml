@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaCollectingAmountContactMapper">
+    <select id="selectCollectingAmountContacts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaCollectingAmountContactDto$SearchRes">
+        SELECT ROWNUM AS RNUM /* [순번] */
+             , C1.CNTR_NO /* 계약번호 */
+             , C1.CNTR_SN /* 계약일련번호 */
+             , C1.CTT_DT /* [컨택일자] */
+             , NVL(C1.CTT_TM, C1.CTT_TM_RGST) AS CTT_TM  /* [컨택시간] 컨택시각/최초등록시간 */
+             , C1.EXP_DT /* [예정일자] */
+             , C1.CLCTAM_CTT_CD /* 집금컨택코드 */
+             , C1.CLCTAM_CTT_NM /* [컨택사항] 집금컨택명 */
+             , C1.DLQ_MCN /* [차월] 연체개월수 */
+             , C1.CTT_MO_CN /* [컨택메모] 컨택메모내용 */
+             , C1.FST_RGST_USR_ID /* 최초등록사용자ID */
+             , C1.SELL_OG_TP_CD /* 판매조직유형코드 */
+             , C1.USR_NM /* [등록담당] 최초등록사용자명 */
+               /* 삭제가능여부 컨택일자가 현재일이고 등록자가 37668(한상문) 인 경우에 가능 - 230324 삭제 처리  */
+               /* TODO : 등록된 사용자 조건이 하드코딩 되어있으므로 해당 조건을 적용해야 한다면 추후 해당 사용자의 사번으로 수정 필요 */
+             , CASE WHEN C1.CTT_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
+                         AND C1.FST_RGST_USR_ID = '37668' /* 개발팀-한상문 */
+                         THEN 'Y'
+                    ELSE 'N'
+               END AS MOD_YN /* 수정가능여부. TOBE에서는 삭제 컬럼이 삭제되어 사용안함. */
+          FROM
+             (
+              SELECT A1.CNTR_NO
+                   , A1.CNTR_SN
+                   , A1.CTT_Y||A1.CTT_MM||A1.CTT_D AS CTT_DT /* 컨택일자(컨택년도||컨택월||컨택일) [컨택일자] */
+                   , A1.FST_RGST_DTM /* 최초등록일 */
+                   , TO_CHAR(TO_DATE(A1.FST_RGST_DTM,'YYYYMMDDHH24MISS'), 'HH24:MI') AS CTT_TM_RGST /* 최초등록일로 매핑되어 있음 [컨택시간] */
+                   , CASE WHEN TRIM(A1.CTT_T) IS NOT NULL
+                               AND A1.CTT_T != 0 /* 232324기준 데이터가 0 */
+                               AND LENGTH(TRIM(A1.CTT_T)) = 6
+                               THEN SUBSTR(A1.CTT_T,1,2)||':'||SUBSTR(A1.CTT_T,3,2)
+                          ELSE ''
+                     END AS CTT_TM
+                   , A1.EXP_Y||A1.EXP_MM||A1.EXP_D AS EXP_DT /* 예정일자(예정일자||예정월||예정일) [예정일자] */
+                   , A1.CLCTAM_CTT_CD /* 집금컨택코드 */
+                   , F_CMZ_CD_NM('TNT_WELLS', 'CLCTAM_CTT_CD', A1.CLCTAM_CTT_CD) AS CLCTAM_CTT_NM /* 집금컨택코드명 */
+                   , A1.DLQ_MCN /* 연체개월수 [차월] */
+                   , A1.CTT_MO_CN /* 컨택메모내용 [컨택메모] */
+                   , A1.FST_RGST_USR_ID /* 최초등록사용자 */
+                   , A1.CTT_T
+                   , (
+                      SELECT MAX(B1.USR_NM)
+                        FROM T_CMP_USR_ACO_M B1 /* 사용자기본 */
+                       WHERE B1.EPNO = A1.FST_RGST_USR_ID /* 사용자기본.사용자ID = 계약상세.최초등록사용자 */
+                         AND B1.DEL_YN = 'N'
+                     ) AS USR_NM
+                   , A1.FST_RGST_DEPT_ID /* 최초등록부서ID */
+                   , SUBSTR(A1.FST_RGST_DTM, 1, 6) AS FST_RGST_YM /* 최초등록년월 */
+                     /* 월파트너내역(TB_OGBS_MM_PRTNR_IZ)에서 사용자 명을 확인하려면 조직유형코드(OG_TP_CD)가 필요함
+                      * 채권추심컨택내역(TB_CBBO_BND_CLCTN_BZS_CTT_IZ) TABLE의 조직유형코드가 없으므로
+                      * 계약기본(TB_SSCT_CNTR_BAS) TABLE의 판매조직유형코드(SELL_OG_TP_CD)를 대상으로 처리하여야 하는 건지 확인 필요
+                      * → 최초등록사용자의 사번(EPNO)와 최초등록부서(FST_RGST_DEPT_ID)를 기준으로 사용자명 임의로 조회
+                      */
+                   ,(
+                     SELECT MAX(SELL_OG_TP_CD) /* 판매조직유형코드 */
+                       FROM TB_SSCT_CNTR_BAS D1 /* 계약기본 */
+                      WHERE D1.CNTR_NO = A1.CNTR_NO
+                       AND D1.DTA_DL_YN = 'N'
+                    ) AS SELL_OG_TP_CD /* 판매조직유형코드 */
+                FROM TB_CBBO_BND_CLCTN_BZS_CTT_IZ A1 /* 채권추심업체컨택내역*/
+               WHERE A1.DTA_DL_YN = 'N'
+                 AND A1.CNTR_NO = #{cntrNo}
+                 AND A1.CNTR_SN = #{cntrSn}
+               ORDER BY  A1.CTT_Y||A1.CTT_MM||A1.CTT_D ASC /* AS-IS와 동일하게 기준 맞춤 - DESC가 맞지 않나 */
+             ) C1
+    </select>
+</mapper>

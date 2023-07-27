@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiContractInstallRelationMapper">
+
+    <!--
+    EAI INTERFACE 통신 시 data key는 snake case를 사용함.
+    resultMap을 사용하여 response dto에 매핑함.
+    -->
+    <resultMap id="relationInfo" type="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractInstallRelationDto$SearchRes">
+        <constructor>
+            <arg name="DV_NM" javaType="java.lang.String" column="DV_NM"/>
+            <arg name="SELL_TP_NM" javaType="java.lang.String" column="SELL_TP_NM"/>
+            <arg name="RLTD_CNTR_NO" javaType="java.lang.String" column="RLTD_CNTR_NO"/>
+            <arg name="RLTD_CNTR_SN" javaType="java.lang.Integer" column="RLTD_CNTR_SN"/>
+            <arg name="PD_CD" javaType="java.lang.String" column="PD_CD"/>
+            <arg name="PD_NM" javaType="java.lang.String" column="PD_NM"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectRelatedContracts" resultMap="relationInfo">
+        SELECT AFMDBS.F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_REL_DTL_CD', CR.CNTR_REL_DTL_CD) AS DV_NM
+             , AFMDBS.F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', CD.SELL_TP_CD) AS SELL_TP_NM
+             , RLTD_CNTR_NO
+             , RLTD_CNTR_SN
+             , PB.PD_CD
+             , PB.PD_NM
+          FROM (SELECT CNTR_REL_DTL_CD
+                     , OJ_DTL_CNTR_NO  AS RLTD_CNTR_NO
+                     , OJ_DTL_CNTR_SN  AS RLTD_CNTR_SN
+                  FROM TB_SSCT_CNTR_REL
+                 WHERE BASE_DTL_CNTR_NO = #{CNTR_NO}
+                   AND BASE_DTL_CNTR_SN = #{CNTR_SN}
+                   AND CNTR_REL_TP_CD IN ('20', '30')
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                   AND DTA_DL_YN = 'N'
+                 UNION
+                SELECT CNTR_REL_DTL_CD
+                     , BASE_DTL_CNTR_NO
+                     , BASE_DTL_CNTR_SN
+                  FROM TB_SSCT_CNTR_REL
+                 WHERE OJ_DTL_CNTR_NO = #{CNTR_NO}
+                   AND OJ_DTL_CNTR_SN = #{CNTR_SN}
+                   AND CNTR_REL_TP_CD IN ('20', '30')
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                   AND DTA_DL_YN = 'N'
+               ) CR
+         INNER JOIN TB_SSCT_CNTR_DTL CD
+            ON CD.CNTR_NO = CR.RLTD_CNTR_NO
+           AND CD.CNTR_SN = CR.RLTD_CNTR_SN
+           AND CD.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON PB.PD_CD =  CD.BASE_PD_CD
+           AND PB.DTA_DL_YN = 'N'
+           AND PB.TEMP_SAVE_YN = 'N'
+    </select>
+
+</mapper>

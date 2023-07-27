@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.orderstatus.mapper.WctdHoldingCustomerMapper">
+
+    <select id="selectHoldingCustomerPages"
+            resultType="com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdHoldingCustomerDto$SearchRes">
+        SELECT T_CNTR_DTL.CNTR_NO||'-'||T_CNTR_DTL.CNTR_SN AS CNTR_DTL_NO
+             , T_CNTR.CNTR_CNFM_DTM
+             , T_PD.PD_NM
+             , T_CTT_BAS.CTT_RS_CD
+             , T_CTT_BAS.CTT_MO_CN
+             , CASE
+                   WHEN T_CTT_BAS.CTT_RS_CD IS NOT NULL THEN 'Y'
+                   WHEN T_CTT_BAS.CTT_RS_CD IS NULL     THEN 'N'
+                   ELSE ''
+               END AS CTT_YN
+             , T_PRTNR.OG_CD
+             , T_PRTNR.PRTNR_KNM
+             , T_CST.CST_KNM
+          FROM TB_SSCT_CNTR_DTL                       T_CNTR_DTL
+         INNER JOIN TB_SSCT_CNTR_BAS            T_CNTR
+            ON T_CNTR.DTA_DL_YN = 'N'
+           AND T_CNTR.CNTR_NO = T_CNTR_DTL.CNTR_NO
+         INNER JOIN TB_PDBS_PD_BAS         T_PD
+            ON T_PD.DTA_DL_YN = 'N'
+           AND T_PD.PD_CD = T_CNTR_DTL.BASE_PD_CD
+          LEFT OUTER JOIN TB_SSOP_CTT_DTL        T_CTT_DTL
+            ON T_CTT_DTL.DTA_DL_YN = 'N'
+           AND T_CTT_DTL.CNTR_NO = T_CNTR_DTL.CNTR_NO
+           AND T_CTT_DTL.CNTR_SN = T_CNTR_DTL.CNTR_SN
+           AND T_CTT_DTL.CTT_OJ_ID = (SELECT MAX(CTT_OJ_ID)
+                                        FROM TB_SSOP_CTT_DTL
+                                       WHERE CNTR_NO = T_CTT_DTL.CNTR_NO
+                                         AND CNTR_SN = T_CTT_DTL.CNTR_SN)
+          LEFT OUTER JOIN TB_SSOP_CTT_BAS        T_CTT_BAS
+            ON T_CTT_BAS.DTA_DL_YN = 'N'
+           AND T_CTT_BAS.CTT_OJ_ID = T_CTT_DTL.CTT_OJ_ID
+         INNER JOIN TB_SSCT_CNTR_PRTNR_REL T_PRTNR_REL
+            ON T_PRTNR_REL.DTA_DL_YN = 'N'
+           AND T_PRTNR_REL.CNTR_NO = T_CNTR_DTL.CNTR_NO
+           AND T_PRTNR_REL.CNTR_PRTNR_TP_CD = '010'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T_PRTNR_REL.VL_STRT_DTM AND T_PRTNR_REL.VL_END_DTM
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ    T_PRTNR
+            ON T_PRTNR.DTA_DL_YN = 'N'
+           AND T_PRTNR.OG_CD = #{session.departmentId}
+           AND T_PRTNR.BASE_YM = SUBSTR(T_CNTR.CNTR_RCP_FSH_DTM, 1, 6)
+           AND T_PRTNR.OG_TP_CD = T_PRTNR_REL.OG_TP_CD
+           AND T_PRTNR.PRTNR_NO = T_PRTNR_REL.PRTNR_NO
+         INNER JOIN TB_CUBS_CST_BAS             T_CST
+            ON T_CST.CST_NO = T_CNTR.CNTR_CST_NO
+        <where>
+           AND T_CNTR_DTL.DTA_DL_YN = 'N'
+           AND T_CNTR_DTL.SPP_DUEDT IS NULL
+         <trim><if test="@MybatisUtils@equals(cttYn, 'Y')">
+           AND T_CTT_BAS.CTT_RS_CD IS NOT NULL
+         </if></trim>
+         <trim><if test="@MybatisUtils@equals(cttYn, 'N')">
+           AND T_CTT_BAS.CTT_RS_CD IS NULL
+         </if></trim>
+         <trim><if test="@MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(endDt)">
+           AND T_CNTR.CNTR_RCP_FSH_DTM BETWEEN #{startDt} || '000000' AND #{endDt} || '235959'
+         </if></trim>
+         <trim><if test="@MybatisUtils@isNotEmpty(cntrNo) and @MybatisUtils@isNotEmpty(cntrSn)">
+           AND T_CNTR_DTL.CNTR_NO = #{cntrNo}
+           AND T_CNTR_DTL.CNTR_SN = #{cntrSn}
+         </if></trim>
+        </where>
+         ORDER BY T_PRTNR.OG_CD, T_PRTNR.PRTNR_NO DESC
+    </select>
+</mapper>

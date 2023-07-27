@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaMachineChangeCstMapper">
+
+    <select id="selectMachineChangeCstCntrNoSn" resultType="String">
+       SELECT BASE_CNTR_NO||'-'||BASE_CNTR_SN
+          FROM TB_SSCT_MCHN_CH_IZ MC
+         INNER JOIN TB_SSCT_CNTR_DTL CD
+            ON CD.CNTR_NO = MC.BASE_CNTR_NO
+           AND CD.CNTR_SN = MC.BASE_CNTR_SN
+           AND CD.CNTR_DTL_STAT_CD NOT IN ('302','303','304','305')
+           AND CD.DTA_DL_YN = 'N'
+         WHERE MC.OJ_CNTR_NO = #{cntrNo}
+           AND MC.OJ_CNTR_SN = #{cntrSn}
+           <if test='@MybatisUtils@equals(rgstMdfcDv, "2") and @MybatisUtils@isNotEmpty(baseCntrNo) and @MybatisUtils@isNotEmpty(baseCntrSn)'>
+               AND MC.BASE_CNTR_NO = #{baseCntrNo}
+               AND MC.BASE_CNTR_SN = #{baseCntrSn}
+           </if>
+           AND MC.DTA_DL_YN = 'N'
+           AND ROWNUM <![CDATA[ <= ]]> 1
+    </select>
+
+    <select id="selectCustomerAddress" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaMachineChangeCstDvo">
+        SELECT NVL(GB.RNADR, GB.LTN_ADR)||' '||NVL(GB.RDADR, GB.LTN_DTL_ADR) AS ADR
+             , CD.SELL_TP_CD
+             , SB.CST_KNM
+             , WD.IST_DT
+             , WD.REQD_DT
+          FROM TB_SSCT_CNTR_DTL CD
+         INNER JOIN TB_SSCT_CNTR_BAS CB
+            ON CB.CNTR_NO = CD.CNTR_NO
+           AND CB.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS SB
+            ON SB.CST_NO = CB.CNTR_CST_NO
+           AND SB.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL WD
+            ON WD.CNTR_NO = CD.CNTR_NO
+           AND WD.CNTR_SN = CD.CNTR_SN
+           AND WD.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADR_REL AR
+            ON AR.DTL_CNTR_NO = CD.CNTR_NO
+           AND AR.DTL_CNTR_SN = CD.CNTR_SN
+           AND AR.CNTR_UNIT_TP_CD = '020'
+           AND AR.ADRPC_TP_CD = '3'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN AR.VL_STRT_DTM AND AR.VL_END_DTM
+           AND AR.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS AB
+            ON AB.CNTR_ADRPC_ID = AR.CNTR_ADRPC_ID
+           AND AB.DTA_DL_YN  = 'N'
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS GB
+            ON GB.ADR_ID = AB.ADR_ID
+           AND GB.DTA_DL_YN = 'N'
+         WHERE CD.CNTR_NO = #{cntrNo}
+           AND CD.CNTR_SN = #{cntrSn}
+           AND CD.DTA_DL_YN = 'N'
+    </select>
+
+</mapper>

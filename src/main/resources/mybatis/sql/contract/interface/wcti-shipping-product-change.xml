@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiShippingProductChangeMapper">
+
+    <select id="selectShippingProduct" resultType="com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractChangeRcpBasDvo">
+        SELECT PR.CNTR_PD_REL_ID
+             , CB.CNTR_CST_NO AS cstNo
+             , SB.CST_KNM AS chRqrNm
+          FROM TB_SSCT_CNTR_DTL CD
+         INNER JOIN TB_SSCT_CNTR_BAS CB
+            ON CD.CNTR_NO = CB.CNTR_NO
+         INNER JOIN TB_CUBS_CST_BAS SB
+            ON SB.CST_NO  = CB.CNTR_CST_NO
+           AND SB.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_PD_REL PR
+            ON PR.CNTR_NO = CD.CNTR_NO
+           AND PR.CNTR_SN = CD.CNTR_SN
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN PR.VL_STRT_DTM AND PR.VL_END_DTM
+           AND PR.BASE_PD_CD  = CD.BASE_PD_CD
+           AND PR.PD_REL_TP_CD = '05'
+           AND PR.DTA_DL_YN = 'N'
+         WHERE CD.CNTR_NO = #{cntrNo}
+           AND CD.CNTR_SN = #{cntrSn}
+           AND CD.DTA_DL_YN = 'N'
+           AND PR.OJ_PD_CD = #{bfchPdctPdCd}
+    </select>
+
+    <insert id="insertCntrChRcpBas" parameterType="com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractChangeRcpBasDvo">
+        <selectKey keyProperty="item.cntrChRcpId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_CH_RCP_ID)), 0) +1, 15, '0')
+              FROM TB_SSCT_CNTR_CH_RCP_BAS
+        </selectKey>
+
+        INSERT INTO TB_SSCT_CNTR_CH_RCP_BAS(
+            CNTR_CH_RCP_ID
+            , CNTR_CH_RCP_DTM
+            , CNTR_CH_TP_CD
+            , CH_RQR_DV_CD
+            , CH_RQR_NM
+            , CST_NO
+            , CNTR_CH_AK_CN
+            , CNTR_CH_PRGS_STAT_CD
+            , CH_RCP_USR_ID
+            , APR_DTM
+            , APR_USR_ID
+            , CNTR_CH_FSH_DTM
+            , DTA_DL_YN
+        <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{item.cntrChRcpId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{item.cntrChTpCd}
+            , #{item.chRqrDvCd}
+            , #{item.chRqrNm}
+            , #{item.cstNo}
+            , #{item.cntrChAkCn}
+            , #{item.cntrChPrgsStatCd}
+            , #{item.chRcpUsrId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , #{item.aprUsrId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , 'N'
+              <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="intertCntrChRcchHist">
+        INSERT INTO TB_SSCT_CNTR_CH_RCCH_HIST (
+            CNTR_CH_RCP_ID
+          , HIST_STRT_DTM
+          , HIST_END_DTM
+          , CNTR_CH_RCP_DTM
+          , CNTR_CH_TP_CD
+          , CH_RQR_DV_CD
+          , CH_RQR_NM
+          , CST_NO
+          , CNTR_CH_AK_CN
+          , CNTR_CH_PRGS_STAT_CD
+          , CNTR_CH_PRGS_MO_CN
+          , CH_RCST_DV_CD
+          , CH_RCP_USR_ID
+          , APR_DTM
+          , APR_USR_ID
+          , CNTR_CH_FSH_DTM
+          , BIZ_TF_ID
+          , DTA_DL_YN
+          <include refid="COMMON.insertSystemField" />)
+          SELECT CNTR_CH_RCP_ID
+               , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+               , '99991231235959'
+               , CNTR_CH_RCP_DTM
+               , CNTR_CH_TP_CD
+               , CH_RQR_DV_CD
+               , CH_RQR_NM
+               , CST_NO
+               , CNTR_CH_AK_CN
+               , CNTR_CH_PRGS_STAT_CD
+               , CNTR_CH_PRGS_MO_CN
+               , CH_RCST_DV_CD
+               , CH_RCP_USR_ID
+               , APR_DTM
+               , APR_USR_ID
+               , CNTR_CH_FSH_DTM
+               , BIZ_TF_ID
+               , 'N'
+               <include refid="COMMON.insertSystemFieldValue" />
+            FROM TB_SSCT_CNTR_CH_RCP_BAS
+           WHERE CNTR_CH_RCP_ID = #{cntrChRcpId}
+    </insert>
+
+
+    <insert id="insertCntrChRcpDtl" parameterType="com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractChangeRcpBasDvo">
+        <selectKey keyProperty="item.cntrChSn" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_CH_SN)), 0) +1, 15, '0')
+              FROM TB_SSCT_CNTR_CH_RCP_DTL
+             WHERE CNTR_CH_RCP_ID = #{item.cntrChRcpId}
+        </selectKey>
+
+        INSERT INTO TB_SSCT_CNTR_CH_RCP_DTL(
+            CNTR_CH_RCP_ID
+            , CNTR_CH_SN
+            , CNTR_UNIT_TP_CD
+            , DTL_CNTR_NO
+            , DTL_CNTR_SN
+            , CNTR_CH_RSON_DV_CD
+            , CNTR_CH_RSON_CD
+            , CNTR_CH_ATC_DV_CD
+            , CH_APY_STRTDT
+            , CH_APY_ENDDT
+            , CH_PD_CD
+            , BFCH_CN
+            , PROCS_YN
+            , PROCS_DUEDT
+            , PROCS_FSH_DTM
+            , DTA_DL_YN
+        <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{item.cntrChRcpId}
+            , #{item.cntrChSn}
+            , #{item.cntrUnitTpCd}
+            , #{item.dtlCntrNo}
+            , #{item.dtlCntrSn}
+            , #{item.cntrChRsonDvCd}
+            , #{item.cntrChRsonCd}
+            , #{item.cntrChAtcDvCd}
+            , TO_CHAR(SYSDATE, 'YYYYMMDD')
+            , '99991231'
+            , #{item.chPdCd}
+            , #{item.bfchCn}
+            , #{item.procsYn}
+            , TO_CHAR(SYSDATE, 'YYYYMMDD')
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , 'N'
+              <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="intertCntrChRcpDchHist">
+        INSERT INTO TB_SSCT_CNTR_CH_RCP_DCH_HIST(
+            CNTR_CH_RCP_ID
+          , HIST_STRT_DTM
+          , CNTR_CH_SN
+          , HIST_END_DTM
+          , CNTR_UNIT_TP_CD
+          , CNTR_NO
+          , DTL_CNTR_NO
+          , DTL_CNTR_SN
+          , CNTR_CH_RSON_DV_CD
+          , CNTR_CH_RSON_CD
+          , CNTR_CH_ATC_DV_CD
+          , CH_APY_STRTDT
+          , CH_APY_ENDDT
+          , CH_PD_CD
+          , CH_QTY
+          , CH_AMT
+          , CH_PTRM_UNIT_CD
+          , CH_PTRM_N
+          , CNTR_CH_AK_CN
+          , CNTR_ADRPC_ID
+          , CNTR_STLM_ID
+          , PROCS_YN
+          , BFCH_CN
+          , PROCS_DUEDT
+          , PROCS_FSH_DTM
+          , DTA_DL_YN
+          <include refid="COMMON.insertSystemField" />)
+          SELECT CNTR_CH_RCP_ID
+               , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+               , CNTR_CH_SN
+               , '99991231235959'
+               , CNTR_UNIT_TP_CD
+               , CNTR_NO
+               , DTL_CNTR_NO
+               , DTL_CNTR_SN
+               , CNTR_CH_RSON_DV_CD
+               , CNTR_CH_RSON_CD
+               , CNTR_CH_ATC_DV_CD
+               , CH_APY_STRTDT
+               , CH_APY_ENDDT
+               , CH_PD_CD
+               , CH_QTY
+               , CH_AMT
+               , CH_PTRM_UNIT_CD
+               , CH_PTRM_N
+               , CNTR_CH_AK_CN
+               , CNTR_ADRPC_ID
+               , CNTR_STLM_ID
+               , PROCS_YN
+               , BFCH_CN
+               , PROCS_DUEDT
+               , PROCS_FSH_DTM
+               , 'N'
+               <include refid="COMMON.insertSystemFieldValue" />
+            FROM TB_SSCT_CNTR_CH_RCP_DTL
+           WHERE CNTR_CH_RCP_ID = #{cntrChRcpId}
+             AND CNTR_CH_SN = #{cntrChSn}
+    </insert>
+
+    <update id="updateCntrPdRel">
+        UPDATE TB_SSCT_CNTR_PD_REL
+           SET VL_END_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+          <include refid="COMMON.updateSystemField" />
+          WHERE CNTR_PD_REL_ID = #{cntrPdRelId}
+    </update>
+
+    <insert id="insertCntrPdRel" parameterType="com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractChangeRcpBasDvo">
+        INSERT INTO TB_SSCT_CNTR_PD_REL(
+            CNTR_PD_REL_ID
+            , VL_STRT_DTM
+            , VL_END_DTM
+            , CNTR_NO
+            , CNTR_SN
+            , PD_REL_ID
+            , BASE_PD_CD
+            , OJ_PD_CD
+            , PD_REL_TP_CD
+            , RLTG_SPP_OJ_YN
+            , PD_QTY
+            , CNTR_CH_RCP_ID
+            , DTA_DL_YN
+            <include refid="COMMON.insertSystemField" />)
+        SELECT (SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_PD_REL_ID)), 0) +1, 15, '0') FROM TB_SSCT_CNTR_PD_REL) AS CNTR_PD_REL_ID
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , '99991231235959'
+            , CNTR_NO
+            , CNTR_SN
+            , PD_REL_ID
+            , BASE_PD_CD
+            , #{chPdCd}
+            , PD_REL_TP_CD
+            , RLTG_SPP_OJ_YN
+            , PD_QTY
+            , #{cntrChRcpId}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" />
+         FROM TB_SSCT_CNTR_PD_REL
+        WHERE CNTR_PD_REL_ID = #{cntrPdRelId}
+
+    </insert>
+</mapper>

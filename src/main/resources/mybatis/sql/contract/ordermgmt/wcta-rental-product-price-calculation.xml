@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaRentalProductPriceCalculationMapper">
+    <select id="selectRentalFeeCalculation" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaRentalProductPriceCalculationDvo">
+        SELECT FNL_VAL AS RNL_FEE_AMT /* 월렌탈료 */
+             , PD_PRC_FNL_PRP_VAL05 AS SV_FEE_AMT /* 환경리스. 환경할부 시 사용*/
+             , ACKMT_AMT /* 인정실적액*/
+             , VAT /* 부가가치세 */
+             , PD_PRC_FNL_PRP_VAL01 AS ACKMT_RT /* 인정실적율 */
+             , CASE WHEN PD_PRC_CNDT_CHRC_VAL17 = 'Y' THEN '0'
+                    ELSE PD_PRC_CNDT_CHRC_VAL01
+               END AS RGST_FEE /* 등록비 */
+          FROM TB_PDBS_PD_PRC_FNL_DTL /* 상품가격최종상세 */
+         WHERE 1 = 1
+           AND DTA_DL_YN = 'N'
+        <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+           AND PD_CD = #{pdCd} /* 상품코드 = 입력받은 상품코드 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
+           AND SELL_TP_CD = #{sellTpCd} /* 판매유형코드 = 입력받은 판매유형코드 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(sellChnlCd)'>
+           AND SELL_CHNL_CD = #{sellChnlCd} /* 판매채널코드 = 입력받은 판매채널코드 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(svPdCd)'>
+           AND SV_PD_CD = #{svPdCd} /* 서비스상품코드 = 입력받은 서비스상품코드 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(stplPrdCd)'>
+           AND STPL_PRD_CD = #{stplPrdCd} /* 약정주기코드 = 입력받은 약정주기코드 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(rgstFee)'>
+           AND PD_PRC_CNDT_CHRC_VAL01 = #{rgstFee} /* 상품가격조건특성값01(등록비) = 입력받은 등록비 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(rentalDscDvCd)'>
+           AND PD_PRC_CNDT_CHRC_VAL02 = #{rentalDscDvCd} /* 상품가격조건특성값02(렌탈할인구분) = 입력받은 렌탈할인구분 RENTAL_DSC_DV_CD (LCETC3) */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(rentalDscTpCd)'>
+           AND PD_PRC_CNDT_CHRC_VAL03 = #{rentalDscTpCd} /* 상품가격조건특성값03(렌탈할인유형) = 입력받은 렌탈할인유형 RENTAL_DSC_TP_CD (LCFLG4) */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(rentalCrpDscrCd)'>
+           AND PD_PRC_CNDT_CHRC_VAL11 = #{rentalCrpDscrCd} /* 상품가격조건특성값11(렌탈법인할인율코드) = 렌탈법인할인율코드 RENTAL_CRP_DSCR_CD (LCETC3) */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(rentalCombiDvCd)'>
+           AND PD_PRC_CNDT_CHRC_VAL18 = #{rentalCombiDvCd} /* 상품가격조건특성값18(렌탈결합구분) = 입력받은 렌탈결합구분 RENTAL_COMBI_DV_CD (ST04) */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+           AND VER_SN =
+             ( SELECT MAX(T3.VER_SN) /* 버전일련번호 */
+                 FROM TB_PDBS_PD_PRC_FNL_DTL T3 /* 상품가격최종상세 */
+                WHERE T3.PD_CD = #{pdCd} /* 상품코드 = 입력받은 상품코드 */
+             )
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cntrRcpdt)'>
+           AND SUBSTR(#{cntrRcpdt},1,8) BETWEEN SUBSTR(VL_STRT_DTM,1,8) AND SUBSTR(VL_END_DTM,1,8) /* 유효시작일시 ＜= 입력받은 계약접수일자 ＜= 유효종료일시 */
+        </if>
+    </select>
+
+    <select id="selectRecoveryRentalFee" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaRentalProductPriceCalculationDvo">
+        SELECT T1.CNTR_NO /* 계약번호 */
+             , T1.CNTR_SN /* 계약일련번호 */
+             , T1.BASE_PD_CD /* 기준상품코드 */
+             , NVL(T2.FNL_VAL,0) AS ORG_RT_PRC /* [원복렌탈료] 계약가격산출내역.최종값 */
+             , NVL(T1.PD_BASE_AMT,0) - NVL(T2.CTR_VAL,0) AS CURR_RT_PRC /* [현재렌탈료] = 계약상세.상품기준금액 - 계약가격산출내역.조정값 */
+          FROM TB_SSCT_CNTR_DTL T1 /* 계약상세 */
+          LEFT OUTER JOIN TB_SSCT_CNTR_PRC_CMPT_IZ T2 /* 계약가격산출내역 */
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.CNTR_SN = T1.CNTR_SN
+           AND T2.PD_CD = T1.BASE_PD_CD
+           /* AND T2.PD_PRP_META_ID = '렌탈료식별ID' */ /* TODO: 상품속성메타ID=렌탈료식별ID. 아직 미정. 미사용컬럼삭제로 삭제 */
+           AND T2.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+</mapper>

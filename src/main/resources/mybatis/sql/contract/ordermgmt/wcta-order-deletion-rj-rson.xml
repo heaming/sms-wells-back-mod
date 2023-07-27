@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaOrderDeletionRjRsonMapper">
+    <update id="updateRejectReasonRgst">
+        UPDATE TB_SSCT_CNTR_APR_IZ
+           SET APR_YN = 'N' /* 승인여부 */
+             , APR_USR_ID = #{session.userId} /* 승인사용자ID */
+             , APR_USR_NM = #{session.userName} /* 승인사용자명 */
+             , APR_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') /* 승인일시 */
+             , RJ_RSON_CN = #{rjRsonCn} /* 반려사유내용 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE DTA_DL_YN = 'N' /* 데이터 삭제여부  */
+           AND CNTR_APR_ID = #{cntrAprId} /* 계약승인ID */
+           AND CNTR_NO = #{cntrNo} /* 계약번호 */
+    </update>
+</mapper>

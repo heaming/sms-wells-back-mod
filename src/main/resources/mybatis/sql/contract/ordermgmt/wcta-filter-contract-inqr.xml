@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaFilterContractInqrMapper">
+    <select id="selectFilterContractInqrPages" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaFilterContractInqrDvo">
+SELECT
+	   T.CNTR_NO
+	, T9.CST_KNM
+	, T9.CRAL_LOCARA_TNO
+	, T9.MEXNO_ENCR
+	, T9.CRAL_IDV_TNO
+	, T.FILTER_PD_CD_1
+	, T.FILTER_PD_NM_1
+	, T.FILTER_PD_CD_2
+	, T.FILTER_PD_NM_2
+	, T.FILTER_PD_CD_3
+	, T.FILTER_PD_NM_3
+	, T.FILTER_PD_CD_4
+	, T.FILTER_PD_NM_4
+	, T.FILTER_PD_CD_5
+	, T.FILTER_PD_NM_5
+	, T.SV_PD_TP_CD
+	, T.SV_PD_TP_NM
+	, T.SV_PRD
+	, T.SELL_TP_CD
+	, T.SELL_TP_NM
+	, T.MB_GBN
+	, T.SL_DT
+	, T.CTT_DT
+	, T.IST_GBN
+	, T.FILTER_AMT
+	, T.FILTER_QTY
+	, T.CTT_RS_CD
+	, T.RE_CTT_YN
+	, T.CTT_PSIC_ID
+	, T.SCON_CN
+	, T.IST_AK_ARTC_MO_CN
+  FROM (
+	SELECT
+		T1.CNTR_NO
+		, MAX(T2.CNTR_CST_NO) AS CNTR_CST_NO
+		, MAX(T20.CST_KNM) AS CST_KNM
+		, MAX(CASE WHEN T1.CNTR_SN = 1 THEN T1.BASE_PD_CD
+		       ELSE ''
+		       END) FILTER_PD_CD_1
+	 	, MAX(CASE WHEN T1.CNTR_SN = 1 THEN T3.PD_NM
+		       ELSE ''
+		       END) FILTER_PD_NM_1
+		, MAX(CASE WHEN T1.CNTR_SN = 2 THEN T1.BASE_PD_CD
+		       ELSE ''
+		       END) FILTER_PD_CD_2
+	 	, MAX(CASE WHEN T1.CNTR_SN = 2 THEN T3.PD_NM
+		       ELSE ''
+		       END) FILTER_PD_NM_2
+		, MAX(CASE WHEN T1.CNTR_SN = 3 THEN T1.BASE_PD_CD
+		       ELSE ''
+		       END) FILTER_PD_CD_3
+	 	, MAX(CASE WHEN T1.CNTR_SN = 3 THEN T3.PD_NM
+		       ELSE ''
+		       END) FILTER_PD_NM_3
+		, MAX(CASE WHEN T1.CNTR_SN = 4 THEN T1.BASE_PD_CD
+		       ELSE ''
+		       END) FILTER_PD_CD_4
+	 	, MAX(CASE WHEN T1.CNTR_SN = 4 THEN T3.PD_NM
+		       ELSE ''
+		       END) FILTER_PD_NM_4
+		, MAX(CASE WHEN T1.CNTR_SN = 5 THEN T1.BASE_PD_CD
+		       ELSE ''
+		       END) FILTER_PD_CD_5
+	 	, MAX(CASE WHEN T1.CNTR_SN = 5 THEN T3.PD_NM
+		       ELSE ''
+		       END) FILTER_PD_NM_5
+		, MAX(T8.SV_PD_TP_CD) AS SV_PD_TP_CD
+		, MAX(F_CMZ_CD_NM('TNT_WELLS', 'SV_PD_TP_CD',T8.SV_PD_TP_CD)) AS SV_PD_TP_NM
+		, MAX(T5.SV_PRD) AS SV_PRD
+		, MAX(T5.SELL_TP_CD) AS SELL_TP_CD
+		, MAX(F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD',T5.SELL_TP_CD)) AS SELL_TP_NM
+		, MAX('1') AS MB_GBN		/* 사실상의미없음 */
+		, MAX(T1.CNTR_PD_STRTDT) AS SL_DT
+		, MAX((SELECT SUBSTR(CTT_FSH_DTM,1,8) FROM TB_SSOP_CTT_BAS WHERE CTT_OJ_ID = T1.CTT_OJ_ID)) AS CTT_DT
+		, MAX('') AS IST_GBN		/* TO-BE 컬럼없음 사용여부 불분명, PASS */
+		, SUM(T1.FNL_AMT) AS FILTER_AMT
+		, SUM(T1.PD_QTY) AS FILTER_QTY
+		, MAX(T1.CTT_RS_CD) AS CTT_RS_CD
+		, MAX('') AS RE_CTT_YN	/* TO-BE 컬럼 삭제, AS-IS에 값도 없음 */
+		, MAX(T1.CTT_PSIC_ID) AS CTT_PSIC_ID
+		, MAX(T21.SCON_CN) AS SCON_CN
+		, MAX(T21.IST_AK_ARTC_MO_CN) AS IST_AK_ARTC_MO_CN
+	  FROM TB_SSCT_CNTR_DTL T1
+	 INNER JOIN TB_SSCT_CNTR_BAS T2
+	    ON T2.CNTR_NO = T1.CNTR_NO
+	   AND T2.DTA_DL_YN = 'N'
+	 INNER JOIN TB_CUBS_CST_BAS T20
+	    ON T20.CST_NO = T2.CNTR_CST_NO
+	   AND T20.DTA_DL_YN = 'N'
+	 INNER JOIN TB_SSCT_CNTR_WELLS_DTL T21
+	    ON T21.CNTR_NO = T1.CNTR_NO
+	   AND T21.CNTR_SN = T1.CNTR_SN
+	   AND T21.DTA_DL_YN = 'N'
+	 INNER JOIN TB_PDBS_PD_BAS T3
+	    ON T3.PD_CD = T1.BASE_PD_CD
+	   AND T3.DTA_DL_YN = 'N'
+	  LEFT OUTER JOIN TB_SSCT_CNTR_REL T4
+	    ON T4.BASE_DTL_CNTR_NO = T1.CNTR_NO
+	   AND T4.BASE_DTL_CNTR_SN = T1.CNTR_SN
+	   AND T4.CNTR_REL_DTL_CD = '211'
+	   AND T4.VL_END_DTM  <![CDATA[>=]]>  TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+	   AND T4.VL_STRT_DTM <![CDATA[<=]]>  TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+	   AND T4.DTA_DL_YN = 'N'
+	  LEFT OUTER JOIN TB_SSCT_CNTR_DTL T5
+	    ON T5.CNTR_NO = T4.OJ_DTL_CNTR_NO
+	   AND T5.CNTR_SN = T4.OJ_DTL_CNTR_SN
+	   AND T5.DTA_DL_YN = 'N'
+	  LEFT OUTER JOIN TB_PDBS_PD_BAS T6
+	    ON T6.PD_CD = T5.BASE_PD_CD
+	   AND T6.DTA_DL_YN = 'N'
+	  LEFT OUTER JOIN TB_SSCT_CNTR_PD_REL T7
+	    ON T7.CNTR_NO = T5.CNTR_NO
+	   AND T7.CNTR_SN = T5.CNTR_SN
+	   AND T7.BASE_PD_CD = T6.PD_CD
+	   AND T7.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+	   AND T7.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+	   AND T7.PD_REL_TP_CD = '03'
+	   AND T7.DTA_DL_YN = 'N'
+	  LEFT OUTER JOIN TB_PDBS_PD_BAS T8
+	    ON T8.PD_CD = T7.OJ_PD_CD
+	   AND T8.DTA_DL_YN = 'N'
+	 WHERE T1.DTA_DL_YN = 'N'
+	   AND T1.SELL_TP_CD = '9'	/* 필터판매 */
+        <if test = 'qryCond == "1"'>
+           AND T2.CNTR_CNFM_DTM LIKE #{filterYrMn}||'%'
+            <if test='@MybatisUtils@isNotEmpty(svPdTpCd)'>AND T8.SV_PD_TP_CD = #{svPdTpCd}</if>/* 용도구분코드  */
+            <if test='@MybatisUtils@isNotEmpty(pdCd)'>AND T1.BASE_PD_CD = #{pdCd}</if>/* 상품코드  */
+        </if>
+        <if test = 'qryCond == "2"'>
+            <if test='@MybatisUtils@isNotEmpty(cntrNo)'> AND T1.CNTR_NO = #{cntrNo}</if>/* 계약일련번호  */
+        </if>
+	 GROUP BY T1.CNTR_NO
+	 ) T
+  INNER JOIN TB_CUBS_CST_BAS T9
+     ON T9.CST_NO = T.CNTR_CST_NO
+    AND T9.DTA_DL_YN = 'N'
+    </select>
+
+</mapper>

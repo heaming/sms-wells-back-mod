@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbCstCntrNoInstallMapper">
+
+    <sql id="selectCntrAdrpdId">
+        <choose>
+            <when test='@MybatisUtils@equals(inDv, "1")'>
+                SELECT CNTR_ADRPC_ID
+                  FROM TB_SSCT_CNTR_ADR_REL
+                 WHERE DTL_CNTR_NO = #{cntrNo}
+                   AND DTL_CNTR_SN = #{cntrSn}
+                   AND CNTR_UNIT_TP_CD = '020'
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                   AND ADRPC_TP_CD = '3'
+                   AND DTA_DL_YN = 'N'
+            </when>
+            <otherwise>
+                SELECT CNTR_ADRPC_ID
+                  FROM TB_SSCT_CNTR_ADR_REL CR
+                 INNER JOIN (SELECT CD.CNTR_NO, CNTR_SN
+                              FROM TB_SSCT_CNTR_BAS CB
+                             INNER JOIN TB_SSCT_CNTR_DTL CD
+                                ON CB.CNTR_NO = CD.CNTR_NO
+                               AND CD.CNTR_DTL_STAT_CD IN ('101', '201', '202', '203', '204')
+                               AND CD.DTA_DL_YN = 'N'
+                             WHERE CB.CNTR_CST_NO = #{cstNo}
+                               AND CB.DTA_DL_YN  = 'N') CD
+                    ON CD.CNTR_NO = CR.DTL_CNTR_NO
+                   AND CD.CNTR_SN = CR.DTL_CNTR_SN
+                 WHERE CR.CNTR_UNIT_TP_CD = '020'
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN CR.VL_STRT_DTM AND CR.VL_END_DTM
+                   AND CR.ADRPC_TP_CD = '3'
+                   AND CR.DTA_DL_YN = 'N'
+            </otherwise>
+        </choose>
+    </sql>
+
+    <update id="updateCstCntrDeliver" parameterType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCstCntrNoInstallDvo">
+        UPDATE TB_SSCT_CNTR_ADRPC_BAS
+        <set>
+            <if test='@MybatisUtils@isNotEmpty(adrId)'>, ADR_ID = #{adrId}</if>
+            <if test='@MybatisUtils@isNotEmpty(cralLocaraTno)'>, CRAL_LOCARA_TNO = #{cralLocaraTno}</if>
+            <if test='@MybatisUtils@isNotEmpty(mexno)'>, MEXNO_ENCR = #{mexno}</if>
+            <if test='@MybatisUtils@isNotEmpty(cralIdvTno)'>, CRAL_IDV_TNO = #{cralIdvTno}</if>
+        </set>
+               <include refid="COMMON.updateSystemField" />
+         WHERE CNTR_ADRPC_ID IN (<include refid="selectCntrAdrpdId" />)
+    </update>
+
+    <update id="updateContractAddressHistory" parameterType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCstCntrNoInstallDvo">
+        UPDATE TB_SSCT_CNTR_ADR_CH_HIST
+           SET HIST_END_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+               <include refid="COMMON.updateSystemField" />
+         WHERE CNTR_ADRPC_ID IN (<include refid="selectCntrAdrpdId" />)
+           AND HIST_END_DTM = '99991231235959'
+    </update>
+
+    <insert id="insertContractAddressHistory" parameterType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCstCntrNoInstallDvo">
+        INSERT INTO TB_SSCT_CNTR_ADR_CH_HIST (
+               CNTR_ADRPC_ID
+             , HIST_STRT_DTM
+             , HIST_END_DTM
+             , CNTR_NO
+             , CNTR_CST_NO
+             , CNTRT_REL_CD
+             , RCGVP_KNM
+             , RCGVP_ENM
+             , COPN_DV_CD
+             , CRP_SPMT_DRM_NM
+             , NAT_CD
+             , ADR_DV_CD
+             , ADR_ID
+             , CRAL_LOCARA_TNO
+             , MEXNO_ENCR
+             , CRAL_IDV_TNO
+             , LOCARA_TNO
+             , EXNO_ENCR
+             , IDV_TNO
+             , EMADR
+             , CNR_SPP_YN
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+        )
+        SELECT CNTR_ADRPC_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , '99991231235959'
+             , CNTR_NO
+             , CNTR_CST_NO
+             , CNTRT_REL_CD
+             , RCGVP_KNM
+             , RCGVP_ENM
+             , COPN_DV_CD
+             , CRP_SPMT_DRM_NM
+             , NAT_CD
+             , ADR_DV_CD
+             , ADR_ID
+             , CRAL_LOCARA_TNO
+             , MEXNO_ENCR
+             , CRAL_IDV_TNO
+             , LOCARA_TNO
+             , EXNO_ENCR
+             , IDV_TNO
+             , EMADR
+             , CNR_SPP_YN
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_SSCT_CNTR_ADRPC_BAS
+         WHERE CNTR_ADRPC_ID IN (<include refid="selectCntrAdrpdId" />)
+    </insert>
+
+</mapper>

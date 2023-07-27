@@ -1,0 +1,807 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaEntrepreneurCustomerPssMapper">
+    <select id="selectEntrepreneurCustomerPss" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaEntrepreneurCustomerPssDto$SearchRes">
+        WITH W1 AS (
+       SELECT
+             AFMDBS.F_CMZ_CD_NM (#{session.tenantId}, 'SELL_TP_CD', A1.SELL_TP_CD) AS SELL_TP_NM /* [업무유형] */
+           , A1.CNTR_NO /* [계약번호] */
+           , A1.CNTR_SN /* 계약일련번호 */
+           , A1.SELL_TP_CD /* [계약자정보-판매유형] */
+           , A1.BASE_PD_CD /* [계약자정보-상품코드] */
+           , A1.SV_PRD /* [계약자정보-관리주기] */
+           , A1.ACKMT_PERF_AMT /* 인정실적금액 */
+           , A1.CNTR_AMT  /* [렌탈등록비] */
+           , A1.FNL_AMT /* [총렌탈료1] */
+           , A1.PD_BASE_AMT
+           , A1.SELL_DSC_DV_CD
+           , A1.SELL_DSC_TP_CD
+           , A1.HGR_PD_CD
+           , A1.FST_RGST_USR_ID
+           , A1.FST_RGST_DTM
+           , A1.FNL_MDFC_USR_ID
+           , A1.FNL_MDFC_DTM
+           , A1.DSC_AMT /* 할인금액 */
+           , A1.CNTR_PD_STRTDT /* 계약상세.계약상품시작일자 */
+           , A1.CNTR_PD_ENDDT  /* 계약상세.계약상품종료일자 */
+           , B1.CNTR_TP_CD /* [계약자정보-판매구분] */
+           , B1.CNTR_CST_NO /* [고객번호] */
+           , B1.SELL_PRTNR_NO
+           , B1.CNTR_CNFM_DTM
+           , B1.CNTR_RCP_FSH_DTM
+           , B1.COPN_DV_CD
+           , NVL(CL1.RENTAL_TN,0) AS RENTAL_TN
+           , CL1.MAX_SL_CL_YM
+           , CL1.CBCL_CNTR_PERF_MM_CL_BASE_YM
+           , CL1.CBCL_CNTR_PERF_MM_CL_CNT
+           , CL1.FULPY_DT
+           , A1.STPL_PTRM AS RECAP_DUTY_PTRM_N /* [의무사용] 계약상세.약정기간 */
+           , J1.REQD_DT /* [철거일] */
+           , J1.IST_DT /* [설치일]  */
+           , B1.SELL_OG_TP_CD /* 판매조직유형코드 */
+           , B1.CNTR_CAN_DTM /* 계약취소일시 */
+        FROM TB_SSCT_CNTR_BAS B1 /* 계약기본 */
+       INNER JOIN TB_SSCT_CNTR_DTL A1 /* 계약상세 */
+          ON A1.CNTR_NO = B1.CNTR_NO
+         AND B1.DTA_DL_YN = 'N'
+         AND A1.DTA_DL_YN = 'N'
+       INNER JOIN TB_SSCT_CNTR_WELLS_DTL J1 /* 계약WELLS상세 */
+          ON J1.CNTR_NO = A1.CNTR_NO
+         AND J1.CNTR_SN = A1.CNTR_SN
+         AND J1.DTA_DL_YN = 'N'
+       LEFT OUTER JOIN LATERAL
+           (
+            SELECT
+                   CL1.CNTR_NO
+                 , CL1.CNTR_SN
+                 , NVL(MAX(CL1.RENTAL_TN) KEEP (DENSE_RANK FIRST ORDER BY CL1.SL_CL_YM DESC NULLS LAST),0) AS RENTAL_TN /* 렌탈차월 */
+                 , MAX(CL1.SL_CL_YM) KEEP (DENSE_RANK FIRST ORDER BY CL1.SL_CL_YM DESC NULLS LAST) AS MAX_SL_CL_YM
+                 , MIN(CL1.SL_CL_YM) KEEP (DENSE_RANK FIRST ORDER BY CL1.SL_CL_YM ASC NULLS LAST) AS CBCL_CNTR_PERF_MM_CL_BASE_YM /* WELLS 매출월마감내역 최소 기준년월 */
+                 , COUNT(CL1.CNTR_NO) AS CBCL_CNTR_PERF_MM_CL_CNT  /* 계약실적월마감 건 수*/
+                 , MAX(CL1.CAN_DT) KEEP (DENSE_RANK FIRST ORDER BY CL1.SL_CL_YM ASC NULLS LAST) AS CAN_DT /* 취소일 */
+                 , MAX(CL1.FULPY_DT) AS FULPY_DT
+              FROM TB_CBCL_WELLS_SL_MM_CL_IZ CL1 /* WELLS매출월마감내역 */
+             WHERE CL1.DTA_DL_YN = 'N'
+               AND CL1.SL_CL_YM BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') AND TO_CHAR(SYSDATE, 'YYYYMM')
+               AND CL1.CNTR_NO = A1.CNTR_NO
+               AND CL1.CNTR_SN = A1.CNTR_SN
+               AND CL1.OG_TP_CD = B1.SELL_OG_TP_CD
+             GROUP BY CL1.CNTR_NO, CL1.CNTR_SN
+           ) CL1
+          ON CL1.CNTR_NO = A1.CNTR_NO
+         AND CL1.CNTR_SN = A1.CNTR_SN
+       WHERE 1=1
+         AND A1.DTA_DL_YN = 'N'
+         AND B1.DTA_DL_YN = 'N'
+         AND J1.DTA_DL_YN = 'N'
+         AND B1.COPN_DV_CD = '2' /* 법인격구분코드가 법인(2)인 건만 조회 (1:개인, 2:법인) */
+         AND A1.SELL_TP_CD IN ('1','2','6') /* 조회조건(업무유형) - 판매 유형코드 할부(일시불포함'20230301'), 렌탈, 정기배송 - to-be CodeId : SELL_TP_CD */
+        <if test="@MybatisUtils@equals(dateGbn, '1')">
+           AND B1.CNTR_RCP_FSH_DTM BETWEEN #{fromDate} AND #{toDate}
+        </if>
+        <if test="@MybatisUtils@equals(dateGbn, '2')">
+           AND J1.IST_DT BETWEEN #{fromDate} AND #{toDate} /* 설치일 */
+        </if>
+        <if test="@MybatisUtils@equals(dateGbn, '3')">
+           AND CL1.RENTAL_TN BETWEEN #{fromRental} AND #{toRental} /* 렌탈차월(렌탈차월 조회시 시작차월 1이상으로 입력 하도록 체크 */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(sellTpCd)">
+           AND A1.SELL_TP_CD = #{sellTpCd}
+        </if>
+        <if test="@MybatisUtils@equals(canGbn, 'N')">
+           AND A1.CNTR_DTL_STAT_CD != '303' /* 계약상세상태코드 303 : 계약취소 */
+        </if>
+        <if test="@MybatisUtils@equals(empGbn, '1')">
+           AND B1.CNTR_TP_CD = '03' /* 계약유형코드 03 : '임직원' */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(pdCd)">
+           AND A1.BASE_PD_CD = #{pdCd}
+        </if>
+        )
+        ,W2 AS (
+        SELECT
+               K1.CNTR_NO
+             , K1.CNTR_SN
+             , K1.CNTR_CST_NO /* 계약고객번호 */
+             , MAX(L1.TXINV_ID) KEEP (DENSE_RANK FIRST ORDER BY L1.APLC_DT DESC NULLS LAST) AS TXINV_ID /* 세금계산서ID */ /* 신청일자(APLC_DT) MAX */
+             , MAX(L1.TXINV_PBL_YN) KEEP (DENSE_RANK FIRST ORDER BY L1.APLC_DT DESC NULLS LAST) AS TXINV_PBL_YN /* [세금계산서 정보-발행여부] */ /* 신청일자(APLC_DT) MAX */
+             , MAX(L1.DLPNR_CD) KEEP (DENSE_RANK FIRST ORDER BY L1.APLC_DT DESC NULLS LAST) AS DLPNR_CD /* 거래처코드 */ /* 신청일자(APLC_DT) MAX */
+             , MAX(L1.EMADR) KEEP (DENSE_RANK FIRST ORDER BY L1.APLC_DT DESC NULLS LAST) AS EMADR /* [세금계산서 정보-이메일] */ /* 신청일자(APLC_DT) MAX */
+          FROM W1
+         INNER JOIN TB_SSCT_TXINV_APLC_DTL K1 /* 세금계산서신청상세 */
+           ON K1.CNTR_NO=  W1.CNTR_NO
+          AND K1.CNTR_SN = W1.CNTR_SN
+          AND K1.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_TXINV_APLC_BAS L1 /* 세금계산서신청기본 */
+            ON L1.TXINV_ID = K1.TXINV_ID
+           AND L1.TXINV_PBL_DV_CD = '01' /* 세금계산서발생구분코드가 '01'(세금계산서)인 건 */
+           AND L1.DTA_DL_YN = 'N' /* 데이터 삭제 여부가 'N'인 건*/
+           AND K1.DTA_DL_YN = 'N'
+         GROUP BY K1.CNTR_NO, K1.CNTR_SN, K1.CNTR_CST_NO
+        )
+        ,W3 AS (
+        SELECT --'Y' /* 해당 데이터가 있으면 재렌탈 */
+               CASE WHEN U1.MCHN_CH_TP_CD NOT IN (15,16,19)
+                         THEN 'C' /* 기기변경 */
+                    ELSE 'R' /* 재렌탈 */
+               END CHK_CHDVC_RERNT /* 기변/재렌탈 체크*/
+             , U1.BASE_CNTR_NO /* 기준계약번호 */
+             , U1.BASE_CNTR_SN /* 기준계약일련번호 */
+             , U1.OJ_CNTR_NO /* 대상계약번호 */
+             , U1.OJ_CNTR_SN /* 대상계약일련번호  */
+          FROM W1
+         INNER JOIN TB_SSCT_MCHN_CH_IZ U1/* 기기변경내역 */
+            ON U1.BASE_CNTR_NO = W1.CNTR_NO /* 기준계약번호 */
+           AND U1.BASE_CNTR_SN = W1.CNTR_SN /* 기준계약일련번호 */
+           AND U1.DTA_DL_YN = 'N' /* 데이터 삭제 여부가 'N'인 건*/
+        ) /* 기변 */
+        ,W4 AS (
+        SELECT
+               A2.CNTR_NO /* 계약상세.계약번호 */
+             , A2.CNTR_SN /* 계약상세.계약일련번호 */
+             , A2.CNTR_PD_STRTDT /* 계약상세.계약상품시작일자 */
+             , A2.CNTR_PD_ENDDT  /* 계약상세.계약상품종료일자 */
+             , X1.OJ_DTL_CNTR_NO /* 계약관계.대상상세계약번호 */
+             , X1.OJ_DTL_CNTR_SN /* 계약관계.대상상세계약일련번호 */
+             , CL1.CBCL_CNTR_PERF_MM_CL_CNT AS CBCL_CNTR_PERF_MM_CL_CNT
+             , CL1.CBCL_CNTR_PERF_MM_CL_BASE_YM AS CBCL_CNTR_PERF_MM_CL_BASE_YN
+             , NVL((
+                    SELECT MAX(J1.PRM_PTRM_MCN) /* 계약WELLS상세.선납기간개월수  */
+                      FROM TB_SSCT_CNTR_WELLS_DTL J1 /* 계약WELLS상세 */
+                     WHERE J1.CNTR_NO = X1.BASE_DTL_CNTR_NO /* 계약WELLS상세.계약번호 = 계약관계.기준상세계약번호 */
+                       AND J1.CNTR_SN = X1.BASE_DTL_CNTR_SN /* 계약WELLS상세.계약일련번호 = 계약관계.기준상세계약일련번호 */
+                       AND J1.DTA_DL_YN = 'N' /* 계약WELLS상세 데이터삭제여부가 'N'인 건 */
+                   ), 0) AS PRM_PTRM_MCN /* 선납기간개월수 */
+             , CL1.PRM_END_MM /* 선납종료년월 */
+          FROM W1
+         INNER JOIN TB_SSCT_CNTR_REL X1 /* 계약관계 */
+            ON X1.OJ_DTL_CNTR_NO = W1.CNTR_NO /* 계약관계.대상상세계약번호 = 계약상세.계약번호 */
+           AND X1.OJ_DTL_CNTR_SN = W1.CNTR_SN /* 계약관계.대상상세계약일련번호 = 계약상세.계약일련번호 */
+           AND X1.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_DTL A2 /* 계약상세 */
+            ON A2.CNTR_NO = X1.BASE_DTL_CNTR_NO /* 계약상세.계약번호 = 계약관계.기준상세계약번호 */
+           AND A2.CNTR_SN = X1.BASE_DTL_CNTR_SN /* 계약상세.계약일련번호 = 계약관계.기준상세계약일련번호 */
+           AND A2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN LATERAL
+             (
+              SELECT
+                     CL1.CNTR_NO
+                   , CL1.CNTR_SN
+                   , NVL(MAX(CL1.RENTAL_TN) KEEP (DENSE_RANK FIRST ORDER BY CL1.SL_CL_YM DESC NULLS LAST),0) AS RENTAL_TN /* 렌탈차월 */
+                   , MAX(CL1.SL_CL_YM) KEEP (DENSE_RANK FIRST ORDER BY CL1.SL_CL_YM DESC NULLS LAST) AS MAX_SL_CL_YM
+                   , MIN(CL1.SL_CL_YM) KEEP (DENSE_RANK FIRST ORDER BY CL1.SL_CL_YM ASC NULLS LAST) AS CBCL_CNTR_PERF_MM_CL_BASE_YM /* WELLS 매출월마감내역 최소 기준년월 */
+                   , COUNT(CL1.CNTR_NO) AS CBCL_CNTR_PERF_MM_CL_CNT  /* 계약실적월마감 건 수*/
+                   , MAX(CL1.CAN_DT) KEEP (DENSE_RANK FIRST ORDER BY CL1.SL_CL_YM ASC NULLS LAST) AS CAN_DT /* 취소일 */
+                   , MAX(CL1.FULPY_DT) AS FULPY_DT
+                   , MAX(CL1.PRM_END_Y) KEEP (DENSE_RANK FIRST ORDER BY CL1.SL_CL_YM DESC NULLS LAST)
+                     ||MAX(CL1.PRM_END_MM) KEEP (DENSE_RANK FIRST ORDER BY CL1.SL_CL_YM DESC NULLS LAST) AS PRM_END_MM /* 선납종료년월 */
+               FROM TB_CBCL_WELLS_SL_MM_CL_IZ CL1 /* WELLS매출월마감내역 */
+              WHERE CL1.DTA_DL_YN = 'N'
+                AND CL1.SL_CL_YM BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') AND TO_CHAR(SYSDATE, 'YYYYMM')
+                AND CL1.CNTR_NO = A2.CNTR_NO
+                AND CL1.CNTR_SN = A2.CNTR_SN
+               GROUP BY CL1.CNTR_NO, CL1.CNTR_SN
+             ) CL1
+            ON CL1.CNTR_NO = A2.CNTR_NO
+           AND CL1.CNTR_SN = A2.CNTR_SN
+          WHERE X1.VL_END_DTM = '99991231999999' /* 유효종료일시 */
+           /* TODO:CNTR_REL_DTL_CD(계약관계.계약관계상세코드) 참조해야 될 수도 있음 212(원주문-멤버십), 221(홈케어멤버십) -  to-be CodeId : CNTR_REL_DTL_CD   */
+           AND X1.OJ_DTL_CNTR_NO = W1.CNTR_NO /* 계약관계.대상상세계약번호 = 계약상세.계약번호 */
+           AND X1.OJ_DTL_CNTR_SN = W1.CNTR_SN /* 계약관계.대상상세계약일련번호 = 계약상세.계약일련번호 */
+           AND A2.SELL_TP_CD = '3' /* 계약상세.판매유형코드 3(멤버십)  */
+        ) /* 멤버십 */
+        ,W5 AS (
+        SELECT
+               A1.CNTR_NO
+             , A1.CNTR_SN
+             , W3.BASE_CNTR_NO /* 기준계약번호 */
+             , W3.BASE_CNTR_SN /* 기준계약일련번호 */
+             , W3.OJ_CNTR_NO /* 대상계약번호 */
+             , W3.OJ_CNTR_SN /* 대상계약일련번호  */
+             , J1.IST_DT AS CHDVC_CNTR_STLM_FSH_DTM /* 매출일 */
+             , B1.CNTR_CAN_DTM /* 계약취소일시 */
+             , SUBSTR(B1.CNTR_CAN_DTM,1,8) AS CHDVC_CNTR_CAN_DTM /* 취소일 */
+             , A1.BASE_PD_CD AS CHDVC_BASE_PD_CD
+             , (SELECT MAX(G1.PD_NM)
+                  FROM TB_PDBS_PD_BAS G1 /* 상품기본 */
+                 WHERE G1.PD_CD = A1.BASE_PD_CD
+                   AND G1.TEMP_SAVE_YN = 'N'
+                   AND G1.DTA_DL_YN = 'N') AS CHDVC_PD_NM
+             , NVL((SELECT T2.DSC_PRUM_MTRX_FLOR_ID01
+                  FROM TB_SSCT_CNTR_PRC_CMPT_IZ T1
+                 INNER JOIN TB_PDBS_PD_PRC_FNL_DTL T2
+                    ON T1.PD_PRC_ID= T2.PD_PRC_ID
+                 WHERE T1.CNTR_NO = A1.CNTR_NO
+                   AND T1.CNTR_SN = A1.CNTR_SN
+               ),0) AS CHDVC_SELL_RATE /* 적용률 */
+             , A1.PD_BASE_AMT AS CHDVC_SELL_AMT /* TODO: 렌탈료 확인필요 */
+          FROM W3
+         INNER JOIN TB_SSCT_CNTR_DTL A1 /* 계약상세 */
+            ON A1.CNTR_NO = W3.OJ_CNTR_NO /* 대상계약번호 */
+           AND A1.CNTR_SN = W3.OJ_CNTR_SN /* 대상계약일련번호  */
+           AND A1.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS B1 /* 계약기본 */
+            ON B1.CNTR_NO = A1.CNTR_NO
+           AND B1.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL J1 /* 계약WELLS상세 */
+            ON J1.CNTR_NO = A1.CNTR_NO
+           AND J1.CNTR_SN = A1.CNTR_SN
+           AND J1.DTA_DL_YN = 'N'
+         WHERE W3.CHK_CHDVC_RERNT = 'C'
+        ) /* 기변이전정보 */
+        ,BASE_USR AS(
+        SELECT U1.USR_ID /* 사용자ID */
+             , U1.BASE_RLE_CD /* 기준역할코드 */
+             , U1.HCD_CD /* 홈카드 */
+             , U1.OG_TP_CD /* 조직유형코드 */
+             , U1.USR_TYPE_CD /* 사용자유형코드 - E:정규직, C:계약직, P:파트너, O:외주*/
+             , U1.IRSD_STT_CD /* 재직상태코드 - W:재직, R:퇴직, D:해직(계약해지) */
+             , U1.OG_ID /* 조직ID */
+             , U2.CRLV_CD /* 직급코드 */
+             , U2.RSB_CD /* 직책코드 */
+             , U2.EPNO /* 사번 */
+             , U2.LOGIN_ID /* 로그인ID */
+             , U2.USR_ACO_STT_CD /* 사용자계정상태코드 - 1:정상, 2:승인대기, 6:잠김, 7:휴면, 8:중지, 9:해지 */
+             , CASE /* 1:HR의 전사스텝조직 + TENANT별 스텝조직인 경우 - 임직원구매 / EDU업무지원매니저 / EDU조직육성매니저 / WELLS업무담당 / WELLS영업지원매니저 제외 ※제휴채널(ALC) 포함여부 확인 필요 */
+                    WHEN     U1.OG_TP_CD = 'HR1'
+                         --AND U1.BASE_RLE_CD NOT IN ('G1020','E1020','E1030','W1020','W1030', 'ALC') /* 임직원구매 / EDU업무지원매니저 / EDU조직육성매니저 / WELLS업무담당 / WELLS영업지원매니저 제외 */
+                         THEN 'W01,W02,W03,W04,W05' /* AS-IS 대부분이 AKDGUB IN (2,7)로 조회 해당 컬럼 TO-BE OG_TP_CD임(W01, W02, W03, W04, W05 해당) 참조:https://kyowon.atlassian.net/wiki/spaces/ForKUS/pages/190579531/10.+AS-IS+TO-BE */
+                              /* W01:P추진단 ,W02:M추진단 ,W03:홈마스터 ,W04:B2B ,W05:온라인총판 ALC:제휴채널*/
+                    ELSE
+                         CASE /* 2:영업지원조직 담당자인 경우 */
+                              WHEN I1.PRTNR_NO IS NOT NULL THEN /* 지원조직내역에 데이터가 있으면 영업지원조직 담당자 - 총괄단장, 지역단장, 지점장, 조직육성매니저, 영업지원 매니저 등 !!!!!230620 확인 시 개발과 운영의 데이터가 다름(운영 OG_ID가 같은 건이 없다!!!) */
+                                   U1.OG_TP_CD /* 우선 session.ogTpCd와 동일한 것으로 가정 */
+                              ELSE
+                                   /* 3:영업파트너 및 기타 역할자 */
+                                   U1.OG_TP_CD /* session.ogTpCd와 동일 */
+                         END
+               END INQR_OG_TP_CD /* 조회대상 조직유형코드 */
+          FROM T_CMY_USR_M U1 /* 사용자기본 */
+         INNER JOIN T_CMP_USR_ACO_M U2 /* 사용자계정기본 */
+            ON U1.USR_ID = U2.USR_ID
+           AND U1.DEL_YN = 'N'
+           AND U2.DEL_YN = 'N'
+          LEFT OUTER JOIN LATERAL
+             (
+              /* 영업지원직책구분코드 - W0106 : 업무담당, W0107 : BM, W0206 : 업무담당, W0107 : BM */
+              SELECT U3.OG_ID /* 조직ID */
+                   , U3.OG_TP_CD /* 조직유형코드 */
+                   , U3.PRTNR_NO /* 파트너번호 */
+                   , MAX(U3.BZNS_SPPT_RSB_DV_CD) AS BZNS_SPPT_RSB_DV_CD /* 영업지원직책구분코드 */
+                   , MAX(U3.RVE_CD) AS RVE_CD /* 수납코드 */
+                   , COUNT(U3.PRTNR_NO) AS DATA_CN /* 데이터 건수 */
+                FROM TB_OGBS_SPPT_OG_IZ U3 /* 지원조직내역 */
+               WHERE U3.DTA_DL_YN = 'N'
+                 AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN U3.MNGT_STRT_DT AND U3.MNGT_END_DT
+                 AND U3.PRTNR_NO = U2.EPNO /* 파트너번호 */
+                 AND U3.OG_TP_CD = U1.OG_TP_CD /* 조직유형코드 */
+                 AND U3.OG_ID = U1.OG_ID /* 조직ID */
+               GROUP BY U3.OG_ID /* 조직ID */
+                      , U3.OG_TP_CD /* 조직유형코드 */
+                      , U3.PRTNR_NO /* 파트너번호 */
+             ) I1
+            ON I1.OG_ID = U1.OG_ID
+           AND I1.OG_TP_CD = U1.OG_TP_CD
+           AND I1.PRTNR_NO = U2.EPNO
+         WHERE 1=1
+           AND U1.TENANT_ID = #{session.tenantId} /* 테넌트ID */
+           AND U1.USR_ID = #{session.userId} /*  사용자ID */
+           AND U1.IRSD_STT_CD = 'W' /* 재직상태코드 - W:재직, R:퇴직, D:해직(계약해지) */
+           AND U2.USR_ACO_STT_CD = '1' /* 사용자계정상태코드 = 1(정상) */
+        )
+        , BASE_OG AS (
+        /* 월조직/월파트너내역-현재월기준 */
+        /* ※조직편제 참고 wells(M/P 영업부) → 총괄단 → 지역단 → 지점 */
+        SELECT /*+ INDEX (A1 PK_OGBS_MM_OG_IZ) */
+               A1.OG_ID /* 조직ID */
+             , A1.HGR_OG_ID /* 상위조직ID */
+             , A1.OG_TP_CD /* 조직유형코드 */
+             , A1.OG_LEVL_DV_CD /* 조직레벨구분코드 */
+             , A1.OG_CD /* 조직코드 */
+             , A1.OG_NM /* 조직명 */
+             , A1.DGR1_LEVL_OG_CD /* 1차레벨조직코드 - 총괄단*/
+             , A1.DGR1_LEVL_OG_ID /* 1차레벨조직ID */
+             , A1.DGR1_LEVL_DG_PRTNR_NO /* 1차레벨대표파트너번호 */
+             , A1.DGR1_LEVL_OG_NM /* 1차레벨조직명 */
+             , A1.DGR2_LEVL_OG_CD /* 2차레벨조직코드 - 지역단 */
+             , A1.DGR2_LEVL_OG_ID /* 2차레벨조직ID */
+             , A1.DGR2_LEVL_DG_PRTNR_NO /* 2차레벨대표파트너번호 */
+             , A1.DGR2_LEVL_OG_NM /* 2차레벨조직명 */
+             , A1.DGR3_LEVL_OG_CD /* 3차레벨조직코드 - 지점 */
+             , A1.DGR3_LEVL_OG_ID /* 3차레벨조직ID */
+             , A1.DGR3_LEVL_DG_PRTNR_NO /* 3차레벨대표파트너번호 */
+             , A1.DGR3_LEVL_OG_NM /* 3차레벨조직명 */
+             , A1.BIZ_SPPT_PRTNR_NO /* 업무지원파트너번호 */
+             , A1.OG_UPBRNG_PRTNR_NO /* 조직육성파트너번호 */
+             , A1.OG_UPBRNG_HDTM_PRTNR_NO /* 조직육성팀장파트너번호 */
+             , A1.BASE_YM /* 기준년월 */
+             , B1.PRTNR_NO /* 파트너번호 */
+             , B1.PRTNR_KNM /* 파트너한글명 */
+             , B1.PSTN_DV_CD /* 직급구분코드 */
+             , B1.RSB_DV_CD /* 직책구분코드 */
+             , B1.ROL_DV_CD /* 직무구분코드 */
+          FROM TB_OGBS_MM_OG_IZ A1 /* 월조직내역 */
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ B1 /* 월파트너내역 */
+            ON B1.BASE_YM = A1.BASE_YM /* 기준년월 */
+           AND B1.OG_TP_CD = A1.OG_TP_CD /* 조직유형코드 */
+           AND B1.OG_ID = A1.OG_ID /* 조직ID */
+           AND B1.OG_CD = A1.OG_CD
+           AND B1.DTA_DL_YN = 'N'
+           AND A1.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND A1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+           AND A1.OG_TP_CD IN
+             (
+              SELECT REGEXP_SUBSTR(A1.OG_TP_CD_LST, '[^,]+', 1, LEVEL) AS SPLIT_OG_TP_CD
+                FROM (
+                      SELECT INQR_OG_TP_CD AS OG_TP_CD_LST
+                        FROM BASE_USR
+                     ) A1
+              CONNECT BY LEVEL <![CDATA[ <= ]]> LENGTH(REGEXP_REPLACE(A1.OG_TP_CD_LST, '[^,]+','')) + 1
+             )
+        ),
+        BASE_RNG_INQR AS (
+        SELECT
+               SUM(I2.DGR1_LEVL_DG_PRTNR_CHK) AS DGR1_LEVL_DG_PRTNR_CHK
+             , SUM(I2.DGR2_LEVL_DG_PRTNR_CHK) AS DGR2_LEVL_DG_PRTNR_CHK
+             , SUM(I2.DGR3_LEVL_DG_PRTNR_CHK) AS DGR3_LEVL_DG_PRTNR_CHK
+             , SUM(I2.BIZ_SPPT_PRTNR_CHK) AS BIZ_SPPT_PRTNR_CHK
+             , SUM(I2.OG_UPBRNG_PRTNR_CHK) AS OG_UPBRNG_PRTNR_CHK
+             , SUM(I2.OG_UPBRNG_HDTM_PRTNR_CHK) AS OG_UPBRNG_HDTM_PRTNR_CHK
+             , SUM(I2.PRTNR_CHK) AS PRTNR_CHK
+             , (
+                  SUM(I2.DGR1_LEVL_DG_PRTNR_CHK)
+                + SUM(I2.DGR2_LEVL_DG_PRTNR_CHK)
+                + SUM(I2.DGR3_LEVL_DG_PRTNR_CHK)
+                + SUM(I2.BIZ_SPPT_PRTNR_CHK)
+                + SUM(I2.OG_UPBRNG_PRTNR_CHK)
+                + SUM(I2.OG_UPBRNG_HDTM_PRTNR_CHK)
+                + SUM(I2.PRTNR_CHK)
+               ) AS OGBS_RGH_CHK
+             , MAX(I2.EPNO) AS EPNO
+             , MAX(I2.OG_TP_CD) AS OG_TP_CD
+             , MAX(I2.INQR_OG_TP_CD) AS INQR_OG_TP_CD
+          FROM
+             (
+              SELECT CASE WHEN I1.DGR1_LEVL_DG_PRTNR_NO = I1.EPNO
+                               THEN 1
+                          ELSE 0
+                     END DGR1_LEVL_DG_PRTNR_CHK
+                   , CASE WHEN I1.DGR2_LEVL_DG_PRTNR_NO = I1.EPNO
+                               THEN 1
+                          ELSE 0
+                     END DGR2_LEVL_DG_PRTNR_CHK
+                   , CASE WHEN I1.DGR2_LEVL_DG_PRTNR_NO = I1.EPNO
+                               THEN 1
+                          ELSE 0
+                     END DGR3_LEVL_DG_PRTNR_CHK
+                   , CASE WHEN I1.BIZ_SPPT_PRTNR_NO = I1.EPNO
+                               THEN 1
+                          ELSE 0
+                     END BIZ_SPPT_PRTNR_CHK
+                   , CASE WHEN I1.OG_UPBRNG_PRTNR_NO = I1.EPNO
+                               THEN 1
+                          ELSE 0
+                     END OG_UPBRNG_PRTNR_CHK
+                   , CASE WHEN I1.OG_UPBRNG_HDTM_PRTNR_NO = I1.EPNO
+                               THEN 1
+                          ELSE 0
+                     END OG_UPBRNG_HDTM_PRTNR_CHK
+                   , CASE WHEN I1.PRTNR_NO = I1.EPNO
+                               THEN 1
+                          ELSE 0
+                     END PRTNR_CHK
+                   , I1.EPNO
+                   , I1.OG_TP_CD
+                   , I1.INQR_OG_TP_CD
+                FROM
+                   (
+                    SELECT A1.DGR1_LEVL_DG_PRTNR_NO /* 1차레벨대표파트너번호 */
+                         , A1.DGR2_LEVL_DG_PRTNR_NO /* 2차레벨대표파트너번호 */
+                         , A1.DGR3_LEVL_DG_PRTNR_NO /* 3차레벨대표파트너번호 */
+                         , A1.BIZ_SPPT_PRTNR_NO /* 업무지원파트너번호 */
+                         , A1.OG_UPBRNG_PRTNR_NO /* 조직육성파트너번호 */
+                         , A1.OG_UPBRNG_HDTM_PRTNR_NO /* 조직육성팀장파트너번호 */
+                         , A1.PRTNR_NO /* 파트너(플래너) */
+                         , (SELECT MAX(T2.EPNO) FROM BASE_USR T2) AS EPNO
+                         , (SELECT MAX(T2.OG_TP_CD) FROM BASE_USR T2) AS OG_TP_CD
+                         , (SELECT MAX(T2.INQR_OG_TP_CD) FROM BASE_USR T2) AS INQR_OG_TP_CD
+                      FROM BASE_OG A1
+                   ) I1
+             ) I2
+        ),
+        BASE_OGBS AS (
+        SELECT
+               CASE WHEN     B1.OGBS_RGH_CHK = 0
+                         AND B1.OG_TP_CD = 'HR1'
+                         THEN 'Y'
+                    ELSE /* 겸직이 있어 관련 건을 다 찾음 */
+                         CASE WHEN B1.OGBS_RGH_CHK <![CDATA[ > ]]> 0
+                                   THEN
+                                        CASE WHEN (B1.DGR1_LEVL_DG_PRTNR_CHK <![CDATA[ > ]]> 0 AND B1.EPNO = A1.DGR1_LEVL_DG_PRTNR_NO)  /* 총괄단장 */
+                                                  THEN 'Y'
+                                             WHEN (B1.DGR2_LEVL_DG_PRTNR_CHK <![CDATA[ > ]]> 0 AND B1.EPNO = A1.DGR2_LEVL_DG_PRTNR_NO)  /* 지역단장 */
+                                                  THEN 'Y'
+                                             WHEN (B1.DGR3_LEVL_DG_PRTNR_CHK <![CDATA[ > ]]> 0 AND B1.EPNO = A1.DGR3_LEVL_DG_PRTNR_NO)  /* 지점장 */
+                                                  THEN 'Y'
+                                             WHEN (B1.BIZ_SPPT_PRTNR_CHK <![CDATA[ > ]]> 0 AND B1.EPNO = A1.BIZ_SPPT_PRTNR_NO)  /* 업무지원파트너 */
+                                                  THEN 'Y'
+                                             WHEN (B1.OG_UPBRNG_PRTNR_CHK <![CDATA[ > ]]> 0 AND B1.EPNO = A1.OG_UPBRNG_PRTNR_NO)  /* 조직육성파트너 */
+                                                  THEN 'Y'
+                                             WHEN (B1.OG_UPBRNG_HDTM_PRTNR_CHK <![CDATA[ > ]]> 0 AND B1.EPNO = A1.OG_UPBRNG_HDTM_PRTNR_NO)  /* 조직육성팀장 */
+                                                  THEN 'Y'
+                                             WHEN (B1.PRTNR_CHK <![CDATA[ > ]]> 0 AND B1.EPNO = A1.PRTNR_NO) /* 파트너(선생님) */
+                                                  THEN 'Y'
+                                             ELSE 'N'
+                                        END
+                              ELSE 'N'
+                         END
+               END AS INQR_YN
+              , CASE WHEN     B1.OGBS_RGH_CHK = 0
+                         AND B1.OG_TP_CD = 'HR1'
+                         THEN 'Y'
+                    ELSE 'N'
+                END HR1_YN /* 본사여부 */
+              , B1.EPNO /* 사번 */
+              , A1.OG_ID /* 조직ID */
+              , A1.HGR_OG_ID /* 상위조직ID */
+              , A1.OG_TP_CD /* 조직유형코드 */
+              , A1.OG_LEVL_DV_CD /* 조직레벨구분코드 */
+              , A1.OG_CD /* 조직코드 */
+              , A1.OG_NM /* 조직명 */
+              , A1.DGR1_LEVL_OG_CD /* 1차레벨조직코드 */
+              , A1.DGR1_LEVL_OG_ID /* 1차레벨조직ID */
+              , A1.DGR1_LEVL_DG_PRTNR_NO /* 1차레벨대표파트너번호 */
+              , A1.DGR1_LEVL_OG_NM /* 1차레벨대표파트너명 */
+              , A1.DGR2_LEVL_OG_CD /* 2차레벨조직코드 */
+              , A1.DGR2_LEVL_OG_ID /* 1차레벨조직ID */
+              , A1.DGR2_LEVL_DG_PRTNR_NO  /* 2차레벨대표파트너번호 */
+              , A1.DGR2_LEVL_OG_NM /* 2차레벨대표파트너명 */
+              , A1.DGR3_LEVL_OG_CD /* 3차레벨조직코드 */
+              , A1.DGR3_LEVL_OG_ID /* 3차레벨조직ID */
+              , A1.DGR3_LEVL_DG_PRTNR_NO  /* 3차레벨대표파트너번호 */
+              , A1.DGR3_LEVL_OG_NM /* 3차레벨대표파트너명 */
+              , A1.BIZ_SPPT_PRTNR_NO /* 업무지원파트너번호 */
+              , A1.OG_UPBRNG_PRTNR_NO /* 조직육성파트너번호 */
+              , A1.OG_UPBRNG_HDTM_PRTNR_NO /* 조직육성팀장파트너번호 */
+              , A1.BASE_YM /* 기준년월 */
+              , A1.PRTNR_NO /* 파트너번호 */
+              , A1.PRTNR_KNM /* 파트너한글명 */
+              , A1.PSTN_DV_CD /* 직급구분코드 */
+              , A1.RSB_DV_CD /* 직책구분코드 */
+              , A1.ROL_DV_CD /* 직무구분코드 */
+        --      , ROWNUM AS RNUM
+          FROM BASE_OG A1
+         INNER JOIN BASE_RNG_INQR B1
+            ON 1=1
+        -- START WITH A1.OG_LEVL_DV_CD = '1' /* 계층형으로 적용시 상위부서코드로 연결되지 않아 DATA 건수가 줄어듬 */
+        --CONNECT BY NOCYCLE PRIOR A1.OG_ID = A1.HGR_OG_ID
+        ORDER BY OG_CD
+        )
+        ------------------------------------------------------------------------------------------
+        SELECT
+               W1.SELL_TP_NM /* [업무유형] */
+             , W1.CNTR_NO /* [계약번호] */
+             , W1.CNTR_SN /* 계약일련번호 */
+             , C1.CST_KNM /* [계약자정보-계약자] */
+             , C1.COPN_DV_CD /* [계약자정보-계약자구분] */
+             , C1.BZRNO /* [계약자정보-사업자등록번호] */
+             , SUBSTR(C1.BRYY_MMDD, 3, 2) AS BRYY /* [계약자정보-고객생년(YY)] */
+             , D1.TXN_TP_CD /* [계약자정보-과세유형] */
+             , NVL(F1.NEW_ADR_ZIP, F1.OLD_ADR_ZIP) AS ADR_ZIP /* [계약자정보-우편번호] */
+             , NVL(F1.RNADR, F1.LTN_ADR) AS ADR /* [계약자정보-주소] */
+             , NVL(F1.RDADR, F1.LTN_DTL_ADR) AS DTL_ADR /* [계약자정보-상세주소] */
+             , W1.SELL_TP_CD /* [계약자정보-판매유형] */
+             , W1.CNTR_TP_CD /* [계약자정보-판매구분] */
+             , W1.BASE_PD_CD /* [계약자정보-상품코드] */
+             , G1.PD_ABBR_NM /* [계약자정보-약어] */
+             , (SELECT MAX(H1.PD_CLSF_NM)
+                  FROM TB_PDBS_PD_CLSF_BAS H1 /* 상품분류기본 */
+                 WHERE H1.PD_CLSF_ID = G1.PD_MCLSF_ID /* 상품중분류ID*/
+                   AND H1.BZ_HDQ_DV_CD = 'W' /* 사업본부구분코드 - W wells */
+                   AND H1.PD_CLSF_LEVL_DV_CD = 3 /* 상품유형코드 */
+               ) AS PD_MCLSF_NM /* [계약자정보-상품분류]*/
+             , G1.PD_NM /* [계약자정보-상품명] */
+             , W1.SV_PRD /* [계약자정보-관리주기] */
+             , (SELECT MAX(PD_PRP_VAL01) PK_PDBS_PD_ECOM_PRP_DTL
+                  FROM TB_PDBS_PD_ECOM_PRP_DTL PD1
+                 WHERE PD1.PD_EXTS_PRP_GRP_CD = 'CMN'
+                   AND PD1.PD_CD = G1.PD_CD
+                   AND PD1.DTA_DL_YN = 'N'
+                   AND PD1.TEMP_SAVE_YN = 'N') AS FNL_PD_USWY_CD /* [계약자정보-용도구분] */
+             , (SELECT MAX(J1.OG_CD) /*조직코드*/
+                  FROM TB_OGBS_MM_PRTNR_IZ J1
+                 WHERE J1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND J1.PRTNR_NO = T1.BIZ_SPPT_PRTNR_NO
+                   AND J1.OG_TP_CD = W1.SELL_OG_TP_CD
+               ) AS BZNS_SPPT_OG_CD /* [웰스 매니저 정보-조직코드] */
+             , T1.BIZ_SPPT_PRTNR_NO /* [업무지원파트너번호 웰스 매니저 정보-사번] */
+             , (SELECT MAX(J1.PRTNR_KNM) /*조직코드*/
+                  FROM TB_OGBS_MM_PRTNR_IZ J1
+                 WHERE J1.BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+                   AND J1.PRTNR_NO = T1.BIZ_SPPT_PRTNR_NO
+                   AND J1.OG_TP_CD = W1.SELL_OG_TP_CD
+               ) AS BZNS_SPPT_PRTNR_KNM /* [웰스 매니저 정보-담당자] */
+             , CASE WHEN NVL('1' /* 조회조건(실적구분), ▶as-is 변수:acrsDivCd, 1:입금실적,2:인정실적)  */, '1') = '1'
+                         THEN (
+                               SELECT NVL(TO_NUMBER(MAX(PD_PRP_VAL26)),0)
+                                 FROM TB_PDBS_PD_ECOM_PRP_DTL PD1
+                                WHERE PD_EXTS_PRP_GRP_CD = 'PART'
+                                  AND PD1.PD_CD = G1.PD_CD
+                                  AND PD1.DTA_DL_YN = 'N'
+                                  AND PD1.TEMP_SAVE_YN = 'N'
+                               ) /* 공급가액 */
+                    ELSE W1.ACKMT_PERF_AMT /* 인정실적 */
+               END ACKMT_PERF_AMT
+             , W1.CNTR_AMT  /* [렌탈등록비] */
+             , W1.FNL_AMT /* [총렌탈료1] */
+             , W1.DSC_AMT AS DISCOUNT_AMT /* 할인금액 [렌탈할인료1] */
+             , W1.PD_BASE_AMT /* TODO: 렌탈료 확인필요 [렌탈료1] */
+             , W1.RECAP_DUTY_PTRM_N /* [의무사용] */
+             , W1.RENTAL_TN /* 렌탈차월 */
+             , W2.TXINV_PBL_YN /* [세금계산서 정보-발행여부] */
+             , (
+                SELECT MAX(M1.TXINV_PBL_TP_CD) /* 세금계산서발행유형코드 - 1:개별발행, 2:합산발행, 3:발행취소 */
+                  FROM TB_GBCO_DLPNR_BAS M1 /* 거래처기본 */
+                 WHERE M1.DLPNR_CD = W2.DLPNR_CD /* 거래처기본.거래처코드 = 세금계산서신청기본.거래처코드 */
+               ) AS TXINV_PBL_TP_CD /* [세금계산서 정보-발행구분] */
+             , W2.EMADR /* [세금계산서 정보-이메일] */
+             , P1.MPY_MTHD_TP_CD /* [이체정보-이체구분] */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'MPY_MTHD_TP_CD', P1.MPY_MTHD_TP_CD) AS MPY_MTHD_TP_NM /* [이체정보-이체구분명] */
+             , P1.MPY_BSDT /* [이체정보-이체일] */
+             , W1.IST_DT AS SL_DT /* [매출일] WELLS 설치일을 매출인식일로 처리 */
+             , SUBSTR(W1.CNTR_CAN_DTM, 1, 8) AS CAN_DT /* [취소일] */
+             , W1.CNTR_PD_ENDDT AS FULPY_DT/* 만료일 */
+             , W4.CNTR_PD_STRTDT /* [멤버십 정보-가입일] */
+             , W4.CNTR_PD_ENDDT  /* [멤버십 정보-탈퇴일] */
+             , W4.PRM_END_MM /* [멤버십 정보-선납종료일] */
+             , T1.PRTNR_NO /* [파트너 정보-파트너사번] */
+             , T1.PRTNR_KNM /* [파트너 정보-파트너명] */
+             , T1.DGR1_LEVL_OG_CD /* [파트너 정보-총괄단] */
+             , T1.DGR2_LEVL_OG_CD /* [파트너 정보-지역단] */
+             , T1.OG_CD /* [파트너 정보-조직코드] */
+             , T1.DGR3_LEVL_DG_PRTNR_NO /* [파트너 정보-지점장사번] */
+             , T1.DGR3_LEVL_DG_PRTNR_NM /* [파트너 정보-지점장명] */
+             , T1.BLD_NM /* [빌딩명] */
+             , F_CMZ_CD_NM( #{session.tenantId}
+                          , (SELECT CM1.USER_DFN_02 AS ID
+                               FROM T_CMZ_CD_D CM1
+                              WHERE CM1.CD_ID = 'SELL_DSC_DV_CD'
+                                AND CM1.CD_VLD_VAL = W1.SELL_TP_CD
+                                AND CM1.TENANT_ID = #{session.tenantId})
+                          , W1.SELL_DSC_DV_CD ) AS DSC_APY_TP_CD /* [할인구분] */
+             , F_CMZ_CD_NM( #{session.tenantId}
+                          , (SELECT CM1.USER_DFN_02 AS ID
+                               FROM T_CMZ_CD_D CM1
+                              WHERE 1 = 1
+                                AND CM1.CD_ID = 'SELL_DSC_TP_CD'
+                                AND CM1.CD_VLD_VAL = W1.SELL_TP_CD
+                                AND CM1.TENANT_ID = #{session.tenantId})
+                          , W1.SELL_DSC_TP_CD ) AS DSC_APY_DTL_CD /* [행사유형] */
+             , CASE WHEN W3.CHK_CHDVC_RERNT = 'C' THEN 'Y' ELSE '' END CHDVC_YN /* [기기변경] */
+             , CASE WHEN W3.CHK_CHDVC_RERNT = 'R' THEN 'Y' ELSE '' END RERNT /* [계약자정보-재렌탈여부] */
+             , CASE WHEN W3.CHK_CHDVC_RERNT IS NULL THEN 'Y' ELSE '' END NW /* [계약자정보-신규여부] */
+             , V1.PMOT_CD AS DISC_SYS/* [할인제도] */
+             , D1.DLPNR_BZCL_NM /* [업태] */
+             , D1.DLPNR_ITEM_NM /* [종목] */
+             , W1.REQD_DT /* [철거일] */
+             , W5.OJ_CNTR_NO||W5.OJ_CNTR_SN AS CHDVC_CNTR_NO /* [기변이전 정보-계약번호] */
+             , W5.OJ_CNTR_NO
+             , W5.OJ_CNTR_SN
+             , W5.CHDVC_CNTR_STLM_FSH_DTM /* [기변이전 정보-매출일] */
+             , W5.CNTR_CAN_DTM AS CHDVC_CNTR_CAN_DTM /* [기변이전 정보-취소일] */
+             , W5.CHDVC_BASE_PD_CD /* [기변이전 정보-상품코드] */
+             , W5.CHDVC_PD_NM /* [기변이전 정보-상품명] */
+             , W5.CHDVC_SELL_RATE /* [기변이전 정보-적용률] */
+             , W5.CHDVC_SELL_AMT /* [기변이전 정보-렌탈료] */
+             , CASE WHEN W9.PD_REL_TP_CD = '01' /* 08 : 패키지 221213 복합(01)으로 지정 */
+                        THEN W1.HGR_PD_CD
+                    ELSE ''
+               END AS PKG_PD_CD /* [패키지상품번호] */
+             , CASE WHEN W9.PD_REL_TP_CD = '01' /* 08 : 패키지 221213 복합(01)으로 지정 */
+                         THEN (SELECT MAX(G1.PD_NM)
+                                 FROM TB_PDBS_PD_BAS G1 /* 상품기본 */
+                                WHERE G1.PD_CD = W1.HGR_PD_CD /* 상품기본.상풐코드 = 계약상세.상위상품코드 */
+                                  AND G1.TEMP_SAVE_YN = 'N'
+                                  AND G1.DTA_DL_YN = 'N'
+                              )
+                    ELSE ''
+               END PKG_PD_NM /* [패키지상품명] */
+             ------------------------------------------------------------------------------------------------------------
+             ------------------------------------------------------------------------------------------------------------
+             ------------------------------------------------------------------------------------------------------------
+             , F1.CNTR_ADRPC_ID
+             , F1.CNTRT_REL_CD
+             , F1.OG_TP_CD
+             , (SELECT MAX(T1.RVE_DT)
+                  FROM TB_RVDW_RVE_DTL T1
+                 WHERE T1.DP_DV_CD ='01'
+                   AND T1.DP_MES_CD = '06'
+                   AND T1.CNTR_NO = W1.CNTR_NO /* 수납상세.계약번호 = 계약상세.계약번호 */
+                   AND T1.CNTR_SN = W1.CNTR_SN /* 수납상세.계약일련번호 = 계약상세계약일련번호 */
+               ) AS POINT_DT /* 포인트적용일 */
+             , (SELECT T1.RVE_AMT
+                  FROM TB_RVDW_RVE_DTL T1
+                 WHERE DP_DV_CD ='01'
+                   AND T1.DP_MES_CD = '06'
+                   AND T1.CNTR_NO = W1.CNTR_NO /* 수납상세.계약번호 = 계약상세.계약번호 */
+                   AND T1.CNTR_SN = W1.CNTR_SN /* 수납상세.계약일련번호 = 계약상세계약일련번호 */
+               ) AS POINT_AMT/* 포인트입금 */
+             , W1.CNTR_CST_NO /* [고객번호] */
+             , V1.PMOT_CD /* [프로모션코드] 할인제도와 값 중복*/
+             , CASE WHEN V1.PMOT_CD IS NOT NULL
+                         THEN (SELECT MAX(Y1.PMOT_FVR_CN)
+                                 FROM TB_PDBS_PMOT_BAS Y1 /* 프로모션기본 */
+                                WHERE Y1.PMOT_CD = V1.PMOT_CD /* */
+                                  AND Y1.TEMP_SAVE_YN = 'N'
+                                  AND Y1.DTA_DL_YN = 'N'
+                              )
+                    ELSE ''
+               END PMOT_DESC /* 프로모션 내용 */
+             , W1.FST_RGST_USR_ID /* [입력담당] TB_SSCT_CNTR_DTL*/
+             , (SELECT MAX(U1.USR_NM)
+                  FROM T_CMP_USR_ACO_M U1
+                 WHERE U1.USR_ID = W1.FST_RGST_USR_ID
+                   AND U1.DEL_YN = 'N'
+                ) AS FST_RGST_USR_NM /* [입력담당명] TB_SSCT_CNTR_DTL*/
+             , SUBSTR(W1.FST_RGST_DTM, 1, 8) AS FST_RGST_DT /* [등록일] TB_SSCT_CNTR_DTL*/
+             , SUBSTR(W1.FST_RGST_DTM, 9) AS FST_RGST_TM /* [등록시간] TB_SSCT_CNTR_DTL*/
+             , W1.FNL_MDFC_USR_ID /* [수정담당] TB_SSCT_CNTR_DTL*/
+             , SUBSTR(W1.FNL_MDFC_DTM, 1, 8) AS FNL_MDFC_DT /* [수정일] TB_SSCT_CNTR_DTL*/
+             , SUBSTR(W1.FNL_MDFC_DTM, 9) AS FNL_MDFC_TM /* [수정시간] TB_SSCT_CNTR_DTL*/
+          FROM W1
+         INNER JOIN TB_CUBS_CST_BAS C1 /* 고객기본 */
+            ON W1.CNTR_CST_NO = C1.CST_NO /* 계약고객번호 = 고객번호(as-is 교원키) */
+           AND C1.TEMP_SAVE_YN = 'N'
+           AND C1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_GBCO_DLPNR_BAS D1 /* 거래처기본 */
+            ON D1.DLPNR_CD = C1.DLPNR_CD
+           AND D1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN LATERAL
+             (
+              SELECT E1.CNTR_ADRPC_ID
+                   , E1.CNTR_NO
+                   , F1.NEW_ADR_ZIP
+                   , F1.RNADR
+                   , F1.RDADR
+                   , F1.OLD_ADR_ZIP
+                   , F1.LTN_ADR
+                   , F1.LTN_DTL_ADR
+                   , E1.CNTRT_REL_CD
+                   , E1.OG_TP_CD
+                FROM TB_SSCT_CNTR_ADR_REL E2/* 계약주소관계 */
+               INNER JOIN TB_SSCT_CNTR_ADRPC_BAS E1 /* 계약주소지기본 */
+                  ON E1.CNTR_ADRPC_ID = E2.CNTR_ADRPC_ID
+                 AND E2.DTL_CNTR_NO = E1.CNTR_NO
+                 --AND E2.CNTR_UNIT_TP_CD = '020' /* 이행팀 점검 이후 주석 제거 */
+                 AND E2.VL_END_DTM = '99991231235959'
+                 AND E2.ADRPC_TP_CD = '1' /* 주소지유형코드 = 1(계약주소) */
+                 AND E2.DTA_DL_YN = 'N'
+                 AND E1.DTA_DL_YN = 'N'
+               INNER JOIN TB_GBCO_ADR_BAS F1 /* 주소기본 */
+                  ON E1.ADR_ID = F1.ADR_ID /* 계약주소지기본.주소ID = 주소기본.주소ID */
+                 AND F1.DTA_DL_YN = 'N'
+               WHERE E1.CNTR_NO = W1.CNTR_NO /* 계약주소지기본.계약번호 = 계약상세 계약번호 */
+                 AND E1.CNTR_CST_NO = W1.CNTR_CST_NO
+                 AND E2.DTL_CNTR_NO = W1.CNTR_NO
+                 AND E2.DTL_CNTR_SN = W1.CNTR_SN
+             ) F1
+            ON 1=1
+         INNER JOIN TB_PDBS_PD_BAS G1 /* 상품기본 */
+            ON G1.PD_CD = W1.BASE_PD_CD /* 상품기본.상품코드 = 계약상세.기준상품코드 */
+           AND G1.TEMP_SAVE_YN = 'N'
+           AND G1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN W2 /* 세금계산서 */
+            ON W2.CNTR_NO = W1.CNTR_NO
+           AND W2.CNTR_SN = W1.CNTR_SN
+          LEFT OUTER JOIN LATERAL
+             (
+              SELECT MAX(N1.DP_TP_CD) AS MPY_MTHD_TP_CD /* 납부방식 유형코드 - to-be */
+                   , MAX(O1.MPY_BSDT) AS MPY_BSDT /* 납부기준일자 */
+                   , N1.DTL_CNTR_NO /* 상세계약번호 */
+                   , N1.DTL_CNTR_SN /* 상세계약일련번호 */
+                FROM TB_SSCT_CNTR_STLM_BAS O1 /* 계약결제기본 */
+               INNER JOIN TB_SSCT_CNTR_STLM_REL N1 /* 계약결제관계 */
+                  ON N1.CNTR_STLM_ID = O1.CNTR_STLM_ID /* 계약결제ID*/
+                 AND N1.DTA_DL_YN = 'N'
+                 AND O1.DTA_DL_YN = 'N'
+                WHERE N1.DP_TP_CD IN ('110', '120') /* 렌탈,정기배송만 나와야 함(▶as-is 기준), 납부방식 유형코드 110:계좌자동이체, 120:카드자동이체 */
+                  AND N1.DTA_DL_YN = 'N' /* 데이터 삭제 여부가 'N'인 건*/
+                  -- AND N1.CNTR_UNIT_TP_CD = '020' /* 이행팀 점검 이후 주석 제거 */
+                  AND N1.VL_END_DTM = '99991231999999'
+                  AND N1.CNTR_STLM_ID = O1.CNTR_STLM_ID /* 계약결제ID */
+                  AND N1.DTL_CNTR_NO = W1.CNTR_NO
+                  AND N1.DTL_CNTR_SN = W1.CNTR_SN
+                  GROUP BY N1.DTL_CNTR_NO /* 상세계약번호 */
+                         , N1.DTL_CNTR_SN /* 상세계약일련번호 */
+             ) P1
+            ON P1.DTL_CNTR_NO = W1.CNTR_NO
+           AND P1.DTL_CNTR_SN = W1.CNTR_SN
+          INNER JOIN LATERAL
+             (
+              SELECT R1.PRTNR_NO /* 파트너번호 */
+                   , R1.PRTNR_KNM /* 파트너한글명 */
+                   /* wells: 1추진단 → 2총괄단 → 3지역단 → 4지점 → 플래너 */
+                   , S1.DGR1_LEVL_OG_CD /* 1차상위조직코드(총괄단) */
+                   , S1.DGR1_LEVL_OG_NM /* 1차상위조직명(총괄단) */
+                   , S1.DGR2_LEVL_OG_CD /* 2차상위조직코드(지역단) */
+                   , S1.DGR2_LEVL_OG_NM /* 2차상위조직명(지역단) */
+                   , S1.OG_CD /* 조직코드 */
+                   , S1.DGR3_LEVL_DG_PRTNR_NO /* 3차상위대표파트너번호(지점장사번) */
+                   , S1.DGR3_LEVL_DG_PRTNR_NM /* 3차상위대표파트너명(지점장명) */
+                   , S1.BLD_NM /* 빌딩명 */
+                   , S1.BIZ_SPPT_PRTNR_NO /* 업무지원파트너번호 */
+                   , S1.OG_UPBRNG_PRTNR_NO /* 조직육성파트너번호 */
+                   , R1.PERF_EXCD_OJ_YN /* 실적제외대상여부 */
+                FROM TB_OGBS_MM_PRTNR_IZ R1 /* 월파트너마감 */
+               INNER JOIN TB_OGBS_MM_OG_IZ S1 /* 월조직마감 */
+                  ON R1.BASE_YM = S1.BASE_YM /* 기준년월 */
+                 AND R1.OG_TP_CD = S1.OG_TP_CD
+                 AND R1.OG_ID = S1.OG_ID /* 조직ID */
+                 AND R1.DTA_DL_YN = 'N'
+                 AND S1.DTA_DL_YN = 'N'
+               WHERE R1.BASE_YM = SUBSTR(W1.CNTR_CNFM_DTM,1,6) /* TO_CHAR(SYSDATE, 'YYYYMM') */ /* 기준년월 현재월 - 조회조건(접수일자, 설치일자, 렌탈차월) - 계약기본.계약확정일 */
+                 AND R1.PRTNR_NO = W1.SELL_PRTNR_NO /* 월파트너마감.파트너번호 = 계약기본.판매파트너번호*/
+                 AND R1.OG_TP_CD = W1.SELL_OG_TP_CD
+                <if test="@MybatisUtils@equals(session.ogTpCd, 'HR1')">
+                    <if test="@MybatisUtils@isNotEmpty(fromOgCd) and @MybatisUtils@isNotEmpty(toOgCd)">
+                   AND S1.OG_CD BETWEEN #{fromOgCd} AND #{toOgCd}
+                    </if>
+                </if>
+                <if test="!@MybatisUtils@equals(session.ogTpCd, 'HR1')">
+                   AND R1.PRTNR_NO IN ( SELECT PRTNR_NO
+                                          FROM BASE_OGBS A1
+                                         WHERE A1.INQR_YN = 'Y'
+                                       )
+                </if>
+             ) T1
+            ON T1.PRTNR_NO = W1.SELL_PRTNR_NO /* 월파트너마감.파트너번호 = 계약기본.판매파트너번호*/
+         INNER JOIN W3
+            ON W3.BASE_CNTR_NO = W1.CNTR_NO /* 기준계약번호 */
+           AND W3.BASE_CNTR_SN = W1.CNTR_SN /* 기준계약일련번호 */
+          LEFT OUTER JOIN TB_SSCT_CNTR_PMOT_IZ V1 /* 계약프로모션내역 */
+           ON V1.DTL_CNTR_NO = W1.CNTR_NO /*계약프로모션내역.상세계약번호 = 계약상세.계약번호 */
+           AND V1.DTL_CNTR_SN = W1.CNTR_SN /*계약프로모션내역.상세계약일련번호 = 계약상세.계약일련번호 */
+           AND V1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_PD_REL W9 /* 계약상품관계 */
+            ON W9.CNTR_NO = W1.CNTR_NO /* 계약상품관계.계약번호 = 계약상세.계약번호 */
+           AND W9.CNTR_SN = W1.CNTR_SN /* 계약상품관계.계약일련번호 = 계약상세.계약일련번호 */
+           AND W9.BASE_PD_CD = W1.BASE_PD_CD /* 계약상품관계.기준상품코드 = 계약상세.기준상품코드 → 확인필요 */
+           AND W9.BASE_PD_CD = W1.HGR_PD_CD
+           AND W9.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN W4
+            ON W4.OJ_DTL_CNTR_NO = W1.CNTR_NO /* 계약관계.대상상세계약번호 = 계약상세.계약번호 */
+           AND W4.OJ_DTL_CNTR_SN = W1.CNTR_SN /* 계약관계.대상상세계약일련번호 = 계약상세.계약일련번호 */
+          LEFT OUTER JOIN W5
+            ON W5.BASE_CNTR_NO = W1.CNTR_NO /* 기준계약번호 */
+           AND W3.BASE_CNTR_SN = W1.CNTR_SN /* 기준계약일련번호 */
+         WHERE 1=1
+        <if test="@MybatisUtils@isNotEmpty(pdHclsf)">
+           AND G1.PD_HCLSF_ID = #{pdHclsf}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(pdMclsf)">
+           AND G1.PD_MCLSF_ID = #{pdMclsf}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(pdNm)">
+           AND G1.PD_NM LIKE '%'||#{pdNm}||'%'
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(prtnrNo)">
+           AND T1.PRTNR_NO = #{prtnrNo}
+        </if>
+        <if test="@MybatisUtils@equals(incentiveGbn, 'Y')">
+           AND T1.PERF_EXCD_OJ_YN = #{incentiveGbn}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dlpnrItemNm)">
+           AND D1.DLPNR_ITEM_NM LIKE '%'||#{dlpnrItemNm}||'%'
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(dlpnrBzclNm)">
+           AND D1.DLPNR_BZCL_NM LIKE '%'||#{dlpnrBzclNm}||'%'
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cstrGbn)">
+           AND C1.COPN_DV_CD = #{cstrGbn}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(fntGbn)">
+           AND P1.MPY_MTHD_TP_CD = #{fntGbn}
+        </if>
+    </select>
+</mapper>

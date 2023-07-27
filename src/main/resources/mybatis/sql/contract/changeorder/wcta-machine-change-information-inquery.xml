@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctaMachineChangeInfoInqrMapper">
+    <select id="selectMachineChangeInfoInqr" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctaMachineChangeInfoInqrDto$SearchRes">
+        SELECT
+               T0.BASE_PD_CD                                 /* 상품코드 */
+             , SUBSTR(T1.CNTR_CNFM_DTM,0,8) AS CNTR_DT2      /* 계약일(접수일) */
+             , CASE WHEN T0.SELL_TP_CD = '1' THEN T4.SL_DT      /* 할부-매출일 */
+                    WHEN T0.SELL_TP_CD = '2' THEN T4.SL_DT      /* 렌탈-매출일 */
+                    WHEN T0.SELL_TP_CD = '4' THEN T2.IST_DT     /* 회사-설치일 */
+                    ELSE '' END AS IST_DT                   /* 설치일(매출일) */
+             , CASE WHEN T0.SELL_TP_CD = '1' THEN T7.HIST_STRT_DTM     /* 할부-취소일 */
+                    WHEN T0.SELL_TP_CD = '2' THEN T7.HIST_STRT_DTM     /* 렌탈-취소일 */
+                    WHEN T0.SELL_TP_CD = '4' THEN ''           /* 회사-없음 */
+                    ELSE '' END AS CAN_DT                   /* 취소일 */
+             , CASE WHEN T0.SELL_TP_CD = '1' THEN ''           /* 할부-없음 */
+                    WHEN T0.SELL_TP_CD = '2' THEN T2.REQD_DT    /* 렌탈-철거일 */
+                    WHEN T0.SELL_TP_CD = '4' THEN T2.REQD_DT    /* 회사-철기일(반품일) */
+                    ELSE '' END AS REQD_DT2                 /* 철거일 */
+             , CASE WHEN T0.SELL_TP_CD = '1' THEN ''           /* 할부-없음 */
+                    WHEN T0.SELL_TP_CD = '2' THEN T0.CNTR_PD_ENDDT  /* 렌탈-계약상품종료일(TODO:확인필요) */
+                    WHEN T0.SELL_TP_CD = '4' THEN ''           /* 회사-없음 */
+                    ELSE '' END EXN_DT                      /* 만료철거일 */
+             , CASE WHEN T0.SELL_TP_CD = '1' THEN ''           /* 할부-없음 */
+                    WHEN T0.SELL_TP_CD = '2' THEN T3.PD_PRP_VAL01   /* 렌탈-상품(TODO:서비스용도구분으로 대체가능성존재함 */
+                    WHEN T0.SELL_TP_CD = '4' THEN ''           /* 회사-없음 */
+                    ELSE '' END AS SV_TP_CD                 /* 용도 */
+             , CASE WHEN T0.SELL_TP_CD = '1' THEN ''           /* 할부 */
+                    WHEN T0.SELL_TP_CD = '2' THEN T1.COPN_DV_CD /* 렌탈 */
+                    WHEN T0.SELL_TP_CD = '4' THEN NVL(T1.COPN_DV_CD, '1') /* 회사 */
+                    ELSE '' END AS COPN_DV_CD               /* 고객구분 */
+             , CASE WHEN T0.SELL_TP_CD = '1' THEN ''           /* 할부 */
+                    WHEN T0.SELL_TP_CD = '2' THEN T0.DSC_APY_TP_CD  /* 렌탈 - 할인적용유형코드*/
+                    WHEN T0.SELL_TP_CD = '4' THEN ''           /* 회사 */
+                    ELSE '' END AS DSC_APY_TP_CD            /* 할인구분 */
+             , CASE WHEN T0.SELL_TP_CD = '1' THEN ''           /* 할부 */
+                    WHEN T0.SELL_TP_CD = '2' THEN T0.DSC_APY_DTL_CD  /* 렌탈-할인적용상세코드 */
+                    WHEN T0.SELL_TP_CD = '4' THEN ''           /* 회사 */
+                    ELSE '' END AS DSC_APY_DTL_CD           /* 할인유형 */
+             , CASE WHEN T0.SELL_TP_CD = '1' THEN ''           /* 할부 */
+                    WHEN T0.SELL_TP_CD = '2' THEN T5.PMOT_CD    /* 렌탈-프로모션코드  */
+                    WHEN T0.SELL_TP_CD = '4' THEN ''           /* 회사 */
+                    ELSE '' END AS PMOT_CD                  /* 프로모션 */
+             , CASE WHEN T0.SELL_TP_CD = '1' THEN ''           /* 할부 */
+                    WHEN T0.SELL_TP_CD = '2' THEN T2.SELL_EV_CD /* 렌탈-판매행사코드 */
+                    WHEN T0.SELL_TP_CD = '4' THEN ''           /* 회사 */
+                    ELSE '' END AS SELL_EV_CD               /* 행사코드 */
+             , CASE WHEN T0.SELL_TP_CD = '1' THEN 0            /* 할부 */
+                    WHEN T0.SELL_TP_CD = '2' THEN T0.PD_BASE_AMT/* 렌탈-상품기준금액 */
+                    WHEN T0.SELL_TP_CD = '4' THEN 0            /* 회사 */
+                    ELSE 0 END AS PD_BASE_AMT               /* 렌탈료 */
+             , CASE WHEN T0.SELL_TP_CD = '1' THEN ''           /* 할부 */
+                    WHEN T0.SELL_TP_CD = '2' THEN NVL2(T6.MCHN_CH_TP_CD,'Y','N')  /* 렌탈 */
+                    WHEN T0.SELL_TP_CD = '4' THEN ''           /* 회사 */
+                    ELSE '' END AS MCHN_CH_YN               /* 기기변경 */
+             , CASE WHEN T0.SELL_TP_CD = '1' THEN ''           /* 할부 */
+                    WHEN T0.SELL_TP_CD = '2' THEN T6.MCHN_CH_TP_CD  /* 렌탈 */
+                    WHEN T0.SELL_TP_CD = '4' THEN ''           /* 회사 */
+                    ELSE '' END AS MCHN_CH_TP_CD            /* 기변유형 */
+             , CASE WHEN T0.SELL_TP_CD = '1' THEN ''           /* 할부 */
+                    WHEN T0.SELL_TP_CD = '2' THEN TO_CHAR(T0.SV_PRD) /* 렌탈 */
+                    WHEN T0.SELL_TP_CD = '4' THEN ''           /* 회사 */
+                    ELSE '' END AS SV_PRD                   /* 주기 */
+             , CASE WHEN T0.SELL_TP_CD = '1' THEN ''  /* 할부 */
+                    WHEN T0.SELL_TP_CD = '2' THEN (SELECT DECODE(COUNT(1), 0, 'N', 'Y') AS YN /*-- 단독, 결합 여부 */
+                                                  FROM TB_SSCT_CNTR_REL /* 계약관계 */
+                                                 WHERE 1=1
+                                                   AND CNTR_UNIT_TP_CD = '020' /* 계약단위유형코드:계약상세 */
+                                                   AND CNTR_REL_TP_CD = '20'   /* 계약관계유형코드:연계상품계약관계 */
+                                                   AND ((BASE_DTL_CNTR_NO = #{cntrNo} AND BASE_DTL_CNTR_SN = #{cntrNo})   /* 기준 또는 대상 포함여부*/
+                                                     OR (OJ_DTL_CNTR_NO = #{cntrSn} AND OJ_DTL_CNTR_SN = #{cntrSn})))  /* 렌탈 */
+                    WHEN T0.SELL_TP_CD = '4' THEN ''  /* 회사 */
+                    ELSE '' END AS PMOT_CD2 /* 결합여부 */
+            , (SELECT HH.PD_TP_CD FROM TB_PDBS_PD_BAS HH
+                WHERE HH.PD_CD = T0.BASE_PD_CD ) AS PD_TP_CD  /* 상품유형 */
+          FROM TB_SSCT_CNTR_DTL T0                  /* T.계약상세 */
+         INNER JOIN TB_SSCT_CNTR_BAS T1              /* T.계약기본 */
+            ON T0.CNTR_NO = T1.CNTR_NO
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T2  /* T.계약WELL상세 */
+            ON T0.CNTR_NO = T2.CNTR_NO
+           AND T0.CNTR_SN = T2.CNTR_SN
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T3 /* T.상품각사속성상세 */
+            ON T0.BASE_PD_CD  = T3.PD_CD
+           AND T3.PD_EXTS_PRP_GRP_CD = 'CMM'         /* 상품확장속성그룹코드 : 서비스유형(ASIS:용도구분) */
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T4 /* T.계약실적월마감 */
+            ON T0.CNTR_NO = T4.CNTR_NO
+           AND T0.CNTR_SN = T4.CNTR_SN
+           AND T4.SL_CL_YM = TO_CHAR(SYSDATE,'YYYYMM')
+          LEFT OUTER JOIN (SELECT DTL_CNTR_NO
+                                , DTL_CNTR_SN
+                                , PMOT_CD  /* 프로모션코드  */
+                             FROM (SELECT DTL_CNTR_NO, DTL_CNTR_SN, PMOT_CD
+                                        , ROW_NUMBER () OVER(PARTITION BY DTL_CNTR_NO, DTL_CNTR_SN ORDER BY CNTR_PMOT_ID DESC) AS RN  /* 계약프로모션ID 한건만 */
+                                     FROM TB_SSCT_CNTR_PMOT_IZ  /* T.계약프로모션내역 */
+                                    WHERE 1=1
+                                      AND CNTR_UNIT_TP_CD = '020'  /* 계약상세 */
+                                      AND DTL_CNTR_NO = #{cntrNo}  /* 기준계약번호 */
+                                      AND DTL_CNTR_SN = #{cntrSn}  /* 기준계약일련번호 */
+                                    )
+                              WHERE RN = 1
+              ) T5
+            ON T0.CNTR_NO = T5.DTL_CNTR_NO
+           AND T0.CNTR_SN = T5.DTL_CNTR_SN
+          LEFT OUTER JOIN (SELECT BASE_CNTR_NO
+                                , BASE_CNTR_SN
+                                , MCHN_CH_TP_CD  /* 대상의 기기변경유형코드 */
+                             FROM (SELECT BASE_CNTR_NO, BASE_CNTR_SN, MCHN_CH_TP_CD
+                                        , ROW_NUMBER () OVER(PARTITION BY BASE_CNTR_NO, BASE_CNTR_SN ORDER BY MCHN_CH_SN DESC) AS RN  /* 일련번호로 한건만 */
+                                     FROM TB_SSCT_MCHN_CH_IZ  /* T.기기변경내역 */
+                                    WHERE 1=1
+                                      AND BASE_CNTR_NO = #{cntrNo}  /* 기준계약번호 */
+                                      AND BASE_CNTR_SN = #{cntrSn}  /* 기준계약일련번호 */
+                                   )
+                            WHERE RN = 1
+              ) T6
+            ON T0.CNTR_NO = T6.BASE_CNTR_NO
+           AND T0.CNTR_SN = T6.BASE_CNTR_SN
+		  LEFT OUTER JOIN LATERAL (SELECT MAX(CNTR_NO) KEEP(DENSE_RANK FIRST ORDER BY HIST_STRT_DTM DESC) AS CNTR_NO
+		                                , MAX(CNTR_SN) KEEP(DENSE_RANK FIRST ORDER BY HIST_STRT_DTM DESC) AS CNTR_SN
+		                                , MAX(HIST_STRT_DTM) KEEP(DENSE_RANK FIRST ORDER BY HIST_STRT_DTM DESC) AS HIST_STRT_DTM     /* 취소일 */
+		                             FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST   /* T.계약상세상태변경이력 - 취소일 */
+		                            WHERE 1=1
+		                              AND CNTR_NO = #{cntrNo}              /* 계약번호  */
+		                              AND CNTR_SN = #{cntrSn}              /* 계약일련번호  */
+		                              AND CNTR_DTL_STAT_CD IN ('301','302','303')  /* 계약상세상태코드 (고객요청해약~계약취소)*/
+		                              AND DTA_DL_YN = 'N'
+		                          ) T7             /* 계약번호 취소일*/
+            ON T0.CNTR_NO = T7.CNTR_NO
+           AND T0.CNTR_SN = T7.CNTR_SN
+        --  LEFT OUTER JOIN TB_PDBS_PD_BAS H1 /* T.상품기본 */
+        --    ON A.BASE_PD_CD = H1.PD_CD
+         WHERE 1=1
+           AND T0.SELL_TP_CD IN ('1','2','4') /* 할부, 렌탈, 회사설치 */
+           AND T0.CNTR_NO = #{cntrNo}
+           AND T0.CNTR_SN = #{cntrSn}
+    </select>
+</mapper>

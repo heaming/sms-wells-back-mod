@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaRentalAccountMgtMapper">
+    <select id="selectBpdRentalAccount" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaRentalAccountMgtDto$SearchBpdRentalAccountRes">
+        SELECT
+           T1.PD_CLSF_NM AS PDGRP_NM /* [상품군]  */
+         , T1.PD_NM AS PD_NM /* [상품명]  */
+         , T1.BASE_PD_CD AS BASE_PD_CD /* [상품코드]  */
+         , T1.IST_MT       AS IST_DT /* [설치년월] */
+         , MAX(T1.RSTL_YN) AS RSTL_YN /* [재약정여부] */
+         , SUM(T1.TOT_CNT) AS J_CNT /* [가입건수] */
+         , SUM(T1.CNT1)    AS MCHN_CH_CNT /* [기변건수] */
+         , SUM(T1.CNT2)    AS RE_RENTAL_CNT /* [재렌탈건수] */
+         , SUM(T1.CNT3)    AS MSH_CNT /* [멤버십건수] */
+         , SUM(T1.CNT4)    AS KEEP_RENTAL_CNT /* [렌탈유지] */
+         , SUM(T1.CNT5)    AS SPR_EXN_CNT /* [이탈(만료→자가)] */
+         , SUM(T1.CNT6)    AS SPR_REQD_CNT /* [이탈(철거-후속계약X)] */
+         , ROUND((SUM(T1.CNT5) + SUM(T1.CNT6)) * 100 / SUM(T1.TOT_CNT),1) SPR_RAT  /* [이탈율] */
+        FROM (
+            SELECT H.PD_CLSF_NM /* 상품기본.상품중분류ID */
+                 , D.PD_NM /* 상품기본.상품명 */
+                 , A.BASE_PD_CD /* 계약상세.기준상품코드 */
+                 , SUBSTR(C.IST_DT,1,6) AS IST_MT  /* 설치년월 */
+                 , F.CHK_CHDVC_RERNT /* 기변/재렌탈 체크 */
+                 , NVL(A.RSTL_YN, 'N') AS RSTL_YN /* 재약정여부-재약정을 통해 약정기간을 변경한 계약체결 유무를 구분 */
+                 , 1 AS TOT_CNT /* 가입건수 */
+                 , CASE WHEN F.CHK_CHDVC_RERNT = 'C' THEN 1 ELSE 0 END AS CNT1 /* 기변건수 */
+                 , CASE WHEN F.CHK_CHDVC_RERNT = 'R' THEN 1 ELSE 0 END AS CNT2 /* 재렌탈건수 */
+                 , CASE WHEN A.SELL_TP_CD = 3 THEN 1 ELSE 0 END AS CNT3 /* 멤버십건수 */
+                 , CASE WHEN A.CNTR_DTL_STAT_CD = '101' /*계약상세 상태코드가 정상(101) 이면서 */
+                             AND A.CNTR_PD_ENDDT IS NOT NULL
+                             AND A.CNTR_PD_ENDDT <![CDATA[ < ]]>  TO_CHAR(SYSDATE,'YYYYMMDD')/* 계약 종료일이 현재일보다 작은 경우 */
+                             THEN 1
+                        ELSE 0
+                   END AS CNT4 /* 렌탈유지건수 */
+                 , CASE WHEN A.CNTR_DTL_STAT_CD = '101'/*계약상세 상태코드가 정상(101) 이면서 */
+                              AND A.CNTR_PD_ENDDT IS NOT NULL
+                              AND A.CNTR_PD_ENDDT <![CDATA[ >= ]]>  TO_CHAR(SYSDATE,'YYYYMMDD') /* 계약 종료일이 현재일보다 크거나 같은 경우 */
+                             THEN 1
+                        WHEN A.CNTR_DTL_STAT_CD = '402' /*계약상세 상태코드가 계약기간종료(402)인 경우 */
+                             THEN 1
+                        ELSE 0
+                   END AS CNT5 /* 이탈건수(만료→자가) */
+                 , CASE WHEN A.CNTR_DTL_STAT_CD = '401' /*계약상세 상태코드가 계약기간종료(401) 이면서 */
+                             AND C.REQD_DT IS NOT NULL /* 철거일자 */
+                             THEN 1
+                        ELSE 0
+                   END AS CNT6 /* 이탈건수(철거-후속계약X) */
+                 , D.PD_MCLSF_ID /* 상품기본.상품중분류ID */
+              FROM WSMDBS.TB_SSCT_CNTR_DTL  A /* 계약상세 */
+             INNER JOIN TB_SSCT_CNTR_BAS B /*계약기본*/
+                ON A.CNTR_NO = B.CNTR_NO
+               AND A.DTA_DL_YN = 'N'
+               AND B.DTA_DL_YN = 'N'
+             INNER JOIN TB_SSCT_CNTR_WELLS_DTL C /* 계약WELLS 상세 */
+                ON A.CNTR_NO = C.CNTR_NO
+               AND A.CNTR_SN = C.CNTR_SN
+               AND C.DTA_DL_YN = 'N'
+             INNER JOIN WSMDBS.TB_PDBS_PD_BAS  D /* 상품기본 */
+                ON A.BASE_PD_CD = D.PD_CD
+               AND D.DTA_DL_YN = 'N'
+              LEFT OUTER JOIN LATERAL
+                   (/* 기변 재렌탈 */
+                    SELECT  CASE WHEN F.MCHN_CH_TP_CD NOT IN (15,16,19) THEN 'C' /* 기기변경 */
+                                 ELSE 'R' /* 재렌탈 */
+                            END CHK_CHDVC_RERNT /* 기변/재렌탈 체크*/
+                         , F.BASE_CNTR_NO /* 기준계약번호 */
+                         , F.BASE_CNTR_SN /* 기준계약일련번호 */
+                         , F.OJ_CNTR_NO /* 대상계약번호 */
+                         , F.OJ_CNTR_SN /* 대상계약일련번호  */
+                      FROM TB_SSCT_MCHN_CH_IZ F/* 기기변경내역 */
+                     WHERE 1=1
+                       AND F.DTA_DL_YN = 'N' /* 데이터 삭제 여부가 'N'인 건*/
+                       AND F.BASE_CNTR_NO = A.CNTR_NO /* 기준계약번호 */
+                       AND F.BASE_CNTR_SN = A.CNTR_SN /* 기준계약일련번호 */
+                   ) F
+                ON 1=1
+              LEFT OUTER JOIN LATERAL
+                   (/* 재약정 - 접수후 취소건은 제외*/
+                    SELECT 'Y' AS RSTL_YN /* 재약정여부 */
+                         , G.CNTR_NO /* 계약번호 */
+                         , G.CNTR_SN /* 계약일련번호 */
+                      FROM TB_SSCT_RENTAL_RSTL_IZ G /* 렌탈 재약정 내역  */
+                     WHERE 1=1
+                       AND G.DTA_DL_YN = 'N' /* 데이터 삭제 여부가 'N'인 건*/
+                       AND G.STPL_CNFM_DTM IS NOT NULL /*약정확정일시-접수후 취소건은 제외*/
+                       AND G.STPL_CAN_DTM IS NULL /*약정취소일시-접수후 취소건은 제외*/
+                       AND G.STPL_WDWL_DTM IS NULL /*약정철회일시-접수후 취소건은 제외*/
+                       AND G.CNTR_NO = A.CNTR_NO /* 기준계약번호 */
+                       AND G.CNTR_SN = A.CNTR_SN /* 기준계약일련번호 */
+                   ) G
+                ON 1=1
+             INNER JOIN TB_PDBS_PD_CLSF_BAS H /* 상품분류기본 */
+                ON H.PD_CLSF_ID = D.PD_MCLSF_ID /* 상품분류기본.상품분류ID = 상품기본.상품중분류ID */
+               AND H.DTA_DL_YN = 'N'
+             WHERE 1=1
+               AND B.CNTR_PRGS_STAT_CD = '60' /* 계약진행 상태 코드(60 : 계약확정) */
+               AND A.SELL_TP_CD IN ('2','3') /* 판매유형코드(2 : 렌탈/리스, 3 : 멤버십) */
+                <if test='@MybatisUtils@isNotEmpty(copnDvCd)'>
+                    AND B.COPN_DV_CD = #{copnDvCd}
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(pdMclsfId)'>
+                    AND H.REF_PD_CLSF_VAL = #{pdMclsfId} /* 상품분류기본.상품분류코드 */
+                </if>
+           ) T1
+        WHERE 1=1
+        <if test='@MybatisUtils@isNotEmpty(istStartDt) and @MybatisUtils@isNotEmpty(istEndDt)'>
+            AND T1.IST_MT BETWEEN #{istStartDt} AND #{istEndDt}
+        </if>
+
+        <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
+            AND T1.BASE_PD_CD = #{basePdCd}
+        </if>
+        GROUP BY T1.PD_CLSF_NM, T1.PD_NM, T1.BASE_PD_CD, T1.IST_MT
+        ORDER BY 1, 2, 3, 4, 5 DESC
+    </select>
+    <select id="selectByoRentalAccount" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaRentalAccountMgtDto$SearchByoRentalAccountRes">
+        SELECT
+           T1.DGR1_LEVL_OG_CD AS DGR1_LEVL_OG_CD /* 1차상위 조직코드 - 총괄단 */
+         , T1.DGR2_LEVL_OG_CD AS DGR2_LEVL_OG_CD /* 2차상위 조직코드 - 지역단 */
+         , T1.IST_MT       AS IST_DT /* 설치년월 */
+         , MAX(T1.RSTL_YN) AS RSTL_YN /* 재약정여부 */
+         , SUM(T1.TOT_CNT) AS J_CNT /* 가입건수 */
+         , SUM(T1.CNT1)    AS MCHN_CH_CNT /* 기변건수 */
+         , SUM(T1.CNT2)    AS RE_RENTAL_CNT /* 재렌탈건수 */
+         , SUM(T1.CNT3)    AS MSH_CNT /* 멤버십건수 */
+         , SUM(T1.CNT4)    AS KEEP_RENTAL_CNT /* 렌탈유지 */
+         , SUM(T1.CNT5)    AS SPR_EXN_CNT /* 이탈(만료→자가) */
+         , SUM(T1.CNT6)    AS SPR_REQD_CNT /* 이탈(철거-후속계약X) */
+         , ROUND((SUM(T1.CNT5) + SUM(T1.CNT6)) * 100 / SUM(T1.TOT_CNT),1) SPR_RAT  -- 이탈율
+      FROM (
+            SELECT E.DGR1_LEVL_OG_CD /* 1차상위 조직코드 - 총괄단 */
+                 , E.DGR2_LEVL_OG_CD /* 2차상위 조직코드 - 지역단 */
+                 , SUBSTR(C.IST_DT,1,6) AS IST_MT  /* 설치년월 */
+                 , F.CHK_CHDVC_RERNT /* 기변/재렌탈 체크 */
+                 , NVL(A.RSTL_YN, 'N') AS RSTL_YN /* 재약정여부-재약정을 통해 약정기간을 변경한 계약체결 유무를 구분 */
+                 , 1 AS TOT_CNT /* 가입건수 */
+                 , CASE WHEN F.CHK_CHDVC_RERNT = 'C' THEN 1 ELSE 0 END AS CNT1 /* 기변건수 */
+                 , CASE WHEN F.CHK_CHDVC_RERNT = 'R' THEN 1 ELSE 0 END AS CNT2 /* 재렌탈건수 */
+                 , CASE WHEN A.SELL_TP_CD = 3 THEN 1 ELSE 0 END AS CNT3 /* 멤버십건수 */
+                 , CASE WHEN A.CNTR_DTL_STAT_CD = '101' /*계약상세 상태코드가 정상(101) 이면서 */
+                             AND A.CNTR_PD_ENDDT IS NOT NULL
+                             AND A.CNTR_PD_ENDDT <![CDATA[ < ]]>  TO_CHAR(SYSDATE,'YYYYMMDD') /* 계약 종료일이 현재일보다 작은 경우 */
+                             THEN 1
+                        ELSE 0
+                   END AS CNT4 /* 렌탈유지건수 */
+                 , CASE WHEN A.CNTR_DTL_STAT_CD = '101'/*계약상세 상태코드가 정상(101) 이면서 */
+                              AND A.CNTR_PD_ENDDT IS NOT NULL
+                              AND A.CNTR_PD_ENDDT <![CDATA[ >= ]]>  TO_CHAR(SYSDATE,'YYYYMMDD') /* 계약 종료일이 현재일보다 크거나 같은 경우 */
+                             THEN 1
+                        WHEN A.CNTR_DTL_STAT_CD = '402' /*계약상세 상태코드가 계약기간종료(402)인 경우 */
+                             THEN 1
+                        ELSE 0
+                   END AS CNT5 /* 이탈건수(만료→자가) */
+                 , CASE WHEN A.CNTR_DTL_STAT_CD = '401' /*계약상세 상태코드가 계약기간종료(401) 이면서 */
+                             AND C.REQD_DT IS NOT NULL /* 철거일자 */
+                             THEN 1
+                        ELSE 0
+                   END AS CNT6 /* 이탈건수(철거-후속계약X) */
+              FROM TB_SSCT_CNTR_DTL A /* 계약상세 */
+             INNER JOIN TB_SSCT_CNTR_BAS B /*계약기본*/
+                ON A.CNTR_NO = B.CNTR_NO
+               AND A.DTA_DL_YN = 'N'
+               AND B.DTA_DL_YN = 'N'
+             INNER JOIN TB_SSCT_CNTR_WELLS_DTL C /* 계약WELLS 상세 */
+                ON A.CNTR_NO = C.CNTR_NO
+               AND A.CNTR_SN = C.CNTR_SN
+               AND C.DTA_DL_YN = 'N'
+             INNER JOIN TB_OGBS_MM_PRTNR_IZ D /* 월파트너 내역 */
+                ON D.PRTNR_NO = B.SELL_PRTNR_NO /* 월파트너내역.파트너 번호 = 계약기본.판매파트너번호*/
+               AND D.DTA_DL_YN = 'N'
+             INNER JOIN WSMDBS.TB_OGBS_MM_OG_IZ  E /* 월 조직 내역 */
+                ON E.OG_ID = D.OG_ID /* 월조직내역.조직ID = 월파트너내역.조직ID */
+               AND E.BASE_YM = D.BASE_YM
+               AND E.DTA_DL_YN = 'N'
+              LEFT OUTER JOIN LATERAL
+                   (/* 기변 재렌탈 */
+                    SELECT  CASE WHEN F.MCHN_CH_TP_CD NOT IN (15,16,19) THEN 'C' /* 기기변경 */
+                                 ELSE 'R' /* 재렌탈 */
+                            END CHK_CHDVC_RERNT /* 기변/재렌탈 체크*/
+                         , F.BASE_CNTR_NO /* 기준계약번호 */
+                         , F.BASE_CNTR_SN /* 기준계약일련번호 */
+                         , F.OJ_CNTR_NO /* 대상계약번호 */
+                         , F.OJ_CNTR_SN /* 대상계약일련번호  */
+                      FROM TB_SSCT_MCHN_CH_IZ F/* 기기변경내역 */
+                     WHERE 1=1
+                       AND F.DTA_DL_YN = 'N' /* 데이터 삭제 여부가 'N'인 건*/
+                       AND F.BASE_CNTR_NO = A.CNTR_NO /* 기준계약번호 */
+                       AND F.BASE_CNTR_SN = A.CNTR_SN /* 기준계약일련번호 */
+                   ) F
+                ON 1=1
+              LEFT OUTER JOIN LATERAL
+                   (/* 재약정 - 접수후 취소건은 제외*/
+                    SELECT 'Y' AS RSTL_YN /* 재약정여부 */
+                         , G.CNTR_NO /* 계약번호 */
+                         , G.CNTR_SN /* 계약일련번호 */
+                      FROM TB_SSCT_RENTAL_RSTL_IZ G /* 렌탈 재약정 내역  */
+                     WHERE 1=1
+                       AND G.DTA_DL_YN = 'N' /* 데이터 삭제 여부가 'N'인 건*/
+                       AND G.STPL_CNFM_DTM IS NOT NULL /*약정확정일시-접수후 취소건은 제외*/
+                       AND G.STPL_CAN_DTM IS NULL /*약정취소일시-접수후 취소건은 제외*/
+                       AND G.STPL_WDWL_DTM IS NULL /*약정철회일시-접수후 취소건은 제외*/
+                       AND G.CNTR_NO = A.CNTR_NO /* 기준계약번호 */
+                       AND G.CNTR_SN = A.CNTR_SN /* 기준계약일련번호 */
+                   ) G
+                ON 1=1
+            WHERE 1=1
+                AND B.CNTR_PRGS_STAT_CD = '60' /* 계약진행 상태 코드(60 : 계약확정) */
+                AND A.SELL_TP_CD IN ('2','3') /* 판매유형코드(2 : 렌탈/리스, 3 : 멤버십) */
+                <if test='@MybatisUtils@isNotEmpty(copnDvCd)'>
+                    AND B.COPN_DV_CD = #{copnDvCd}
+                </if>
+        ) T1
+        WHERE 1=1
+        <if test='@MybatisUtils@isNotEmpty(istStartDt) and @MybatisUtils@isNotEmpty(istEndDt)'>
+            AND T1.IST_MT BETWEEN #{istStartDt} AND #{istEndDt}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(dgr1LevlOgCd)'>
+            AND T1.DGR1_LEVL_OG_CD = #{dgr1LevlOgCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgCd)'>
+            AND T1.DGR2_LEVL_OG_CD = #{dgr2LevlOgCd}
+        </if>
+        GROUP BY T1.DGR1_LEVL_OG_CD /* 1차상위 조직코드 - 총괄단 */
+            , T1.DGR2_LEVL_OG_CD /* 2차상위 조직코드 - 지역단 */
+            , T1.IST_MT            /* 설치년월(설치일자)*/
+        ORDER BY 1,2,3,4 DESC
+    </select>
+</mapper>

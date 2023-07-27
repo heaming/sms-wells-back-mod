@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiRentalAdditionalServiceMapper">
+
+    <!--
+    EAI INTERFACE 통신 시 data key는 snake case를 사용함.
+    resultMap을 사용하여 response dto에 매핑함.
+    -->
+    <resultMap id="historyInfo" type="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiRentalAdditionalServiceDto$SearchRes">
+        <constructor>
+            <arg name="IST_DT" javaType="java.lang.String" column="IST_DT"/>
+            <arg name="REQD_DT" javaType="java.lang.String" column="REQD_DT"/>
+            <arg name="ADN_SV_CS_AMT" javaType="java.lang.Integer" column="ADN_SV_CS_AMT"/>
+            <arg name="RENTAL_AMT" javaType="java.lang.Integer" column="RENTAL_AMT"/>
+            <arg name="TOT_AMT" javaType="java.lang.Integer" column="TOT_AMT"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectRentalAdditionalServiceHistories" resultMap="historyInfo">
+        SELECT RA.IST_DT
+             , RA.REQD_DT
+             , RA.ADN_SV_CS_AMT
+             , CD.PD_BASE_AMT AS RENTAL_AMT
+             , (NVL(RA.ADN_SV_CS_AMT, 0) + NVL(CD.PD_BASE_AMT, 0)) AS TOT_AMT
+          FROM TB_SSCT_CNTR_DTL CD
+         INNER JOIN TB_SSCT_RENTAL_ADN_SV_IZ RA
+            ON CD.CNTR_NO = RA.CNTR_NO
+           AND CD.CNTR_SN = RA.CNTR_SN
+           AND RA.ADN_SV_DV_CD = '01'
+           AND RA.DTA_DL_YN = 'N'
+         WHERE CD.CNTR_NO = #{CNTR_NO}
+           AND CD.CNTR_SN = #{CNTR_SN}
+           AND CD.DTA_DL_YN = 'N'
+    </select>
+</mapper>

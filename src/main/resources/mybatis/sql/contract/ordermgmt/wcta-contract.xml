@@ -1,0 +1,1016 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractMapper">
+    <select id="selectContractNumberInqrPages" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchCntrNoRes">
+        SELECT SUBSTR(T2.CNTR_CNFM_DTM,1,8) AS CNTR_CNFM_DTM
+             , T1.CNTR_NO
+             , T1.CNTR_SN
+             , T1.SELL_TP_CD
+             , T2.SELL_PRTNR_NO AS PRTNR_NO
+             , T7.PRTNR_KNM
+             , T5.CST_KNM AS CNTR_CST_KNM
+             , T4.RCGVP_KNM AS IST_CST_KNM
+             , T6.PD_CD
+             , T6.PD_NM
+             , T5.CRAL_LOCARA_TNO
+             , T5.MEXNO_ENCR
+             , T5.CRAL_IDV_TNO
+          FROM TB_SSCT_CNTR_DTL T1
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADR_REL T3
+            ON T3.DTL_CNTR_NO = T1.CNTR_NO
+           AND T3.DTL_CNTR_SN = T1.CNTR_SN
+           AND T3.VL_END_DTM = '99991231235959'
+           AND T3.ADRPC_TP_CD IN ('2', '3')
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4
+            ON T4.CNTR_ADRPC_ID = T3.CNTR_ADRPC_ID
+           AND T4.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS T5
+            ON T5.CST_NO = T2.CNTR_CST_NO
+           AND T5.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS T6
+            ON T6.PD_CD = T1.BASE_PD_CD
+           AND T6.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T7
+            ON T7.BASE_YM = SUBSTR(T2.CNTR_CNFM_DTM, 0, 6)
+           AND T7.PRTNR_NO = T2.SELL_PRTNR_NO
+           AND T7.OG_TP_CD = T2.SELL_OG_TP_CD
+           AND T7.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND T1.DTA_DL_YN = 'N'
+        <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND T1.CNTR_NO = #{cntrNo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+           AND T1.CNTR_SN = #{cntrSn}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cntrCstKnm)'>
+           AND T5.CST_KNM = #{cntrCstKnm}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(istCstKnm)'>
+           AND T4.RCGVP_KNM = #{istCstKnm}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cralLocaraTno)'>
+           AND T5.CRAL_LOCARA_TNO = #{cralLocaraTno}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(mexnoEncr)'>
+           AND T5.MEXNO_ENCR = #{mexnoEncr}
+            <if test='@MybatisUtils@isNotEmpty(cralIdvTno)'>
+           AND T5.CRAL_IDV_TNO = #{cralIdvTno}
+            </if>
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cntrCstNo)'>
+           AND T2.CNTR_CST_NO = #{cntrCstNo}
+        </if>
+         ORDER BY T1.CNTR_NO DESC, T1.CNTR_SN DESC
+    </select>
+
+    <select id="selectHomecareContracts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchHomecareContractsRes">
+        SELECT T1.CNTR_NO
+             , T1.CNTR_SN
+             , T4.RCGVP_KNM
+             , T5.PD_CD
+             , T5.PD_NM
+             , T2.CNTR_CNFM_DTM
+          FROM TB_SSCT_CNTR_DTL T1
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADR_REL T3
+            ON T3.DTL_CNTR_NO = T1.CNTR_NO
+           AND T3.DTL_CNTR_SN = T1.CNTR_SN
+           AND T3.VL_END_DTM = '99991231235959'
+           AND T3.ADRPC_TP_CD = '3'
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4
+            ON T4.CNTR_ADRPC_ID = T3.CNTR_ADR_REL_ID
+           AND T4.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS T5
+            ON T5.PD_CD = T1.BASE_PD_CD
+           AND T5.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND T1.DTA_DL_YN = 'N'
+           AND
+        <foreach collection="dtos" item="cntr" separator="OR" open="(" close=")">
+            (T1.CNTR_NO = #{cntr.cntrNo} AND T1.CNTR_SN = #{cntr.cntrSn})
+        </foreach>
+    </select>
+
+    <update id="updateHomecareContractsDuedt">
+        UPDATE TB_SSCT_CNTR_DTL
+           SET SPP_DUEDT = #{duedt}
+        <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+
+    <update id="updateHomecareContractsCandt">
+        UPDATE TB_SSCT_CNTR_DTL
+           SET CNTR_DTL_STAT_CD = '303'
+        <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+
+    <select id="selectApprovalAskDivides" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchRes">
+        SELECT CNTR_APR_AK_DV_CD
+             , CNTR_APR_AK_DV_CD AS CNTR_APR_AK_DV_PK
+             , CNTR_APR_AK_DV_CD_NM
+             , (CNTR_APR_AK_DV_CD || '-' || CNTR_APR_AK_DV_CD_NM) AS CNTR_APR_AK_DV_NM
+             , CNTR_APR_AK_MSG_CN
+             , CNTR_APR_CAN_MSG_CN
+             , CNTR_APR_CONF_MSG_CN
+             , VL_STRT_DTM
+             , VL_STRT_DTM AS VL_STRT_DTM_PK
+             , VL_END_DTM
+          FROM TB_SSCT_CNTR_APR_AK_DV_CD
+         WHERE 1=1
+           AND DTA_DL_YN = 'N'
+           AND #{standardDt} BETWEEN VL_STRT_DTM AND VL_END_DTM
+         ORDER BY TO_NUMBER(CNTR_APR_AK_DV_CD)
+    </select>
+
+    <select id="selectRentalFee" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaPdPrcFnlDtlDvo">
+       SELECT T1.PD_CD
+            , NVL(T1.PD_PRC_FNL_PRP_VAL05, 0) AS SV_FEE_AMT /*렌탈료 */
+            , TRUNC(T1.PD_PRC_FNL_PRP_VAL05*0.95/10)*10 AS SV_FEE_AMT_05 -- 선납 5% (일자리 버림)
+            , TRUNC(T1.PD_PRC_FNL_PRP_VAL05*0.9/10)*10  AS SV_FEE_AMT_10 -- 선납 10% (일자리 버림)
+            , CASE WHEN PD_PRC_FNL_PRP_VAL05 IS NULL OR PD_PRC_FNL_PRP_VAL05 <![CDATA[<=]]> 0 THEN '3'
+                   ELSE '' END AS RENTAL_CHECK
+         FROM TB_PDBS_PD_PRC_FNL_DTL T1 /*상품가격최종상세*/
+         LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2 /* 상품각사속성상세 - 방문주기(BS주기) */
+          ON T2.PD_EXTS_PRP_GRP_CD ='SCHD'
+         AND T1.PD_CD = T2.PD_CD
+         AND T2.DTA_DL_YN ='N'
+        LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T3 /* 상품각사속성상세 - 용두구분(서비스유형) */
+          ON T3.PD_EXTS_PRP_GRP_CD ='CMN'
+         AND T1.PD_CD = T3.PD_CD
+         AND T3.DTA_DL_YN ='N'      /* P.용도구분 */
+       WHERE 1=1
+      /* AND T1.VL_END_DTM = '99991231235959'  */ /*VL_END_DTM*/
+        AND T1.TEMP_SAVE_YN = 'N'                    /* 임시저장여부*/
+        AND T1.DTA_DL_YN  = 'N'                      /* 데이터삭제여부*/
+        AND T1.PD_CD = #{pdCd}                     /* P.상품코드 */
+        AND T2.PD_PRP_VAL02 = #{svVstPrdCd}       /* P.방문주기(BS주기) */
+        AND T3.PD_PRP_VAL01 = #{svTpCd}            /* P.용도구분  */
+        AND T1.PD_PRC_CNDT_CHRC_VAL01 = #{rgstFee}  /* P.등록비 */
+        AND T1.PD_PRC_CNDT_CHRC_VAL07 = #{chgMcn}   /* P.변동개월 */
+        AND T1.VER_SN = #{verSn}                    /* P.가격차수(버전일련번호) */
+    </select>
+
+    <update id="deleteApprovalAskDivides">
+        UPDATE TB_SSCT_CNTR_APR_AK_DV_CD
+           SET DTA_DL_YN = 'Y'
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND CNTR_APR_AK_DV_CD = #{cntrAprAkDvCd}
+           AND VL_STRT_DTM = #{vlStrtDtm}
+    </update>
+
+    <select id="selectConfirmAprPsicAks" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchConfirmAprPsicAksRes">
+        SELECT MIN(T2.CNTR_APR_FW_ID)   AS CNTR_APR_FW_ID         /*계약승인발송ID*/
+             , T1.CNTR_APR_AK_DV_CD                             /* 계약승인요청구분코드*/
+             , MIN(T1.AK_USR_ID)                               AS AK_USR_ID           /*요청자 사번 REQ_ID*/
+             , MIN(T1.RQR_NM)                                    AS RQR_NM           /*요청자 명 REQ_NM*/
+             , T2.CNTR_APR_FW_DV_CD     /* 계약승인발송구분코드*/
+             , CASE WHEN T2.CNTR_APR_FW_DV_CD = '1' THEN '요청(1)'
+                    WHEN T2.CNTR_APR_FW_DV_CD = '4' THEN '취소(4)'
+                    ELSE ''
+               END                                          AS CNTR_APR_FW_DV_NM       /*요청구분 1:요청,4:취소*/
+             , LISTAGG(DISTINCT  T2.RCV_USR_NM,',') WITHIN GROUP (ORDER BY T1.AK_USR_ID) AS RCV_USR_NM
+             , MIN(T2.FW_DTM) AS SEND_DTTM           /*발송일시*/
+             , MIN(CASE WHEN T2.CNTR_APR_FW_DV_CD = '1' THEN T1.APR_YN ELSE '-' END)     AS APRV_YN     /*승인 여부*/
+             , MIN(CASE WHEN T2.CNTR_APR_FW_DV_CD = '1' THEN T1.APR_USR_ID ELSE '-' END) AS APRV_ID     /*승인자 사번*/
+             , MIN(CASE WHEN T2.CNTR_APR_FW_DV_CD = '1' THEN T1.APR_USR_NM ELSE '-' END) AS APRV_NM     /*승인자 명*/
+             , MIN(T1.APR_DTM)                         AS APRV_DTTM   /*승인 일시*/
+             , MIN(CASE WHEN T2.CNTR_APR_FW_DV_CD = '1' THEN T1.CAN_YN  ELSE '-' END)    AS CANC_YN     /*취소 여부*/
+             , MIN(T3.CNTR_APR_AK_DV_CD_NM)                                              AS CNTR_APR_AK_DV_CD_NM      /*승인 요청 명*/
+             , MIN(CNTR_NO)                                                              AS CNTR_NO
+         FROM TB_SSCT_CNTR_APR_IZ T1                        /* T.계약승인내역     WPN_DFNT_ACKD_REQ REQ */
+         LEFT OUTER JOIN TB_SSCT_CNTR_APR_FW_HIST T2        /* T.계약승인발송이력   WPN_DFNT_ACKD_MSG MSG */
+            ON T1.CNTR_APR_ID = T2.CNTR_APR_ID                  /* 계약승인ID (MIG DATA 맞지 않음)*/
+           AND T2.DTA_DL_YN = 'N'  /* 데이터삭제여부 */
+         LEFT OUTER JOIN TB_SSCT_CNTR_APR_AK_DV_CD T3       /* T.계약승인요청구분코드 WPN_DFNT_ACKD_BAS BAS */
+           ON T1.CNTR_APR_AK_DV_CD = T3.CNTR_APR_AK_DV_CD   /* 계약승인요청구분코드 */
+          AND T3.DTA_DL_YN = 'N'  /* 데이터삭제여부 */
+        WHERE 1=1
+          AND T1.CNTR_NO = #{cntrNo}/* 계약번호 */
+          AND T1.DTA_DL_YN = 'N'  /* 데이터삭제여부 */
+        GROUP BY T1.CNTR_APR_AK_DV_CD, T2.CNTR_APR_FW_DV_CD, T1.CNTR_APR_AK_DV_CD /*계약승인ID, 계약승인발송구분코드, 계약승인요청구분코드*/
+        ORDER BY T1.CNTR_APR_AK_DV_CD, T2.CNTR_APR_FW_DV_CD, T1.CNTR_APR_AK_DV_CD /*계약승인ID, 계약승인발송구분코드, 계약승인요청구분코드*/
+    </select>
+
+    <select id="selectConfirmAprPsicPrchss" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchConfirmAprPsicPrchssRes">
+        SELECT
+               CONCAT(CONCAT(T2.CNTR_NO, '-'), T2.CNTR_SN) AS CNTR_DTL_NO /* 계약상세번호 */
+             , T3.CST_KNM  /* 계약자명 */
+             , NVL((SELECT CASE WHEN CST_GD_CD = '2' THEN 'VIP' ELSE '일반' END        /* 고객등급 */
+                  FROM TB_SSCT_CST_GD_ESTM_IZ T10 /* T.고객등급산정내역*/
+                 WHERE 1=1
+                  AND T10.CST_NO = T1.CNTR_CST_NO       /* 고객번호 */
+                  AND T10.VL_END_DTM = '99991231235959' /* 유효종료일시*/
+                  AND T10.DTA_DL_YN = 'N'               /* 데이터삭제여부*/
+                  AND T10.CST_GD_ESTM_DT = (SELECT MAX(CST_GD_ESTM_DT)
+                                             FROM TB_SSCT_CST_GD_ESTM_BAI_IZ T11 /*고객등급산정근거내역*/
+                                            WHERE 1=1
+                                              AND T11.CNTR_NO = T2.CNTR_NO  /* 계약변호*/
+                                              AND T11.CNTR_SN = T2.CNTR_SN  /* 계약일련번호 */
+                                              AND T11.DTA_DL_YN = 'N'
+                                              AND T11.SELL_TP_CD  = '2' /* 판매유형 : 렌탈(2) */
+                                            )), '-') AS CST_GD_NM   /* 고객등급 */
+             , T5.RCGVP_KNM  /* 고객명 */
+             , (T51.RNADR ||' '|| T51.RDADR) AS ADR  /* 설치주소 */
+             , T6.PD_NM  /* 상품명 */
+             , T7.IST_DT /* 설치일 */
+             , CASE WHEN REGEXP_LIKE(T2.CNTR_DTL_STAT_CD, '^2|^3') THEN '탈퇴'
+                    WHEN REGEXP_LIKE(T2.CNTR_DTL_STAT_CD, '^4') THEN    '종료'
+                    WHEN REGEXP_LIKE(T2.CNTR_DTL_STAT_CD, '^1') THEN    '관리'
+                    ELSE '' END  USE_DIV
+             , T2.CNTR_DTL_STAT_CD  /* 사용구분 1:관리,2:탈퇴,3:취소, 0:완료 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'CNTR_DTL_STAT_CD', T2.CNTR_DTL_STAT_CD) AS TCNTR_DTL_STAT_CD2  /* 사용구분 1:관리,2:탈퇴,3:취소, 0:완료 */
+             , T8.APY_TN                            AS APY_TN   /* 렌탈회차(적용회차) : 월마감실적에 생성될예정*/
+             , T9.DLQ_MCN || '/' ||T9.DLQ_OC_AMT    AS DLQ_INFO /* 연체개월/금액 */
+          FROM TB_SSCT_CNTR_BAS T1             /* T.계약기본 (고객번호)*/
+         INNER JOIN TB_SSCT_CNTR_DTL T2             /* T.계약상세 */
+            ON T1.CNTR_NO = T2.CNTR_NO
+           AND T2.SELL_TP_CD = '2' /*렌탈*/
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T3        /* T.고객기본 */
+            ON T3.CST_NO = T1.CNTR_CST_NO
+           AND T3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T5 /* T.계약주소지기본 */
+            ON T5.CNTR_CST_NO = T1.CNTR_CST_NO
+           AND T5.CNTR_NO = T1.CNTR_NO
+           AND T5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS T51       /* T.주소기본 */
+            ON T51.ADR_ID = T5.ADR_ID
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T6         /* T.상품기본 */
+            ON T6.PD_CD = T2.BASE_PD_CD
+           AND T6.DTA_DL_YN = 'N'
+           AND T6.SELL_YN = 'Y'
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T7 /* T.계약WELLS상세 */
+            ON T7.CNTR_NO = T2.CNTR_NO              /* 계약번호 */
+           AND T7.CNTR_SN = T2.CNTR_SN
+           LEFT OUTER JOIN LATERAL (SELECT *
+                                     FROM (SELECT T80.CNTR_NO
+                                                , T80.CNTR_SN
+                                                , T80.RENTAL_TN  AS APY_TN   /* 렌탈회차 */
+                                             FROM TB_CBCL_WELLS_SL_MM_CL_IZ T80       /* T.계약실적월마감 */
+                                            WHERE 1=1
+                                              AND T80.CNTR_NO = T2.CNTR_NO
+                                              AND T80.CNTR_SN = T2.CNTR_SN
+                                              AND T80.SL_CL_YM IN (TO_CHAR(ADD_MONTHS(SYSDATE,-1),'YYYYMM'), TO_CHAR(SYSDATE,'YYYYMM'))
+                                            ORDER BY T80.SL_CL_YM DESC
+                                            )
+                                      WHERE ROWNUM= 1
+            ) T8
+            ON T8.CNTR_NO = T2.CNTR_NO
+           AND T8.CNTR_SN = T2.CNTR_SN
+          LEFT OUTER JOIN LATERAL (SELECT *
+                                     FROM (SELECT T90.CNTR_NO, T90.CNTR_SN, T90.DLQ_ACU_MCN AS DLQ_MCN, T90.EOT_DLQ_AMT AS DLQ_OC_AMT
+                                             FROM TB_CBCL_DLQ_BAS T90         /* T.연체기본 */
+                                            WHERE 1=1
+                                              AND T90.CNTR_NO = T2.CNTR_NO
+                                              AND T90.CNTR_SN = T2.CNTR_SN
+                                              AND T90.PERF_YM IN (TO_CHAR(ADD_MONTHS(SYSDATE,-1),'YYYYMM'), TO_CHAR(SYSDATE,'YYYYMM'))
+                                            ORDER BY T90.PERF_YM DESC
+                                            )
+                                      WHERE ROWNUM= 1
+            ) T9
+            ON T9.CNTR_NO = T2.CNTR_NO
+           AND T9.CNTR_SN = T2.CNTR_SN
+        WHERE 1=1
+          AND T1.DTA_DL_YN = 'N'
+          AND T1.CNTR_NO = #{cntrNo}
+    </select>
+
+    <select id="selectConfirmApprovalBases" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchConfirmApprovalBaseRes">
+        SELECT T1.CNTR_APR_BASE_ID
+             , T1.CNTR_APR_AK_DV_CD
+             , T1.CNTR_APR_SELL_DV_CD
+             , T2.CNTR_APR_AK_DV_CD_NM
+             , T1.CNTR_APR_CHNL_DV_VAL
+             , T1.CNTR_APR_ICHR_DV_CD
+             , T1.ICHR_USR_ID
+             , T1.PSIC_NM
+             , T1.VL_STRT_DTM
+             , T1.VL_END_DTM
+             , T1.NOTY_FW_OJ_YN
+          FROM TB_SSCT_CNTR_APR_BASE_BAS T1
+             , TB_SSCT_CNTR_APR_AK_DV_CD T2
+         WHERE 1=1
+           AND T1.CNTR_APR_AK_DV_CD = T2.CNTR_APR_AK_DV_CD
+         <if test='@MybatisUtils@isNotEmpty(cntrAprAkDvCd)'>
+           AND T1.CNTR_APR_AK_DV_CD = #{cntrAprAkDvCd}
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(standardDt) and @MybatisUtils@equals(aprReqCtgValid, true)'>
+           AND #{standardDt} BETWEEN T1.VL_STRT_DTM AND T1.VL_END_DTM
+         </if>
+           AND T1.DTA_DL_YN = 'N'
+           AND T2.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectCountConfirmApprovalBases" resultType="int">
+         SELECT COUNT(1) AS "CNT"
+           FROM TB_SSCT_CNTR_APR_BASE_BAS
+          WHERE 1=1
+         <if test='@MybatisUtils@equals(checkType,"U")'>    <!-- Unique : 삭제시 존재 여부 체크, 수정시 변경하려는 자료의 값이 존재하는지 체크 -->
+            AND CNTR_APR_BASE_ID = #{cntrAprBaseId}
+         </if>
+          <if test='@MybatisUtils@equals(checkType,"A")'>    <!-- Area : 수정시 기존 자료와 기간 중복 체크-->
+            AND CNTR_APR_SELL_DV_CD = #{cntrAprSellDvCd}
+            AND CNTR_APR_CHNL_DV_VAL = #{cntrAprChnlDvVal}
+            AND CNTR_APR_ICHR_DV_CD = #{cntrAprIchrDvCd}
+            AND ICHR_USR_ID = #{ichrUsrId}
+            AND (#{vlStrtDtm} BETWEEN VL_STRT_DTM AND VL_END_DTM
+              OR #{vlEndDtm} BETWEEN VL_STRT_DTM AND VL_END_DTM
+              OR VL_END_DTM BETWEEN #{vlStrtDtm} AND #{vlEndDtm})
+          <if test='@MybatisUtils@isNotEmpty(cntrAprBaseId)'>
+            AND CNTR_APR_BASE_ID != #{cntrAprBaseId}
+          </if>
+         </if>
+    </select>
+
+    <insert id="insertConfirmApprovalBases">
+        INSERT INTO TB_SSCT_CNTR_APR_BASE_BAS(
+           CNTR_APR_BASE_ID
+         , CNTR_APR_AK_DV_CD
+         , CNTR_APR_SELL_DV_CD
+         , CNTR_APR_CHNL_DV_VAL
+         , CNTR_APR_ICHR_DV_CD
+         , ICHR_USR_ID
+         , PSIC_NM
+         , VL_STRT_DTM
+         , VL_END_DTM
+         , NOTY_FW_OJ_YN
+         , DTA_DL_YN
+         <include refid="COMMON.insertSystemField"/>
+    ) VALUES (
+           (SELECT NVL(MAX(TO_NUMBER(CNTR_APR_BASE_ID))+1,0) FROM TB_SSCT_CNTR_APR_BASE_BAS)
+         , #{cntrAprAkDvCd}
+         , #{cntrAprSellDvCd}
+         , #{cntrAprChnlDvVal}
+         , #{cntrAprIchrDvCd}
+         , #{ichrUsrId}
+         , #{psicNm}
+         , #{vlStrtDtm}
+         , #{vlEndDtm}
+         , #{notyFwOjYn}
+         , NVL(#{dtaDlYn}, 'N')
+         <include refid="COMMON.insertSystemFieldValue"/>
+       )
+    </insert>
+
+    <update id="updateConfirmApprovalBases">
+        UPDATE TB_SSCT_CNTR_APR_BASE_BAS
+           SET CNTR_APR_SELL_DV_CD = #{cntrAprSellDvCd}
+             , CNTR_APR_CHNL_DV_VAL = #{cntrAprChnlDvVal}
+             , CNTR_APR_ICHR_DV_CD = #{cntrAprIchrDvCd}
+             , ICHR_USR_ID = #{ichrUsrId}
+             , PSIC_NM = #{psicNm}
+             , VL_STRT_DTM = #{vlStrtDtm}
+             , VL_END_DTM = #{vlEndDtm}
+             , NOTY_FW_OJ_YN = #{notyFwOjYn}
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND CNTR_APR_BASE_ID = #{cntrAprBaseId}
+    </update>
+
+    <update id="deleteConfirmApprovalBases">
+        UPDATE TB_SSCT_CNTR_APR_BASE_BAS
+           SET DTA_DL_YN = 'Y'
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND CNTR_APR_BASE_ID = #{cntrAprBaseId}
+    </update>
+
+    <select id="selectSpaySlamtInqr" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchSpaySlamtInqrRes">
+        SELECT T0.FNL_VAL          /* 최종값(판매가)*/
+             , T0.VAT              /* 부가세 */
+             , T0.PD_PRC_FNL_PRP_VAL01 AS ACKMT_RT /* 인정실적율(인정율) */
+             , T0.ACKMT_AMT        /* 인정금액 */
+             , T0.CTR_VAL          /* 할인금액(조정값)*/
+             , T0.SELL_FEE         /* 판매수수료 */
+             , T0.SV_FEE           /* 서비스수수료  */
+          FROM TB_PDBS_PD_PRC_FNL_DTL T0    /*  T.상품가격최종상세 */
+         INNER JOIN TB_PDBS_PD_BAS T1       /* T.상품기본 */
+            ON T0.PD_CD = T1.PD_CD
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T2       /* T.상품분류기본 상품분류ID =참조상품분류값 */
+            ON T2.PD_CLSF_ID = T1.PD_CLSF_ID
+           AND T2.DTA_DL_YN = 'N'
+           AND T2.USE_YN = 'Y'
+           AND T2.TEMP_SAVE_YN = 'N'
+           AND T1.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND T0.PD_CD = #{pdCd}                              /* 상품코드 */
+           AND T1.PD_CLSF_ID = #{pdClsfId}                       /* ex) CLSF01001003 */
+           AND T0.SELL_TP_CD = '1'                               /* 판매유형코드 : 일시불/할부(1) */
+           AND #{vlDtm} BETWEEN T0.VL_STRT_DTM AND T0.VL_END_DTM  /* 유효시작/종료일자 사이 */
+         <if test='@MybatisUtils@equals(pdGubn,"H")'>
+           AND T1.PD_CLSF_ID LIKE 'CLSF06%'                        /*작업구분:H-홈케어:CLSF06*/
+         </if>
+         <if test='@MybatisUtils@equals(pdGubn,"K")'>
+           AND T1.PD_CLSF_ID NOT LIKE 'CLSF06%'                    /*작업구분:K-일반 : !홈케어:CLSF06*/
+         </if>
+		   AND T2.REF_PD_CLSF_VAL LIKE '01001%' /* 참조상품분류값  */
+           AND T0.DTA_DL_YN = 'N'
+           AND T0.TEMP_SAVE_YN = 'N'
+    </select>
+
+    <select id="selectHomeCareMshChecks" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchHomeCareMshChecksRes">
+        SELECT COUNT(1)                                     AS HCRMMBRCNT /* 홈케어멤버십 건수 */
+             , CASE WHEN COUNT(1) > 0 THEN 'Y' ELSE 'N' END AS HCRMMBRYN /* 홈케어멤버십 여부 */
+             , MAX(NVL(SUB.CNT,0))                          AS HCRSPAYCNT /* 홈케어일시불 건수 */
+          FROM TB_SSCT_CNTR_BAS T1          /* T.계약기본 */
+         INNER JOIN TB_SSCT_CNTR_DTL T2     /* T.계약상세 */
+            ON T1.CNTR_NO = T2.CNTR_NO      /* 계약번호 */
+           AND T1.CNTR_PRGS_STAT_CD = '50' /* 계약진행상태코드=계약확정 */
+           AND T2.SELL_TP_CD = '3'          /* 판매유형코드=멤버십 */
+           AND T2.CNTR_PD_ENDDT IS NOT NULL /* 정상인건(종료아님) */
+         LEFT OUTER JOIN TB_PDBS_PD_BAS T3       /* T.상품기본 */
+            ON T3.PD_CD = T2.BASE_PD_CD     /* 상품코드 */
+            AND REGEXP_LIKE(T3.PD_CLSF_ID, '^CLSF06') /* 홈케어:CLSF06 */
+          LEFT OUTER JOIN
+             ( SELECT T10.CNTR_CST_NO
+                    , COUNT(1)  AS CNT
+                 FROM TB_SSCT_CNTR_BAS T10          /* T.계약기본 */
+                INNER JOIN TB_SSCT_CNTR_DTL T20     /* T.계약상세 */
+                   ON T10.CNTR_NO = T20.CNTR_NO     /* 계약번호  */
+                  AND T10.CNTR_PRGS_STAT_CD = '50' /* 계약진행상태코드=계약확정*/
+                  AND T20.CNTR_PD_ENDDT IS NOT NULL /* 정상인건(종료아님)*/
+                  AND T20.SELL_TP_CD = '1'          /* 판매유형코드=일시불 */
+                  AND T20.DSC_APY_TP_CD = '3'       /* 할인적용유형코드:멤버십할인적용유형코드(3) */
+                  AND T20.DSC_APY_DTL_CD = '4'       /* 할인적용상세코드:할인가(4) */
+                INNER JOIN TB_PDBS_PD_BAS T30       /* T.상품기본 */
+                   ON T30.PD_CD = T20.BASE_PD_CD    /* 상품코드 */
+                  AND REGEXP_LIKE(T30.PD_CLSF_ID, '^CLSF06') /*홈케어:CLSF06*/         /* 상품구분:홈케어(KA1100P@KAETC1 = '8') */
+                 WHERE 1=1
+                   AND T10.CNTR_CST_NO = #{cntrCstNo}
+                 GROUP BY T10.CNTR_CST_NO
+             ) SUB
+            ON T1.CNTR_CST_NO = SUB.CNTR_CST_NO
+         WHERE 1=1
+           AND T1.CNTR_CST_NO = #{cntrCstNo}
+         GROUP BY T1.CNTR_CST_NO
+    </select>
+
+    <select id="selectRentalPackageGrpMngts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchRentalPackageGrpMngtsRes">
+        SELECT T0.BASE_DTL_CNTR_NO          /* 계약번호 */
+             , T0.BASE_DTL_CNTR_SN          /* 계약상세번호 */
+             , NVL2(T1.CNTR_PD_STRTDT, 'Y', 'N') AS START_YN /* 상품시작여부 */
+          FROM TB_SSCT_CNTR_REL T0              /* T.계약관계 */
+         LEFT OUTER JOIN TB_SSCT_CNTR_DTL T1    /* T.계약상세 */
+            ON T0.BASE_DTL_CNTR_NO = T1.CNTR_NO
+           AND T0.BASE_DTL_CNTR_SN = T1.CNTR_SN
+         WHERE 1=1
+           AND T0.VL_END_DTM = '99991231235959'         /* 유효종료일시가 마지막으로 유효한 건 */
+           AND T0.CNTR_UNIT_TP_CD = '020'               /* 계약단위유형코드:계약상세 */
+           AND T0.CNTR_REL_TP_CD = '20'                 /* 계약관계유형코드:연계상품계약관계 */
+           AND T0.CNTR_REL_DTL_CD = '22P'               /* 계약관계상세코드:패키지(대수할인) */
+           AND T0.BASE_DTL_CNTR_NO = #{baseDtlCntrNo}   /* 기준상세계약번호 */
+           AND T0.BASE_DTL_CNTR_SN = #{baseDtlCntrSn}   /* 기준상세계약일련번호 */
+           AND T0.DTA_DL_YN = 'N'                       /* 삭제여부 */
+    </select>
+
+    <insert id="insertRentalPackageGrpMngts" parameterType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaRentalPackageGrpMngtsDvo">
+        <selectKey keyProperty="dvo.cntrRelId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_REL_ID)) + 1, 0), 15, '0')
+              FROM TB_SSCT_CNTR_REL
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_REL(
+           CNTR_REL_ID
+         , VL_STRT_DTM
+         , VL_END_DTM
+         , CNTR_UNIT_TP_CD
+         , CNTR_REL_TP_CD
+         , CNTR_REL_DTL_CD
+         , BASE_CNTR_NO
+         , OJ_CNTR_NO
+         , BASE_DTL_CNTR_NO
+         , BASE_DTL_CNTR_SN
+         , OJ_DTL_CNTR_NO
+         , OJ_DTL_CNTR_SN
+         , CNTR_CST_GRP_ID
+         , CNTR_REL_DTL_CN
+         , OTSD_LK_DRM_VAL
+         , DTA_DL_YN
+         <include refid="COMMON.insertSystemField"/>
+    ) VALUES (
+           #{dvo.cntrRelId}
+         , #{vlStrtDtm}
+         , #{vlEndDtm}
+         , #{cntrUnitTpCd}
+         , #{cntrRelTpCd}
+         , #{cntrRelDtlCd}
+         , #{baseCntrNo}
+         , #{ojCntrNo}
+         , #{baseDtlCntrNo}
+         , #{baseDtlCntrSn}
+         , #{ojDtlCntrNo}
+         , #{ojDtlCntrSn}
+         , #{cntrCstGrpId}
+         , #{cntrRelDtlCn}
+         , #{otsdLkDrmVal}
+         , NVL(#{dtaDlYn}, 'N')
+         <include refid="COMMON.insertSystemFieldValue"/>
+       )
+    </insert>
+
+    <update id="deleteRentalPackageGrpMngts">
+        UPDATE TB_SSCT_CNTR_REL
+           SET DTA_DL_YN = 'Y'
+             , VL_END_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND CNTR_REL_ID = #{cntrRelId}
+           AND BASE_DTL_CNTR_NO = #{baseDtlCntrNo}
+           AND BASE_DTL_CNTR_SN = #{baseDtlCntrSn}
+           AND CNTR_REL_DTL_CD = #{cntrRelDtlCd}
+           AND CNTR_CST_GRP_ID = #{cntrCstGrpId}
+    </update>
+
+    <select id="selectDistrictManagerPartnerPages" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchMngerPrtnrRes">
+        SELECT T2.DGR1_LEVL_OG_NM
+             , T2.DGR2_LEVL_OG_NM
+             , T2.DGR3_LEVL_OG_NM
+             , T1.PRTNR_KNM
+             , T1.PRTNR_NO
+          FROM TB_OGBS_MM_PRTNR_IZ T1
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T2
+            ON T1.OG_ID = T2.OG_ID
+           AND T1.BASE_YM = T2.BASE_YM
+           AND T1.OG_TP_CD = T2.OG_TP_CD
+           AND T2.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T1.OG_TP_CD = #{ogTpCd}
+           AND T1.PRTNR_NO != #{dsmnPrtnrNo}
+           AND T1.OG_ID = (
+                          SELECT OG_ID
+                            FROM TB_OGBS_MM_OG_IZ
+                           WHERE 1 = 1
+                             AND DGR3_LEVL_DG_PRTNR_NO = #{dsmnPrtnrNo}
+                             AND OG_TP_CD = #{ogTpCd}
+                             AND BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                          )
+        <if test='@MybatisUtils@isNotEmpty(prtnrKnm)'>
+           AND T1.PRTNR_KNM LIKE '%'||#{prtnrKnm}||'%'
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+           AND T1.PRTNR_NO LIKE '%'||#{prtnrNo}||'%'
+        </if>
+         ORDER BY T1.PRTNR_KNM
+    </select>
+
+    <select id="selectOneplusoneContracts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchOnepluseoneRes">
+        SELECT T0.CNTR_NO,
+                T0.CNTR_SN,
+                T0.CST_KNM,
+                T0.SELL_TP_CD,
+                T0.BASE_PD_CD,
+                T0.PD_NM,
+                T0.COPN_DV_CD,
+                T0.HIST_STRT_DTM END,
+                T0.RETENTION_STRT, /*상대코드 유지기간 시작 일자 : 설치일 익월 1일 -> 주문 접수시는 유지기간 알수 없음. (접수한 상품의 설치일로부터 6개월)*/
+                T0.RETENTION_ENDT, /*상대코드 유지기간 시작 일자 : 설치일 익월 1일 -> 주문 접수시는 유지기간 알수 없음. (접수한 상품의 설치일로부터 6개월)*/
+                T0.CNTR_RCP_FSH_DTM,
+                T0.RNADR,
+                T0.RDADR,
+                T0.NEW_ADR_ZIP,
+                T0.LTN_ADR,
+                T0.LTN_DTL_ADR,
+                T0.OLD_ADR_ZIP
+        FROM
+                -- 렌탈
+                (SELECT T1.CNTR_NO          AS CNTR_NO,
+                        T1.CNTR_SN          AS CNTR_SN,
+                        T4.CST_KNM          AS CST_KNM,
+                        T1.SELL_TP_CD       AS SELL_TP_CD,
+                        T1.BASE_PD_CD       AS BASE_PD_CD,
+                        T5.PD_NM            AS PD_NM,
+                        T2.COPN_DV_CD       AS COPN_DV_CD,
+                        CASE
+                        WHEN T1.CNTR_DTL_STAT_CD  <![CDATA[>=]]> '301'
+                        AND T1.CNTR_DTL_STAT_CD  <![CDATA[<=]]>  '303' THEN T6.HIST_STRT_DTM
+                        ELSE '' END     AS HIST_STRT_DTM,
+                        ''                  AS RETENTION_STRT, /*상대코드 유지기간 시작 일자 : 설치일 익월 1일 -> 주문 접수시는 유지기간 알수 없음. (접수한 상품의 설치일로부터 6개월)*/
+                        ''                  AS RETENTION_ENDT, /*상대코드 유지기간 시작 일자 : 설치일 익월 1일 -> 주문 접수시는 유지기간 알수 없음. (접수한 상품의 설치일로부터 6개월)*/
+                        T2.CNTR_RCP_FSH_DTM AS CNTR_RCP_FSH_DTM,
+                        TADR.RNADR          AS RNADR,
+                        TADR.RDADR          AS RDADR,
+                        TADR.NEW_ADR_ZIP    AS NEW_ADR_ZIP,
+                        TADR.LTN_ADR        AS LTN_ADR,
+                        TADR.LTN_DTL_ADR    AS LTN_DTL_ADR,
+                        TADR.OLD_ADR_ZIP    AS OLD_ADR_ZIP
+                   FROM TB_SSCT_CNTR_DTL T1
+                  INNER JOIN TB_SSCT_CNTR_BAS T2
+                     ON T2.CNTR_NO = T1.CNTR_NO
+                    AND T2.CNTR_CST_NO = (SELECT T10.CNTR_CST_NO
+                                            FROM TB_SSCT_CNTR_BAS T10
+                                           WHERE T10.CNTR_NO = #{baseDtlCntrNo})
+                  INNER JOIN TB_SSCT_CNTR_WELLS_DTL T3 -- 계약 WELLS 상세
+                     ON T1.CNTR_NO = T3.CNTR_NO
+                    AND T1.CNTR_SN = T3.CNTR_SN
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS T4
+                     ON T2.CNTR_CST_NO = T4.CST_NO
+                   LEFT OUTER JOIN TB_PDBS_PD_BAS T5
+                     ON T1.BASE_PD_CD = T5.PD_CD
+                   LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T6 --계약상세상태변경이력 테이블
+                     ON T1.CNTR_NO = T6.CNTR_NO
+                    AND T1.CNTR_SN = T6.CNTR_SN
+                    AND T6.HIST_STRT_DTM = (SELECT MAX(HIST_STRT_DTM)
+                                              FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST TT
+                                             WHERE T1.CNTR_NO = TT.CNTR_NO
+                                               AND T1.CNTR_SN = TT.CNTR_SN)
+                   LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS TADR --- 주소
+                     ON TADR.ADR_ID = (SELECT T9.ADR_ID
+                                         FROM TB_SSCT_CNTR_ADRPC_BAS T9
+                                        WHERE T9.CNTR_ADRPC_ID = (SELECT T7.CNTR_ADRPC_ID
+                                                                    FROM TB_SSCT_CNTR_ADR_REL T7
+                                                                   WHERE T7.DTL_CNTR_NO = T1.CNTR_NO
+                                                                     AND T7.DTL_CNTR_SN = T1.CNTR_SN
+                                                                     AND T7.ADRPC_TP_CD = '3'
+                                                                     AND T7.VL_END_DTM = '99991231235959') --설치지
+                                        )
+                  WHERE 1 = 1
+                    -- 렌탈 조건
+                    AND T1.SELL_TP_CD = '2'                                                      -- 렌탈/리스
+                    AND T1.CNTR_DTL_STAT_CD = '101'
+                    AND SUBSTR(T2.CNTR_CNFM_DTM, 1, 6)  <![CDATA[<=]]>  TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD') -- 확정일자가 오늘 이전
+        --                AND (CASE WHEN T5.PD_CD = '살균수기기준상품코드' THEN TADR.NEW_ADR_ZIP ELSE '' END) =
+        --                    (CASE WHEN T5.PD_CD = '살균수기기준상품코드' THEN '입력우편번호' ELSE '' END)
+                    AND (T3.REQD_DT IS NULL OR T3.REQD_DT > TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD')) -- 철거일
+                    AND (T3.IST_DT IS NULL OR TO_CHAR(ADD_MONTHS(T3.IST_DT, T1.STPL_PTRM)) >=
+                        TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD'))               -- 자가 관리 고객 제외
+                UNION ALL
+                -- 멤버십     (LC3500P) 일반멤버십, 홈케어
+                SELECT  T1.CNTR_NO          AS CNTR_NO,
+                        T1.CNTR_SN          AS CNTR_SN,
+                        T4.CST_KNM          AS CST_KNM,
+                        T1.SELL_TP_CD       AS SELL_TP_CD,
+                        T1.BASE_PD_CD       AS BASE_PD_CD,
+                        T5.PD_NM            AS PD_NM,
+                        T2.COPN_DV_CD       AS COPN_DV_CD,
+                        CASE
+                        WHEN T1.CNTR_DTL_STAT_CD <![CDATA[>=]]> '301'
+                        AND T1.CNTR_DTL_STAT_CD  <![CDATA[<=]]>  '303' THEN T6.HIST_STRT_DTM
+                        ELSE '' END     AS HIST_STRT_DTM,
+                        ''                  AS RETENTION_STRT, /*상대코드 유지기간 시작 일자 : 설치일 익월 1일 -> 주문 접수시는 유지기간 알수 없음. (접수한 상품의 설치일로부터 6개월)*/
+                        ''                  AS RETENTION_ENDT, /*상대코드 유지기간 시작 일자 : 설치일 익월 1일 -> 주문 접수시는 유지기간 알수 없음. (접수한 상품의 설치일로부터 6개월)*/
+                        T2.CNTR_RCP_FSH_DTM AS CNTR_RCP_FSH_DTM,
+                        TADR.RNADR          AS RNADR,
+                        TADR.RDADR          AS RDADR,
+                        TADR.NEW_ADR_ZIP    AS NEW_ADR_ZIP,
+                        TADR.LTN_ADR        AS LTN_ADR,
+                        TADR.LTN_DTL_ADR    AS LTN_DTL_ADR,
+                        TADR.OLD_ADR_ZIP    AS OLD_ADR_ZIP
+                   FROM TB_SSCT_CNTR_DTL T1
+                  INNER JOIN TB_SSCT_CNTR_BAS T2
+                     ON T1.CNTR_NO = T2.CNTR_NO
+                    AND T2.CNTR_CST_NO = (SELECT T10.CNTR_CST_NO
+                                            FROM TB_SSCT_CNTR_BAS T10
+                                           WHERE T10.CNTR_NO = #{baseDtlCntrNo})
+                  INNER JOIN TB_SSCT_CNTR_WELLS_DTL T3 -- 계약 WELLS 상세
+                     ON T1.CNTR_NO = T3.CNTR_NO
+                    AND T1.CNTR_SN = T3.CNTR_SN
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS T4
+                     ON T2.CNTR_CST_NO = T4.CST_NO
+                  INNER JOIN TB_PDBS_PD_BAS T5
+                     ON T1.BASE_PD_CD = T5.PD_CD
+                   LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T6 --계약상세상태변경이력 테이블
+                     ON T1.CNTR_NO = T6.CNTR_NO
+                    AND T1.CNTR_SN = T6.CNTR_SN
+                    AND T6.HIST_STRT_DTM = (SELECT MAX(HIST_STRT_DTM)
+                                              FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST TT
+                                             WHERE T1.CNTR_NO = TT.CNTR_NO
+                                               AND T1.CNTR_SN = TT.CNTR_SN)
+                   LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS TADR --- 주소
+                     ON TADR.ADR_ID = (SELECT T9.ADR_ID
+                                         FROM TB_SSCT_CNTR_ADRPC_BAS T9
+                                        WHERE T9.CNTR_ADRPC_ID = (SELECT T7.CNTR_ADRPC_ID
+                                                                    FROM TB_SSCT_CNTR_ADR_REL T7
+                                                                   WHERE T7.DTL_CNTR_NO = T1.CNTR_NO
+                                                                     AND T7.DTL_CNTR_SN = T1.CNTR_SN
+                                                                     AND T7.ADRPC_TP_CD = '3'
+                                                                     AND T7.VL_END_DTM = '99991231235959') --설치지
+                                        )
+                  WHERE 1 = 1
+                    AND T1.SELL_TP_CD = '3'                                         -- 멤버십
+                    AND T1.CNTR_PD_STRTDT  <![CDATA[<=]]>  TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD') -- 가입일자가 오늘 이전
+                    AND T1.CNTR_DTL_STAT_CD = '101'
+                    AND T1.CNTR_PD_ENDDT > TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD')
+                --  AND (CASE WHEN T5.PD_CD = '살균수기 기준상품코드' THEN TADR.NEW_ADR_ZIP ELSE '' END) =
+                --      (CASE WHEN T5.PD_CD = '살균수기 기준상품코드' THEN '입력우편번호' ELSE '' END)
+                -- 만일 살균수기 시에 우편번호가 NULL 이면 검색 안됨 (1=2) 로직 추가 필요
+
+                UNION ALL
+                -- 회사설치   (LC9500P)
+                SELECT  T1.CNTR_NO          AS CNTR_NO,
+                        T1.CNTR_SN          AS CNTR_SN,
+                        T4.CST_KNM          AS CST_KNM,
+                        T1.SELL_TP_CD       AS SELL_TP_CD,
+                        T1.BASE_PD_CD       AS BASE_PD_CD,
+                        T5.PD_NM            AS PD_NM,
+                        T2.COPN_DV_CD       AS COPN_DV_CD,
+                        CASE
+                        WHEN T1.CNTR_DTL_STAT_CD <![CDATA[>=]]> '301'
+                        AND T1.CNTR_DTL_STAT_CD  <![CDATA[<=]]>  '303' THEN T6.HIST_STRT_DTM
+                        ELSE '' END     AS HIST_STRT_DTM,
+                        ''                  AS RETENTION_STRT, /*상대코드 유지기간 시작 일자 : 설치일 익월 1일 -> 주문 접수시는 유지기간 알수 없음. (접수한 상품의 설치일로부터 6개월)*/
+                        ''                  AS RETENTION_ENDT, /*상대코드 유지기간 시작 일자 : 설치일 익월 1일 -> 주문 접수시는 유지기간 알수 없음. (접수한 상품의 설치일로부터 6개월)*/
+                        T2.CNTR_RCP_FSH_DTM AS CNTR_RCP_FSH_DTM,
+                        TADR.RNADR          AS RNADR,
+                        TADR.RDADR          AS RDADR,
+                        TADR.NEW_ADR_ZIP    AS NEW_ADR_ZIP,
+                        TADR.LTN_ADR        AS LTN_ADR,
+                        TADR.LTN_DTL_ADR    AS LTN_DTL_ADR,
+                        TADR.OLD_ADR_ZIP    AS OLD_ADR_ZIP
+                   FROM TB_SSCT_CNTR_DTL T1
+                  INNER JOIN TB_SSCT_CNTR_BAS T2
+                     ON T1.CNTR_NO = T2.CNTR_NO
+                    AND T2.CNTR_CST_NO = (SELECT T10.CNTR_CST_NO
+                                            FROM TB_SSCT_CNTR_BAS T10
+                                           WHERE T10.CNTR_NO = #{baseDtlCntrNo})
+                  INNER JOIN TB_SSCT_CNTR_WELLS_DTL T3 -- 계약 WELLS 상세
+                     ON T1.CNTR_NO = T3.CNTR_NO
+                    AND T1.CNTR_SN = T3.CNTR_SN
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS T4
+                     ON T2.CNTR_CST_NO = T4.CST_NO
+                  INNER JOIN TB_PDBS_PD_BAS T5
+                     ON T1.BASE_PD_CD = T5.PD_CD
+                   LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T6 --계약상세상태변경이력 테이블
+                     ON T1.CNTR_NO = T6.CNTR_NO
+                    AND T1.CNTR_SN = T6.CNTR_SN
+                    AND T6.HIST_STRT_DTM = (SELECT MAX(HIST_STRT_DTM)
+                                              FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST TT
+                                             WHERE T1.CNTR_NO = TT.CNTR_NO
+                                               AND T1.CNTR_SN = TT.CNTR_SN)
+                LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS TADR --- 주소
+                  ON TADR.ADR_ID = (SELECT T9.ADR_ID
+                                      FROM TB_SSCT_CNTR_ADRPC_BAS T9
+                                     WHERE T9.CNTR_ADRPC_ID = (SELECT T7.CNTR_ADRPC_ID
+                                                                 FROM TB_SSCT_CNTR_ADR_REL T7
+                                                                WHERE T7.DTL_CNTR_NO = T1.CNTR_NO
+                                                                  AND T7.DTL_CNTR_SN = T1.CNTR_SN
+                                                                  AND T7.ADRPC_TP_CD = '3'
+                                                                  AND T7.VL_END_DTM = '99991231235959') --설치지
+                                    )
+              WHERE 1 = 1
+                AND T1.SELL_TP_CD = '4'                                                      -- 회사설치
+                --     AND LCSGUB NOT IN ('1','2')  /*관리부서, 영업부 설치건은 제외*/ 이게 TOBE화 못함.
+                AND SUBSTR(T2.CNTR_CNFM_DTM, 1, 6)  <![CDATA[<=]]>  TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD') -- 확정일자가 오늘 이전
+                AND T1.CNTR_DTL_STAT_CD = '101'
+                AND (CASE WHEN T5.PD_CD = '살균수기 기준상품코드' THEN TADR.NEW_ADR_ZIP ELSE '' END) =
+                (CASE WHEN T5.PD_CD = '살균수기 기준상품코드' THEN '입력우편번호' ELSE '' END)
+                -- 만일 살균수기 시에 우편번호가 NULL 이면 검색 안됨 (1=2) 로직 추가 필요
+
+            UNION ALL
+                -- 일시불
+            SELECT  T1.CNTR_NO          AS CNTR_NO,
+                    T1.CNTR_SN          AS CNTR_SN,
+                    T4.CST_KNM          AS CST_KNM,
+                    T1.SELL_TP_CD       AS SELL_TP_CD,
+                    T1.BASE_PD_CD       AS BASE_PD_CD,
+                    T5.PD_NM            AS PD_NM,
+                    T2.COPN_DV_CD       AS COPN_DV_CD,
+                    CASE
+                    WHEN T1.CNTR_DTL_STAT_CD <![CDATA[>=]]> '301'
+                    AND T1.CNTR_DTL_STAT_CD  <![CDATA[<=]]>  '303' THEN T6.HIST_STRT_DTM
+                    ELSE '' END     AS HIST_STRT_DTM,
+                    ''                  AS RETENTION_STRT, /*상대코드 유지기간 시작 일자 : 설치일 익월 1일 -> 주문 접수시는 유지기간 알수 없음. (접수한 상품의 설치일로부터 6개월)*/
+                    ''                  AS RETENTION_ENDT, /*상대코드 유지기간 시작 일자 : 설치일 익월 1일 -> 주문 접수시는 유지기간 알수 없음. (접수한 상품의 설치일로부터 6개월)*/
+                    T2.CNTR_RCP_FSH_DTM AS CNTR_RCP_FSH_DTM,
+                    TADR.RNADR          AS RNADR,
+                    TADR.RDADR          AS RDADR,
+                    TADR.NEW_ADR_ZIP    AS NEW_ADR_ZIP,
+                    TADR.LTN_ADR        AS LTN_ADR,
+                    TADR.LTN_DTL_ADR    AS LTN_DTL_ADR,
+                    TADR.OLD_ADR_ZIP    AS OLD_ADR_ZIP
+               FROM TB_SSCT_CNTR_DTL T1
+              INNER JOIN TB_SSCT_CNTR_BAS T2
+                 ON T1.CNTR_NO = T2.CNTR_NO
+                AND T2.CNTR_CST_NO = (SELECT T10.CNTR_CST_NO
+                                        FROM TB_SSCT_CNTR_BAS T10
+                                       WHERE T10.CNTR_NO = #{baseDtlCntrNo})
+              INNER JOIN TB_SSCT_CNTR_WELLS_DTL T3 -- 계약 WELLS 상세
+                 ON T1.CNTR_NO = T3.CNTR_NO
+                AND T1.CNTR_SN = T3.CNTR_SN
+               LEFT OUTER JOIN TB_CUBS_CST_BAS T4
+                 ON T2.CNTR_CST_NO = T4.CST_NO
+              INNER JOIN TB_PDBS_PD_BAS T5
+                 ON T1.BASE_PD_CD = T5.PD_CD
+               LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T6 --계약상세상태변경이력 테이블
+                 ON T1.CNTR_NO = T6.CNTR_NO
+                AND T1.CNTR_SN = T6.CNTR_SN
+                AND T6.HIST_STRT_DTM = (SELECT MAX(HIST_STRT_DTM)
+                                          FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST TT
+                                         WHERE T1.CNTR_NO = TT.CNTR_NO
+                                           AND T1.CNTR_SN = TT.CNTR_SN)
+               LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS TADR --- 주소
+                 ON TADR.ADR_ID = (SELECT T9.ADR_ID
+                                     FROM TB_SSCT_CNTR_ADRPC_BAS T9
+                                    WHERE T9.CNTR_ADRPC_ID = (SELECT T7.CNTR_ADRPC_ID
+                                                                FROM TB_SSCT_CNTR_ADR_REL T7
+                                                               WHERE T7.DTL_CNTR_NO = T1.CNTR_NO
+                                                                 AND T7.DTL_CNTR_SN = T1.CNTR_SN
+                                                                 AND T7.ADRPC_TP_CD = '3'
+                                                                 AND T7.VL_END_DTM = '99991231235959') --설치지
+                                    )
+               LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T11
+                 ON T11.PD_CD = T5.PD_CD
+                AND T11.PD_EXTS_PRP_GRP_CD = 'SPP'
+              WHERE 1 = 1
+                AND T1.SELL_TP_CD = '1'                                                       -- 할부 (일시불)
+                /*     AND KA11.KAETC2 NOT IN ('6','8','9') 이거 어떻게 번역하는가
+                (강태욱) 환경가전 중 설치 제품인 경우만 해당. 따라서 아래와 같이 번역됨 */
+                AND T11.PD_PRP_VAL01 = '1' /* 설치제품 */
+                AND SUBSTR(T2.CNTR_CNFM_DTM, 1, 6)  <![CDATA[<=]]>  TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD')  -- 확정일자가 오늘 이전
+                AND T1.CNTR_DTL_STAT_CD NOT IN ('301', '302', '303')                          -- 취소여부
+                AND T3.REQD_DT > TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD')                       -- 철거일
+                AND (T3.FRISU_BFSVC_PTRM_N > 0 AND
+                NOT EXISTS(SELECT 1 FROM TB_SSCT_CNTR_DTL WHERE T1.CNTR_SN = CNTR_SN AND T1.CNTR_NO = CNTR_NO)
+                OR '{상품코드}' = '공기청정기KW-A08E1' OR T1.BASE_PD_CD IN ('WP05110110', 'WP05110111', 'WP05110602')) /*4자리 코드 번역 필요 (강태욱)번역완료*/
+                /* 상기 공기청정기는 TOBE 일시불 상품코드가 정의되어 있지 않음 */
+                --                AND (CASE WHEN T5.PD_CD = '살균수기 기준상품코드' THEN TADR.NEW_ADR_ZIP ELSE '' END) =
+                --                    (CASE WHEN T5.PD_CD = '살균수기 기준상품코드' THEN '입력우편번호' ELSE '' END)
+                -- 만일 살균수기 시에 우편번호가 NULL 이면 검색 안됨 (1=2) 로직 추가 필요
+              ) T0
+    </select>
+
+    <select id="selectConfirmMemberships" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchConfirmMshRes">
+        SELECT T1.CNTR_NO
+             , T1.CNTR_SN
+             , T3.CST_KNM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'OG_TP_CD', T2.SELL_OG_TP_CD) AS SELL_OG_TP_NM
+             , T4.PD_CLSF_NM AS PD_HCLSF_NM
+             , T5.PD_CLSF_NM AS PD_MCLSF_NM
+             , T1.BASE_PD_CD
+             , T8.PD_NM
+             , CASE WHEN T10.SELL_TP_CD = '1' THEN T11.FRISU_BFSVC_PTRM_N
+                    ELSE NULL
+                    END AS FRISU_BFSVC_PTRM_N
+             , CASE WHEN T10.SELL_TP_CD = '1' THEN T11.FRISU_MSH_CRT_YN
+                    ELSE ''
+                    END AS FRISU_MSH_CRT_YN
+             , CASE WHEN T11.SELL_EV_CD = 'F' THEN 'Y'
+                    ELSE ''
+                    END AS NATION_SPT_YN /*국고보조금여부*/
+             , CASE WHEN T10.SELL_TP_CD != '1' THEN ''
+                    WHEN T10.SELL_TP_CD = '1' AND T1.CNTR_SN > 1 AND T11.SELL_EV_CD = 'F' THEN 'Y'
+                    ELSE 'N'
+                    END AS FEE_YN
+             , CASE WHEN T11.PRM_PTRM_MCN > 0 THEN 'Y'
+                    ELSE ''
+                    END AS PRM_YN
+             , T7.OG_CD
+             , T6.PRTNR_NO
+             , T7.PRTNR_KNM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'RSB_DV_CD', T7.RSB_DV_CD) AS RSB_DV_NM
+             , SUBSTR(T2.CNTR_RCP_FSH_DTM,1,6) AS CNTR_RCP_FSH_DT
+             , CASE WHEN T2.CNTR_CNFM_DTM IS NOT NULL THEN 'Y'
+                    ELSE 'N'
+                    END AS CNTR_CNFM_YN
+             , SUBSTR(T2.CNTR_CNFM_DTM,1,6) AS CNTR_CNFM_DT
+             , T1.CNTR_PD_STRTDT AS CNTR_PD_STRTDT
+             , T1.CNTR_PD_ENDDT AS CNTR_PD_ENDDT
+             , CASE WHEN T1.CNTR_DTL_STAT_CD = '303' THEN SUBSTR(T12.HIST_STRT_DTM,1,6)
+                    ELSE ''
+                    END AS CNTR_CAN_DT
+          FROM TB_SSCT_CNTR_DTL T1
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS T3
+            ON T3.CST_NO = T2.CNTR_CST_NO
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T4      /* 대분류명 */
+            ON T4.PD_CLSF_ID = T1.PD_HCLSF_ID
+           AND T4.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T5      /* 중분류명 */
+            ON T5.PD_CLSF_ID = T1.PD_MCLSF_ID
+           AND T5.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_PRTNR_REL T6   /* 계약파트너 관계 */
+            ON T6.CNTR_NO = T2.CNTR_NO
+           AND T6.CNTR_PRTNR_TP_CD = '010'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T6.VL_STRT_DTM AND T6.VL_END_DTM
+           AND T6.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ T7
+            ON T7.BASE_YM = SUBSTR(T2.CNTR_RCP_FSH_DTM,1,6)
+           AND T7.OG_TP_CD = T6.OG_TP_CD
+           AND T7.PRTNR_NO = T6.PRTNR_NO
+           AND T7.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS T8
+            ON T1.BASE_PD_CD = T8.PD_CD
+           AND T8.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_REL T9
+            ON T9.BASE_DTL_CNTR_NO = T1.CNTR_NO
+           AND T9.BASE_DTL_CNTR_SN = T1.CNTR_SN
+           AND T9.CNTR_REL_DTL_CD = '212'   /* 멤버십 - 원주문 : 기준이 멤버십임 */
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T9.VL_STRT_DTM AND T9.VL_END_DTM
+           AND T9.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_DTL T10
+            ON T10.CNTR_NO = T9.OJ_DTL_CNTR_NO
+           AND T10.CNTR_SN = T9.OJ_DTL_CNTR_SN
+           AND T10.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T11
+            ON T11.CNTR_NO = T1.CNTR_NO
+           AND T11.CNTR_SN = T1.CNTR_SN
+           AND T11.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T12
+            ON T12.CNTR_NO = T11.CNTR_NO
+           AND T12.CNTR_SN = T11.CNTR_SN
+           AND T12.HIST_END_DTM = '99991231235959'
+           AND T12.DTA_DL_YN = 'N'
+         WHERE T1.SELL_TP_CD = '3'
+           AND SUBSTR(T2.CNTR_RCP_FSH_DTM,1,8) BETWEEN #{rcpStrtDt} AND #{rcpEndDt}
+           AND SUBSTR(T2.CNTR_CNFM_DTM ,1,8) BETWEEN #{cnfmStrtDt} AND #{cnfmEndDt}
+        <if test='@MybatisUtils@isNotEmpty(pdHclsfId)'>
+           AND T1.PD_HCLSF_ID = #{pdHclsfId}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(pdMclsfId)'>
+           AND T1.PD_MCLSF_ID = #{pdMclsfId}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
+           AND T1.BASE_PD_CD = #{basePdCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(pdNm)'>
+           AND T8.PD_NM = #{pdNm}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+           AND T6.PRTNR_NO = #{prtnrNo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(sellOgTpCd)'>
+           AND T2.SELL_OG_TP_CD = sellOgTpCd
+        </if>
+        <choose>
+            <when test='@MybatisUtils@equals(frisuMshCrtYn, "Y")'>
+           AND T11.FRISU_MSH_CRT_YN != 'Y'
+            </when>
+            <when test='@MybatisUtils@equals(frisuMshCrtYn, "N")'>
+           AND T11.FRISU_MSH_CRT_YN = 'Y'
+            </when>
+        </choose>
+    </select>
+
+    <select id="selectKMembersCancelAsks" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractDto$SearchKMembersCancelAsksRes">
+        SELECT
+               T10.CNTR_NO      /* 계약번호 LCYEAR */
+             , T10.CNTR_SN      /* 계약일련번호 LCCODE */
+             , T111.CST_KNM     /* 고객한글명(계약자) - LCCNAM */
+             , T10.RSG_APLC_DT  /*  해지신청일(LCREQY) */
+             , T10.RSG_FSH_DT   /*  해지완료일(LCCANY) */
+             , CASE WHEN T13.CNTR_NO IS NOT NULL THEN T13.MLG_RES_AMT /* 마일리지잔여금액 */
+                    ELSE T12.P_RES_AMT /*포인트잔여금액*/ END AS MLG_RES_AMT  /* 잔여포인트*/
+             , T13.PROCS_YN /*처리여부(KELOCK) */
+             , T13.KMBRS_PROCS_BSDT /* 멤버스처리기준일자 (KEPRDT) */
+             , T13.TRS_DT       /* 전송일자 (KE816.KEIFDT AS KEIFDT6) */
+             , T12.RCPDT        /* 접수일자 (KE817.KEIFDT AS KEIFDT7) */
+          FROM TB_SSCT_CNTR_RSG_PROCS_IZ T10        /* T.계약해지처리내역(LC3250P) */
+         INNER JOIN TB_SSCT_CNTR_DTL T11            /* T.계약상세 (LC3100P)*/
+            ON T11.CNTR_NO = T10.CNTR_NO
+           AND T11.CNTR_SN = T10.CNTR_SN
+           AND T11.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS T110           /* T.계약기본 (LC3100P)*/
+            ON T110.CNTR_NO = T11.CNTR_NO
+           AND T110.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS T111            /* T.고객기본 (LC3100P)*/
+            ON T111.CST_NO = T110.CNTR_CST_NO       /*고객번호*/
+           AND T111.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_RSG_RFLT_OJ_IZ T12 /* T.계약해지반영대상내역 (KE8170P)*/
+            ON T12.CNTR_NO = T10.CNTR_NO
+           AND T12.CNTR_SN = T10.CNTR_SN
+           AND T12.RSG_PROCS_DV_CD = '2'                  /* 해지처리구분코드 (취소확정:2) */
+           AND T12.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_IFIN_KMBRS_ORD_SEND_ETXT T13 /* T.멤버스주문송신전문 (KE8160P)*/
+            ON T13.CNTR_NO = T10.CNTR_NO
+           AND T13.CNTR_SN = T10.CNTR_SN
+           AND T13.KMBRS_BIZ_DV_CD = '0032'               /* K멤버스업무구분코드 (웰스렌탈:0032) KEBZGB*/
+           AND T13.KMBRS_PROCS_DV_CD = '2'                /* K멤버스처리구분코드 (취소확정:2) KEPRGB*/
+           AND T13.KMBRS_PROCS_BASE_CD = '21'             /* 멤버스처리기준코드(취소완료:21) */
+           AND T13.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND T11.SELL_TP_CD = '2'       /* 판매유형코드 : 렌탈/리스(2) */
+           AND T11.ALNCMP_CD = '45'       /* 제휴사코드 : K멤버스(45) */
+           AND T10.RSG_FSH_DT IS NOT NULL /* 해지완료일자 (취소일자) */
+           AND T10.RSG_FSH_DT BETWEEN #{cntrChRcpStrtDtm} AND #{cntrChRcpFinsDtm} /* P1.해지완료일자 */
+         <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND T11.CNTR_NO = #{cntrNo}    /* 계약번호 */
+         </if>
+         <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+           AND T11.CNTR_SN = #{cntrSn}    /* 계약일련번호 */
+         </if>
+         <if test='@MybatisUtils@equals(statCd,"00")'>
+           AND (T12.CNTR_NO IS NULL OR T13.CNTR_NO IS NULL OR T13.PROCS_YN != 'Y')
+         </if>
+         <if test='@MybatisUtils@equals(statCd,"01")'>
+           AND T12.CNTR_NO IS NOT NULL
+           AND T13.CNTR_NO IS NOT NULL
+           AND T13.PROCS_YN = 'Y'
+         </if>
+         ORDER BY T10.RSG_FSH_DT, T111.CST_KNM, T10.CNTR_NO, T10.CNTR_SN
+    </select>
+</mapper>

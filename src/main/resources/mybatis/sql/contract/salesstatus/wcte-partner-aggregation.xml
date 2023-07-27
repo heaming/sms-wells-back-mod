@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.salesstatus.mapper.WctePartnerAggregationMapper">
+    <select id="selectBmno" resultType="String">
+        SELECT CASE WHEN 'E0106' = RSB_DV_CD THEN PRTNR_NO ELSE '' END BM_NO
+          FROM TB_OGBS_MM_PRTNR_IZ
+         WHERE 1=1
+           AND PRTNR_NO = #{session.employeeIDNumber}
+           AND OG_TP_CD = #{session.ogTpCd}
+           AND BASE_YM = TO_CHAR(SYSDATE,'YYYYMM')
+           AND DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectPartnerAggregations" resultType="com.kyowon.sms.wells.web.contract.salesstatus.dto.WctePartnerAggregationDto$SearchRes">
+        SELECT T3.PRTNR_KNM
+             , T3.PRTNR_NO
+             , T3.OG_CD
+             , COUNT(CASE WHEN T1.CNTR_PRGS_STAT_CD = '20' THEN 1 END) AS C20
+             , COUNT(CASE WHEN T1.CNTR_PRGS_STAT_CD = '40' THEN 1 END) AS C40
+             , COUNT(CASE WHEN T1.CNTR_PRGS_STAT_CD = '60' THEN 1 END) AS C60
+             , COUNT(CASE WHEN T1.CNTR_PRGS_STAT_CD = '50' THEN 1 END) AS C50
+          FROM TB_SSCT_CNTR_BAS T1
+         INNER JOIN TB_SSCT_CNTR_PRTNR_REL T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.VL_END_DTM = '99991231235959'
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ T3
+            ON T3.PRTNR_NO = T2.PRTNR_NO
+           AND T3.OG_TP_CD = T2.OG_TP_CD
+           AND T3.BASE_YM = SUBSTR(T1.CNTR_CNFM_DTM, 1, 6)
+           AND T3.DTA_DL_YN = 'N'
+         WHERE T1.DTA_DL_YN = 'N'
+        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+           AND T3.PRTNR_NO = #{prtnrNo}
+           AND T3.OG_TP_CD = #{session.ogTpCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(ogCd)'>
+           AND T3.OG_CD = #{ogCd}
+        </if>
+         GROUP BY T3.PRTNR_NO, T3.PRTNR_KNM, T3.OG_CD
+    </select>
+
+    <select id="selectPartnerAggregationsWithBmno" resultType="com.kyowon.sms.wells.web.contract.salesstatus.dto.WctePartnerAggregationDto$SearchRes">
+        SELECT T3.PRTNR_KNM
+             , T3.PRTNR_NO
+             , T3.OG_CD
+             , COUNT(CASE WHEN T1.CNTR_PRGS_STAT_CD = '20' THEN 1 END) AS C20
+             , COUNT(CASE WHEN T1.CNTR_PRGS_STAT_CD = '40' THEN 1 END) AS C40
+             , COUNT(CASE WHEN T1.CNTR_PRGS_STAT_CD = '60' THEN 1 END) AS C60
+             , COUNT(CASE WHEN T1.CNTR_PRGS_STAT_CD = '50' THEN 1 END) AS C50
+          FROM TB_SSCT_CNTR_BAS T1
+         INNER JOIN TB_SSCT_CNTR_PRTNR_REL T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.VL_END_DTM = '99991231235959'
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ T3
+            ON T3.PRTNR_NO = T2.PRTNR_NO
+           AND T3.OG_TP_CD = T2.OG_TP_CD
+           AND T3.BASE_YM = SUBSTR(T1.CNTR_CNFM_DTM, 1, 6)
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_OG_IZ T4
+            ON T4.OG_ID = T3.OG_ID
+           AND T4.DTA_DL_YN = 'N'
+           AND T4.BASE_YM = SUBSTR(T1.CNTR_CNFM_DTM, 1, 6)
+         WHERE T1.DTA_DL_YN = 'N'
+        <if test='@MybatisUtils@isEmpty(prtnrNo) and @MybatisUtils@isEmpty(ogCd)'>
+            <choose>
+                <when test='@MybatisUtils@equals(session.careerLevelCode, "1") or @MybatisUtils@equals(session.careerLevelCode, "2")'>
+           AND T3.PSTN_DV_CD = '4'
+           AND T3.OG_CD LIKE SUBSTR (#{session.departmentId}, 1, 1)||'%'
+                </when>
+                <when test='@MybatisUtils@equals(session.careerLevelCode, "4")'>
+           AND T3.PSTN_DV_CD = '7'
+           AND T3.OG_CD LIKE SUBSTR (#{session.departmentId}, 1, 3)||'%'
+                </when>
+                <when test='@MybatisUtils@equals(session.careerLevelCode, "7")'>
+           AND T3.PSTN_DV_CD IN ('7', '15')
+                    <choose>
+                        <when test="@MybatisUtils@isEmpty(bmNo)">
+                AND T3.OG_CD LIKE SUBSTR (#{session.departmentId}, 1, 6)||'%'
+                        </when>
+                        <otherwise>
+                AND T4.BIZ_SPPT_PRTNR_NO = #{bmNo}
+                        </otherwise>
+                    </choose>
+                </when>
+                <otherwise>
+           AND 1 = 2
+                </otherwise>
+            </choose>
+        </if>
+         GROUP BY T3.PRTNR_NO, T3.PRTNR_KNM, T3.OG_CD
+    </select>
+</mapper>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiFreeAsPeriodMapper">
+
+    <!--
+    EAI INTERFACE 통신 시 data key는 snake case를 사용함.
+    resultMap을 사용하여 response dto에 매핑함.
+    -->
+    <resultMap id="periodInfo" type="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiFreeAsPeriodDto$FindRes">
+        <constructor>
+            <arg name="FRISU_AS_MCN" javaType="java.lang.Integer" column="FRISU_AS_MCN"/>
+            <arg name="SS_FRISU_AS_MCN" javaType="java.lang.Integer" column="SS_FRISU_AS_MCN"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectFreeAsPeriodFromEx" resultMap="periodInfo">
+        SELECT CD.ISTM_MCN AS FRISU_AS_MCN
+             , CD.ISTM_MCN AS SS_FRISU_AS_MCN
+          FROM TB_SSCT_CNTR_EX_OJ_BAS EB
+         INNER JOIN TB_SSCT_CNTR_DTL CD
+            ON EB.EX_PROCS_OJ_DRM_VAL = CONCAT(CD.CNTR_NO, CD.CNTR_SN)
+         WHERE TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN EB.VL_STRT_DTM AND EB.VL_END_DTM
+           AND EB.EX_PROCS_CD = '05'
+           AND EB.EX_PROCS_OJ_DRM_TP_CD = '3'
+           AND EB.DTA_DL_YN  = 'N'
+           AND CD.CNTR_NO = #{CNTR_NO}
+           AND CD.CNTR_SN = #{CNTR_SN}
+           AND CD.DTA_DL_YN  = 'N'
+    </select>
+
+    <select id="selectFreeAsPeriod" resultMap="periodInfo">
+        SELECT CASE WHEN SUBSTR(T2.CNTR_CNFM_DTM,1,8) > '20220417' THEN T1.ISTM_MCN
+                    WHEN SUBSTR(T2.CNTR_CNFM_DTM,1,8) > '20210902' THEN DECODE(SUBSTR(T3.REF_PD_CLSF_VAL, 0, 5), '02002', 24, 12)
+                    WHEN SUBSTR(T2.CNTR_CNFM_DTM,1,8) > '20210315' THEN DECODE(SUBSTR(T3.REF_PD_CLSF_VAL, 0, 5), '02002', 36
+                                                                                                               , '04006', 36
+                                                                                                               , '04003', 36
+                                                                                                               , '04004', 12
+                                                                                                               , '04005', 12
+                                                                                                               , '05004', 12
+                                                                                                               , '05005', 12)
+                    WHEN SUBSTR(T2.CNTR_CNFM_DTM,1,8) > '20180531' THEN 60
+               END AS FRISU_AS_MCN /*무상 AS 기간*/
+             , CASE WHEN SUBSTR(T2.CNTR_CNFM_DTM,1,8) > '20220417' THEN T1.ISTM_MCN
+                    WHEN SUBSTR(T2.CNTR_CNFM_DTM,1,8) > '20210902' THEN DECODE(SUBSTR(T3.REF_PD_CLSF_VAL, 0, 5), '02002', 24, 12)
+                    WHEN SUBSTR(T2.CNTR_CNFM_DTM,1,8) > '20210315' THEN DECODE(SUBSTR(T3.REF_PD_CLSF_VAL, 0, 5), '02002', 24
+                                                                                                               , '04006', 12
+                                                                                                               , '04003', 12
+                                                                                                               , '04004', 12
+                                                                                                               , '04005', 12
+                                                                                                               , '05004', 12
+                                                                                                               , '05005', 12)
+                    WHEN SUBSTR(T2.CNTR_CNFM_DTM,1,8) > '20180531' THEN DECODE(SUBSTR(T3.REF_PD_CLSF_VAL, 0, 5), '02002', 24, 12)
+                    ELSE 0
+               END AS SS_FRISU_AS_MCN /*삼성 부담 무상 AS 기간*/
+          FROM TB_SSCT_CNTR_DTL T1
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.DTA_DL_YN  = 'N'
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T3
+            ON T3.PD_CLSF_ID = T1.PD_MCLSF_ID
+           AND T3.PD_TP_CD = 'P'
+           AND T3.DTA_DL_YN  = 'N'
+           AND T3.TEMP_SAVE_YN = 'N'
+           AND T3.USE_YN = 'Y'
+         WHERE T1.CNTR_NO = #{CNTR_NO}
+           AND T1.CNTR_SN = #{CNTR_SN}
+           AND T1.DTA_DL_YN  = 'N'
+    </select>
+
+</mapper>

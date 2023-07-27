@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.orderstatus.mapper.WctdSelfConversionMapper">
+
+    <select id="selectSelfConversionPages"
+            resultType="com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdSelfConversionDto$SearchRes">
+        SELECT T_CNTR_DTL.CNTR_NO
+             , T_CNTR_DTL.CNTR_SN
+             , T_CNTR_CST_BAS.COPN_DV_CD /*법인격구분코드 maybe 자료구분 code*/
+             , T_CNTR_WELLS_DTL.IST_DT /*설치일자*/
+             , T_CNTR_BAS.CNTR_CST_NO /*계약고객번호 maybe 고객코드 maybe 교원키*/
+             , T_CNTR_CST_BAS.CST_KNM /*고객한글명 maybe 계약자명*/
+             , T_CNTR_CST_BAS.CRAL_LOCARA_TNO /* 계약자휴대전화번호1 */
+             , T_CNTR_CST_BAS.MEXNO_ENCR /* 계약자휴대전화번호2 - 암호화 */
+             , T_CNTR_CST_BAS.CRAL_IDV_TNO /* 계약자휴대전화번호3 */
+             , T_CNTR_ADRPC_BAS.RCGVP_KNM /* 수령자한글명 설치자명*/
+             , T_CNTR_ADRPC_BAS.CRAL_LOCARA_TNO                               AS RCGVP_CRAL_LOCARA_TNO /* 설치자휴대전화번호1 */
+             , T_CNTR_ADRPC_BAS.MEXNO_ENCR                                    AS RCGVP_MEXNO_ENCR /* 설치자휴대전화번호2- 암호화 */
+             , T_CNTR_ADRPC_BAS.CRAL_IDV_TNO                                  AS RCGVP_CRAL_IDV_TNO /* 설치자휴대전화번호3 */
+             , (SELECT PD_CLSF_NM
+                  FROM TB_PDBS_PD_CLSF_BAS
+                 WHERE PD_CLSF_ID = T_CNTR_DTL.PD_HCLSF_ID)                   AS PD_HCLSF_NM /* 상품대분류명 */
+             , (SELECT PD_CLSF_NM
+                  FROM TB_PDBS_PD_CLSF_BAS
+                 WHERE PD_CLSF_ID = T_CNTR_DTL.PD_MCLSF_ID)                   AS PD_MCLSF_NM /* 상품중분류명 */
+             , T_PD_BAS.PD_CD /*상품코드 제품코드*/
+             , T_PD_BAS.PD_NM /*상품명 상품명*/
+             , T_SDING_CNTR.PD_NM                                             AS SDING_PD_NM /*모종상품명 웰스팜모종(사용중인)*/
+             , T_CNTR_DTL.FNL_AMT /* 렌탈료 */
+             , T_CNTR_DTL.STPL_PTRM /* 의무사용기간(T_CNTR_WELLS_DTL.RECAP_DUTY_PTRM_N) -> 약정기간 (T_CNTR_DTL.STPL_PTRM) */
+             , T_CNTR_DTL.STPL_PTRM_UNIT_CD /* 의무사용기간단위코드 */
+             , (SELECT MAX(WK_EXCN_DT)
+                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
+                 WHERE CNTR_NO = T_CNTR_DTL.CNTR_NO
+                   AND CNTR_SN = T_CNTR_DTL.CNTR_SN
+                   AND VST_PRGS_STAT_CD = '20')                               AS LAST_BS_DT /*마지막BS일*/
+             , (SELECT MAX(EOT_UC_AMT)
+                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ
+                 WHERE DTA_DL_YN = 'N'
+                   AND CNTR_NO = T_CNTR_DTL.CNTR_NO
+                   AND CNTR_SN = T_CNTR_DTL.CNTR_SN
+                   AND SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')) AS EOT_UC_AMT /*기말미수금액*/
+             , T_DLQ_BAS.EOT_DLQ_AMT /*기말연체금액*/
+             , T_DLQ_BAS.DLQ_ACU_MCN /*연체개월수*/
+             , T_MSH_CNTR.CNTR_PD_STRTDT /* 멤버십 가입일자 */
+             , T_MSH_CNTR.CNTR_PD_ENDDT /* 멤버십 탈퇴일자 */
+             , CASE
+                   WHEN T_MCHN_CH_IZ.OJ_CNTR_NO IS NOT NULL AND T_MCHN_CH_IZ.MCHN_CH_TP_CD IS NOT NULL THEN 'Y'
+                                                                                                       ELSE ''
+               END                                                            AS MCHN_CH_YN /*기기변경여부*/
+             , CASE
+                   WHEN T_MCHN_CH_IZ.OJ_CNTR_NO IS NOT NULL AND T_MCHN_CH_IZ.MCHN_CH_TP_CD IN ('15', '16', '19')
+                       THEN 'Y'
+                       ELSE ''
+               END                                                            AS RE_RETAL_YN /*재렌탈여부*/
+             , T_MCHN_CH_IZ.MCHN_CH_TP_CD /* 기변유형코드 */
+             , T_MCHN_CH_IZ.BASE_CNTR_NO                                      AS CH_CNTR_NO /*기변상대계약번호 maybe*/
+             , T_MCHN_CH_IZ.BASE_CNTR_SN                                      AS CH_CNTR_SN /*기변상대일계약련번호 maybe*/
+             , T_MCHN_CH_CNTR_DTL.BASE_PD_CD                                  AS CH_PD_CD /*기변상품코드 maybe*/
+             , T_MCHN_CH_PD_BAS.PD_NM                                         AS CH_PD_NM/*기변상품명 maybe*/
+             , T_RENTAL_RSTL_IZ.STPL_RCP_DTM /*재렌탈 약정접수일시*/
+             , SUBSTR(T_RENTAL_RSTL_IZ.STPL_RCP_DTM, 1, 8)                    AS STPL_RCP_DT
+             , T_RENTAL_RSTL_IZ.STPL_STRTDT /*재렌탈 약정시작일자*/
+             , T_RENTAL_RSTL_IZ.STPL_CAN_DTM /*재렌탈 약정취소일시*/
+             , SUBSTR(T_RENTAL_RSTL_IZ.STPL_CAN_DTM, 1, 8)                    AS STPL_CAN_DT
+          FROM TB_SSCT_CNTR_DTL                  T_CNTR_DTL /*계약상세*/
+               LEFT OUTER JOIN TB_CBCL_DLQ_BAS   T_DLQ_BAS /*연체기본*/
+               ON T_DLQ_BAS.DTA_DL_YN = 'N' AND T_DLQ_BAS.CNTR_NO = T_CNTR_DTL.CNTR_NO
+                   AND T_DLQ_BAS.CNTR_SN = T_CNTR_DTL.CNTR_SN
+                   AND T_DLQ_BAS.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+               LEFT OUTER JOIN LATERAL ( SELECT CNTR_NO, CNTR_SN, STPL_RCP_DTM, STPL_STRTDT, STPL_CAN_DTM
+                                           FROM TB_SSCT_RENTAL_RSTL_IZ
+                                          WHERE TB_SSCT_RENTAL_RSTL_IZ.DTA_DL_YN = 'N'
+                                          ORDER BY TB_SSCT_RENTAL_RSTL_IZ.STPL_TN DESC FETCH FIRST 1 ROWS ONLY ) T_RENTAL_RSTL_IZ /*렌탈재약정내역*/
+               ON T_RENTAL_RSTL_IZ.CNTR_NO = T_CNTR_DTL.CNTR_NO AND T_RENTAL_RSTL_IZ.CNTR_SN = T_CNTR_DTL.CNTR_SN
+               LEFT OUTER JOIN LATERAL ( SELECT *
+                                           FROM TB_SSCT_MCHN_CH_IZ
+                                          WHERE TB_SSCT_MCHN_CH_IZ.DTA_DL_YN = 'N'
+                                            AND TB_SSCT_MCHN_CH_IZ.OJ_CNTR_NO = T_CNTR_DTL.CNTR_NO
+                                            AND TB_SSCT_MCHN_CH_IZ.OJ_CNTR_SN = T_CNTR_DTL.CNTR_SN
+                                          ORDER BY TB_SSCT_MCHN_CH_IZ.BASE_CNTR_NO DESC
+                                                 , TB_SSCT_MCHN_CH_IZ.BASE_CNTR_SN DESC FETCH FIRST 1 ROWS ONLY ) T_MCHN_CH_IZ /*기기변경내역*/
+               ON T_MCHN_CH_IZ.OJ_CNTR_NO = T_CNTR_DTL.CNTR_NO AND T_MCHN_CH_IZ.OJ_CNTR_SN = T_CNTR_DTL.CNTR_SN
+               LEFT OUTER JOIN TB_SSCT_CNTR_DTL  T_MCHN_CH_CNTR_DTL
+               ON T_MCHN_CH_CNTR_DTL.DTA_DL_YN = 'N' AND T_MCHN_CH_CNTR_DTL.CNTR_NO = T_MCHN_CH_IZ.BASE_CNTR_NO
+                   AND T_MCHN_CH_CNTR_DTL.CNTR_SN = T_MCHN_CH_IZ.BASE_CNTR_SN
+               LEFT OUTER JOIN TB_PDBS_PD_BAS    T_MCHN_CH_PD_BAS
+               ON T_MCHN_CH_PD_BAS.DTA_DL_YN = 'N' AND T_MCHN_CH_PD_BAS.PD_CD = T_MCHN_CH_CNTR_DTL.BASE_PD_CD
+               INNER JOIN TB_SSCT_CNTR_WELLS_DTL T_CNTR_WELLS_DTL
+               ON T_CNTR_WELLS_DTL.DTA_DL_YN = 'N' AND T_CNTR_WELLS_DTL.CNTR_NO = T_CNTR_DTL.CNTR_NO
+                   AND T_CNTR_WELLS_DTL.CNTR_SN = T_CNTR_DTL.CNTR_SN
+               INNER JOIN TB_SSCT_CNTR_BAS       T_CNTR_BAS
+               ON T_CNTR_BAS.DTA_DL_YN = 'N' AND T_CNTR_BAS.CNTR_NO = T_CNTR_DTL.CNTR_NO
+               INNER JOIN TB_OGBS_MM_PRTNR_IZ    T_MM_PRTNR_IZ
+               ON T_MM_PRTNR_IZ.DTA_DL_YN = 'N' AND T_MM_PRTNR_IZ.BASE_YM = SUBSTR(T_CNTR_BAS.CNTR_RCP_FSH_DTM, 1, 6)
+                   AND T_MM_PRTNR_IZ.OG_TP_CD = T_CNTR_BAS.SELL_OG_TP_CD
+                   AND T_MM_PRTNR_IZ.PRTNR_NO = T_CNTR_BAS.SELL_PRTNR_NO
+               INNER JOIN TB_PDBS_PD_BAS         T_PD_BAS
+               ON T_PD_BAS.DTA_DL_YN = 'N' AND T_PD_BAS.PD_CD = T_CNTR_DTL.BASE_PD_CD
+               INNER JOIN TB_CUBS_CST_BAS        T_CNTR_CST_BAS
+               ON T_CNTR_CST_BAS.DTA_DL_YN = 'N' AND T_CNTR_CST_BAS.CST_NO = T_CNTR_BAS.CNTR_CST_NO
+               INNER JOIN TB_SSCT_CNTR_ADR_REL   T_CNTR_CST_ADR_REL
+               ON T_CNTR_CST_ADR_REL.DTA_DL_YN = 'N' AND T_CNTR_CST_ADR_REL.DTL_CNTR_NO = T_CNTR_DTL.CNTR_NO
+                   AND T_CNTR_CST_ADR_REL.DTL_CNTR_SN = T_CNTR_DTL.CNTR_SN
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T_CNTR_CST_ADR_REL.VL_STRT_DTM AND T_CNTR_CST_ADR_REL.VL_END_DTM
+               INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T_CNTR_ADRPC_BAS
+               ON T_CNTR_ADRPC_BAS.DTA_DL_YN = 'N' AND T_CNTR_ADRPC_BAS.CNTR_ADRPC_ID = T_CNTR_CST_ADR_REL.CNTR_ADRPC_ID
+               LEFT OUTER JOIN LATERAL ( SELECT SUB_T_CNTR_DTL.CNTR_NO
+                                              , SUB_T_CNTR_DTL.CNTR_SN
+                                              , SUB_T_PD_BAS.PD_NM
+                                              , SUB_T_CNTR_REL.OJ_DTL_CNTR_NO
+                                              , SUB_T_CNTR_REL.OJ_DTL_CNTR_SN
+                                              , SUB_T_CNTR_REL.CNTR_REL_DTL_CD
+                                           FROM TB_SSCT_CNTR_REL            SUB_T_CNTR_REL
+                                                INNER JOIN TB_SSCT_CNTR_DTL SUB_T_CNTR_DTL
+                                                ON SUB_T_CNTR_DTL.DTA_DL_YN = 'N'
+                                                    AND SUB_T_CNTR_DTL.CNTR_NO = SUB_T_CNTR_REL.BASE_DTL_CNTR_NO
+                                                    AND SUB_T_CNTR_DTL.CNTR_SN = SUB_T_CNTR_REL.BASE_DTL_CNTR_SN
+                                                    AND SUB_T_CNTR_REL.CNTR_REL_DTL_CD = '216'
+                                                INNER JOIN TB_PDBS_PD_BAS   SUB_T_PD_BAS
+                                                ON SUB_T_PD_BAS.DTA_DL_YN = 'N'
+                                                    AND SUB_T_PD_BAS.PD_CD = SUB_T_CNTR_DTL.BASE_PD_CD
+                                          WHERE SUB_T_CNTR_REL.DTA_DL_YN = 'N') T_SDING_CNTR /*모종결합*/
+               ON T_SDING_CNTR.OJ_DTL_CNTR_NO = T_CNTR_DTL.CNTR_NO AND T_SDING_CNTR.OJ_DTL_CNTR_SN = T_CNTR_DTL.CNTR_SN
+               LEFT OUTER JOIN LATERAL ( SELECT SUB_T_CNTR_DTL.CNTR_NO
+                                              , SUB_T_CNTR_DTL.CNTR_SN
+                                              , SUB_T_PD_BAS.PD_NM
+                                              , SUB_T_CNTR_REL.OJ_DTL_CNTR_NO
+                                              , SUB_T_CNTR_REL.OJ_DTL_CNTR_SN
+                                              , SUB_T_CNTR_DTL.CNTR_PD_STRTDT
+                                              , SUB_T_CNTR_DTL.CNTR_PD_ENDDT
+                                           FROM TB_SSCT_CNTR_REL            SUB_T_CNTR_REL
+                                                INNER JOIN TB_SSCT_CNTR_DTL SUB_T_CNTR_DTL
+                                                ON SUB_T_CNTR_DTL.DTA_DL_YN = 'N'
+                                                    AND SUB_T_CNTR_DTL.CNTR_NO = SUB_T_CNTR_REL.BASE_DTL_CNTR_NO
+                                                    AND SUB_T_CNTR_DTL.CNTR_SN = SUB_T_CNTR_REL.BASE_DTL_CNTR_SN
+                                                    AND SUB_T_CNTR_REL.CNTR_REL_DTL_CD = '212'
+                                                INNER JOIN TB_PDBS_PD_BAS   SUB_T_PD_BAS
+                                                ON SUB_T_PD_BAS.DTA_DL_YN = 'N'
+                                                    AND SUB_T_PD_BAS.PD_CD = SUB_T_CNTR_DTL.BASE_PD_CD
+                                          WHERE SUB_T_CNTR_REL.DTA_DL_YN = 'N') T_MSH_CNTR /*멤버쉽*/
+               ON T_MSH_CNTR.OJ_DTL_CNTR_NO = T_CNTR_DTL.CNTR_NO AND T_MSH_CNTR.OJ_DTL_CNTR_SN = T_CNTR_DTL.CNTR_SN
+        <where>
+            AND T_CNTR_DTL.SELL_TP_CD = '2' /* 렌탈/리스 */
+            AND T_CNTR_WELLS_DTL.IST_DT IS NOT NULL
+            AND T_CNTR_WELLS_DTL.CPS_DT IS NULL
+            <if test="@MybatisUtils@isNotEmpty(periodType) and @MybatisUtils@isNotEmpty(startDt) and @MybatisUtils@isNotEmpty(endDt)"><trim>
+                <trim><choose>
+                    <when test="periodType.name() == 'CAN_DT'">
+                        AND T_CNTR_DTL.CNTR_DTL_STAT_CD IN ('301', '302', '303', '304', '305')/*3.취소일자 조건일 경우*/
+                    </when>
+                    <otherwise>
+                        AND T_CNTR_DTL.CNTR_DTL_STAT_CD NOT IN ('301', '302', '303', '304', '305') /*3.취소일자 조건이 아닌 경우 */
+                    </otherwise>
+                </choose></trim>
+                <trim><choose>
+                    <when test="periodType.name() == 'RCT_DT'">
+                        AND T_CNTR_BAS.CNTR_RCP_FSH_DTM BETWEEN #{startDt} || '000000' AND #{endDt} || '235959'
+                    </when>
+                    <when test="periodType.name() == 'SL_RCOG_DT'">
+                        AND T_CNTR_WELLS_DTL.IST_DT BETWEEN #{startDt} AND #{endDt}
+                    </when>
+                    <when test="periodType.name() == 'CAN_DT' or periodType.name() == 'EXN_DT'">
+                        AND T_CNTR_DTL.CNTR_PD_ENDDT BETWEEN #{startDt} AND #{endDt}
+                    </when>
+                    <when test="periodType.name() == 'IST_DT'">
+                        AND T_CNTR_WELLS_DTL.IST_DT BETWEEN #{startDt} AND #{endDt}
+                    </when>
+                </choose></trim>
+            </trim></if>
+
+            <if test="@MybatisUtils@isNotEmpty(strtOgCd) and @MybatisUtils@isNotEmpty(endOgCd)"><trim>
+                AND T_MM_PRTNR_IZ.OG_CD <![CDATA[>=]]> #{strtOgCd}
+                AND T_MM_PRTNR_IZ.OG_CD <![CDATA[<=]]> #{endOgCd}
+            </trim></if>
+            <if test="@MybatisUtils@isNotEmpty(pdHclsfId)"><trim>
+                AND T_PD_BAS.PD_HCLSF_ID = #{pdHclsfId}
+            </trim></if>
+            <if test="@MybatisUtils@isNotEmpty(pdMclsfId)"><trim>
+                AND T_PD_BAS.PD_MCLSF_ID = #{pdMclsfId}
+            </trim></if>
+            <if test="@MybatisUtils@isNotEmpty(pdCd)"><trim>
+                AND T_CNTR_DTL.BASE_PD_CD = #{pdCd}
+            </trim></if>
+            <if test="@MybatisUtils@isNotEmpty(pdNm)"><trim>
+                AND T_PD_BAS.PD_NM LIKE '%' || #{pdNm} || '%'
+            </trim></if>
+            <if test="@MybatisUtils@isNotEmpty(copnDvCd)"><trim>
+                AND T_CNTR_BAS.COPN_DV_CD = #{copnDvCd}
+            </trim></if>
+        </where>
+        <if test="@MybatisUtils@isNotEmpty(periodType)"><trim prefix="ORDER BY ">
+            <choose>
+                <when test="periodType.name() == 'RCT_DT'">T_CNTR_BAS.CNTR_RCP_FSH_DTM DESC</when>
+                <when test="periodType.name() == 'SL_RCOG_DT'">T_CNTR_WELLS_DTL.IST_DT DESC</when>
+                <when test="periodType.name() == 'CAN_DT' or periodType.name() == 'EXN_DT'">T_CNTR_DTL.CNTR_PD_ENDDT DESC</when>
+                <when test="periodType.name() == 'IST_DT'">T_CNTR_WELLS_DTL.IST_DT DESC</when>
+            </choose>
+        </trim></if>
+    </select>
+</mapper>

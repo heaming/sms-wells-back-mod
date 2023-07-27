@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.common.mapper.WctzProductMapper">
+    <select id="selectHighClasses" resultType="com.kyowon.sms.wells.web.contract.common.dto.WctzProductDto$SearchRes">
+        SELECT NVL(T1.PD_CLSF_ID,'') AS PD_CLSF_ID /* 상품분류ID */
+             , NVL(T1.PD_CLSF_NM,'') AS PD_CLSF_NM /* 상품분류명 */
+             , NVL(T1.REF_PD_CLSF_VAL,'') AS REF_PD_CLSF_VAL /* 참조상품분류값 */
+             , NVL(T1.HGR_PD_CLSF_ID,'') AS HGR_PD_CLSF_ID /* 상위상품분류ID */
+             , NVL(T1.PD_CLSF_CD,'') AS PD_CLSF_CD /* 상품분류코드 - 상품 분류에 따른 상품분류코드(상품분류ID는 무의미한 PK이며 상품분류코드는 의미적인 코드값임, 상품레벨구분코드별로 Unique함)  */
+          FROM TB_PDBS_PD_CLSF_BAS T1 /* 상품분류기본 */
+         WHERE 1 = 1
+           AND T1.PD_TP_CD = 'P' /* 상품유형코드 = 'P'(기준상품) */
+           AND T1.PD_CLSF_LEVL_DV_CD = '2' /* 상품분류레벨구분코드 = '2'(대분류) */
+           AND T1.USE_YN = 'Y' /* 상품분류기본.사용여부가 'Y'인 건 */
+           AND T1.TEMP_SAVE_YN != 'Y' /* 임시저장여부가 'Y' 가 아닌 건 */
+           AND T1.DTA_DL_YN = 'N' /* 데이터삭제여부가 'N'인 건 */
+         ORDER BY T1.HGR_PD_CLSF_ID, T1.SORT_ODR /* 상위상품분류ID, 상품분류기본.정렬순서 */
+    </select>
+
+    <select id="selectMiddleClasses" resultType="com.kyowon.sms.wells.web.contract.common.dto.WctzProductDto$SearchRes">
+        SELECT NVL(T1.PD_CLSF_ID,'') AS PD_CLSF_ID /* 상품분류ID */
+             , NVL(T1.PD_CLSF_NM,'') AS PD_CLSF_NM /* 상품분류명 */
+             , NVL(T1.REF_PD_CLSF_VAL,'') AS REF_PD_CLSF_VAL /* 참조상품분류값 */
+             , NVL(T1.HGR_PD_CLSF_ID,'') AS HGR_PD_CLSF_ID /* 상위상품분류ID */
+             , NVL(T1.PD_CLSF_CD,'') AS PD_CLSF_CD /* 상품분류코드 - 상품 분류에 따른 상품분류코드(상품분류ID는 무의미한 PK이며 상품분류코드는 의미적인 코드값임, 상품레벨구분코드별로 Unique함)  */
+          FROM TB_PDBS_PD_CLSF_BAS T1 /* 상품분류기본 */
+         WHERE 1 = 1
+           AND T1.PD_TP_CD = 'P' /* 상품유형코드 = 'P'(기준상품) */
+           AND T1.PD_CLSF_LEVL_DV_CD = '3' /* 상품분류레벨구분코드 = '3'(중분류) */
+           AND T1.USE_YN = 'Y' /* 사용여부가 'Y'인 건 */
+           AND T1.TEMP_SAVE_YN != 'Y' /* 임시저장여부가 'Y' 가 아닌 건 */
+           AND T1.DTA_DL_YN = 'N' /* 데이터삭제여부가 'N'인 건 */
+         ORDER BY T1.HGR_PD_CLSF_ID, T1.SORT_ODR /* 상위상품분류ID, 상품분류기본.정렬순서 */
+    </select>
+</mapper>

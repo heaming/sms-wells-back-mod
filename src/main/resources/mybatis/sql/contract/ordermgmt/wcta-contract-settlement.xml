@@ -1,0 +1,758 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractSettlementMapper">
+    <select id="selectMaxCntrCstAgId" resultType="string">
+        SELECT 'CUA' || LPAD(SQ_CUBS_CST_AG_IZ$CST_AG_ID.NEXTVAL, 12, 0)
+          FROM DUAL
+    </select>
+
+    <insert id="insertAgreeItem">
+        INSERT INTO TB_CUBS_CST_AG_IZ ( CST_AG_ID /*고객동의ID*/
+                                      , AG_DRM_DV_CD /*동의식별구분코드*/
+                                      , AG_DRM_REFK_VAL /*동의식별참조키값*/
+                                      , CNTC_PRTNR_NO /*접촉파트너번호*/
+                                      , CNSL_NO /*상담번호*/
+                                      , AG_PROCS_DTM /*동의처리일시*/
+                                      , AG_EXN_PRCSDT /*동의만료처리일자*/
+                                      , AG_EXN_PROCS_RSON_CD /*동의만료처리사유코드*/
+                                      , MO_CN /*메모내용*/
+        <include refid="COMMON.insertSystemField"/>
+        )
+        VALUES ( #{cstAgId} /*고객동의ID*/
+               , #{agDrmDvCd} /*동의식별구분코드 : 판매*/
+               , #{agDrmRefkVal} /*동의식별참조키값*/
+               , #{cntcPrtnrNo} /*접촉파트너번호*/
+               , '' /*상담번호*/
+               , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') /*동의처리일시*/
+               , '' /*동의만료처리일자*/
+               , '' /*동의만료처리사유코드*/
+               , '' /*메모내용*/
+        <include refid="COMMON.insertSystemFieldValue"/>
+               )
+    </insert>
+
+    <insert id="insertAgreeItemDtl">
+        INSERT INTO TB_CUBS_CST_AG_IZ_DTL ( CST_AG_ID /*고객동의ID*/
+                                          , AG_ATC_DV_CD /*동의항목구분코드*/
+                                          , PD_CD /*상품코드*/
+                                          , PRV_DOC_ID /*약관문서ID*/
+                                          , AG_STAT_CD /*동의상태코드*/
+                                          , AG_STRTDT /*동의시작일자*/
+                                          , AG_EXN_DUEDT /*동의만료예정일자*/
+                                          , AG_EXN_PRCSDT /*동의만료처리일자*/
+                                          , AG_EXN_PROCS_RSON_CD /*동의만료처리사유코드*/
+        <include refid="COMMON.insertSystemField"/>
+        )
+        VALUES ( #{cstAgId} /*고객동의ID*/
+               , #{agAtcDvCd} /*동의항목구분코드*/
+               , '' /*상품코드*/
+               , '' /*약관문서ID*/
+               , #{agStatCd} /*동의상태코드*/
+               , TO_CHAR(SYSDATE, 'YYYYMMDD') /*동의시작일자*/
+               , '' /*동의만료예정일자*/
+               , '' /*동의만료처리일자*/
+               , '' /*동의만료처리사유코드*/
+        <include refid="COMMON.insertSystemFieldValue"/>
+               )
+    </insert>
+
+    <insert id="insertContractSettlementChHist">
+        INSERT INTO TB_SSCT_CNTR_STLM_CH_HIST ( CNTR_STLM_ID
+                                              , HIST_STRT_DTM
+                                              , HIST_END_DTM
+                                              , CST_NO
+                                              , CNTR_NO
+                                              , CNTRT_REL_CD
+                                              , OWR_KNM
+                                              , DP_TP_CD
+                                              , BNK_CD
+                                              , CDCO_CD
+                                              , ACNO_ENCR
+                                              , CRCDNO_ENCR
+                                              , CARD_EXPDT_YM
+                                              , MPY_BSDT
+                                              , HS_CTF_YN
+                                              , VNCO_DV_CD
+                                              , PYER_NO
+                                              , FNIT_APR_RS_CD
+                                              , AC_FNT_IMPS_CD
+                                              , CARD_FNT_IMPS_CD
+                                              , FNT_EVID_DRM_VAL
+                                              , REUSE_OJ_YN
+                                              , DTA_DL_YN
+        <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT CNTR_STLM_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , '99991231235959'
+             , CST_NO
+             , CNTR_NO
+             , CNTRT_REL_CD
+             , OWR_KNM
+             , DP_TP_CD
+             , BNK_CD
+             , CDCO_CD
+             , ACNO_ENCR
+             , CRCDNO_ENCR
+             , CARD_EXPDT_YM
+             , MPY_BSDT
+             , HS_CTF_YN
+             , VNCO_DV_CD
+             , PYER_NO
+             , FNIT_APR_RS_CD
+             , AC_FNT_IMPS_CD
+             , CARD_FNT_IMPS_CD
+             , FNT_EVID_DRM_VAL
+             , REUSE_OJ_YN
+             , DTA_DL_YN
+        <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SSCT_CNTR_STLM_BAS
+         WHERE CNTR_STLM_ID = #{cntrStlmId}
+    </insert>
+
+    <insert id="upsertContractChHist">
+        MERGE INTO TB_SSCT_CNTR_CH_HIST T_HIST
+        USING (SELECT *
+                 FROM TB_SSCT_CNTR_BAS
+                WHERE CNTR_NO = #{cntrNo}) T_BAS
+        ON (T_HIST.CNTR_NO = T_BAS.CNTR_NO
+            AND HIST_STRT_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'))
+        WHEN MATCHED THEN
+            UPDATE
+               SET T_HIST.CNTR_CST_NO            = T_BAS.CNTR_CST_NO
+                 , T_HIST.COPN_DV_CD             = T_BAS.COPN_DV_CD
+                 , T_HIST.SELL_PRTNR_NO          = T_BAS.SELL_PRTNR_NO
+                 , T_HIST.CNTR_NAT_CD            = T_BAS.CNTR_NAT_CD
+                 , T_HIST.CNTR_PRGS_STAT_CD      = T_BAS.CNTR_PRGS_STAT_CD
+                 , T_HIST.PRR_RCP_CNTR_YN        = T_BAS.PRR_RCP_CNTR_YN
+                 , T_HIST.CNTR_TEMP_SAVE_DTM     = T_BAS.CNTR_TEMP_SAVE_DTM
+                 , T_HIST.CNTR_RCP_FSH_DTM       = T_BAS.CNTR_RCP_FSH_DTM
+                 , T_HIST.CNTR_STLM_FSH_DTM      = T_BAS.CNTR_STLM_FSH_DTM
+                 , T_HIST.CNTR_CNFM_APR_AK_DTM   = T_BAS.CNTR_CNFM_APR_AK_DTM
+                 , T_HIST.CNTR_CNFM_APR_DTM      = T_BAS.CNTR_CNFM_APR_DTM
+                 , T_HIST.CNTR_CNFM_DTM          = T_BAS.CNTR_CNFM_DTM
+                 , T_HIST.CNTR_CAN_DTM           = T_BAS.CNTR_CAN_DTM
+                 , T_HIST.CNTR_CAN_RSON_CD       = T_BAS.CNTR_CAN_RSON_CD
+                 , T_HIST.CNTR_PRGS_STAT_MO_CN   = T_BAS.CNTR_PRGS_STAT_MO_CN
+                 , T_HIST.DSB_GUR_TP_CD          = T_BAS.DSB_GUR_TP_CD
+                 , T_HIST.PSPC_CST_ID            = T_BAS.PSPC_CST_ID
+                 , T_HIST.CNTR_CH_RCP_ID         = T_BAS.CNTR_CH_RCP_ID
+                 , T_HIST.DTA_DL_YN              = T_BAS.DTA_DL_YN
+                 , T_HIST.CNTR_TP_CD             = T_BAS.CNTR_TP_CD
+                 , T_HIST.DCEVDN_DOC_ID          = T_BAS.DCEVDN_DOC_ID
+                 , T_HIST.SELL_INFLW_CHNL_DTL_CD = T_BAS.SELL_INFLW_CHNL_DTL_CD
+                 , T_HIST.SELL_OG_TP_CD          = T_BAS.SELL_OG_TP_CD
+                 , T_HIST.CST_STLM_IN_MTH_CD     = T_BAS.CST_STLM_IN_MTH_CD
+                 , T_HIST.CNTR_INFLW_PH_DV_CD    = T_BAS.CNTR_INFLW_PH_DV_CD
+        <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+            INSERT ( CNTR_NO /*계약번호*/
+                   , HIST_STRT_DTM /* 시작일시 */
+                   , HIST_END_DTM /* 시작일시 */
+                   , CNTR_CST_NO /*계약고객번호*/
+                   , COPN_DV_CD /*법인격구분코드*/
+                   , SELL_PRTNR_NO /*판매파트너번호*/
+                   , CNTR_NAT_CD /*계약국가코드*/
+                   , CNTR_PRGS_STAT_CD /*계약진행상태코드*/
+                   , PRR_RCP_CNTR_YN /*사전접수계약여부*/
+                   , CNTR_TEMP_SAVE_DTM /*계약임시저장일시*/
+                   , CNTR_RCP_FSH_DTM /*계약접수완료일시*/
+                   , CNTR_STLM_FSH_DTM /*계약결제완료일시*/
+                   , CNTR_CNFM_APR_AK_DTM /*계약확정승인요청일시*/
+                   , CNTR_CNFM_APR_DTM /*계약확정승인일시*/
+                   , CNTR_CNFM_DTM /*계약확정일시*/
+                   , CNTR_CAN_DTM /*계약취소일시*/
+                   , CNTR_CAN_RSON_CD /*계약취소사유코드*/
+                   , CNTR_PRGS_STAT_MO_CN /*계약진행상태메모내용*/
+                   , DSB_GUR_TP_CD /*지급보증유형코드*/
+                   , PSPC_CST_ID /*가망고객ID*/
+                   , CNTR_CH_RCP_ID /*계약변경접수ID*/
+                   , DTA_DL_YN /*데이터삭제여부*/
+                   , CNTR_TP_CD /*계약유형코드*/
+                   , DCEVDN_DOC_ID /*증빙서류문서ID*/
+                   , SELL_INFLW_CHNL_DTL_CD /*판매유입채널상세코드*/
+                   , SELL_OG_TP_CD /*판매조직유형코드*/
+                   , CST_STLM_IN_MTH_CD /*고객결제입력방법코드*/
+                   , CNTR_INFLW_PH_DV_CD /*계약유입경로구분코드*/
+        <include refid="COMMON.insertSystemField"/>
+            )
+            VALUES ( T_BAS.CNTR_NO /*계약번호*/
+                   , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') /*시작일시*/
+                   , '99991231235959' /*종료일시*/
+                   , T_BAS.CNTR_CST_NO /*계약고객번호*/
+                   , T_BAS.COPN_DV_CD /*법인격구분코드*/
+                   , T_BAS.SELL_PRTNR_NO /*판매파트너번호*/
+                   , T_BAS.CNTR_NAT_CD /*계약국가코드*/
+                   , T_BAS.CNTR_PRGS_STAT_CD /*계약진행상태코드*/
+                   , T_BAS.PRR_RCP_CNTR_YN /*사전접수계약여부*/
+                   , T_BAS.CNTR_TEMP_SAVE_DTM /*계약임시저장일시*/
+                   , T_BAS.CNTR_RCP_FSH_DTM /*계약접수완료일시*/
+                   , T_BAS.CNTR_STLM_FSH_DTM /*계약결제완료일시*/
+                   , T_BAS.CNTR_CNFM_APR_AK_DTM /*계약확정승인요청일시*/
+                   , T_BAS.CNTR_CNFM_APR_DTM /*계약확정승인일시*/
+                   , T_BAS.CNTR_CNFM_DTM /*계약확정일시*/
+                   , T_BAS.CNTR_CAN_DTM /*계약취소일시*/
+                   , T_BAS.CNTR_CAN_RSON_CD /*계약취소사유코드*/
+                   , T_BAS.CNTR_PRGS_STAT_MO_CN /*계약진행상태메모내용*/
+                   , T_BAS.DSB_GUR_TP_CD /*지급보증유형코드*/
+                   , T_BAS.PSPC_CST_ID /*가망고객ID*/
+                   , T_BAS.CNTR_CH_RCP_ID /*계약변경접수ID*/
+                   , T_BAS.DTA_DL_YN /*데이터삭제여부*/
+                   , T_BAS.CNTR_TP_CD /*계약유형코드*/
+                   , T_BAS.DCEVDN_DOC_ID /*증빙서류문서ID*/
+                   , T_BAS.SELL_INFLW_CHNL_DTL_CD /*판매유입채널상세코드*/
+                   , T_BAS.SELL_OG_TP_CD /*판매조직유형코드*/
+                   , T_BAS.CST_STLM_IN_MTH_CD /*고객결제입력방법코드*/
+                   , T_BAS.CNTR_INFLW_PH_DV_CD /*계약유입경로구분코드*/
+        <include refid="COMMON.insertSystemFieldValue"/>
+                   )
+    </insert>
+
+    <insert id="insertContractAdrpcBasChHist">
+        INSERT INTO TB_SSCT_CNTR_ADR_CH_HIST ( CNTR_ADRPC_ID /*계약주소지ID*/
+                                             , HIST_STRT_DTM /*시작시*/
+                                             , HIST_END_DTM /*종료시*/
+                                             , CNTR_NO /*계약번호*/
+                                             , CNTR_CST_NO /*계약고객번호*/
+                                             , CNTRT_REL_CD /*계약자관계코드*/
+                                             , RCGVP_KNM /*수령자한글명*/
+                                             , RCGVP_ENM /*수령자영문명*/
+                                             , COPN_DV_CD /*법인격구분코드*/
+                                             , CRP_SPMT_DRM_NM /*법인추가식별명*/
+                                             , NAT_CD /*국가코드*/
+                                             , ADR_DV_CD /*주소구분코드*/
+                                             , ADR_ID /*주소ID*/
+                                             , CRAL_LOCARA_TNO /*휴대지역전화번호*/
+                                             , MEXNO_ENCR /*휴대전화국번호암호화*/
+                                             , CRAL_IDV_TNO /*휴대개별전화번호*/
+                                             , LOCARA_TNO /*지역전화번호*/
+                                             , EXNO_ENCR /*전화국번호암호화*/
+                                             , IDV_TNO /*개별전화번호*/
+                                             , EMADR /*이메일주소*/
+                                             , CNR_SPP_YN /*센터배송여부*/
+                                             , MVS_DSTC_RCVRY_BASE_DTM /*소산파기복구기준일시*/
+                                             , MVS_DSTC_RCVRY_DV_CD /*소산파기복구구분코드*/
+                                             , MVS_DSTC_RCVRY_DTM /*소산파기복구일시*/
+                                             , DTA_DL_YN /*데이터삭제여부*/
+                                             , OG_TP_CD /*조직유형코드*/
+                                             , BLD_CD /*빌딩코드*/
+        <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT CNTR_ADRPC_ID /*계약주소지ID*/
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , '99991231235959'
+             , CNTR_NO /*계약번호*/
+             , CNTR_CST_NO /*계약고객번호*/
+             , CNTRT_REL_CD /*계약자관계코드*/
+             , RCGVP_KNM /*수령자한글명*/
+             , RCGVP_ENM /*수령자영문명*/
+             , COPN_DV_CD /*법인격구분코드*/
+             , CRP_SPMT_DRM_NM /*법인추가식별명*/
+             , NAT_CD /*국가코드*/
+             , ADR_DV_CD /*주소구분코드*/
+             , ADR_ID /*주소ID*/
+             , CRAL_LOCARA_TNO /*휴대지역전화번호*/
+             , MEXNO_ENCR /*휴대전화국번호암호화*/
+             , CRAL_IDV_TNO /*휴대개별전화번호*/
+             , LOCARA_TNO /*지역전화번호*/
+             , EXNO_ENCR /*전화국번호암호화*/
+             , IDV_TNO /*개별전화번호*/
+             , EMADR /*이메일주소*/
+             , CNR_SPP_YN /*센터배송여부*/
+             , MVS_DSTC_RCVRY_BASE_DTM /*소산파기복구기준일시*/
+             , MVS_DSTC_RCVRY_DV_CD /*소산파기복구구분코드*/
+             , MVS_DSTC_RCVRY_DTM /*소산파기복구일시*/
+             , DTA_DL_YN /*데이터삭제여부*/
+             , OG_TP_CD /*조직유형코드*/
+             , BLD_CD /*빌딩코드*/
+        <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SSCT_CNTR_ADRPC_BAS
+         WHERE CNTR_ADRPC_ID = #{cntrAdrpcId}
+    </insert>
+
+    <update id="updateContractProgressStatus">
+        UPDATE TB_SSCT_CNTR_BAS
+           SET CNTR_PRGS_STAT_CD = #{cntrPrgsStatCd} -- 결제중
+             <if test="@MybatisUtils@equals(cntrPrgsStatCd, '60')"><trim>
+             , CNTR_CNFM_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             </trim></if>
+             <include refid="COMMON.updateSystemField"/>
+         WHERE DTA_DL_YN = 'N'
+           AND CNTR_NO = #{cntrNo} -- 계약번호
+           AND CNTR_PRGS_STAT_CD <![CDATA[<]]> '90'
+    </update>
+
+    <update id="updateContractSettlement">
+        UPDATE TB_SSCT_CNTR_STLM_BAS
+           SET RVE_CRP_CD = 'JO'
+             , REUSE_OJ_YN = 'N'
+             <if test="@MybatisUtils@isNotEmpty(bryyMmdd)"><trim>
+                 , BRYY_MMDD = #{bryyMmdd}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(bzrno)"><trim>
+                 , BZRNO = #{bzrno}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(cntrtRelCd)"><trim>
+                 , CNTRT_REL_CD = #{cntrtRelCd}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(owrEnm)"><trim>
+                 , OWR_ENM = #{owrEnm}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(owrKnm)"><trim>
+                 , OWR_KNM = #{owrKnm}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(bnkCd)"><trim>
+                 , BNK_CD = #{bnkCd}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(cdcoCd)"><trim>
+                 , CDCO_CD = #{cdcoCd}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(acnoEncr)"><trim>
+                 , ACNO_ENCR = #{acnoEncr}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(crcdnoEncr)"><trim>
+                 , CRCDNO_ENCR = #{crcdnoEncr}
+             </trim></if>
+             <if test="crcdnoEncr == null"><trim>
+                 , CRCDNO_ENCR = NULL
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(cardExpdtYm)"><trim>
+                 , CARD_EXPDT_YM = #{cardExpdtYm}
+             </trim></if>
+             <if test="cardExpdtYm == null"><trim>
+                 , CARD_EXPDT_YM = NULL
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(mlgTpCd)"><trim>
+                 , MLG_TP_CD = #{mlgTpCd}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(mlgDrmVal)"><trim>
+                 , MLG_DRM_VAL = #{mlgDrmVal}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(mpyBsdt)"><trim>
+                 , MPY_BSDT = #{mpyBsdt}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(hsCtfYn)"><trim>
+                 , HS_CTF_YN = #{hsCtfYn}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(dcevdnDocId)"><trim>
+                 , DCEVDN_DOC_ID = #{dcevdnDocId}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(pyerNo)"><trim>
+                 , PYER_NO = #{pyerNo}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(vncoDvCd)"><trim>
+                 , VNCO_DV_CD = #{vncoDvCd}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(fnitAprRsCd)"><trim>
+                 , FNIT_APR_RS_CD = #{fnitAprRsCd}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(fnitAprFshDtm)"><trim>
+                 , FNIT_APR_FSH_DTM = #{fnitAprFshDtm}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(fnitRsgFshDtm)"><trim>
+                 , FNIT_RSG_FSH_DTM = #{fnitRsgFshDtm}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(acFntImpsCd)"><trim>
+                 , AC_FNT_IMPS_CD = #{acFntImpsCd}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(cardFntImpsCd)"><trim>
+                 , CARD_FNT_IMPS_CD = #{cardFntImpsCd}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(acChAkDvCd)"><trim>
+                 , AC_CH_AK_DV_CD = #{acChAkDvCd}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(fntEvidDrmVal)"><trim>
+                 , FNT_EVID_DRM_VAL = #{fntEvidDrmVal}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(signFileId)"><trim>
+                 , SIGN_FILE_ID = #{signFileId}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(mvsDstcRcvryBaseDtm)"><trim>
+                 , MVS_DSTC_RCVRY_BASE_DTM = #{mvsDstcRcvryBaseDtm}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(mvsDstcRcvryDvCd)"><trim>
+                 , MVS_DSTC_RCVRY_DV_CD = #{mvsDstcRcvryDvCd}
+             </trim></if>
+             <if test="@MybatisUtils@isNotEmpty(mvsDstcRcvryDtm)"><trim>
+                 , MVS_DSTC_RCVRY_DTM = #{mvsDstcRcvryDtm}
+             </trim></if>
+             <include refid="COMMON.updateSystemField"/>
+         WHERE DTA_DL_YN = 'N'
+           AND CNTR_STLM_ID = #{cntrStlmId}
+    </update>
+
+    <update id="updateContractAdrpcBas">
+        UPDATE TB_SSCT_CNTR_ADRPC_BAS
+           SET CNTR_NO = #{cntrNo}
+             , CNTR_CST_NO = #{cntrCstNo}
+             , CNTRT_REL_CD = #{cntrtRelCd}
+             , RCGVP_KNM = #{rcgvpKnm}
+             , RCGVP_ENM = #{rcgvpEnm}
+             , COPN_DV_CD = #{copnDvCd}
+             , CRP_SPMT_DRM_NM = #{crpSpmtDrmNm}
+             , NAT_CD = #{natCd}
+             , ADR_DV_CD = #{adrDvCd}
+             , ADR_ID = #{adrId}
+             , CRAL_LOCARA_TNO = #{cralLocaraTno}
+             , MEXNO_ENCR = #{mexnoEncr}
+             , CRAL_IDV_TNO = #{cralIdvTno}
+             , LOCARA_TNO = #{locaraTno}
+             , EXNO_ENCR = #{exnoEncr}
+             , IDV_TNO = #{idvTno}
+             , EMADR = #{emadr}
+             , CNR_SPP_YN = #{cnrSppYn}
+             , MVS_DSTC_RCVRY_BASE_DTM = #{mvsDstcRcvryBaseDtm}
+             , MVS_DSTC_RCVRY_DV_CD = #{mvsDstcRcvryDvCd}
+             , MVS_DSTC_RCVRY_DTM = #{mvsDstcRcvryDtm}
+        <include refid="COMMON.updateSystemField"/>
+         WHERE DTA_DL_YN = 'N'
+           AND CNTR_ADRPC_ID = #{cntrAdrpcId}
+    </update>
+
+    <select id="selectCntrBasicInfo"
+            resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractForAuthDvo">
+        SELECT T_CNTR_BAS.CNTR_NO
+             , T_CNTR_CST_BAS.CST_KNM   AS CNTR_CST_KNM
+             , T_CNTR_BAS.CNTR_CST_NO   AS CNTR_CST_NO
+             , T_CNTR_CST_BAS.BRYY_MMDD AS CNTR_CST_BRYY_MMDD
+             , T_CNTR_CST_BAS.BZRNO     AS BZRNO
+             , T_CNTR_BAS.CNTR_PRGS_STAT_CD
+             , T_CNTR_BAS.COPN_DV_CD
+          FROM TB_SSCT_CNTR_BAS                T_CNTR_BAS
+               INNER JOIN TB_CUBS_CST_BAS      T_CNTR_CST_BAS
+               ON T_CNTR_CST_BAS.DTA_DL_YN = 'N'
+                   AND T_CNTR_CST_BAS.CST_NO = T_CNTR_BAS.CNTR_CST_NO
+         WHERE T_CNTR_BAS.DTA_DL_YN = 'N'
+               <if test="@MybatisUtils@isNotEmpty(cntrNo)"><trim>
+                   AND T_CNTR_BAS.CNTR_NO = #{cntrNo}
+               </trim></if>
+
+    </select>
+
+    <select id="selectPriorReceipt"
+            resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaPriorBizBsdtDvo">
+        SELECT WK_YM
+             , RCP_STRTDT
+             , RCP_ENDDT
+             , CNFM_STRTDT
+             , CNFM_ENDDT
+          FROM TB_SSCT_PRR_BIZ_BSDT_BAS
+         WHERE DTA_DL_YN = 'N'
+           AND WK_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+    </select>
+
+    <sql id="selectCntrStml">
+        SELECT CNTR_STLM_ID            /* 계약결제ID */
+             , CST_NO                  /* 고객번호 */
+             , CNTR_NO                 /* 계약번호 */
+             , CNTRT_REL_CD            /* 계약자관계코드 */
+             , OWR_KNM                 /* 소유자한글명 */
+             , OWR_ENM                 /* 소유자영문명 */
+             , BRYY_MMDD               /* 생년월일 */
+             , BZRNO                   /* 사업자등록번호 */
+             , DP_TP_CD                /* 입금유형코드 */
+             , BNK_CD                  /* 은행코드 */
+             , CDCO_CD                 /* 카드사코드 */
+             , ACNO_ENCR               /* 계좌번호암호화 */
+             , CRCDNO_ENCR             /* 신용카드번호암호화 */
+             , CARD_EXPDT_YM           /* 카드유효기간년월 */
+             , MLG_TP_CD               /* 마일리지유형코드 */
+             , MLG_DRM_VAL             /* 마일리지식별값 */
+             , MPY_BSDT                /* 납부기준일자 */
+             , HS_CTF_YN               /* 본인인증여부 */
+             , DCEVDN_DOC_ID           /* 증빙서류문서ID */
+             , PYER_NO                 /* 납부자번호 */
+             , VNCO_DV_CD              /* VAN사구분코드 */
+             , FNIT_APR_RS_CD          /* 금융기관승인결과코드 */
+             , FNIT_APR_FSH_DTM        /* 금융기관승인완료일시 */
+             , FNIT_RSG_FSH_DTM        /* 금융기관해지완료일시 */
+             , AC_FNT_IMPS_CD          /* 계좌이체불능코드 */
+             , CARD_FNT_IMPS_CD        /* 카드이체불능코드 */
+             , AC_CH_AK_DV_CD          /* 계좌변경요청구분코드 */
+             , RVE_CRP_CD              /* 수납법인코드 */
+             , FNT_EVID_DRM_VAL        /* 이체증빙식별값 */
+             , REUSE_OJ_YN             /* 재사용대상여부 */
+             , SIGN_FILE_ID            /* 서명파일ID */
+             , MVS_DSTC_RCVRY_BASE_DTM /* 소산파기복구기준일시 */
+             , MVS_DSTC_RCVRY_DV_CD    /* 소산파기복구구분코드 */
+             , MVS_DSTC_RCVRY_DTM      /* 소산파기복구일시 */
+             , DTA_DL_YN               /* 데이터삭제여부 */
+             , FST_RGST_DTM            /* 최초등록일시 */
+             , FST_RGST_USR_ID         /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID         /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID        /* 최초등록부서ID */
+             , FNL_MDFC_DTM            /* 최종수정일시 */
+             , FNL_MDFC_USR_ID         /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID         /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID        /* 최종수정부서ID */
+          FROM TB_SSCT_CNTR_STLM_BAS   /* 계약결제기본 */
+         WHERE DTA_DL_YN = 'N'
+    </sql>
+
+    <select id="selectCntrStlms"
+            resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractStlmBasDvo">
+        <include refid="selectCntrStml"/>
+        <foreach
+            collection="cntrStlmIds"
+            item="cntrStlmId"
+            separator=", "
+            open="AND CNTR_STLM_ID IN ("
+            close=")"
+        >
+            #{cntrStlmId}
+        </foreach>
+    </select>
+
+    <select id="selectCntrStlmByPk"
+            resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractStlmBasDvo">
+        <include refid="selectCntrStml"/>
+        AND CNTR_STLM_ID = #{cntrStlmId}
+    </select>
+
+    <select id="selectContractAdrpcBasByPk"
+            resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractAdrpcBasDvo">
+        SELECT T_CNTR_ADRPC_BAS.CNTR_ADRPC_ID /* 계약주소지ID */
+             , T_CNTR_ADRPC_BAS.CNTR_NO /* 계약번호 */
+             , T_CNTR_ADRPC_BAS.CNTR_CST_NO /* 계약고객번호 */
+             , T_CNTR_ADRPC_BAS.CNTRT_REL_CD /* 계약자관계코드 */
+             , T_CNTR_ADRPC_BAS.RCGVP_KNM /* 수령자한글명 */
+             , T_CNTR_ADRPC_BAS.RCGVP_ENM /* 수령자영문명 */
+             , T_CNTR_ADRPC_BAS.COPN_DV_CD /* 법인격구분코드 */
+             , T_CNTR_ADRPC_BAS.CRP_SPMT_DRM_NM /* 법인추가식별명 */
+             , T_CNTR_ADRPC_BAS.NAT_CD /* 국가코드 */
+             , T_CNTR_ADRPC_BAS.ADR_DV_CD /* 주소구분코드 */
+             , T_CNTR_ADRPC_BAS.ADR_ID /* 주소ID */
+             , T_CNTR_ADRPC_BAS.CRAL_LOCARA_TNO /* 휴대지역전화번호 */
+             , T_CNTR_ADRPC_BAS.MEXNO_ENCR /* 휴대전화국번호암호화 */
+             , T_CNTR_ADRPC_BAS.CRAL_IDV_TNO /* 휴대개별전화번호 */
+             , T_CNTR_ADRPC_BAS.LOCARA_TNO /* 지역전화번호 */
+             , T_CNTR_ADRPC_BAS.EXNO_ENCR /* 전화국번호암호화 */
+             , T_CNTR_ADRPC_BAS.IDV_TNO /* 개별전화번호 */
+             , T_CNTR_ADRPC_BAS.EMADR /* 이메일주소 */
+             , T_CNTR_ADRPC_BAS.CNR_SPP_YN /* 센터배송여부 */
+             , T_CNTR_ADRPC_BAS.OG_TP_CD /* 조직유형코드 */
+             , T_CNTR_ADRPC_BAS.BLD_CD /* 빌딩코드 */
+             , T_CNTR_ADRPC_BAS.MVS_DSTC_RCVRY_BASE_DTM /* 소산파기복구기준일시 */
+             , T_CNTR_ADRPC_BAS.MVS_DSTC_RCVRY_DV_CD /* 소산파기복구구분코드 */
+             , T_CNTR_ADRPC_BAS.MVS_DSTC_RCVRY_DTM /* 소산파기복구일시 */
+             , T_CNTR_ADRPC_BAS.DTA_DL_YN /* 데이터삭제여부 */
+             , T_CNTR_ADRPC_BAS.FST_RGST_DTM /* 최초등록일시 */
+             , T_CNTR_ADRPC_BAS.FST_RGST_USR_ID /* 최초등록사용자ID */
+             , T_CNTR_ADRPC_BAS.FST_RGST_PRG_ID /* 최초등록프로그램ID */
+             , T_CNTR_ADRPC_BAS.FST_RGST_DEPT_ID /* 최초등록부서ID */
+             , T_CNTR_ADRPC_BAS.FNL_MDFC_DTM /* 최종수정일시 */
+             , T_CNTR_ADRPC_BAS.FNL_MDFC_USR_ID /* 최종수정사용자ID */
+             , T_CNTR_ADRPC_BAS.FNL_MDFC_PRG_ID /* 최종수정프로그램ID */
+             , T_CNTR_ADRPC_BAS.FNL_MDFC_DEPT_ID /* 최종수정부서ID */
+             , CASE
+                   WHEN T_CNTR_ADRPC_BAS.ADR_DV_CD = '1' THEN T_ADR_BAS.NEW_ADR_ZIP
+                   WHEN T_CNTR_ADRPC_BAS.ADR_DV_CD = '2' THEN T_ADR_BAS.OLD_ADR_ZIP
+                                                         ELSE ''
+               END AS ZIP
+             , CASE
+                   WHEN T_CNTR_ADRPC_BAS.ADR_DV_CD = '1' THEN T_ADR_BAS.RNADR
+                   WHEN T_CNTR_ADRPC_BAS.ADR_DV_CD = '2' THEN T_ADR_BAS.LTN_ADR
+                                                         ELSE ''
+               END AS ADR
+             , CASE
+                   WHEN T_CNTR_ADRPC_BAS.ADR_DV_CD = '1' THEN T_ADR_BAS.RDADR
+                   WHEN T_CNTR_ADRPC_BAS.ADR_DV_CD = '2' THEN T_ADR_BAS.LTN_DTL_ADR
+                                                         ELSE ''
+               END AS ADR_DTL
+          FROM TB_SSCT_CNTR_ADRPC_BAS          T_CNTR_ADRPC_BAS
+               LEFT OUTER JOIN TB_GBCO_ADR_BAS T_ADR_BAS
+               ON T_ADR_BAS.ADR_ID = T_CNTR_ADRPC_BAS.ADR_ID
+                   AND T_ADR_BAS.DTA_DL_YN = 'N'
+         WHERE T_CNTR_ADRPC_BAS.DTA_DL_YN = 'N'
+           AND T_CNTR_ADRPC_BAS.CNTR_ADRPC_ID = #{cntrAdrpcId}
+
+    </select>
+
+    <select id="selectContractForRveAk" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractForRveAkDvo">
+        SELECT T1.CNTR_CST_NO
+             , T1.CST_STLM_IN_MTH_CD
+             , T1.SELL_PRTNR_NO
+             , T1.SELL_OG_TP_CD
+             , T2.COPN_DV_CD
+             , T2.CST_KNM
+             , DECODE(T2.COPN_DV_CD, '1', T2.BRYY_MMDD, '')
+             , DECODE(T2.COPN_DV_CD, '2', T2.BZRNO, '')
+          FROM TB_SSCT_CNTR_BAS           T1
+               INNER JOIN TB_CUBS_CST_BAS T2
+               ON T2.DTA_DL_YN = 'N'
+                   AND T2.CST_NO = T1.CNTR_CST_NO
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.CNTR_NO = #{cntrNo}
+    </select>
+
+    <select id="selectFnitCdInfo" resultType="String">
+        SELECT FNIT_CD
+        FROM TB_RVDW_CRDCD_BIN_NO_BAS
+        WHERE DTA_DL_YN = 'N'
+          AND KW_GRP_CO_CD = '2000'
+          AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN APY_STRTDT AND APY_ENDDT
+          AND USE_YN = 'Y'
+          AND #{creditCardNo} LIKE CRDCD_BIN_NO || '%'
+        FETCH FIRST 1 ROWS ONLY
+    </select>
+
+    <select id="selectBasTaxInvoiceInquiry"
+            resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaTaxInvoiceInquiryDvo">
+        SELECT T_CNTR_BAS.CNTR_NO
+             , #{session.employeeIDNumber}  AS APLC_PSIC_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDD') AS RCPDT
+             , T_CNTR_CST_BAS.BZRNO
+             , T_CNTR_CST_BAS.CST_NO        AS CNTR_CST_NO
+             , 'Y'                          AS TXINV_PBL_YN
+             , NVL((SELECT MAX(TXINV_PBL_D) FROM TB_SSCT_TXINV_RCP_BASE_IZ WHERE BZRNO = T_CNTR_CST_BAS.BZRNO),
+                   '99')                    AS TXINV_PBL_D
+             , 0                            AS TXINV_BNDL_SN
+             , T_CNTR_CST_BAS.CST_KNM
+             , T_CNTR_CST_BAS.EMADR
+             , T_CST_CTPLC_BAS.LOCARA_TNO
+             , T_CST_CTPLC_BAS.EXNO_ENCR
+             , T_CST_CTPLC_BAS.IDV_TNO
+             , T_CNTR_CST_BAS.CRAL_LOCARA_TNO
+             , T_CNTR_CST_BAS.MEXNO_ENCR
+             , T_CNTR_CST_BAS.CRAL_IDV_TNO
+             , 'N'                          AS DTA_DL_YN
+          FROM TB_SSCT_CNTR_BAS           T_CNTR_BAS
+               INNER JOIN TB_CUBS_CST_BAS T_CNTR_CST_BAS
+               ON T_CNTR_CST_BAS.DTA_DL_YN = 'N'
+                   AND T_CNTR_CST_BAS.CST_NO = T_CNTR_BAS.CNTR_CST_NO
+               LEFT OUTER JOIN
+               LATERAL (
+                   SELECT LOCARA_TNO
+                        , EXNO_ENCR
+                        , IDV_TNO
+                        , CST_CTPLC_OJ_REFK_VAL
+                     FROM TB_CUBS_CST_CTPLC_BAS /* 계약기본 연락처,주소 정보 */
+                    WHERE DTA_DL_YN = 'N'
+                      AND CST_CTPLC_OJ_REFK_VAL = T_CNTR_CST_BAS.CST_NO
+                      AND CTPLC_TP_CD = DECODE(T_CNTR_CST_BAS.COPN_DV_CD, '1', '04', '2', '05')
+                      AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN HIST_STRT_DTM AND HIST_END_DTM
+                      AND FST_RGST_DTM = (SELECT MAX(FST_RGST_DTM)
+                                            FROM TB_CUBS_CST_CTPLC_BAS
+                                           WHERE CST_CTPLC_OJ_REFK_VAL = T_CNTR_CST_BAS.CST_NO
+                                             AND CTPLC_TP_CD = DECODE(T_CNTR_CST_BAS.COPN_DV_CD, '1', '04', '2', '05')
+                                             AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN HIST_STRT_DTM AND HIST_END_DTM
+                                             AND DTA_DL_YN = 'N')
+                   )                      T_CST_CTPLC_BAS
+               ON T_CST_CTPLC_BAS.CST_CTPLC_OJ_REFK_VAL = T_CNTR_CST_BAS.CST_NO
+         WHERE T_CNTR_BAS.DTA_DL_YN = 'N'
+           AND T_CNTR_BAS.CNTR_NO = #{cntrNo}
+
+    </select>
+
+    <select id="selectContractStlmRels" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractStlmRelDvo">
+        SELECT CNTR_STLM_REL_ID   /* 계약결제관계ID */
+             , VL_STRT_DTM        /* 유효시작일시 */
+             , VL_END_DTM         /* 유효종료일시 */
+             , CNTR_UNIT_TP_CD    /* 계약단위유형코드 */
+             , CNTR_STLM_ID       /* 계약결제ID */
+             , CNTR_NO            /* 계약번호 */
+             , DTL_CNTR_NO        /* 상세계약번호 */
+             , DTL_CNTR_SN        /* 상세계약일련번호 */
+             , DP_TP_CD           /* 입금유형코드 */
+             , RVE_DV_CD          /* 수납구분코드 */
+             , ISLND_INCMDC_TP_CD /* 도서지역소득공제유형코드 */
+             , STLM_AMT           /* 결제금액 */
+             , DTA_DL_YN          /* 데이터삭제여부 */
+             , FST_RGST_DTM       /* 최초등록일시 */
+             , FST_RGST_USR_ID    /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID    /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID   /* 최초등록부서ID */
+             , FNL_MDFC_DTM       /* 최종수정일시 */
+             , FNL_MDFC_USR_ID    /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID    /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID   /* 최종수정부서ID */
+          FROM TB_SSCT_CNTR_STLM_REL /* 계약결제관계 */
+         WHERE DTA_DL_YN = 'N'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+           AND CNTR_STLM_ID = #{cntrStlmId}
+    </select>
+
+    <select id="getRegularFundTransfersDayOptions" resultType="java.lang.Integer">
+        SELECT RGL_FNT_D
+          FROM TB_RVCL_RGL_FNT_D_BAS
+         WHERE DTA_DL_YN = 'N'
+           <if test="@MybatisUtils@isNotEmpty(aftnDvCd)"><trim>
+               AND AFTN_DV_CD = #{aftnDvCd}
+           </trim></if>
+        ORDER BY RGL_FNT_D
+    </select>
+
+    <select id="getReceiveAskByPk"
+            resultType="com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAskDvo">
+        SELECT KW_GRP_CO_CD          AS KYOWON_GROUP_COMPANY_CD
+             , RVE_AK_NO             AS RECEIVE_ASK_NUMBER
+             , CST_NO                AS CUSTOM_NUMBER
+             , RVE_AK_MTHD_CD        AS RVE_AK_MTHD_CD
+             , RVE_AK_PH_CD          AS RVE_AK_PH_CD
+             , RVE_AK_PRTNR_OG_TP_CD AS RVE_PRTNR_OG_TP_CD
+             , RVE_AK_PRTNR_NO       AS RVE_PRTNR_NO
+             , RVE_AK_AMT            AS RECEIVE_ASK_AMOUNT
+             , RVE_RQDT              AS RECEIVE_ASK_DATE
+             , RVE_AK_CAN_DT         AS RECEIVE_ASK_CANCEL_DATE
+             , RVE_AK_STAT_CD        AS RECEIVE_ASK_STATUS_CODE
+             , RVE_CO_CD             AS RECEIVE_COMPANY_CODE
+          FROM TB_RVDW_RVE_AK_BAS
+         WHERE DTA_DL_YN = 'N' AND
+               RVE_AK_NO = #{receiveAskNumber}
+    </select>
+
+    <select id="selectRveDtls" resultType="com.kyowon.sms.wells.web.contract.common.dvo.WctzRveDtlDvo">
+        SELECT T_RVE_DTL.RVE_NO
+             , T_RVE_DTL.RVE_SN
+             , T_RVE_DTL.RVE_CD
+             , T_RVE_DTL.PROCS_DV_CD
+             , T_RVE_DTL.DP_DV_CD
+             , T_RVE_DTL.DP_TP_CD
+             , T_RVE_DTL.RVE_PROCS_YN
+             , T_RVE_DTL.RVE_AMT
+             , T_RVE_DTL.RVE_DT
+             , T_RVE_DTL.PERF_DT
+             , T_RVE_DTL.DP_MES_CD
+             , T_RVE_DTL.DP_CPRCNF_NO
+             , T_RVE_DTL.DTA_DL_YN
+             , T_RVE_DTL.DP_AMT
+             , T_RVE_DTL.PRTNR_NO
+             , T_RVE_DTL.RVE_CO_CD
+             , T_RVE_DTL.ALNC_FEE
+             , T_RVE_DTL.PD_CD
+             , T_RVE_DTL.CNTR_NO
+             , T_RVE_DTL.RVE_DV_CD
+             , T_RVE_DTL.CNTR_SN
+             , T_RVE_DTL.ITG_DP_NO
+             , T_RVE_DTL.DP_DT
+             , T_RVE_DTL.RVE_AK_SN
+             , T_RVE_DTL.OG_TP_CD
+             , T_RVE_DTL.RVE_AK_NO
+             , T_RVE_DTL.KW_GRP_CO_CD
+             , T_RVE_DTL.MLG_USE_NO
+             , T_RVE_DTL.ORRVE_NO
+             , T_RVE_DTL.ORRVE_SN
+             , T_RVE_DTL.CHUM_REF_DRM_NO
+             , T_RVE_DTL.RVE_BIZ_DV_CD
+             , T_RVE_DTL.INCMDC_YN
+          FROM TB_RVDW_RVE_DTL T_RVE_DTL
+         WHERE T_RVE_DTL.DTA_DL_YN = 'N'
+           AND T_RVE_DTL.CNTR_NO = #{cntrNo}
+           <if test="@MybatisUtils@isNotEmpty(cntrSn)"><trim>
+               AND T_RVE_DTL.CNTR_SN = #{cntrSn}
+           </trim></if>
+           <if test="@MybatisUtils@isNotEmpty(dpTpCd)"><trim>
+               AND T_RVE_DTL.DP_TP_CD = #{dpTpCd}
+           </trim></if>
+           <if test="@MybatisUtils@isNotEmpty(dpMesCd)"><trim>
+               AND T_RVE_DTL.DP_MES_CD = #{dpMesCd}
+           </trim></if>
+           <if test="@MybatisUtils@isNotEmpty(rveDvCd)"><trim>
+               AND T_RVE_DTL.RVE_DV_CD = #{rveDvCd}
+           </trim></if>
+    </select>
+
+    <select id="selectItgDpBasByPk" resultType="com.kyowon.sms.wells.web.contract.common.dvo.WctzItgDpBasDvo">
+        SELECT * FROM TB_RVDW_ITG_DP_BAS WHERE DTA_DL_YN = 'N' AND ITG_DP_NO = #{itgDpNo}
+    </select>
+</mapper>

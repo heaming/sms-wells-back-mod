@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbCustomerCodeMapper">
+
+    <select id="selectCustomerCode" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCustomerCodeDvo">
+       SELECT SB.CST_KNM
+            , CD.SELL_TP_CD
+            , CASE WHEN CD.SELL_TP_CD = '3' THEN (SELECT SELL_TP_CD
+                                                    FROM TB_SSCT_CNTR_DTL
+                                                   WHERE DTA_DL_YN = 'N'
+                                                     AND (CNTR_NO, CNTR_SN) = (SELECT OJ_DTL_CNTR_NO, OJ_DTL_CNTR_SN
+                                                                                 FROM TB_SSCT_CNTR_REL
+                                                                                WHERE BASE_DTL_CNTR_NO = CD.CNTR_NO
+                                                                                  AND BASE_DTL_CNTR_SN = CD.CNTR_SN
+                                                                                  AND CNTR_REL_DTL_CD = '212'
+                                                                                  AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM)
+                                                   )
+               END AS MSH_BF_SELL_TP_CD
+         FROM TB_SSCT_CNTR_DTL CD
+         INNER JOIN TB_SSCT_CNTR_BAS CB
+            ON CB.CNTR_NO = CD.CNTR_NO
+           AND CB.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS SB
+            ON SB.CST_NO = CB.CNTR_CST_NO
+           AND SB.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_REL CR
+            ON CR.BASE_DTL_CNTR_NO = CD.CNTR_NO
+           AND CR.BASE_DTL_CNTR_SN = CD.CNTR_SN
+           AND CR.CNTR_REL_DTL_CD = '212'
+           AND CR.DTA_DL_YN = 'N'
+         WHERE CD.CNTR_NO = #{cntrNo}
+           AND CD.CNTR_SN = #{cntrSn}
+           AND CD.DTA_DL_YN = 'N'
+           AND CD.SELL_TP_CD  IN ('1','2','3','4')
+    </select>
+</mapper>

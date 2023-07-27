@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaSafeKeyCinfInqrMapper">
+    <select id="selectCstInfo" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSafeKeyCinfInqrDto$SearchCstInfoRes">
+        SELECT TO_CHAR(ADD_MONTHS(TO_DATE(T2.FNL_IS_DTM, 'YYYYMMDDHH24MISS'), 1), 'YYYYMMDDHH24MISS') AS FNL_IS_DTM
+             , T1.SFK_VAL
+             , T1.COPN_DV_CD
+             , T1.CRAL_LOCARA_TNO
+             , T1.MEXNO_ENCR
+             , T1.CRAL_IDV_TNO
+          FROM TB_CUBS_CST_BAS T1
+         INNER JOIN TB_CUBS_CUK_DTL T2
+            ON T2.CST_NO = T1.CST_NO
+           AND T2.IDK_KND_CD = '01'
+           AND T2.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.CST_NO = #{cstNo}
+    </select>
+
+    <select id="selectDfltRsonCd" resultType="String">
+        SELECT NICE_CRD_INQR_RSON_CD
+          FROM TB_CBBO_DFLT_RGST_BAS
+         WHERE 1=1
+           AND RLS_DT IS NULL
+           AND CO_CD = #{coCd}
+           AND DFLT_MNGT_DV_CD = #{dfltMngtDvCd}
+           AND SFK_VAL = #{sfkVal}
+    </select>
+</mapper>

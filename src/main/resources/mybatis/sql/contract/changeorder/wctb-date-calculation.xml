@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbDateCalculationMapper">
+    <select id="selectDateBusinessDayCalc" resultType="java.lang.String">
+        SELECT MAX(TRIM(C.STNRD_YR)||LPAD(TRIM(C.STNRD_MN),2,'0')||LPAD(TRIM(C.STNRD_DY),2,'0')) AS STNRD_YYYYMMDD     
+          FROM 
+               (
+                SELECT A.TENANT_ID /* 달력기본.테넌트ID */
+                     , A.STNRD_YR  /* 달력기본.기준연도 */
+                     , A.STNRD_MN  /* 달력기본.기준월 */
+                     , A.STNRD_DY  /* 달력기본.기준일 */
+                     , A.DYWK_VAL  /* 달력기본.요일값 */
+                     , A.STNRD_WKNO  /* 달력기본.기준주차 */
+                     , A.STNRD_WKNO_YR  /* 달력기본.기준주차연도 */
+                     , A.STNRD_YR||LPAD(A.STNRD_MN,2,'0')||LPAD(A.STNRD_DY,2,'0')
+                  FROM AFMDBS.T_CMY_CALR_M A /* 달력기본 */
+                 WHERE NOT EXISTS 
+                       (
+                        SELECT B.ITGR_HLDY_TYPE_CD /* 휴일기본.통합휴일유형코드 */
+                             , B.HLDY_NM /* 휴일기본.휴일명 */
+                             , B.HLDY_APPY_START_DTM /* 휴일기본.휴일적용시작일시 */
+                             , B.HLDY_APPY_FINS_DTM /* 휴일기본.휴일적용종료일시 */
+                          FROM AFMDBS.T_CMZ_HLDY_M B /* 휴일기본 */
+                         WHERE B.TENANT_ID = A.TENANT_ID /* 휴일기본.테넌트ID = 달력기본.테넌트ID */
+                           AND SUBSTR(B.HLDY_APPY_START_DTM,1,8) = TRIM(A.STNRD_YR)||LPAD(TRIM(A.STNRD_MN),2,'0')||LPAD(TRIM(A.STNRD_DY),2,'0') /* 휴일기본.휴일적용시작일시 */
+                           AND B.DEL_YN != 'Y'/* 휴일기본.삭제여부가 'Y'가 아닌 건 */
+                           AND B.HLDY_USE_YN = 'Y' /* 휴일기본.휴일사용여부가 'Y'인 건 */ 
+                       )
+                   AND A.DEL_YN != 'Y' /* 달력기본.삭제여부가 'Y'가 아닌 건 */
+                   AND TRIM(A.STNRD_YR)||LPAD(TRIM(A.STNRD_MN),2,'0')||LPAD(TRIM(A.STNRD_DY),2,'0') <![CDATA[ >= ]]> #{date} /* 입력 값1 - 기준년월일*/
+                 ORDER BY TRIM(A.STNRD_YR)||LPAD(TRIM(A.STNRD_MN),2,'0')||LPAD(TRIM(A.STNRD_DY),2,'0')
+               ) C
+         WHERE ROWNUM <![CDATA[ <= ]]> #{day} + 1 /* 입력 값2 : 더할 일 수 + 1 */
+    </select>
+</mapper>

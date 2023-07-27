@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaKMembersWellsOrdInqrMapper">
+    <select id="selectKMembersWellsOrdInqrs" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaKMembersWellsOrdInqrDvo">
+        /* TABLE
+         * A1 TB_SSCT_CNTR_BAS            계약기본
+         * B1 TB_SSCT_CNTR_DTL            계약상세
+         * C1 TB_CUBS_CST_BAS             고객기본
+         * D1 TB_PDBS_PD_ECOM_PRP_DTL     상품각사속성상세
+         * E1 TB_SSCT_CNTR_ADR_REL        계약주소관계
+         * F1 TB_SSCT_CNTR_ADRPC_BAS      계약주소지기본
+         * G1 TB_GBCO_ADR_BAS             주소기본
+         * H1 TB_SSCT_CNTR_WELLS_DTL      계약WELLS상세
+         * J1 TB_CBCL_WELLS_SL_MM_CL_IZ   WELLS매출월마감내역
+         * K1 TB_SSCT_CNTR_STLM_REL       계약결제관계
+         * L1 TB_SSCT_CNTR_STLM_BAS       계약결제기본
+         * M1 TB_SVPD_CST_SV_BFSVC_ASN_IZ 고객서비스BS배정내역
+         * N1 TB_SVPD_CST_SV_BFSVC_OJ_IZ  고객서비스BS대상내역
+         * O1 TB_OGBS_PRTNR_BAS O1        파트너기본
+         * V1 TB_RVDW_FNIT_CD             금융기관코드
+         * I1 INLINE_VIEW               (E1,F1,G1)
+         * I2 INLINE_VIEW               (K1,L1,V1)
+         * I3 INLINE_VIEW               (M1,N1,O1)
+         */
+        SELECT C1.CMN_SFK_VAL /* 공통세이프키값 [세이프키값] */
+             , B1.CNTR_NO /* 계약번호 */
+             , B1.CNTR_SN /* 계약일련번호 */
+             , B1.BASE_PD_CD /* 기준상품코드 */
+             , (
+                SELECT MAX(C1.PD_NM) /* 상품명 */
+                  FROM TB_PDBS_PD_BAS C1 /* 상품기본 */
+                 WHERE C1.PD_CD = B1.BASE_PD_CD
+                   AND C1.DTA_DL_YN = 'N'
+                   AND C1.TEMP_SAVE_YN = 'N'
+               ) AS PD_NM /* [상품명] */
+             , CASE WHEN B1.ALNCMP_CD IN ('45', '46') /* 제휴사코드 : 45(K멤버스), 46(K멤버스-일시불) */
+                         THEN '2'
+                    ELSE '1'
+               END AS PRCHS_PH /* [구매경로](1:방판,2:K멤버스) */
+             , B1.SELL_TP_CD /* 판매유형코드 [구매유형] */
+             , B1.SELL_TP_DTL_CD /* 판매유형상세 [구매유형상세] */
+             , B1.FNL_AMT /* 구매가(총계약금액) */
+             , B1.CNTR_PD_STRTDT /* 계약상품시작일자 [가입일/구매일/설치일자/서비스시작일] */
+             , NVL((
+                SELECT MAX(D1.PD_PRP_VAL02)
+                  FROM TB_PDBS_PD_ECOM_PRP_DTL D1 /* 상품각사속성상세 */
+                 WHERE D1.PD_EXTS_PRP_GRP_CD = 'CNTR'
+                   AND D1.PD_CD = B1.BASE_PD_CD
+                   AND D1.DTA_DL_YN = 'N'
+                   AND D1.TEMP_SAVE_YN = 'N'
+               ),0) AS RECAP_DUTY_PTRM_N /* [유상의무기간수] */
+             , B1.MM_ISTM_AMT /* 월할부금액 */
+             , I1.IST_RNADR
+             , I1.IST_RDADR
+             , CASE WHEN B1.CNTR_DTL_STAT_CD = '101' /* 계약상세상태코드 101(정상)*/
+                         THEN '1'
+                    ELSE '2'
+               END AS CNTR_DTL_STAT /* [계약상태] */
+             , (
+                SELECT MAX(H1.IST_DT)
+                  FROM TB_SSCT_CNTR_WELLS_DTL H1 /* 계약WELLS상세 */
+                 WHERE H1.CNTR_NO = B1.CNTR_NO
+                   AND H1.CNTR_SN = B1.CNTR_SN
+                   AND H1.DTA_DL_YN = 'N'
+               ) AS IST_DT /* [설치일] */
+             , (
+                SELECT MAX(J1.RENTAL_TN) KEEP (DENSE_RANK FIRST ORDER BY J1.SL_CL_YM DESC NULLS LAST)  /* 렌탈회차 */
+                  FROM TB_CBCL_WELLS_SL_MM_CL_IZ J1 /* WELLS매출월마감내역 */
+                 WHERE J1.CNTR_NO = B1.CNTR_NO
+                   AND J1.CNTR_SN = B1.CNTR_SN
+                   AND J1.DTA_DL_YN = 'N'
+                   AND B1.DTA_DL_YN = 'N'
+                   AND J1.SL_CL_YM BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') AND TO_CHAR(SYSDATE, 'YYYYMM')
+               ) AS RENTAL_TN /* 렌탈회차 [사용개월] */
+             , I3.CNFM_PSIC_PRTNR_NO AS WELS_MNGER /* 확정담당자파트너번호 [웰스매니저] */
+             , I3.CRAL_LOCARA_TNO AS WELS_MNGER_CRAL_LOCARA_TNO /* 휴대지역전화번호 [웰스매니저휴대지역전화번호]*/
+             , I3.MEXNO_ENCR AS WELS_MNGER_MEXNO_ENCR /* 휴대전화국번호암호화 [웰스매니저휴대전화국번호암호화] */
+             , I3.CRAL_IDV_TNO AS WELS_MNGER_CRAL_IDV_TNO /* 휴대개별전화번호 [웰스매니저휴대개별전화번호]*/
+             , I2.MPY_MTHD_TP /* 납부방식 [납부방식] */
+             , I2.FNIT_NM /* [금융기관명] */
+             , I2.ACNO_CRDCD_ENCR /* [계좌/카드번호] */
+             , I2.OWR_KNM /* [계좌/카드주] */
+             , I2.MPY_BSDT /* [납부기준일자] */
+          FROM TB_SSCT_CNTR_BAS A1/* 계약기본 */
+         INNER JOIN TB_SSCT_CNTR_DTL B1 /* 계약상세 */
+            ON B1.CNTR_NO = A1.CNTR_NO
+           AND B1.DTA_DL_YN = 'N'
+           AND A1.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS C1 /* 고객기본 */
+            ON C1.CST_NO = A1.CNTR_CST_NO
+           AND C1.DTA_DL_YN = 'N'
+           AND C1.TEMP_SAVE_YN = 'N'
+          LEFT OUTER JOIN LATERAL
+             (
+              SELECT E1.DTL_CNTR_NO /* 상세계약번호 */
+                   , E1.DTL_CNTR_SN /* 상세계약일련번호 */
+                   , F1.RCGVP_KNM /* 수령자한글명 [설치자] */
+                   , F1.CRAL_LOCARA_TNO AS IST_CRAL_LOCARA_TNO /* 휴대지역전화번호 */
+                   , F1.MEXNO_ENCR AS IST_MEXNO_ENCR /* 휴대전화국번호암호화 */
+                   , F1.CRAL_IDV_TNO AS IST_CRAL_IDV_TNO /* 휴대개별전화번호 */
+                   , F1.LOCARA_TNO AS IST_LOCARA_TNO /* 지역전화번호 */
+                   , F1.EXNO_ENCR AS IST_EXNO_ENCR /* 전화국번호암호화 */
+                   , F1.IDV_TNO AS IST_IDV_TNO /* 개별전화번호 */
+                   , F1.ADR_DV_CD AS IST_ADR_DV_CD /* 주소구분코드*/
+                   , TRIM(G1.NEW_ADR_ZIP) AS IST_NEW_ADR_ZIP /* 신주소우편번호 */
+                   , TRIM(G1.RNADR) AS IST_RNADR /* 도로명주소 */
+                   , TRIM(G1.RDADR) AS IST_RDADR /* 도로명상세주소 */
+                   , TRIM(G1.OLD_ADR_ZIP) AS IST_OLD_ADR_ZIP /* 구주소우편번호 */
+                   , TRIM(G1.LTN_ADR) AS IST_LTN_ADR /* 지번주소 */
+                   , TRIM(G1.LTN_DTL_ADR) AS IST_LTN_DTL_ADR /* 지번상세주소 */
+                FROM TB_SSCT_CNTR_ADR_REL E1 /* 계약주소관계 */
+               INNER JOIN TB_SSCT_CNTR_ADRPC_BAS F1 /* 계약주소지기본 */
+                  ON F1.CNTR_ADRPC_ID = E1.CNTR_ADRPC_ID
+                 AND F1.DTA_DL_YN = 'N'
+                 AND E1.ADRPC_TP_CD = '3' /* 주소지유형코드 : 설치처(3) */
+                 AND E1.VL_END_DTM = '99991231235959' /* 유효종료일시 */
+                 AND E1.DTA_DL_YN = 'N'
+               INNER JOIN TB_GBCO_ADR_BAS G1 /* 주소기본 */
+                  ON G1.ADR_ID = F1.ADR_ID
+                 AND G1.DTA_DL_YN = 'N'
+               WHERE E1.ADRPC_TP_CD = '3' /* 주소지유형코드 : 설치처(3) */
+                 AND E1.VL_END_DTM = '99991231235959' /* 유효종료일시 */
+             ) I1
+            ON I1.DTL_CNTR_NO = B1.CNTR_NO
+           AND I1.DTL_CNTR_SN = B1.CNTR_SN
+          LEFT OUTER JOIN LATERAL
+             (
+              SELECT K1.DTL_CNTR_NO
+                   , K1.DTL_CNTR_SN
+                   , MAX(CASE WHEN L1.DP_TP_CD IN ('0101', '0102', '0103', '0104') /* 계좌 */
+                                   THEN '1'
+                              WHEN L1.DP_TP_CD IN ('0201', '0202', '0203', '0204') /* 카드 */
+                                   THEN '2'
+                              ELSE ''
+                         END) AS MPY_MTHD_TP /* 납부방식 */
+                   , MAX(L1.MPY_BSDT) AS MPY_BSDT /* 납부기준일자 [납부기준일자]*/
+                   , MAX(L1.OWR_KNM) AS OWR_KNM /* 소유자한글명 [계좌카드주]*/
+                   , MAX(CASE WHEN L1.DP_TP_CD IN ('0101', '0102', '0103', '0104') /* 계좌 */
+                                   THEN
+                                        (SELECT MAX(V1.FNIT_NM)
+                                           FROM TB_RVDW_FNIT_CD V1
+                                          WHERE V1.FNIT_DV_CD = '1'
+                                            AND V1.DTA_DL_YN = 'N'
+                                            AND V1.FNIT_CD = L1.BNK_CD)
+                              WHEN L1.DP_TP_CD IN ('0201', '0202', '0203', '0204') /* 카드 */
+                                   THEN
+                                        (SELECT MAX(V1.FNIT_NM)
+                                           FROM TB_RVDW_FNIT_CD V1
+                                          WHERE V1.FNIT_DV_CD = '2'
+                                            AND V1.DTA_DL_YN = 'N'
+                                            AND V1.FNIT_CD = L1.CDCO_CD)
+                              ELSE ''
+                         END) AS FNIT_NM /* 금융기관명(은행/카드사) */
+                   , MAX(CASE WHEN L1.DP_TP_CD IN ('0101', '0102', '0103', '0104') /* 계좌 */
+                                   THEN L1.ACNO_ENCR /* 계좌번호 암호화 */
+                              WHEN L1.DP_TP_CD IN ('0201', '0202', '0203', '0204') /* 카드 */
+                                   THEN L1.CRCDNO_ENCR /* 신용카드번호암호화 */
+                              ELSE ''
+                         END) AS ACNO_CRDCD_ENCR /* 계좌/카드번호 */
+                FROM TB_SSCT_CNTR_STLM_REL K1 /* 계약결제관계 */
+               INNER JOIN TB_SSCT_CNTR_STLM_BAS L1 /* 계약결제기본 */
+                  ON L1.CNTR_STLM_ID = K1.CNTR_STLM_ID /* 계약결제기본.계약결제ID = 계약결제관계.계약결제ID */
+                 AND L1.DTA_DL_YN = 'N'
+                 AND K1.DTA_DL_YN = 'N'
+                 AND K1.VL_END_DTM = '99991231235959'
+               WHERE 1=1
+                 AND K1.RVE_DV_CD IN ('03','04','05') /* 계약결제관계.수납구분코드 '03'(월납입액(할부금,렌탈료)), '04'(멤버십회비), '05'(정기배송회비) */
+               GROUP BY K1.DTL_CNTR_NO, K1.DTL_CNTR_SN
+             ) I2
+            ON I2.DTL_CNTR_NO = B1.CNTR_NO
+           AND I2.DTL_CNTR_SN = B1.CNTR_SN
+          LEFT OUTER JOIN LATERAL
+             (
+              SELECT M1.CNTR_NO
+                   , M1.CNTR_SN
+                   , M1.CNFM_PSIC_PRTNR_NO /* 확정담당자 파트너번호 */
+                   , O1.PRTNR_KNM /* 파트너한글명 */
+                   , O1.CRAL_LOCARA_TNO /* 휴대지역전화번호 */
+                   , O1.MEXNO_ENCR /* 휴대전화국번호암호화 */
+                   , O1.CRAL_IDV_TNO /* 휴대개별전화번호 */
+                FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ M1 /* 고객서비스BS배정내역 */
+               INNER JOIN TB_SVPD_CST_SV_BFSVC_OJ_IZ N1 /* 고객서비스BS대상내역 */
+                  ON M1.CST_SV_ASN_NO = N1.CST_SV_ASN_NO /* 고객서비스배정번호 */
+                 AND M1.CNTR_NO = N1.CNTR_NO /* 계약번호 */
+                 AND M1.CNTR_SN = N1.CNTR_SN /* 계약일련번호 */
+                 AND M1.DTA_DL_YN = 'N'
+                 AND N1.DTA_DL_YN = 'N'
+               INNER JOIN TB_OGBS_PRTNR_BAS O1 /* 파트너기본 */
+                  ON O1.PRTNR_NO =  M1.CNFM_PSIC_PRTNR_NO
+                 AND O1.OG_TP_CD = M1.CNFM_PSIC_PRTNR_OG_TP_CD
+                 AND O1.DTA_DL_YN = 'N'
+               WHERE N1.VST_DV_CD = '10' /* 방문구분코드 (10 방문) */
+                 AND M1.ASN_OJ_YM BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM') AND TO_CHAR(SYSDATE, 'YYYYMM')
+             ) I3
+            ON I3.CNTR_NO = B1.CNTR_NO
+           AND I3.CNTR_SN = B1.CNTR_SN
+         WHERE 1 = 1
+           AND B1.CNTR_NO = #{cntrNo} /* 조회조건:계약번호 */
+           AND B1.CNTR_SN = #{cntrSn} /* 조회조건:계약일련번호 */
+        <if test="@MybatisUtils@isNotEmpty(cmnSfkVal)">
+           AND C1.CMN_SFK_VAL = #{cmnSfkVal} /*고객기본.공통세이프티키*/
+        </if>
+    </select>
+</mapper>

@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaTaxInvoiceInquiryMapper">
+    <select id="selectTaxInvoiceInquiry" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaTaxInvoiceInquiryDvo">
+        SELECT NVL(T1.TXINV_PBL_OJ_YN, ' ') AS TXINV_PBL_OJ_YN   /* 세금계산서발행여부 */
+             , T1.SELL_TP_CD
+             , NVL(T3.BZRNO, ' ') AS BZRNO
+             , NVL(T4.DLPNR_NM, T3.CST_KNM) AS DLPNR_NM
+             , NVL(T5.DLPNR_PSIC_NM, ' ') AS DLPNR_PSIC_NM
+             , T5.CRAL_LOCARA_TNO
+             , T5.MEXNO_ENCR AS MEXNO
+             , T5.CRAL_IDV_TNO
+             , T5.EMADR /* 메일주소 */
+             , SUBSTR(T5.EMADR, 0, INSTR(T5.EMADR, '@')-1) AS EMADR1 /*@앞 메일주소*/
+             , SUBSTR(T5.EMADR, INSTR(T5.EMADR, '@')+1)  AS EMADR2 /*@뒤 메일주소*/
+             , T5.TXINV_PBL_D
+             , T5.TXINV_PD_DV_CD          /* 세금계산서상품구분코드 */
+             , T5.TXINV_PBL_DV_CD         /* 세금계산서발행구분코드 */
+             , T5.CNTR_CST_NO             /* 계약고객번호 */
+             , T5.TXINV_BNDL_SN           /* 세금계산서묶음일련번호 */
+             , T5.IDV_TNO                 /* 개별전화번호 */
+             , T5.RMK_CN                  /* 비고내용 */
+             , T5.MVS_DSTC_RCVRY_BASE_DTM /* 소산파기복구기준일시 */
+             , T5.MVS_DSTC_RCVRY_DV_CD    /* 소산파기복구구분코드 */
+             , T5.MVS_DSTC_RCVRY_DTM      /* 소산파기복구일시 */
+          FROM TB_SSCT_CNTR_DTL T1
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS T3
+            ON T3.CST_NO = T2.CNTR_CST_NO
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_GBCO_DLPNR_BAS T4
+            ON T4.BZRNO = T3.BZRNO
+           AND T4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_TXINV_RCP_BASE_IZ T5
+            ON T5.CNTR_NO = T1.CNTR_NO
+           AND T5.CNTR_SN = T1.CNTR_SN
+           AND T5.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectTaxInvoiceInquiryCheck" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaTaxInvoiceInquiryDvo">
+        SELECT NVL(T1.TXINV_PBL_OJ_YN, '') AS TXINV_PBL_OJ_YN  /* 세금계산서발행여부 */
+             , NVL(T2.CNTR_CNFM_DTM, '')  AS CNTR_CNFM_DTM  /*  계약확정일시 */
+             , NVL(T3.BZRNO, '') AS BZRNO /* 사업자등록번호 */
+             , NVL(T4.DLPNR_CD , '') AS DLPNR_CD/* 거래처코드 */
+             , NVL(T4.DLPNR_NM, T3.CST_KNM) AS DLPNR_NM /* 거래처명 */
+             , NVL(T5.DLPNR_PSIC_NM, '') AS DLPNR_PSIC_NM /* 거래처담당자명 */
+             , NVL(T5.CRAL_LOCARA_TNO, '') AS CRAL_LOCARA_TNO /* 휴대지역전화번호 */
+             , NVL(T5.MEXNO_ENCR, '') AS MEXNO /* 휴대전화국번호암호화 */
+             , NVL(T5.CRAL_IDV_TNO, '') AS CRAL_IDV_TNO /* 휴대개별전화번호 */
+             , NVL(T5.EMADR, '') AS EMADR /* 전자 이메일 주소 */
+             , NVL(T5.TXINV_PBL_D, 0) AS TXINV_PBL_D
+             , NVL(T6.DP_TP_CD, '')  AS DP_TP_CD /* 입금유형코드 */
+          FROM TB_SSCT_CNTR_DTL T1
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS T3
+            ON T3.CST_NO = T2.CNTR_CST_NO
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_GBCO_DLPNR_BAS T4
+            ON T4.BZRNO = T3.BZRNO
+           AND T4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_TXINV_RCP_BASE_IZ T5
+            ON T5.CNTR_NO = T1.CNTR_NO
+           AND T5.CNTR_SN = T1.CNTR_SN
+           AND T5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_STLM_REL T6
+            ON T6.CNTR_STLM_REL_ID = (SELECT
+                                        MAX(CNTR_STLM_REL_ID)
+                                        FROM TB_SSCT_CNTR_STLM_REL
+                                       WHERE DTL_CNTR_NO = T1.CNTR_NO
+                                         AND DTL_CNTR_SN = T1.CNTR_SN)
+           AND T6.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectDateTime" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaTaxInvoiceInquiryDvo">
+        /* 데이터의 INSERT/UPDATE/유효시작일시/유효종료일시를 일관되게 맞추기 위해, 미리 조회해온다. */
+        SELECT TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FST_RGST_DTM
+             , #{session.userId} AS FST_RGST_USR_ID
+             , #{session.pageId} AS FST_RGST_PRG_ID
+             , #{session.ogId} AS FST_RGST_DEPT_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
+             , #{session.userId} AS FNL_MDFC_USR_ID
+             , #{session.pageId} AS FNL_MDFC_PRG_ID
+             , #{session.ogId} AS FNL_MDFC_DEPT_ID
+          FROM DUAL
+    </select>
+
+    <insert id="insertContractChangeReceipt">
+        <selectKey keyProperty="item.cntrChRcpId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_CH_RCP_ID)), 0) +1, 15, '0') AS CNTR_CH_RCP_ID
+              FROM TB_SSCT_CNTR_CH_RCP_BAS
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_CH_RCP_BAS (  /* 계약변경접수기본 */
+              CNTR_CH_RCP_ID       /* 계약변경접수ID */
+            , CNTR_CH_RCP_DTM      /* 계약변경접수일시 */
+            , CNTR_CH_TP_CD        /* 계약변경유형코드 */
+            , CH_RQR_DV_CD         /* 변경요청자구분코드 */
+            , CH_RQR_NM            /* 변경요청자명 */
+            , CST_NO               /* 고객번호 */
+            , CNTR_CH_AK_CN        /* 계약변경요청내용 */
+            , CNTR_CH_PRGS_STAT_CD /* 계약변경진행상태코드 */
+            , CNTR_CH_PRGS_MO_CN   /* 계약변경진행메모내용 */
+            , CH_RCST_DV_CD        /* 변경접수자구분코드 */
+            , CH_RCP_USR_ID        /* 변경접수사용자ID */
+            , APR_DTM              /* 승인일시 */
+            , APR_USR_ID           /* 승인사용자ID */
+            , CNTR_CH_FSH_DTM      /* 계약변경완료일시 */
+            , BIZ_TF_ID            /* 업무이관ID */
+            , DTA_DL_YN            /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{item.cntrChRcpId}       /* 계약변경접수ID --> max+1 로 채번(23.02.27.조우섭프로확인)*/
+            , #{item.cntrChRcpDtm}
+            , #{item.cntrChTpCd}
+            , #{item.chRqrDvCd}
+            , #{item.chRqrNm}
+            , #{item.cstNo}
+            , #{item.cntrChAkCn}
+            , #{item.cntrChPrgsStatCd}
+            , #{item.cntrChPrgsMoCn}
+            , #{item.chRcstDvCd}
+            , #{item.chRcpUsrId}
+            , #{item.aprDtm}
+            , #{item.aprUsrId}
+            , #{item.cntrChFshDtm}
+            , #{item.bizTfId}
+            , NVL(#{item.dtaDlYn}, 'N')
+            , #{item.fstRgstDtm}
+            , #{item.fstRgstUsrId}
+            , #{item.fstRgstPrgId}
+            , #{item.fstRgstDeptId}
+            , #{item.fnlMdfcDtm}
+            , #{item.fnlMdfcUsrId}
+            , #{item.fnlMdfcPrgId}
+            , #{item.fnlMdfcDeptId} )
+         </insert>
+
+
+    <insert id="insertSellPartnerToCntrChRcchHist">
+        /* 2. INSERT 계약변경접수변경이력 */
+        INSERT INTO TB_SSCT_CNTR_CH_RCCH_HIST /* 계약변경접수변경이력 */
+             ( CNTR_CH_RCP_ID /* 계약변경접수ID */
+             , HIST_STRT_DTM /* 이력시작일시 */
+             , HIST_END_DTM /* 이력종료일시 */
+             , CNTR_CH_RCP_DTM /* 계약변경접수일시 */
+             , CNTR_CH_TP_CD /* 계약변경유형코드 */
+             , CH_RQR_DV_CD /* 변경요청자구분코드 */
+             , CH_RQR_NM /* 변경요청자명 */
+             , CST_NO /* 고객번호 */
+             , CNTR_CH_AK_CN /* 계약변경요청내용 */
+             , CNTR_CH_PRGS_STAT_CD /* 계약변경진행상태코드 */
+             , CNTR_CH_PRGS_MO_CN /* 계약변경진행메모내용 */
+             , CH_RCST_DV_CD /* 변경접수자구분코드 */
+             , CH_RCP_USR_ID /* 변경접수사용자ID */
+             , APR_DTM /* 승인일시 */
+             , APR_USR_ID /* 승인사용자ID */
+             , CNTR_CH_FSH_DTM /* 계약변경완료일시 */
+             , BIZ_TF_ID /* 업무이관ID */
+             , DTA_DL_YN /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField"/>
+             )
+        SELECT CNTR_CH_RCP_ID
+             , #{fstRgstDtm}
+             , '99991231235959'
+             , CNTR_CH_RCP_DTM
+             , CNTR_CH_TP_CD
+             , CH_RQR_DV_CD
+             , CH_RQR_NM
+             , CST_NO
+             , CNTR_CH_AK_CN
+             , CNTR_CH_PRGS_STAT_CD
+             , CNTR_CH_PRGS_MO_CN
+             , CH_RCST_DV_CD
+             , CH_RCP_USR_ID
+             , APR_DTM
+             , APR_USR_ID
+             , CNTR_CH_FSH_DTM
+             , BIZ_TF_ID
+             , DTA_DL_YN
+             , #{fstRgstDtm}
+             , #{fstRgstUsrId}
+             , #{fstRgstPrgId}
+             , #{fstRgstDeptId}
+             , #{fnlMdfcDtm}
+             , #{fnlMdfcUsrId}
+             , #{fnlMdfcPrgId}
+             , #{fnlMdfcDeptId}
+          FROM TB_SSCT_CNTR_CH_RCP_BAS /* 계약변경접수기본 */
+         WHERE CNTR_CH_RCP_ID = #{cntrChRcpId} /* 계약변경접수ID = 입력받은 계약변경접수ID */
+           AND DTA_DL_YN = 'N'
+    </insert>
+
+     <insert id="insertContractChReceiptDetail">
+         <selectKey keyProperty="item.cntrChSn" resultType="Integer" order="BEFORE">
+            SELECT NVL(MAX(TO_NUMBER(CNTR_CH_SN))+1, 1)
+              FROM TB_SSCT_CNTR_CH_RCP_DTL
+             WHERE CNTR_CH_RCP_ID = #{item.cntrChRcpId}
+         </selectKey>
+        INSERT INTO TB_SSCT_CNTR_CH_RCP_DTL (  /* 계약변경접수상세 */
+              CNTR_CH_RCP_ID     /* 계약변경접수ID */
+            , CNTR_CH_SN         /* 계약변경일련번호 */
+            , CNTR_UNIT_TP_CD    /* 계약단위유형코드 */
+            , CNTR_NO            /* 계약번호 */
+            , DTL_CNTR_NO        /* 상세계약번호 */
+            , DTL_CNTR_SN        /* 상세계약일련번호 */
+            , CNTR_CH_RSON_DV_CD /* 계약변경사유구분코드 */
+            , CNTR_CH_RSON_CD    /* 계약변경사유코드 */
+            , CNTR_CH_ATC_DV_CD  /* 계약변경항목구분코드 */
+            , CH_APY_STRTDT      /* 변경적용시작일자 */
+            , CH_APY_ENDDT       /* 변경적용종료일자 */
+            , CH_PD_CD           /* 변경상품코드 */
+            , CH_QTY             /* 변경수량 */
+            , CH_AMT             /* 변경금액 */
+            , CH_PTRM_UNIT_CD    /* 변경기간단위코드 */
+            , CH_PTRM_N          /* 변경기간수 */
+            , CNTR_CH_AK_CN      /* 계약변경요청내용 */
+            , CNTR_ADRPC_ID      /* 계약주소지ID */
+            , CNTR_STLM_ID       /* 계약결제ID */
+            , BFCH_CN            /* 변경전내용 */
+            , PROCS_YN           /* 처리여부 */
+            , PROCS_DUEDT        /* 처리예정일자 */
+            , PROCS_FSH_DTM      /* 처리완료일시 */
+            , DTA_DL_YN          /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{item.cntrChRcpId}
+            , #{item.cntrChSn}
+            , #{item.cntrUnitTpCd}
+            , #{item.cntrNo}
+            , #{item.dtlCntrNo}
+            , #{item.dtlCntrSn}
+            , #{item.cntrChRsonDvCd}
+            , #{item.cntrChRsonCd}
+            , #{item.cntrChAtcDvCd}
+            , #{item.chApyStrtdt}
+            , #{item.chApyEnddt}
+            , #{item.chPdCd}
+            , #{item.chQty}
+            , #{item.chAmt}
+            , #{item.chPtrmUnitCd}
+            , #{item.chPtrmN}
+            , #{item.cntrChAkCn}
+            , #{item.cntrAdrpcId}
+            , #{item.cntrStlmId}
+            , #{item.bfchCn}
+            , #{item.procsYn}
+            , #{item.procsDuedt}
+            , #{item.procsFshDtm}
+            , #{item.dtaDlYn}
+            , #{item.fstRgstDtm}
+            , #{item.fstRgstUsrId}
+            , #{item.fstRgstPrgId}
+            , #{item.fstRgstDeptId}
+            , #{item.fnlMdfcDtm}
+            , #{item.fnlMdfcUsrId}
+            , #{item.fnlMdfcPrgId}
+            , #{item.fnlMdfcDeptId} )
+     </insert>
+
+
+
+    <update id="updateTaxInvoiceInquiry">
+        MERGE INTO TB_SSCT_TXINV_RCP_BASE_IZ
+        USING DUAL
+        ON (
+             CNTR_NO = #{cntrNo}
+		 AND CNTR_SN = #{cntrSn}
+        )
+        WHEN MATCHED THEN
+        UPDATE
+		   SET APLC_PSIC_ID = #{aplcPsicId}
+		     , RCPDT = #{rcpdt}
+		     , TXINV_PBL_YN = #{txinvPblYn}
+		     , TXINV_PBL_D = #{txinvPblD}
+		     , DLPNR_PSIC_NM = #{dlpnrPsicNm}
+		     , EMADR = #{emadr}
+		     , CRAL_LOCARA_TNO = #{cralLocaraTno}
+		     , MEXNO_ENCR = #{mexnoEncr}
+		     , CRAL_IDV_TNO = #{cralIdvTno}
+             <include refid="COMMON.updateSystemField"/>
+        WHEN NOT MATCHED THEN
+        INSERT (
+              CNTR_NO                 /* 계약번호 */
+            , CNTR_SN                 /* 계약일련번호 */
+            , TXINV_PD_DV_CD          /* 세금계산서상품구분코드 */
+            , TXINV_PBL_DV_CD         /* 세금계산서발행구분코드 */
+            , APLC_PSIC_ID            /* 신청담당자ID */
+            , RCPDT                   /* 접수일자 */
+            , BZRNO                   /* 사업자등록번호 */
+            , CNTR_CST_NO             /* 계약고객번호 */
+            , TXINV_PBL_YN            /* 세금계산서발행여부 */
+            , TXINV_PBL_D             /* 세금계산서발행일 */
+            , TXINV_BNDL_SN           /* 세금계산서묶음일련번호 */
+            , DLPNR_PSIC_NM           /* 거래처담당자명 */
+            , EMADR                   /* 이메일주소 */
+            , LOCARA_TNO              /* 지역전화번호 */
+            , EXNO_ENCR               /* 전화국번호암호화 */
+            , IDV_TNO                 /* 개별전화번호 */
+            , CRAL_LOCARA_TNO         /* 휴대지역전화번호 */
+            , MEXNO_ENCR              /* 휴대전화국번호암호화 */
+            , CRAL_IDV_TNO            /* 휴대개별전화번호 */
+            , RMK_CN                  /* 비고내용 */
+            , MVS_DSTC_RCVRY_BASE_DTM /* 소산파기복구기준일시 */
+            , MVS_DSTC_RCVRY_DV_CD    /* 소산파기복구구분코드 */
+            , MVS_DSTC_RCVRY_DTM      /* 소산파기복구일시 */
+            , DTA_DL_YN               /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+              #{cntrNo}
+            , #{cntrSn}
+            , #{txinvPdDvCd}
+            , #{txinvPblDvCd}
+            , #{aplcPsicId}
+            , #{rcpdt}
+            , #{bzrno}
+            , #{cntrCstNo}
+            , #{txinvPblYn}
+            , #{txinvPblD}
+            , #{txinvBndlSn}
+            , #{dlpnrPsicNm}
+            , #{emadr}
+            , #{locaraTno}
+            , #{exnoEncr}
+            , #{idvTno}
+            , #{cralLocaraTno}
+            , #{mexnoEncr}
+            , #{cralIdvTno}
+            , #{rmkCn}
+            , #{mvsDstcRcvryBaseDtm}
+            , #{mvsDstcRcvryDvCd}
+            , #{mvsDstcRcvryDtm}
+            , #{dtaDlYn}
+            <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </update>
+
+    <insert id="insertTaxInvoiceReceiptBaseHist">
+        INSERT INTO TB_SSCT_TXINV_RCP_BASE_CH_HIST (  /* 세금계산서접수기준변경이력 */
+              CNTR_NO                 /* 계약번호 */
+            , CNTR_SN                 /* 계약일련번호 */
+            , CH_SN                   /* 변경일련번호 */
+            , TXINV_PD_DV_CD          /* 세금계산서상품구분코드 */
+            , TXINV_PBL_DV_CD         /* 세금계산서발행구분코드 */
+            , APLC_PSIC_ID            /* 신청담당자ID */
+            , RCPDT                   /* 접수일자 */
+            , BZRNO                   /* 사업자등록번호 */
+            , CNTR_CST_NO             /* 계약고객번호 */
+            , TXINV_PBL_YN            /* 세금계산서발행여부 */
+            , TXINV_PBL_D             /* 세금계산서발행일 */
+            , TXINV_BNDL_SN           /* 세금계산서묶음일련번호 */
+            , DLPNR_PSIC_NM           /* 거래처담당자명 */
+            , EMADR                   /* 이메일주소 */
+            , LOCARA_TNO              /* 지역전화번호 */
+            , EXNO_ENCR               /* 전화국번호암호화 */
+            , IDV_TNO                 /* 개별전화번호 */
+            , CRAL_LOCARA_TNO         /* 휴대지역전화번호 */
+            , MEXNO_ENCR              /* 휴대전화국번호암호화 */
+            , CRAL_IDV_TNO            /* 휴대개별전화번호 */
+            , RMK_CN                  /* 비고내용 */
+            , MVS_DSTC_RCVRY_BASE_DTM /* 소산파기복구기준일시 */
+            , MVS_DSTC_RCVRY_DV_CD    /* 소산파기복구구분코드 */
+            , MVS_DSTC_RCVRY_DTM      /* 소산파기복구일시 */
+            , DTA_DL_YN               /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{cntrNo}
+            , #{cntrSn}
+            , ( SELECT NVL(MAX(H.CH_SN), 0) + 1
+                  FROM TB_SSCT_TXINV_RCP_BASE_CH_HIST H
+                 WHERE H.CNTR_NO = #{cntrNo}
+                   AND H.CNTR_SN = #{cntrSn}
+               )
+            , #{txinvPdDvCd}
+            , #{txinvPblDvCd}
+            , #{aplcPsicId}
+            , #{rcpdt}
+            , #{bzrno}
+            , #{cntrCstNo}
+            , #{txinvPblYn}
+            , #{txinvPblD}
+            , #{txinvBndlSn}
+            , #{dlpnrPsicNm}
+            , #{emadr}
+            , #{locaraTno}
+            , #{exnoEncr}
+            , #{idvTno}
+            , #{cralLocaraTno}
+            , #{mexnoEncr}
+            , #{cralIdvTno}
+            , #{rmkCn}
+            , #{mvsDstcRcvryBaseDtm}
+            , #{mvsDstcRcvryDvCd}
+            , #{mvsDstcRcvryDtm}
+            , #{dtaDlYn}
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updateCntrDetailTxinvPblOj">
+        UPDATE TB_SSCT_CNTR_DTL /* 계약상세 */
+           SET TXINV_PBL_OJ_YN    = #{txinvPblOjYn}       /* 세금계산서발행대상여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO = #{cntrNo}             /* 계약번호 */
+           AND CNTR_SN = #{cntrSn}             /* 계약일련번호 */
+    </update>
+</mapper>

@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctaBogoCustomerCheckMapper">
+
+    <select id="selectEmployeePurchaseCheck" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctaBogoCustomerCheckResultDvo">
+        SELECT T1.CNTR_NO
+             , T1.CNTR_CST_NO
+             , T1.SELL_PRTNR_NO
+             , T1.CNTR_CNFM_DTM
+             , T2.SELL_TP_CD
+             , T2.DSC_APY_TP_CD
+             , T2.DSC_APY_DTL_CD
+             , T5.PD_CD
+             , T5.PD_TP_CD
+             , T6.PD_CLSF_CD
+             , T6.REF_PD_CLSF_VAL
+             --, T3.IST_WK_DV_CD            /* 설치작업구분코드(1:방문,2:자가) */
+          FROM TB_SSCT_CNTR_BAS T1          /* T.계약기본 */
+         INNER JOIN TB_SSCT_CNTR_DTL T2     /* T.계약상세 */
+           ON T1.CNTR_NO = T2.CNTR_NO
+         INNER JOIN TB_SSCT_CNTR_PD_REL T3  /* T.계약계약상품관계상세 */
+           ON T3.CNTR_NO = T2.CNTR_NO
+          AND T3.CNTR_SN = T2.CNTR_SN
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL T4  /* T.WELLS상세 */
+           ON T4.CNTR_NO = T2.CNTR_NO
+          AND T4.CNTR_SN = T2.CNTR_SN
+         INNER JOIN TB_PDBS_PD_BAS T5       /* T.상품기본 */
+            ON T5.PD_CD = T2.BASE_PD_CD
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T6       /* T.상품분류기본 */
+            ON T6.PD_CLSF_ID = T5.PD_CLSF_ID
+         WHERE 1=1
+           AND T1.SELL_INFLW_CHNL_DTL_CD = '9020'      /* 판매채널상세코드:직원구매 */
+           AND T1.CNTR_PRGS_STAT_CD = '60'       /* 계약진행상태코드:확정 */
+           AND T1.DTA_DL_YN = 'N'                /* 데이터삭제여부 */
+           AND T1.CNTR_CST_NO != #{cntrCstNo}    /* 조건3.대상계약고객번호 != P.고객번호 */
+           AND T2.CNTR_NO = #{ojCntrNo}          /* 조건1.계약번호*/
+           AND T2.CNTR_SN = #{ojCntrDtlNo}       /* 계약상세번호*/
+           AND T3.VL_END_DTM = '9991231235959'   /* 종료일시 */
+           AND T3.IST_WK_DV_CD NOT IN ('1','2')  /* 조건2.처리부서，영업부　설치건은　제외 */
+           AND T2.CNTR_PD_STRTDT <![CDATA[ > ]]> #{rcpDt}  /* 접수일보다 계약상품시작일(계약일) 이후일때만 */
+           AND (T4.REQD_DT IS NULL OR (T4.REQD_DT IS NOT NULL AND T4.REQD_DT <![CDATA[ > ]]> #{rcpDt}))  /* 철거일이 없거나 접수일보다 철거일(반품일)이 이전일때만 */
+           AND T5.SELL_YN = 'Y'  /* 판매여부(유효한 상품체크) */
+           AND T6.PD_TP_CD = 'P' /* 상품유형코드(기준상품) */
+    </select>
+
+    <select id="selectInstallmentCustomers" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctaBogoCustomerCheckResultDvo">
+        SELECT T1.CNTR_NO
+             , T1.CNTR_CST_NO
+             , T1.SELL_PRTNR_NO
+             , T1.CNTR_CNFM_DTM
+             , T2.SELL_TP_CD
+             , T2.DSC_APY_TP_CD
+             , T2.DSC_APY_DTL_CD
+             , T5.PD_CD
+             , T5.PD_TP_CD
+             , T6.PD_CLSF_CD
+             , T6.REF_PD_CLSF_VAL
+             , T4.FRISU_BFSVC_PTRM_N        /* 무상BS기간수(멤버십무상) */
+          FROM TB_SSCT_CNTR_BAS T1          /* T.계약기본 */
+         INNER JOIN TB_SSCT_CNTR_DTL T2     /* T.계약상세 */
+           ON T1.CNTR_NO = T2.CNTR_NO
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL T4  /* T.WELLS상세 */
+           ON T4.CNTR_NO = T2.CNTR_NO
+          AND T4.CNTR_SN = T2.CNTR_SN
+         INNER JOIN TB_PDBS_PD_BAS T5       /* T.상품기본 */
+            ON T5.PD_CD = T2.BASE_PD_CD
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T6       /* T.상품분류기본 */
+            ON T6.PD_CLSF_ID = T5.PD_CLSF_ID
+         WHERE 1=1
+           AND T2.SELL_TP_CD = '1'               /* 판매유형코드 - 할부 */
+           AND T1.CNTR_PRGS_STAT_CD = '60'       /* 계약진행상태코드 - 확정 */
+           AND T1.DTA_DL_YN = 'N'               /* 데이터삭제여부 */
+           AND T1.CNTR_CST_NO != #{cntrCstNo}       /* 대상계약고객번호 != P.고객번호 */
+           AND T2.CNTR_NO = #{ojCntrNo}         /* 계약번호 */
+           AND T2.CNTR_SN = #{ojCntrDtlNo}      /* 계약상세번호 */
+           AND (#{userGubn} = '1' AND SUBSTR(T2.CNTR_PD_STRTDT, 0,8) <![CDATA[ <= ]]> #{rcpDt})  /* 접수일보다 계약상품시작시작일(계약일) 이전일때만 (업무담당이외　관리자는　접수일자　체크　제외)*/
+           AND (T2.CNTR_PD_ENDDT IS NULL OR (T2.CNTR_PD_ENDDT IS NOT NULL AND T2.CNTR_PD_ENDDT <![CDATA[ > ]]> #{rcpDt}))  /* 취소년이 없거나 접수일보다 계약상품종료일(취소일)이 이전일때만 */
+           AND (T4.CPS_DT IS NULL OR (T4.CPS_DT IS NOT NULL AND T4.CPS_DT <![CDATA[ > ]]> #{rcpDt}))  /* 보상일이 없거나 접수일보다 보상일이 이전일때만 */
+           AND T5.SELL_YN = 'Y'  /* 판매여부(유효한 상품체크) */
+           AND T6.PD_TP_CD = 'P' /* 상품유형코드(기준상품) */
+    </select>
+
+    <select id="selectRentalCustomers" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctaBogoCustomerCheckResultDvo">
+        SELECT T1.CNTR_NO
+             , T1.CNTR_CST_NO
+             , T1.SELL_PRTNR_NO
+             , T1.CNTR_CNFM_DTM
+             , T2.SELL_TP_CD
+             , T2.DSC_APY_TP_CD
+             , T2.DSC_APY_DTL_CD
+             , T6.PD_CD
+             , T6.PD_TP_CD
+             , T7.PD_CLSF_CD
+             , T7.REF_PD_CLSF_VAL
+             , T4.FRISU_BFSVC_PTRM_N        /* 무상BS기간수(멤버십무상) */
+             , T5.PMOT_CD                   /* 프로모션코드(LCFLG4 OF LC3101R) */
+          FROM TB_SSCT_CNTR_BAS T1          /* T.계약기본 */
+         INNER JOIN TB_SSCT_CNTR_DTL T2     /* T.계약상세 */
+            ON T1.CNTR_NO = T2.CNTR_NO
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL T4  /* T.WELLS상세 */
+            ON T4.CNTR_NO = T2.CNTR_NO
+           AND T4.CNTR_SN = T2.CNTR_SN
+          LEFT OUTER JOIN (SELECT DTL_CNTR_NO
+                                , DTL_CNTR_SN
+                                , PMOT_CD  /* 프로모션코드  */
+                             FROM (SELECT DTL_CNTR_NO, DTL_CNTR_SN, PMOT_CD
+                                        , ROW_NUMBER () OVER(PARTITION BY DTL_CNTR_NO, DTL_CNTR_SN ORDER BY CNTR_PMOT_ID DESC) AS RN /*계약프로모션ID 한건만*/
+                                     FROM TB_SSCT_CNTR_PMOT_IZ  /* T.계약프로모션내역 */
+                                    WHERE 1=1
+                                      AND CNTR_UNIT_TP_CD = '020'  /*계약상세 */
+                                      AND DTL_CNTR_NO = #{baseCntrNo}
+                                      AND DTL_CNTR_SN = #{baseCntrDtlNo}
+                                    )
+                            WHERE RN = 1
+              ) T5
+            ON T5.DTL_CNTR_NO = T2.CNTR_NO
+           AND T5.DTL_CNTR_SN = T2.CNTR_SN
+         INNER JOIN TB_PDBS_PD_BAS T6       /* T.상품기본 */
+            ON T6.PD_CD = T2.BASE_PD_CD
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T7       /* T.상품분류기본 */
+            ON T7.PD_CLSF_ID = T6.PD_CLSF_ID
+         WHERE 1=1
+           AND T2.SELL_TP_CD = '2'               /* 판매유형코드 - 렌탈 */
+           AND T1.CNTR_PRGS_STAT_CD = '60'       /* 계약진행상태코드 - 확정 */
+           AND T1.DTA_DL_YN = 'N'                /* 데이터삭제여부 */
+           AND T1.CNTR_CST_NO != #{cntrCstNo}       /* 조건2.대상계약고객번호 != P.고객번호 */
+           AND T2.CNTR_NO = #{ojCntrNo}         /* 계약번호 */
+           AND T2.CNTR_SN = #{ojCntrDtlNo}      /* 계약상세번호 */
+           AND (#{userGubn} = '1' AND SUBSTR(T2.CNTR_PD_STRTDT, 0,8) <![CDATA[ <= ]]> #{rcpDt})  /* 접수일보다 계약상품시작시작일(계약일) 이전 (업무담당이외　관리자는　접수일자　체크　제외)*/
+           AND T2.CNTR_PD_ENDDT <![CDATA[ < ]]> #{rcpDt}  /* 취소년이 없거나 접수일보다 계약상품종료일(취소일)이 이전일때만 */
+           AND (T4.REQD_DT IS NULL OR (T4.REQD_DT IS NOT NULL AND T4.REQD_DT > #{rcpDt}))  /* 철거일이 없거나 접수일보다 철거일(반품일)이 이전일때만 */
+           AND T6.SELL_YN = 'Y'  /* 판매여부(유효한 상품체크) */
+           AND T7.PD_TP_CD = 'P' /* 상품유형코드(기준상품) */
+    </select>
+
+    <select id="selectMembershipCustomers" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctaBogoCustomerCheckResultDvo">
+        SELECT T1.CNTR_NO
+             , T1.CNTR_CST_NO
+             , T1.SELL_PRTNR_NO
+             , T1.CNTR_CNFM_DTM
+             , T2.SELL_TP_CD
+             , T2.DSC_APY_TP_CD
+             , T2.DSC_APY_DTL_CD
+             , T3.PD_CD
+             , T3.PD_TP_CD
+             , T5.PD_CLSF_CD
+             , T5.REF_PD_CLSF_VAL
+             , T4.FRISU_BFSVC_PTRM_N        /* 무상BS기간수(멤버십무상) */
+          FROM TB_SSCT_CNTR_BAS T1          /* T.계약기본 */
+         INNER JOIN TB_SSCT_CNTR_DTL T2     /* T.계약상세 */
+            ON T1.CNTR_NO = T2.CNTR_NO
+         INNER JOIN TB_PDBS_PD_BAS T3       /* T.상품기본 */
+            ON T3.PD_CD = T2.BASE_PD_CD
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL T4  /* T.WELLS상세 */
+            ON T4.CNTR_NO = T2.CNTR_NO
+           AND T4.CNTR_SN = T2.CNTR_SN
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T5       /* T.상품분류기본 */
+            ON T5.PD_CLSF_ID = T3.PD_CLSF_ID
+         WHERE 1=1
+           AND T2.SELL_TP_CD = '3'               /* 판매유형코드 - 멤버십 */
+           AND T1.CNTR_PRGS_STAT_CD = '60'       /* 계약진행상태코드 - 확정 */
+           AND T1.DTA_DL_YN = 'N'               /* 데이터삭제여부 */
+           AND T1.CNTR_CST_NO != #{cntrCstNo}       /* 대상계약고객번호 != P.고객번호 */
+           AND T2.CNTR_NO = #{ojCntrNo}         /* 계약번호*/
+           AND T2.CNTR_SN = #{ojCntrDtlNo}      /* 계약상세번호 */
+           AND T2.CNTR_PD_STRTDT <![CDATA[ <= ]]> #{rcpDt}    /* 멤버십가입시작일자는 접수일자보다 이전일때만 */
+           AND T2.CNTR_PD_ENDDT > #{rcpDt}      /* 취소년이 없거나 접수일보다 계약상품종료일(취소일)이 이전일때만(탈퇴/취소를 포함하으 상품종료일로 확인) */
+           AND T3.SELL_YN = 'Y'  /* 판매여부(유효한 상품체크) */
+           AND T5.PD_TP_CD = 'P' /* 상품유형코드(기준상품) */
+    </select>
+
+    <select id="selectCountLinkageAvailable" resultType="int">
+         SELECT COUNT(1) AS "CNT"
+           FROM TB_SSCT_CNTR_REL T0
+          INNER JOIN TB_SSCT_CNTR_BAS T1
+             ON T1.CNTR_NO = T0.BASE_DTL_CNTR_NO
+          INNER JOIN TB_SSCT_CNTR_DTL T2
+             ON T2.CNTR_NO = T0.BASE_DTL_CNTR_NO
+            AND T2.CNTR_SN = T0.BASE_DTL_CNTR_SN
+          INNER JOIN TB_PDBS_PD_BAS T3
+             ON T3.PD_CD = T2.BASE_PD_CD
+          INNER JOIN TB_SSCT_CNTR_WELLS_DTL T4
+             ON T4.CNTR_NO = T2.CNTR_NO
+            AND T4.CNTR_SN = T2.CNTR_SN
+          WHERE 1 = 1
+            AND T0.CNTR_REL_TP_CD = "5"
+            AND T2.SELL_TP_CD = "2"
+            AND T0.OJ_CNTR_NO = #{ojCntrDtlNo}
+            AND T0.DTA_DL_YN = 'N'
+            AND T1.CNTR_CST_NO = #{cntrCstNo}
+            AND T3.PD_CD = #{pdCd}
+            AND (T2.CNTR_PD_ENDDT IS NULL OR (T2.CNTR_PD_ENDDT IS NOT NULL AND T2.CNTR_PD_ENDDT <![CDATA[ > ]]> #{rcpDt}))
+            AND (T4.REQD_DT IS NULL OR (T4.REQD_DT IS NOT NULL AND T4.REQD_DT <![CDATA[ > ]]> #{rcpDt}))
+            AND T0.BASE_CNTR_NO != #{baseCntrNo}
+    </select>
+
+    <select id="selectCountBogoCustomerCheck" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctaBogoCustomerCheckDto$SearchRes">
+        SELECT DECODE(COUNT(1), 0 , 'N', 'Y') AS EXIST_YN  /* N일 경우 정상(미등록) */
+          FROM TB_SSCT_CNTR_REL T1
+         WHERE 1 = 1
+           AND T1.VL_END_DTM = '99991231235959' /* 유효종료일시가 마지막으로 유효한 건 */
+           AND T1.CNTR_UNIT_TP_CD = '020'       /* 계약단위유형코드 */
+           AND T1.CNTR_REL_TP_CD = '20'         /* 계약관계유형코드(연계상품계약관계) */
+           AND T1.CNTR_REL_DTL_CD = '215'       /* 1+1연계 */
+           AND T1.BASE_DTL_CNTR_NO = #{ojCntrNo}     /* 기준상세계약번호  대상상세계약번호로 넣고 체크 */
+           AND T1.BASE_DTL_CNTR_SN = #{ojCntrDtlNo}   /* 기준상세계약일련번호   대상상세계약일련번호로 넣고 체크 */
+           AND T1.OJ_DTL_CNTR_NO =  #{baseCntrNo}     /* 대상상세계약번호  기준상세계약번호로 넣고 체크 */
+           AND T1.OJ_DTL_CNTR_SN = #{baseCntrDtlNo}  /* 대상상세계약일련번호   기준상세계약일련번호로 넣고 체크 */
+           AND T1.DTA_DL_YN = 'N'                      /* 데이터삭제여부 */
+    </select>
+</mapper>

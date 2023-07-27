@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiRestipulationMapper">
+
+    <select id="selectRestipulations" resultType="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiRestipulationDto$SearchRes">
+        SELECT SUBSTR(T1.STPL_RCP_DTM,1,8) AS STPL_RCP_DT
+            , T1.CNTR_NO
+            , T1.CNTR_SN
+            , T2.BASE_PD_CD
+            , T3.PD_NM
+            , T1.RCP_PRTNR_NO
+            , (SELECT MAX(USR_NM) FROM T_CMP_USR_ACO_M WHERE EPNO = T1.RCP_PRTNR_NO AND DEL_YN = 'N') AS RCP_PRTNR_NM
+        /*	, T2.CNTR_TAM TODO: 계약총액 추가된 후 추가예정 */
+            , 0 AS CNTR_TAM
+            , NVL(T1.ACKMT_PERF_RT, 0) AS ACKMT_PERF_RT
+            , NVL(T1.ACKMT_PERF_AMT, 0) AS ACKMT_PERF_AMT
+          FROM TB_SSCT_RENTAL_RSTL_IZ T1
+         INNER JOIN TB_SSCT_CNTR_DTL T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.CNTR_SN = T1.CNTR_SN
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS T3
+            ON T3.PD_CD = T2.BASE_PD_CD
+           AND T3.DTA_DL_YN = 'N'
+           AND T3.TEMP_SAVE_YN = 'N'
+         WHERE 1=1
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.STPL_RCP_DTM BETWEEN #{stplRcpDtFr} AND #{stplRcpDtTo}
+        <if test='@MybatisUtils@isNotEmpty(cttPsicId)'>
+           AND T1.RCP_PRTNR_NO = #{cttPsicId}
+        </if>
+    </select>
+
+</mapper>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaMembershipMapper">
+    <sql id = "selectMembershipCustomersDetail">
+        SELECT T_CNTR_DTL.SELL_TP_CD
+        , T_CNTR_DTL.CNTR_DTL_STAT_CD
+        , T_CNTR_BAS.COPN_DV_CD
+        , T_CNTR_BAS.CNTR_CST_NO
+        , T_CNTR_DTL.CNTR_NO
+        , T_CNTR_DTL.CNTR_SN
+        , T_CNTR_CST_BAS.CST_KNM
+        , T_CNTR_CST_BAS.SEX_DV_CD
+        , T_CNTR_CST_BAS.BRYY_MMDD
+        , T_CNTR_CST_BAS.CRAL_LOCARA_TNO
+        , T_CNTR_CST_BAS.MEXNO_ENCR
+        , T_CNTR_CST_BAS.CRAL_IDV_TNO
+        , T_PD_BAS.PD_NM
+        , T_CNTR_DTL.STPL_PTRM
+        , CASE
+        WHEN T_CNTR_DTL.SELL_TP_CD = '2'           THEN T_WELLS_SL_MM_CL_IZ.RENTAL_TN
+        WHEN T_CNTR_DTL.CNTR_PD_ENDDT IS NULL      THEN 0
+        WHEN LENGTH(T_CNTR_DTL.CNTR_PD_ENDDT) != 8 THEN 0
+        ELSE (TO_CHAR(SYSDATE, 'YYYY') - SUBSTR(T_CNTR_DTL.CNTR_PD_ENDDT, 1, 4))
+        * 12
+        + TO_CHAR(SYSDATE, 'MM')
+        - SUBSTR(T_CNTR_DTL.CNTR_PD_ENDDT, 5, 2)
+        END                                                       AS IST_TN /* 계약기간 */
+        , CASE WHEN T_DLQ_BAS.EOT_DLQ_AMT > 0 THEN 'Y' ELSE 'N' END AS DLQ_YN
+        , T_CNTR_WELLS_DTL.REQD_DT /* 철거일자 */
+        , T_CNTR_DTL.CNTR_PD_ENDDT /* 종료일자(취소,만료 등) */
+        , T_CNTR_WELLS_DTL.CPS_DT /* 보상일자 */
+        FROM TB_SSCT_CNTR_DTL                          T_CNTR_DTL
+        INNER JOIN TB_SSCT_CNTR_BAS               T_CNTR_BAS
+        ON T_CNTR_BAS.DTA_DL_YN = 'N' AND T_CNTR_BAS.CNTR_NO = T_CNTR_DTL.CNTR_NO
+        INNER JOIN TB_CUBS_CST_BAS                T_CNTR_CST_BAS
+        ON T_CNTR_CST_BAS.DTA_DL_YN = 'N' AND T_CNTR_CST_BAS.CST_NO = T_CNTR_BAS.CNTR_CST_NO
+        INNER JOIN TB_PDBS_PD_BAS                 T_PD_BAS
+        ON T_PD_BAS.DTA_DL_YN = 'N' AND T_PD_BAS.PD_CD = T_CNTR_DTL.BASE_PD_CD
+        INNER JOIN TB_SSCT_CNTR_WELLS_DTL         T_CNTR_WELLS_DTL
+        ON T_CNTR_WELLS_DTL.DTA_DL_YN = 'N'
+        AND T_CNTR_WELLS_DTL.CNTR_NO = T_CNTR_DTL.CNTR_NO
+        AND T_CNTR_WELLS_DTL.CNTR_SN = T_CNTR_DTL.CNTR_SN
+        LEFT OUTER JOIN TB_CBCL_DLQ_BAS           T_DLQ_BAS
+        ON T_DLQ_BAS.DTA_DL_YN = 'N'
+        AND T_DLQ_BAS.CNTR_NO = T_CNTR_DTL.CNTR_NO
+        AND T_DLQ_BAS.CNTR_SN = T_CNTR_DTL.CNTR_SN
+        AND T_DLQ_BAS.PERF_YM = TO_CHAR(SYSDATE, 'YYYYMM') - 1
+        LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T_WELLS_SL_MM_CL_IZ
+        ON T_WELLS_SL_MM_CL_IZ.DTA_DL_YN = 'N'
+        AND T_WELLS_SL_MM_CL_IZ.CNTR_NO = T_CNTR_DTL.CNTR_NO
+        AND T_WELLS_SL_MM_CL_IZ.CNTR_SN = T_CNTR_DTL.CNTR_SN
+        AND T_WELLS_SL_MM_CL_IZ.SL_CL_YM = (SELECT MAX(SL_CL_YM)
+        FROM TB_CBCL_WELLS_SL_MM_CL_IZ
+        WHERE CNTR_NO = T_CNTR_DTL.CNTR_NO
+        AND CNTR_SN = T_CNTR_DTL.CNTR_SN)
+        WHERE T_CNTR_DTL.DTA_DL_YN = 'N'
+        AND T_CNTR_DTL.SELL_TP_CD IN ('1', '2', '4') /* 렌탈, 일시불, 회사설치만 대상 */
+        AND (T_CNTR_BAS.SELL_PRTNR_NO = #{session.employeeIDNumber} AND T_CNTR_BAS.SELL_OG_TP_CD = #{session.ogTpCd} )
+        AND T_CNTR_BAS.COPN_DV_CD = #{copnDvCd}
+        AND T_CNTR_DTL.CNTR_DTL_STAT_CD = '101' /* 해약/취소건이 아니면서 */
+        AND T_CNTR_WELLS_DTL.IST_DT IS NOT NULL /* 설치일이 존재하면서 */
+        AND NOT EXISTS(SELECT 1
+        FROM TB_SSCT_CNTR_REL            SUB_T_CNTR_REL
+        INNER JOIN TB_SSCT_CNTR_DTL SUB_T_CNTR_DTL
+        ON SUB_T_CNTR_DTL.CNTR_NO = SUB_T_CNTR_REL.BASE_DTL_CNTR_NO
+        AND SUB_T_CNTR_DTL.CNTR_SN = SUB_T_CNTR_REL.BASE_DTL_CNTR_SN
+        WHERE SUB_T_CNTR_REL.CNTR_REL_DTL_CD = '212' /* 멤버십-원주문 */
+        AND SUB_T_CNTR_REL.OJ_DTL_CNTR_NO = T_CNTR_DTL.CNTR_NO
+        AND SUB_T_CNTR_REL.OJ_DTL_CNTR_SN = T_CNTR_DTL.CNTR_SN
+        AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN SUB_T_CNTR_REL.VL_STRT_DTM AND SUB_T_CNTR_REL.VL_END_DTM
+        AND SUB_T_CNTR_REL.DTA_DL_YN = 'N'
+        AND (SUB_T_CNTR_DTL.CNTR_PD_ENDDT IS NULL /* 해당 계약을 원주문으로 가지고 있는 계약의 계약상품종료가 안되었거나 */
+        OR SUBSTR(SUB_T_CNTR_DTL.CNTR_PD_ENDDT, 1, 6)
+        = SUBSTR(TO_CHAR(SYSDATE, 'YYYYMMDD'), 1, 6)) /* 이번달에 종료 되었으면*/
+        ) /* 이미 등록된 멤버십이 있으므로 멤버쉽 대상에서 제외한다. */
+        <if test="@MybatisUtils@isNotEmpty(cstKnm)"><trim>
+            AND T_CNTR_CST_BAS.CST_KNM = #{cstKnm}
+        </trim></if>
+        <if test="@MybatisUtils@isNotEmpty(cralLocaraTno) and @MybatisUtils@isNotEmpty(mexnoEncr) and @MybatisUtils@isNotEmpty(cralIdvTno)"><trim>
+            AND T_CNTR_CST_BAS.CRAL_LOCARA_TNO = #{cralLocaraTno}
+            AND T_CNTR_CST_BAS.MEXNO_ENCR = #{mexnoEncr}
+            AND T_CNTR_CST_BAS.CRAL_IDV_TNO = #{cralIdvTno}
+        </trim></if>
+    </sql>
+
+    <select id="selectMembershipCustomers"
+            resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaMembershipDto$SearchRes">
+        <include refid="selectMembershipCustomersDetail" />
+    </select>
+    <select id="selectMembershipCustomersCount" resultType="Integer">
+        SELECT COUNT(*)
+        FROM (
+        <include refid="selectMembershipCustomersDetail" />
+        )
+    </select>
+
+</mapper>

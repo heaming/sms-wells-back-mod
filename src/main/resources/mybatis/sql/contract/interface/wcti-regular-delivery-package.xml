@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiRegularDeliveryPackageMapper">
+
+    <select id="selectRegularDeliveryPackage" resultType="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiRegularDeliveryPackageDto$FindRes">
+        SELECT CD.BASE_PD_CD AS PKG_PD_CD
+             , PB.PD_NM AS PKG_PD_NM
+             <choose>
+                 <when test='@MybatisUtils@equals(dvCd, "1")'>, PF.FNL_VAL AS PKG_PD_AMT</when>
+                 <otherwise>, CD.FNL_AMT AS PKG_PD_AMT</otherwise>
+             </choose>
+             , NULL AS PDCT_LIST
+          FROM TB_SSCT_CNTR_DTL CD
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON PB.PD_CD = CD.BASE_PD_CD
+           AND PB.TEMP_SAVE_YN = 'N'
+           AND PB.DTA_DL_YN = 'N'
+            <if test='@MybatisUtils@equals(dvCd, "1")'>
+              LEFT OUTER  JOIN (SELECT PD_CD, PD_PRC_FNL_DTL_ID, MAX(FNL_VAL) KEEP(DENSE_RANK FIRST ORDER BY VER_SN DESC) AS FNL_VAL
+                                  FROM TB_PDBS_PD_PRC_FNL_DTL
+                                 WHERE SELL_CHNL_CD = '1010'
+                                   AND PD_PRC_CNDT_CHRC_VAL15 = DECODE(#{prcDvCd}, '1', '4', '2', '3')
+                                   AND TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                                   AND DTA_DL_YN = 'N'
+                                 GROUP BY PD_CD, PD_PRC_FNL_DTL_ID) PF
+                ON PF.PD_CD = CD.BASE_PD_CD
+            </if>
+             WHERE CD.CNTR_NO = #{cntrNo}
+               AND CD.CNTR_SN = #{cntrSn}
+               AND CD.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectChangPsbProducts" resultType="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiRegularDeliveryPackageDto$Product">
+        SELECT PR.OJ_PD_CD AS PDCT_CD
+             , PB.PD_NM AS PDCT_NM
+             , PR.PD_REL_PRP_VAL01  AS PDCT_QTY
+             , PR.PD_REL_PRP_VAL02  AS PDCT_AMT
+          FROM TB_SSCT_CNTR_DTL CD
+         INNER JOIN TB_PDBS_PD_REL PR
+            ON PR.BASE_PD_CD = CD.BASE_PD_CD
+           AND PR.PD_REL_TP_CD = '05'
+           AND TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') BETWEEN PR.VL_STRT_DTM AND PR.VL_END_DTM
+           AND PR.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON PB.PD_CD = PR.OJ_PD_CD
+           AND PB.TEMP_SAVE_YN = 'N'
+           AND PB.DTA_DL_YN = 'N'
+         WHERE CD.CNTR_NO = #{cntrNo}
+           AND CD.CNTR_SN = #{cntrSn}
+           AND CD.DTA_DL_YN = 'N'
+    </select>
+</mapper>

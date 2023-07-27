@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiContractDetailSummaryMapper">
+
+    <select id="selectDetailSummary" resultType="com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractDetailSummaryDvo">
+        SELECT CS.CST_KNM           AS CNTRT_NM
+             , CS.CRAL_LOCARA_TNO   AS CNTRT_CRAL_LOCARA_TNO
+             , CS.MEXNO_ENCR        AS CNTRT_MEXNO
+             , CS.CRAL_IDV_TNO      AS CNTRT_CRAL_IDV_TNO
+             , AB.RCGVP_KNM         AS IST_CST_NM
+             , AB.CRAL_LOCARA_TNO   AS IST_CRAL_LOCARA_TNO
+             , AB.MEXNO_ENCR        AS IST_MEXNO
+             , AB.CRAL_IDV_TNO      AS IST_CRAL_IDV_TNO
+             , AB.LOCARA_TNO        AS IST_LOCARA_TNO
+             , AB.EXNO_ENCR         AS IST_EXNO
+             , AB.IDV_TNO           AS IST_IDV_TNO
+             , CD.BASE_PD_CD
+             , PB.PD_NM             AS BASE_PD_NM
+          FROM TB_SSCT_CNTR_DTL	CD
+         INNER JOIN TB_SSCT_CNTR_BAS CB
+            ON CB.CNTR_NO = CD.CNTR_NO
+           AND CB.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS	CS
+            ON CS.CST_NO = CB.CNTR_CST_NO
+           AND CS.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON PB.PD_CD = CD.BASE_PD_CD
+           AND PB.DTA_DL_YN = 'N'
+           AND PB.TEMP_SAVE_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL AR
+            ON AR.DTL_CNTR_NO = CD.CNTR_NO
+           AND AR.DTL_CNTR_SN = CD.CNTR_SN
+           AND AR.CNTR_UNIT_TP_CD = '020'
+           AND AR.ADRPC_TP_CD = '3'
+           AND AR.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS AB
+            ON AB.CNTR_ADRPC_ID = AR.CNTR_ADRPC_ID
+           AND AB.DTA_DL_YN = 'N'
+         WHERE CD.CNTR_NO = #{CNTR_NO}
+           AND CD.CNTR_SN = #{CNTR_SN}
+           AND CD.DTA_DL_YN = 'N'
+    </select>
+</mapper>

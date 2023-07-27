@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaOrderDetailCssrMapper">
+    <select id="selectContractBaseInformation" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailCssrDto$FindBaseRcpRes">
+        SELECT T1.CSSR_IS_DV_CD    /* 현금영수증발급구분코드 */
+             , T1.CSSR_IS_NO       /* 현금영수증발급번호 */
+             , T1.KW_GRP_CO_CD /* 교원그룹회사코드 */
+             , T1.CST_NO /* 고객번호 */
+             , T1.CNTR_NO
+             , T1.CNTR_SN
+             , (SELECT CH_RSON_CN
+                 FROM (SELECT CNTR_NO
+                            , CNTR_SN
+                            , CST_NO
+                            , CH_RSON_CN
+                            , ROW_NUMBER() OVER(ORDER BY CH_SN DESC) AS RN
+                         FROM TB_RVDW_CSSR_IS_INF_BAS_HIST  /* 현금영수증발급정보기본이력 */
+                        WHERE 1=1
+                          AND KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                          AND CNTR_NO = T1.CNTR_NO
+                          AND CNTR_SN = T1.CNTR_SN
+                          AND CST_NO = T1.CST_NO
+                       )
+                  WHERE RN = 1) AS CH_RSON_CN   /* 마지막 변경사유 */
+          FROM TB_RVDW_CSSR_IS_INF_BAS  T1/* 현금영수증발급정보기본 */
+         WHERE 1=1
+           AND T1.CNTR_NO = #{cntrNo} /* 계약번호 */
+           AND T1.CNTR_SN = #{cntrSn} /* 계약일련번호 */
+           AND T1.KW_GRP_CO_CD = #{session.companyCode} /* 교원 */
+        <if test="@MybatisUtils@isNotEmpty(cstNo)">
+           AND T1.CST_NO = #{cstNo}
+        </if>
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectContractBaseCheck" resultType="Integer">
+        SELECT COUNT(*)
+          FROM TB_RVDW_CSSR_IS_INF_BAS  T1/* 현금영수증발급정보기본 */
+         WHERE 1=1
+           AND T1.CNTR_NO = #{cntrNo} /* 계약번호 */
+           AND T1.CNTR_SN = #{cntrSn} /* 계약일련번호 */
+           AND T1.KW_GRP_CO_CD = #{session.companyCode}/* 교원 */
+        <if test="@MybatisUtils@isNotEmpty(cstNo)">
+           AND T1.CST_NO = #{cstNo}
+        </if>
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectCustomerNumber" resultType="java.lang.String">
+        SELECT CNTR_CST_NO
+          FROM TB_SSCT_CNTR_BAS
+         WHERE 1=1
+           AND CNTR_NO = #{cntrNo}
+           AND DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectCashSalesReceipts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailCssrDto$SearchRcpRes">
+        SELECT T1.RVE_DT /*수납일자*/
+             , T4.PD_NM /*상품명*/
+             , T1.CSSR_AGRG_SN
+             , T2.CNTR_NO || T2.CNTR_SN AS CNTR  /*계약상세번호*/
+             , T2.CNTR_NO
+             , T2.CNTR_SN
+             , CASE WHEN T1.AFCH_CSSR_IS_DV_CD IS NULL THEN T2.CSSR_IS_DV_CD
+                    ELSE T1.AFCH_CSSR_IS_DV_CD END
+                      AS CSSR_IS_DV_CD
+             , T5.CST_KNM /*고객명*/
+             , T1.BFCH_CSSR_TRD_DV_CD /*변경전 공제구분*/
+             , T1.BFCH_CSSR_IS_NO /*변경전 발행번호*/
+             , T1.BFCH_CSSR_TRD_AMT /*변경전 승인금액*/
+             , T1.BFCH_CSSR_APR_RS_CD /*승인결과*/
+             , T1.FST_RGST_DTM /*등록일*/
+             , T1.FST_RGST_USR_ID /*등록자*/
+             , T1.DP_DV_CD /*입금구분코드*/
+             , T1.KW_GRP_CO_CD
+             , T1.CSSR_DTL_SN
+
+             /*변경후*/
+             , T1.AFCH_CSSR_IS_DV_CD /* 현금영수증발급구분코드 */
+             , T1.AFCH_CSSR_TRD_DV_CD/*공제구분*/
+             , T1.AFCH_CSSR_IS_NO/*발행번호*/
+             , T1.AFCH_CSSR_TRD_AMT/*승인금액*/
+             , T1.AFCH_CSSR_APRNO/*승인번호*/
+             , T1.AFCH_CSSR_APR_RS_CD/*승인결과*/
+             , T1.CH_RSON_CN/*변경사유*/
+             , T1.FNL_MDFC_DTM/*등록일*/
+             , T1.FNL_MDFC_USR_ID /*등록자*/
+             , T6.USR_NM AS FNL_MDFC_USR_NM    /* 등록자(이름)*/
+          FROM TB_RVDW_CSSR_IS_CH_IZ T1 /*현금영수증발급변경내역*/
+         INNER JOIN TB_RVDW_CSSR_IS_OJ_DTL T2  /*현금영수증발급대상상세*/
+            ON T2.KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+           AND T2.RVE_DT = T1.RVE_DT
+           AND T2.DP_DV_CD = T1.DP_DV_CD
+           AND T2.CSSR_AGRG_SN = T1.CSSR_AGRG_SN
+           AND T2.CSSR_DTL_SN = T1.CSSR_DTL_SN
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_DTL T3 /*계약상세*/
+            ON T2.CNTR_NO = T3.CNTR_NO
+           AND T2.CNTR_SN = T3.CNTR_SN
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS T4 /*상품기본*/
+            ON T4.PD_CD = T3.BASE_PD_CD
+           AND T4.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS T5 /*고객기본*/
+            ON T5.CST_NO = T2.CST_NO
+           AND T5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN T_CMP_USR_ACO_M T6
+            ON T6.USR_ID = T2.FST_RGST_USR_ID
+           AND T6.DEL_YN = 'N'
+         WHERE 1 = 1
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.KW_GRP_CO_CD = #{session.companyCode} /* 교원 */
+           <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+           AND T2.CNTR_NO = #{cntrNo}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+           AND T2.CNTR_SN = #{cntrSn}
+           </if>
+         ORDER BY T1.CSSR_IS_CH_SN
+    </select>
+
+    <insert id="insertCashSalesReceipt">
+        INSERT INTO TB_RVDW_CSSR_IS_INF_BAS (
+              KW_GRP_CO_CD
+            , CNTR_NO
+            , CNTR_SN
+            , CST_NO
+            , CSSR_IS_DV_CD
+            , CSSR_IS_NO
+            , CSSR_TRD_DV_CD
+            <include refid="COMMON.insertSystemField"/>
+       ) VALUES (
+              NVL(#{kwGrpCoCd}, #{session.companyCode})
+            , #{cntrNo}
+            , #{cntrSn}
+            , #{cstNo}
+            , #{afchCssrIsDvCd}
+            , #{afchCssrIsNo}
+            , #{afchCssrTrdDvCd}
+            <include refid="COMMON.insertSystemFieldValue" />
+       )
+    </insert>
+
+   <insert id="insertCashSalesReceiptApprovalPresentState">
+       INSERT INTO TB_RVDW_CSSR_IS_INF_BAS_HIST (
+             KW_GRP_CO_CD
+           , CNTR_NO
+           , CNTR_SN
+           , CST_NO
+           , CH_SN
+           , BFCH_CSSR_IS_DV_CD
+           , BFCH_CSSR_IS_NO
+           , BFCH_CSSR_TRD_DV_CD
+           , CSSR_IS_DV_CD
+           , CSSR_IS_NO
+           , CSSR_TRD_DV_CD
+           , CH_RSON_CN
+           , DTA_DL_YN
+           <include refid="COMMON.insertSystemField"/>
+      ) VALUES (
+             NVL(#{kwGrpCoCd}, #{session.companyCode})
+           , #{cntrNo}
+           , #{cntrSn}
+           , #{cstNo}
+           , (SELECT
+                     NVL(MAX(CH_SN),0)+1
+                FROM TB_RVDW_CSSR_IS_INF_BAS_HIST T1
+               WHERE T1.KW_GRP_CO_CD = NVL(#{kwGrpCoCd}, #{session.companyCode})
+                 AND T1.CNTR_NO = #{cntrNo}
+                 AND T1.CNTR_SN = #{cntrSn}
+                 AND T1.CST_NO = #{cstNo} )
+           , #{cssrIsDvCd}
+           , #{cssrIsNo}
+           , #{cssrTrdDvCd}
+           , #{afchCssrIsDvCd}
+           , #{afchCssrIsNo}
+           , #{afchCssrTrdDvCd}
+           , #{chRsonCn}
+           , 'N'
+           <include refid="COMMON.insertSystemFieldValue" />
+      )
+    </insert>
+
+
+   <insert id="insertCashSalesReceiptChangeHistory">
+           INSERT INTO TB_RVDW_CSSR_IS_CH_IZ (
+                  KW_GRP_CO_CD /*교원그룹회사코드*/
+                , RVE_DT /*수납일자*/
+                , DP_DV_CD /*입금구분코드*/
+                , CSSR_AGRG_SN /*현금영수증집계일련번호*/
+                , CSSR_DTL_SN /*현금영수증상세일련번호*/
+                , CSSR_IS_CH_SN /*현금영수증발급변경일련번호*/
+
+                , BFCH_CSSR_IS_DV_CD /*변경전현금영수증발급구분코드*/
+                , BFCH_CSSR_IS_NO /*변경전현금영수증발급번호*/
+                , BFCH_CSSR_TRD_AMT /*변경전현금영수증거래금액*/
+                , BFCH_CSSR_TRD_DV_CD /*변경전현금영수증거래구분코드*/
+                , BFCH_CSSR_APR_DT /*변경전현금영수증승인일자*/
+                , BFCH_CSSR_APR_DV_CD /*변경전현금영수증승인구분코드*/
+                , BFCH_CSSR_APRNO /*변경전현금영수증승인번호*/
+                , BFCH_CSSR_APR_RS_CD /*변경전현금영수증승인결과코드*/
+
+                , AFCH_CSSR_IS_DV_CD /*변경후현금영수증발급구분코드*/
+                , AFCH_CSSR_IS_NO /*변경후현금영수증발급번호*/
+                , AFCH_CSSR_TRD_DV_CD /*변경후현금영수증거래구분코드*/
+                , AFCH_CSSR_TRD_AMT /*변경후현금영수증거래금액*/
+                , AFCH_CSSR_APR_DT /*변경후현금영수증승인일자*/
+                , AFCH_CSSR_APR_DV_CD /*변경후현금영수증승인구분코드*/
+                , AFCH_CSSR_APRNO /*변경후현금영수증승인번호*/
+                , AFCH_CSSR_APR_RS_CD  /*변경후현금영수증승인결과코드*/
+                , CH_RSON_CN /*변경사유내용*/
+                <include refid="COMMON.insertSystemField"/>
+           ) SELECT
+                T1.KW_GRP_CO_CD
+              , T1.RVE_DT
+              , T1.DP_DV_CD
+              , T1.CSSR_AGRG_SN
+              , T1.CSSR_DTL_SN
+              , (SELECT NVL(MAX(T2.CSSR_IS_CH_SN),0)+1
+                   FROM TB_RVDW_CSSR_IS_CH_IZ T2
+                  WHERE 1 = 1
+                    AND T1.KW_GRP_CO_CD = T2.KW_GRP_CO_CD /*교원그룹회사코드*/
+                    AND T1.RVE_DT = T2.RVE_DT /*수납일자*/
+                    AND T1.DP_DV_CD = T2.DP_DV_CD /*입금구분코드*/
+                    AND T1.CSSR_AGRG_SN = T2.CSSR_AGRG_SN /*현금영수증집계일련번호*/
+                    AND T1.CSSR_DTL_SN = T2.CSSR_DTL_SN /*현금영수증상세일련번호*/
+                 )
+              , T1.CSSR_IS_DV_CD
+              , #{bfchCssrIsNo}
+              , T1.CSSR_TRD_AMT
+              , T1.CSSR_TRD_DV_CD
+              , T1.CSSR_APR_DT
+              , T1.CSSR_APR_DV_CD
+              , T1.CSSR_APRNO
+              , T1.CSSR_APR_RS_CD
+
+              , #{afchCssrIsDvCd} /*변경후현금영수증발급구분코드*/
+              , #{afchCssrIsNo} /*변경후현금영수증발급번호*/
+              , #{afchCssrTrdDvCd} /*변경후현금영수증거래구분코드*/
+
+              , T1.CSSR_TRD_AMT /*변경후현금영수증거래금액*/
+              , T1.CSSR_APR_DT /*변경후현금영수증승인일자*/
+              , T1.CSSR_APR_DV_CD /*변경후현금영수증승인구분코드*/
+              , T1.CSSR_APRNO /*변경후현금영수증승인번호*/
+              , T1.CSSR_APR_RS_CD  /*변경후현금영수증승인결과코드*/
+
+              , #{chRsonCn} /*변경사유내용*/
+              <include refid="COMMON.insertSystemFieldValue" />
+           FROM TB_RVDW_CSSR_IS_OJ_DTL T1
+          WHERE 1 = 1
+            AND T1.KW_GRP_CO_CD = #{kwGrpCoCd} /*교원그룹회사코드*/
+            AND T1.RVE_DT = #{rveDt} /*수납일자*/
+            AND T1.DP_DV_CD = #{dpDvCd} /*입금구분코드*/
+            AND T1.CSSR_AGRG_SN = #{cssrAgrgSn} /*현금영수증집계일련번호*/
+            AND T1.CSSR_DTL_SN = #{cssrDtlSn} /*현금영수증상세일련번호*/
+            AND T1.CNTR_NO = #{cntrNo}
+            AND T1.CNTR_SN = #{cntrSn}
+    </insert>
+
+    <update id="updateCashSalesReceiptApprovalPresentState">
+       UPDATE TB_RVDW_CSSR_IS_INF_BAS
+          SET CSSR_IS_DV_CD = #{afchCssrIsDvCd}
+            , CSSR_IS_NO = #{afchCssrIsNo}
+            , CSSR_TRD_DV_CD = #{afchCssrTrdDvCd}
+           <include refid="COMMON.updateSystemField"/>
+        WHERE 1 = 1
+          AND KW_GRP_CO_CD = #{kwGrpCoCd}
+          AND CNTR_NO = #{cntrNo}
+          AND CNTR_SN = #{cntrSn}
+        <if test="@MybatisUtils@isNotEmpty(cstNo)">
+          AND CST_NO = #{cstNo}
+        </if>
+    </update>
+
+    <update id="updateCashSalesReceiptRegistration">
+        UPDATE TB_RVDW_CSSR_IS_OJ_DTL
+           SET CSSR_IS_DV_CD = #{afchCssrIsDvCd} /*발급구분*/
+             , CSSR_IS_NO = #{afchCssrIsNo} /*발급번호*/
+             , CSSR_TRD_DV_CD = #{afchCssrTrdDvCd} /*공제구분*/
+             , CSSR_IS_CH_YN = 'Y' /*변경여부*/
+             , CSSR_IS_CHDT =  TO_CHAR(SYSDATE,'YYYYMMDD') /*변경일자*/
+             , CSSR_IS_CH_SN = (SELECT MAX(CSSR_IS_CH_SN)
+                                  FROM TB_RVDW_CSSR_IS_OJ_DTL
+                                 WHERE 1 = 1
+                                   AND KW_GRP_CO_CD = #{kwGrpCoCd} /*교원그룹회사코드*/
+                                   AND RVE_DT = #{rveDt} /*수납일자*/
+                                   AND DP_DV_CD = #{dpDvCd} /*입금구분코드*/
+                                   AND CSSR_AGRG_SN = #{cssrAgrgSn} /*현금영수증집계일련번호*/
+                                   AND CSSR_DTL_SN = #{cssrDtlSn} ) /*변경일련번호*/
+             <include refid="COMMON.updateSystemField"/>
+         WHERE 1 =1
+           AND KW_GRP_CO_CD = #{kwGrpCoCd} /*교원그룹회사코드*/
+           AND RVE_DT = #{rveDt} /*수납일자*/
+           AND DP_DV_CD = #{dpDvCd} /*입금구분코드*/
+           AND CSSR_AGRG_SN = #{cssrAgrgSn} /*현금영수증집계일련번호*/
+           AND CSSR_DTL_SN = #{cssrDtlSn} /*현금영수증상세일련번호*/
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+</mapper>

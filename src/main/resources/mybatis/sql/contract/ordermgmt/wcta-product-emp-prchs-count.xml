@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaProductEmpPrchsCountMapper">
+    <select id="selectProductEmpPrchsCount" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_SSCT_CNTR_BAS A/* 계약기본 */
+        INNER JOIN TB_SSCT_CNTR_DTL B/* 계약상세 */
+            ON A.CNTR_NO = B.CNTR_NO 
+        WHERE 1=1
+            AND A.DTA_DL_YN != 'Y'
+            AND B.DTA_DL_YN != 'Y'
+            AND B.CNTR_DTL_STAT_CD !='303'
+            AND A.CNTR_TP_CD = '03'
+            <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+            AND A.CNTR_NO = #{cntrNo}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+            AND B.CNTR_SN = #{cntrSn}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>
+            AND B.SELL_TP_CD = #{sellTpCd}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(startDate)'>
+            AND B.CNTR_PD_STRTDT <![CDATA[ >= ]]>  #{startDate}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(endDate)'>
+            AND B.CNTR_PD_ENDDT <![CDATA[ <= ]]> #{endDate}
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(startDate) and @MybatisUtils@isNotEmpty(endDate)'>
+            AND A.CNTR_RCP_FSH_DTM BETWEEN #{startDate} AND #{endDate}
+            </if>
+    </select>
+</mapper>

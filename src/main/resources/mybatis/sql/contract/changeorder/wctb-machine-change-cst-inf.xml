@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbMachineChangeCstInfMapper">
+    <select id="selectMachineChangeCstInf" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctbMachineChangeCstInfDto$SearchRes">
+        SELECT A1.OJ_CNTR_NO /* 기기변경내역.대상계약번호 */
+             , A1.OJ_CNTR_SN /* 기기변경내역.대상계약일련번호 */
+             , A1.MCHN_CH_TP_CD /* 기기변경내역.기기변경유형코드 */
+             , B1.BASE_PD_CD /* 계약상세.기준상품코드 */
+             , B1.SELL_TP_CD /* 계약상세.판매유형코드 */
+             , A1.MCHN_CPS_APYR /* 기기변경내역.기기보상적용율 */
+          FROM TB_SSCT_MCHN_CH_IZ A1 /* 기기변경내역 */
+         INNER JOIN TB_SSCT_CNTR_DTL B1 /* 계약상세 */
+            ON A1.OJ_CNTR_NO = B1.CNTR_NO /* 기기변경내역.대상계약번호 = 계약상세.계약번호 */
+           AND A1.OJ_CNTR_SN = B1.CNTR_SN /* 기기변경내역.대상계약일련번호 = 계약상세.계약일련번호 */
+         WHERE 1=1
+           AND A1.DTA_DL_YN = 'N' /* 기기변경내역.데이터삭제여부 */
+           AND B1.DTA_DL_YN = 'N' /* 계약상세.데이터삭제여부 */
+           AND A1.BASE_CNTR_NO = #{baseCntrNo} /* 조회조건 : 기기변경내역.기준계약번호 */
+           AND A1.BASE_CNTR_SN = #{baseCntrSn} /* 조회조건 : 기기변경내역.기준계약일련번호 */
+           AND A1.MCHN_CH_SN = (
+               SELECT MAX(C1.MCHN_CH_SN)
+                 FROM TB_SSCT_MCHN_CH_IZ C1
+                WHERE 1=1
+                  AND C1.BASE_CNTR_NO = #{baseCntrNo}
+                  AND C1.BASE_CNTR_SN = #{baseCntrSn}) /* 조회조건 : 기기변경내역.기기변경일련번호 최대값*/
+    </select>
+</mapper>

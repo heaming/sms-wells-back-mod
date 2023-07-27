@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractRegStep4Mapper">
+
+    <select id="selectCntrDtls" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep4Dvo$CntrDtlDvo">
+        SELECT T2.CNTR_NO
+             , T1.CNTR_SN
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_NM
+             , T3.PD_NM
+             , NVL(T1.CNTR_AMT, 0) AS REG_AMT
+             , CASE WHEN '1' = T1.SELL_TP_CD THEN 0
+                    ELSE (
+                          SELECT NVL(STLM_AMT, 0)
+                            FROM TB_SSCT_CNTR_STLM_REL
+                           WHERE DTL_CNTR_NO = T1.CNTR_NO
+                             AND DTL_CNTR_SN = T1.CNTR_SN
+                             AND DP_TP_CD IN ('0203', '0102')
+                             AND DTA_DL_YN = 'N'
+                          )
+               END AS RNTL_AMT
+             , CASE WHEN '1' = T1.SELL_TP_CD THEN NVL(T1.FNL_AMT, 0)
+                    ELSE 0
+               END AS PD_AMT
+             , NVL(T1.CNTR_PTRM, 0) AS CNTR_PTRM
+             , NVL(T1.STPL_PTRM, 0) AS STPL_PTRM
+             , NVL(T1.DSC_AMT, 0) AS DSC_AMT
+          FROM TB_SSCT_CNTR_DTL T1
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS T3
+            ON T3.PD_CD = T1.BASE_PD_CD
+           AND T3.DTA_DL_YN = 'N'
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.CNTR_NO = #{cntrNo}
+         ORDER BY T1.CNTR_SN
+    </select>
+
+    <select id="selectStlmDtls" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep4Dvo$StlmDtlDvo">
+        SELECT CASE WHEN T2.RVE_DV_CD = '01' THEN '일시불'
+                    WHEN T2.RVE_DV_CD = '03' THEN '월납입액'
+                    ELSE '자동이체'
+               END AS STLM_TP
+             , CASE WHEN T1.DP_TP_CD = '0201' THEN '카드'
+                    WHEN T1.DP_TP_CD = '0101' THEN '가상계좌'
+                    WHEN T1.DP_TP_CD = '0203' THEN '카드이체'
+                    WHEN T1.DP_TP_CD = '0102' THEN '계좌이체'
+               END AS STLM_MTH
+             , SUM(T2.STLM_AMT) AS STLM_AMT
+          FROM TB_SSCT_CNTR_STLM_BAS T1
+         INNER JOIN TB_SSCT_CNTR_STLM_REL T2
+            ON T2.CNTR_STLM_ID = T1.CNTR_STLM_ID
+           AND T2.DTA_DL_YN = 'N'
+         WHERE T1.CNTR_NO = #{cntrNo}
+           AND T1.DTA_DL_YN = 'N'
+         GROUP BY T2.RVE_DV_CD, T1.DP_TP_CD
+         ORDER BY T2.RVE_DV_CD, T1.DP_TP_CD DESC
+    </select>
+
+    <!-- STEP4 저장 -->
+    <update id="updateCntrBasStep4">
+        UPDATE TB_SSCT_CNTR_BAS /* 계약기본 */
+           SET CST_STLM_IN_MTH_CD  = #{cstStlmInMthCd}      /* 고객결제입력방법코드 */
+             , CNTR_TEMP_SAVE_DTM  = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , CNTR_RCP_FSH_DTM    = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO             = #{cntrNo}              /* 계약번호 */
+           AND DTA_DL_YN = 'N'
+    </update>
+</mapper>

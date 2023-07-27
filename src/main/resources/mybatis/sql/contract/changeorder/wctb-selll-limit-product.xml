@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbSellLimitProductMapper">
+
+    <select id="selectQtyCheck" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbSellLimitProductQtyDvo">
+        SELECT SELL_LM_PD_BASE_ID   /* 판매제한상품기준ID */
+             , SELL_BASE_QTY        /* 판매기준수량 */
+             , SELL_ACU_QTY         /* 판매누적수량 */
+             , SELL_BASE_QTY - SELL_ACU_QTY AS WORK_QTY /* 잔여수량 */
+             , CASE WHEN VL_END_DTM = '99991231235959' THEN 'N' ELSE 'Y' END STP_YN
+          FROM (SELECT SELL_LM_PD_BASE_ID
+                     , NVL(SELL_BASE_QTY, 0) AS SELL_BASE_QTY
+                     , NVL(SELL_ACU_QTY, 0) AS SELL_ACU_QTY
+                     , VL_END_DTM
+                     , ROW_NUMBER () OVER (ORDER BY SELL_LM_PD_BASE_ID DESC) AS RN
+                  FROM TB_SSCT_SELL_LM_PD_QTY_BAS
+                 WHERE PD_CD = #{pdCd}
+                   AND DTA_DL_YN = 'N'
+               )
+         WHERE RN = 1
+    </select>
+
+    <update id="updateSellLimitPdQtyBasVlEndDtm">
+        UPDATE TB_SSCT_SELL_LM_PD_QTY_BAS
+           SET VL_END_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+              <include refid="COMMON.updateSystemField"/>
+          WHERE SELL_LM_PD_BASE_ID = #{sellLmPdBaseId}
+    </update>
+
+    <insert id="insertSellLimitPdQtyBas">
+        <selectKey keyProperty="item.sellLmPdBaseId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(SELL_LM_PD_BASE_ID)), 0) +1, 15, '0')
+              FROM TB_SSCT_SELL_LM_PD_QTY_BAS
+        </selectKey>
+        INSERT INTO TB_SSCT_SELL_LM_PD_QTY_BAS(
+            SELL_LM_PD_BASE_ID
+            , VL_STRT_DTM
+            , VL_END_DTM
+            , PD_CD
+            , PD_TP_CD
+            , SELL_BASE_QTY
+            , SELL_ACU_QTY
+            , SAP_MAT_CD_LM_YN
+            , BIZD_MARK_YN
+            , SELL_LM_RSON_CN
+            , MSG_OJ_DV_CD
+            , MSG_CN
+            , MSG_OJ_USR_ID
+            , FW_DTM
+            , FW_ID
+            , DTA_DL_YN
+            <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT #{item.sellLmPdBaseId}
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+              <choose>
+                  <when test="@MybatisUtils@isNotEmpty(item.sellLmRsonCn)">, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')</when>
+                  <otherwise>, '99991231235959'</otherwise>
+              </choose>
+             , PD_CD
+             , PD_TP_CD
+             , SELL_BASE_QTY
+             , #{item.sellAcuQty}
+             , SAP_MAT_CD_LM_YN
+             , BIZD_MARK_YN
+             , #{item.sellLmRsonCn}
+             , MSG_OJ_DV_CD
+             , MSG_CN
+             , MSG_OJ_USR_ID
+             , FW_DTM
+             , FW_ID
+             , 'N'
+            <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SSCT_SELL_LM_PD_QTY_BAS
+         WHERE SELL_LM_PD_BASE_ID = #{sellLmPdBaseId}
+    </insert>
+</mapper>
+

@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaEstimateOrdWrteListMapper">
+    <select id="selectEstimateOrdWrteLists" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaEstimateOrdWrteListDto$SearchRes">
+        SELECT A1.CNTR_NO                           AS CNTR_NO              /*계약번호*/
+             , A2.CNTR_SN                           AS CNTR_SN              /*계약일련번호*/
+             , A2.SELL_TP_CD                        AS SELL_TP_CD           /*판매유형코드*/
+             , CASE WHEN A2.SELL_TP_CD = '1'
+                        THEN '일시불'
+                    WHEN A2.SELL_TP_CD = '2'
+                        THEN '렌탈'
+                    ELSE '' END                     AS SELL_TP_CD_NM        /*판매유형코드명*/
+             , A1.COPN_DV_CD                        AS COPN_DV_CD           /*법인격구분코드*/
+             , (SELECT CD_CNTN
+                  FROM T_CMZ_CD_D
+                 WHERE TENANT_ID='TNT_WELLS'
+                   AND CD_ID='COPN_DV_CD'
+                   AND CD_USE_YN='Y'
+                   AND DEL_YN='N'
+                   AND CD_VLD_VAL=A1.COPN_DV_CD
+               )                                    AS COPN_DV_CD_NM        /*법인격구분코드명*/
+             , C1.CST_KNM                           AS CST_KNM              /*고객한글명*/
+             , CASE WHEN A1.COPN_DV_CD = '1' /*개인*/
+                        THEN C1.BRYY_MMDD
+                    WHEN A1.COPN_DV_CD = '2' /*법인*/
+                        THEN C1.BZRNO
+                    ELSE '' END                     AS BRYY_MMDD_BZRNO      /*생년월일(사업자번호)*/
+             , SUBSTR(A1.CNTR_TEMP_SAVE_DTM,1,8)    AS CNTR_TEMP_SAVE_DT    /*견적일*/
+             , CASE WHEN E1.FW_YN = 'Y'
+                    THEN E1.FW_CHK_DT
+                    ELSE '' END                     AS SND_DT               /*발송일*/
+             , D1.PD_NM                             AS PD_NM                /*상품명*/
+             , A2.BASE_PD_CD                        AS BASE_PD_CD           /*상품코드*/
+             , A2.SELL_AMT                          AS SELL_AMT             /*할인적용가*/
+          FROM TB_SSCT_CNTR_BAS A1 /*계약기본*/
+         INNER JOIN TB_SSCT_CNTR_DTL A2 /*계약상세*/
+            ON A1.CNTR_NO = A2.CNTR_NO
+           AND A1.CNTR_PRGS_STAT_CD <![CDATA[<=]]> '60'
+           AND A2.DTA_DL_YN = 'N'
+    <choose>
+      <when test='@MybatisUtils@isNotEmpty(inqrDv)'>
+        <if test='@MybatisUtils@equals(inqrDv, "1")'>
+           AND A2.SELL_TP_CD = '1' /*일시불*/
+        </if>
+        <if test='@MybatisUtils@equals(inqrDv, "2")'>
+           AND A2.SELL_TP_CD = '2' /*렌탈*/
+        </if>
+      </when>
+      <otherwise>
+           AND A2.SELL_TP_CD IN ('1', '2') /*1:일시불,2:렌탈*/
+      </otherwise>
+    </choose>
+         INNER JOIN TB_CUBS_CST_BAS C1 /*고객기본*/ ON A1.CNTR_CST_NO = C1.CST_NO AND C1.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS D1 /*상품기본*/ ON A2.BASE_PD_CD = D1.PD_CD AND D1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_BFSVC_HCNTAK_FW_IZ E1 /*BS해피콜알림톡발송내역*/ ON A2.CNTR_NO = E1.CNTR_NO AND A2.CNTR_SN = E1.CNTR_SN AND E1.DTA_DL_YN = 'N'
+           AND E1.FW_CHK_DT = (CASE WHEN E1.FW_YN = 'Y' THEN (SELECT MAX(FW_CHK_DT) FROM TB_SVPD_BFSVC_HCNTAK_FW_IZ WHERE A2.CNTR_NO = CNTR_NO AND A2.CNTR_SN = CNTR_SN AND DTA_DL_YN = 'N') ELSE '' END)
+         WHERE 1 = 1
+           AND A1.CNTR_TP_CD = '09' /*01:개인,02:법인,03:임직원,07:멤버십,08:재약정,09:견적서*/
+           AND SUBSTR(A1.CNTR_TEMP_SAVE_DTM,1,6) BETWEEN #{fromEstDt} AND #{toEstDt}
+    <if test='@MybatisUtils@isNotEmpty(cntrt)'>
+           AND C1.CST_KNM = #{cntrt} /*계약자명*/
+    </if>
+           AND A1.DTA_DL_YN = 'N'
+         ORDER BY A1.CNTR_TEMP_SAVE_DTM ASC
+    </select>
+    <select id="selectCntrStlmId" resultType="java.lang.String">
+        SELECT MAX(CNTR_STLM_ID)
+          FROM TB_SSCT_CNTR_STLM_REL
+         WHERE 1=1
+           AND DTA_DL_YN = 'N'
+           AND DTL_CNTR_NO = #{cntrNo}
+           AND DTL_CNTR_SN = #{cntrSn}
+           AND VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND VL_END_DTM  <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+    </select>
+    <!--계약기본-->
+    <update id="updateCntrBas">
+        UPDATE TB_SSCT_CNTR_BAS
+           SET CNTR_PRGS_STAT_CD = '99' /* 계약진행상태코드 99: 삭제 */
+          <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_NO = #{cntrNo}
+           AND DTA_DL_YN = 'N'
+    </update>
+    <!--계약변경이력-->
+    <update id="updateCntrChHist">
+        UPDATE TB_SSCT_CNTR_CH_HIST
+           SET HIST_END_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+          <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_NO = #{cntrNo}
+           AND HIST_END_DTM = '99991231235959'
+    </update>
+    <insert id="insertCntrChHist">
+        INSERT INTO TB_SSCT_CNTR_CH_HIST(
+              CNTR_NO
+             , HIST_STRT_DTM
+             , HIST_END_DTM
+             , CNTR_CST_NO
+             , COPN_DV_CD
+             , SELL_INFLW_CHNL_DTL_CD
+             , SELL_OG_TP_CD
+             , SELL_PRTNR_NO
+             , CNTR_TP_CD
+             , CNTR_NAT_CD
+             , CNTR_PRGS_STAT_CD
+             , CST_STLM_IN_MTH_CD
+             , PRR_RCP_CNTR_YN
+             , CNTR_TEMP_SAVE_DTM
+             , CNTR_RCP_FSH_DTM
+             , CNTR_STLM_FSH_DTM
+             , CNTR_CNFM_APR_AK_DTM
+             , CNTR_CNFM_APR_DTM
+             , CNTR_CNFM_DTM
+             , CNTR_CAN_DTM
+             , CNTR_CAN_RSON_CD
+             , CNTR_PRGS_STAT_MO_CN
+             , DSB_GUR_TP_CD
+             , CNTR_INFLW_PH_DV_CD
+             , PSPC_CST_ID
+             , CNTR_CH_RCP_ID
+             , DCEVDN_DOC_ID
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT CNTR_NO
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , '99991231235959'
+             , CNTR_CST_NO
+             , COPN_DV_CD
+             , SELL_INFLW_CHNL_DTL_CD
+             , SELL_OG_TP_CD
+             , SELL_PRTNR_NO
+             , CNTR_TP_CD
+             , CNTR_NAT_CD
+             , CNTR_PRGS_STAT_CD
+             , CST_STLM_IN_MTH_CD
+             , PRR_RCP_CNTR_YN
+             , CNTR_TEMP_SAVE_DTM
+             , CNTR_RCP_FSH_DTM
+             , CNTR_STLM_FSH_DTM
+             , CNTR_CNFM_APR_AK_DTM
+             , CNTR_CNFM_APR_DTM
+             , CNTR_CNFM_DTM
+             , CNTR_CAN_DTM
+             , CNTR_CAN_RSON_CD
+             , CNTR_PRGS_STAT_MO_CN
+             , DSB_GUR_TP_CD
+             , CNTR_INFLW_PH_DV_CD
+             , PSPC_CST_ID
+             , CNTR_CH_RCP_ID
+             , DCEVDN_DOC_ID
+             , DTA_DL_YN
+             , FST_RGST_DTM
+             , FST_RGST_USR_ID
+             , FST_RGST_PRG_ID
+             , FST_RGST_DEPT_ID
+             , FNL_MDFC_DTM
+             , FNL_MDFC_USR_ID
+             , FNL_MDFC_PRG_ID
+             , FNL_MDFC_DEPT_ID
+          FROM TB_SSCT_CNTR_BAS
+         WHERE CNTR_NO = #{cntrNo}
+    </insert>
+    <!--계약상세-->
+    <update id="updateCntrDtl">
+        UPDATE TB_SSCT_CNTR_DTL
+           SET CNTR_DTL_STAT_CD = '303' /* 계약상세상태코드 303:계약취소 */
+          <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND DTA_DL_YN = 'N'
+    </update>
+    <!--계약상세변경이력-->
+    <update id="updateCntrDchHist">
+        UPDATE TB_SSCT_CNTR_DCH_HIST
+           SET HIST_END_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+          <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND HIST_END_DTM = '99991231235959'
+    </update>
+    <insert id="insertCntrDchHist">
+        INSERT INTO TB_SSCT_CNTR_DCH_HIST(
+              CNTR_NO
+             , HIST_STRT_DTM
+             , CNTR_SN
+             , HIST_END_DTM
+             , BASE_PD_CD
+             , HGR_PD_CD
+             , PD_QTY
+             , STPL_PTRM_UNIT_CD
+             , STPL_PTRM
+             , ISTM_MCN
+             , CNTR_PD_STRTDT
+             , CNTR_PD_ENDDT
+             , CNTR_DTL_STAT_CD
+             , CNTR_PTRM_UNIT_CD
+             , CNTR_PTRM
+             , CNTR_TAM
+             , CTT_RS_CD
+             , CTT_PSIC_ID
+             , SELL_TP_CD
+             , SELL_TP_DTL_CD
+             , SV_PTRM_UNIT_CD
+             , SV_PRD
+             , CNTRW_TP_CD
+             , BLG_CRP_CD
+             , RVE_CRP_CD
+             , CO_CD
+             , BOO_SELL_TP_CD
+             , PD_GD_CD
+             , PD_HCLSF_ID
+             , PD_MCLSF_ID
+             , PD_LCLSF_ID
+             , PD_DCLSF_ID
+             , SELL_DSC_DV_CD
+             , SELL_DSCR_CD
+             , SELL_DSC_CTR_AMT
+             , SELL_DSC_TP_CD
+             , STLM_TP_CD
+             , CRNCY_DV_CD
+             , APY_EXCR
+             , PD_BASE_AMT
+             , FNL_AMT
+             , VAT
+             , SELL_AMT
+             , CNTR_AMT
+             , DSC_AMT
+             , CNTRAM_DSC_AMT
+             , ISTM_PCAM_AMT
+             , ISTM_INT_AMT
+             , MM_ISTM_AMT
+             , CRP_UC_AMT
+             , SELL_FEE
+             , ACKMT_PERF_RT
+             , ACKMT_PERF_AMT
+             , CVT_PERF_AMT
+             , FEE_ACKMT_CT
+             , FEE_ACKMT_BASE_AMT
+             , FEE_FXAM_YN
+             , SPP_DUEDT
+             , RESUB_YN
+             , RSTL_YN
+             , FRISU_YN
+             , FRISU_DSB_TP_CD
+             , TXINV_PBL_OJ_YN
+             , ALNCMP_CD
+             , ALNCMP_CNTR_DRM_VAL
+             , SMTPL_ID
+             , SMTPL_SN
+             , BF_ORD_NO
+             , CNTR_CH_RCP_ID
+             , CNTR_CH_SN
+             , CNTR_CH_DTL_AK_CN
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>
+        )SELECT CNTR_NO
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , CNTR_SN
+             , '99991231235959'
+             , BASE_PD_CD
+             , HGR_PD_CD
+             , PD_QTY
+             , STPL_PTRM_UNIT_CD
+             , STPL_PTRM
+             , ISTM_MCN
+             , CNTR_PD_STRTDT
+             , CNTR_PD_ENDDT
+             , CNTR_DTL_STAT_CD
+             , CNTR_PTRM_UNIT_CD
+             , CNTR_PTRM
+             , CNTR_TAM
+             , CTT_RS_CD
+             , CTT_PSIC_ID
+             , SELL_TP_CD
+             , SELL_TP_DTL_CD
+             , SV_PTRM_UNIT_CD
+             , SV_PRD
+             , CNTRW_TP_CD
+             , BLG_CRP_CD
+             , RVE_CRP_CD
+             , CO_CD
+             , BOO_SELL_TP_CD
+             , PD_GD_CD
+             , PD_HCLSF_ID
+             , PD_MCLSF_ID
+             , PD_LCLSF_ID
+             , PD_DCLSF_ID
+             , SELL_DSC_DV_CD
+             , SELL_DSCR_CD
+             , SELL_DSC_CTR_AMT
+             , SELL_DSC_TP_CD
+             , STLM_TP_CD
+             , CRNCY_DV_CD
+             , APY_EXCR
+             , PD_BASE_AMT
+             , FNL_AMT
+             , VAT
+             , SELL_AMT
+             , CNTR_AMT
+             , DSC_AMT
+             , CNTRAM_DSC_AMT
+             , ISTM_PCAM_AMT
+             , ISTM_INT_AMT
+             , MM_ISTM_AMT
+             , CRP_UC_AMT
+             , SELL_FEE
+             , ACKMT_PERF_RT
+             , ACKMT_PERF_AMT
+             , CVT_PERF_AMT
+             , FEE_ACKMT_CT
+             , FEE_ACKMT_BASE_AMT
+             , FEE_FXAM_YN
+             , SPP_DUEDT
+             , RESUB_YN
+             , RSTL_YN
+             , FRISU_YN
+             , FRISU_DSB_TP_CD
+             , TXINV_PBL_OJ_YN
+             , ALNCMP_CD
+             , ALNCMP_CNTR_DRM_VAL
+             , SMTPL_ID
+             , SMTPL_SN
+             , BF_ORD_NO
+             , CNTR_CH_RCP_ID
+             , CNTR_CH_SN
+             , CNTR_CH_DTL_AK_CN
+             , DTA_DL_YN
+             , FST_RGST_DTM
+             , FST_RGST_USR_ID
+             , FST_RGST_PRG_ID
+             , FST_RGST_DEPT_ID
+             , FNL_MDFC_DTM
+             , FNL_MDFC_USR_ID
+             , FNL_MDFC_PRG_ID
+             , FNL_MDFC_DEPT_ID
+          FROM TB_SSCT_CNTR_DTL
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </insert>
+    <!--계약상세상태변경이력-->
+    <update id="updateCntrDtlStatChHist">
+        UPDATE TB_SSCT_CNTR_DTL_STAT_CH_HIST
+           SET HIST_END_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , DTA_DL_YN = 'Y'
+          <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND DTA_DL_YN = 'N'
+           AND HIST_END_DTM = '99991231235959'
+    </update>
+    <insert id="insertCntrDetailStatChangeHist">
+         INSERT INTO TB_SSCT_CNTR_DTL_STAT_CH_HIST (
+                CNTR_NO
+              , CNTR_SN
+              , HIST_STRT_DTM
+              , HIST_END_DTM
+              , CNTR_DTL_STAT_CD
+              , CNTR_DTL_STAT_CH_RSON_CD
+              , CNTR_DTL_STAT_CH_MO_CN
+              , DTA_DL_YN
+              <include refid="COMMON.insertSystemField" />)
+         SELECT CNTR_NO
+              , CNTR_SN
+              , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+              , '99991231235959'
+              , CNTR_DTL_STAT_CD
+              , ''
+              , CNTR_CH_DTL_AK_CN
+              , 'N'
+              <include refid="COMMON.insertSystemFieldValue" />
+           FROM TB_SSCT_CNTR_DTL
+          WHERE CNTR_NO = #{cntrNo}
+            AND CNTR_SN = #{cntrSn}
+     </insert>
+    <!--계약결제관계-->
+    <update id="updateCntrStlmRel">
+        UPDATE TB_SSCT_CNTR_STLM_REL
+           SET DTA_DL_YN = 'Y'
+             , VL_END_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+          <include refid="COMMON.updateSystemField"/>
+         WHERE DTL_CNTR_NO = #{cntrNo}
+           AND DTL_CNTR_SN = #{cntrSn}
+           AND DTA_DL_YN = 'N'
+           AND VL_END_DTM = '99991231235959'
+    </update>
+    <!--계약결제기본-->
+    <update id="updateCntrStlmBas">
+        UPDATE TB_SSCT_CNTR_STLM_BAS
+           SET DTA_DL_YN = 'Y'
+          <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_STLM_ID = #{cntrStlmId}
+           AND DTA_DL_YN = 'N'
+    </update>
+    <!--계약결제변경이력-->
+    <update id="updateCntrStlmChHist">
+        UPDATE TB_SSCT_CNTR_STLM_CH_HIST
+           SET HIST_END_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+          <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_STLM_ID = #{cntrStlmId}
+           AND HIST_END_DTM = '99991231235959'
+    </update>
+    <insert id="insertCntrStlmChHist">
+        INSERT INTO TB_SSCT_CNTR_STLM_CH_HIST (
+              CNTR_STLM_ID
+            , HIST_STRT_DTM
+            , HIST_END_DTM
+            , CST_NO
+            , CNTR_NO
+            , CNTRT_REL_CD
+            , OWR_KNM
+            , DP_TP_CD
+            , BNK_CD
+            , CDCO_CD
+            , ACNO_ENCR
+            , CRCDNO_ENCR
+            , CARD_EXPDT_YM
+            , MPY_BSDT
+            , HS_CTF_YN
+            , VNCO_DV_CD
+            , PYER_NO
+            , FNIT_APR_RS_CD
+            , AC_FNT_IMPS_CD
+            , CARD_FNT_IMPS_CD
+            , FNT_EVID_DRM_VAL
+            , REUSE_OJ_YN
+            , DTA_DL_YN
+            <include refid="COMMON.insertSystemField" />
+        ) SELECT CNTR_STLM_ID
+                , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                , '99991231235959'
+                , CST_NO
+                , CNTR_NO
+                , CNTRT_REL_CD
+                , OWR_KNM
+                , DP_TP_CD
+                , BNK_CD
+                , CDCO_CD
+                , ACNO_ENCR
+                , CRCDNO_ENCR
+                , CARD_EXPDT_YM
+                , MPY_BSDT
+                , HS_CTF_YN
+                , VNCO_DV_CD
+                , PYER_NO
+                , FNIT_APR_RS_CD
+                , AC_FNT_IMPS_CD
+                , CARD_FNT_IMPS_CD
+                , FNT_EVID_DRM_VAL
+                , REUSE_OJ_YN
+                , DTA_DL_YN
+                , FST_RGST_DTM
+               , FST_RGST_USR_ID
+               , FST_RGST_PRG_ID
+               , FST_RGST_DEPT_ID
+               , FNL_MDFC_DTM
+               , FNL_MDFC_USR_ID
+               , FNL_MDFC_PRG_ID
+               , FNL_MDFC_DEPT_ID
+             FROM TB_SSCT_CNTR_STLM_BAS
+            WHERE CNTR_STLM_ID = #{cntrStlmId}
+    </insert>
+</mapper>

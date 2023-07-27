@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaCompanyInstallMapper">
+
+    <select id="selectCompanyInstallPages" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaCompanyInstallDto$SearchRes">
+        SELECT CD.CNTR_NO
+             , CD.CNTR_SN
+             , SB.CST_KNM
+             , SB.BRYY_MMDD AS BRYY_MMDD	    /* 주민등록번호 생년월일로 바꿈 */
+             , SB.BZRNO
+             , CB.CNTR_CST_NO
+             , AB.RCGVP_KNM
+             , SUBSTR(CB.CNTR_CNFM_DTM,1,8) AS CNTR_CNFM_DT
+             , CD.SELL_TP_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', CD.SELL_TP_CD) AS SELL_TP_NM /* .. and 자료구분 판매유형으로 대체 */
+             , CD.CO_CD
+             , MP.OG_CD
+             , WD.CO_IST_MNGT_DV_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'CO_IST_MNGT_DV_CD', WD.CO_IST_MNGT_DV_CD) AS CO_IST_MNGT_DV_NM
+             , '' AS WP_DV_NM   /* TO-BE 없음 */
+             , CD.BASE_PD_CD
+             , PB.PD_NM
+             , PB2.PD_CD AS PKG_PD_CD
+             , PB2.PD_NM AS PKG_PD_NM
+             , CD.SV_PRD            /* .. and 방문주기 */
+             , PB3.SV_PD_TP_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SV_TP_CD', PB3.SV_PD_TP_CD) AS SV_TP_NM
+             , CD.PD_GD_CD
+             , WD.CO_IST_DV_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'CO_IST_DV_CD', WD.CO_IST_DV_CD) AS CO_IST_DV_NM
+             , WD.CO_IST_USWY_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'CO_IST_USWY_CD', WD.CO_IST_USWY_CD) AS CO_IST_USWY_NM
+             , '' AS CO_IST_PLACE   /* 설치장소 - TO-BE없음 */
+             , WD.FRISU_BFSVC_PTRM_N /* 무상B/S기간 */
+             , WD.FRISU_AS_PTRM_N
+             , 'N' AS FILTER_EXP    /* 필터비용 TO-BE 없음 */
+             , NULL AS DSC_RATE     /* 할인율 TO-BE 없음, 어차피 0원이니... */
+             , CD.SPP_DUEDT
+             , WD.IST_DT
+             , CD.CNTR_PD_ENDDT AS RTN_DT
+             , '' AS CPS_DT         /* 보상년 없음 */
+             , WD.IST_AK_ARTC_MO_CN
+             , CD.CTT_RS_CD
+             , CD.CTT_PSIC_ID
+             , WD.SCON_CN
+             , CD.SELL_TP_DTL_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', CD.SELL_TP_DTL_CD) AS SELL_TP_DTL_NM /* 자료유형 판매유형상세로 대체 */
+             , CR2.BASE_DTL_CNTR_NO AS CNTR_NO_216	/* 모종 계약번호 */
+             , CR2.BASE_DTL_CNTR_SN AS CNTR_SN_216	/* 모종 계약일련번호 */
+             , NVL2(CR2.BASE_DTL_CNTR_NO, 'Y', 'N') AS REGU_DEL_YN  /* 정기배송여부 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', CD.SELL_TP_CD) AS MEM_EXP_GBN
+             , SUBSTR(CD.FST_RGST_DTM, 1, 8) AS FST_RGST_DT
+             , SUBSTR(CD.FST_RGST_DTM, 9) AS FST_RGST_TM
+             , CD.FST_RGST_USR_ID
+             , F_CMZ_USR_NM(CD.FST_RGST_USR_ID) AS FST_RGST_USR_NM
+             , SUBSTR(CD.FNL_MDFC_DTM, 1, 8) AS FNL_MDFC_DT
+             , SUBSTR(CD.FNL_MDFC_DTM, 9) AS FNL_MDFC_TM
+             , CD.FNL_MDFC_USR_ID
+             , F_CMZ_USR_NM(CD.FNL_MDFC_USR_ID) AS FNL_MDFC_USR_NM
+          FROM TB_SSCT_CNTR_DTL CD
+         INNER JOIN TB_SSCT_CNTR_BAS CB
+            ON CB.CNTR_NO = CD.CNTR_NO
+           AND CB.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON PB.PD_CD = CD.BASE_PD_CD
+           AND PB.TEMP_SAVE_YN = 'N'
+           AND PB.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS SB
+            ON SB.CST_NO = CB.CNTR_CST_NO
+           AND SB.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADR_REL AR
+            ON AR.DTL_CNTR_NO = CD.CNTR_NO
+           AND AR.DTL_CNTR_SN = CD.CNTR_SN
+           AND AR.ADRPC_TP_CD IN ('2','3')
+           AND AR.VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND AR.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND AR.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS AB
+            ON AB.CNTR_ADRPC_ID = AR.CNTR_ADRPC_ID
+           AND AB.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ MP
+            ON MP.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND MP.OG_TP_CD = CB.SELL_OG_TP_CD
+           AND MP.PRTNR_NO = CB.SELL_PRTNR_NO
+           AND MP.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL WD
+            ON WD.CNTR_NO = CD.CNTR_NO
+           AND WD.CNTR_SN = CD.CNTR_SN
+          LEFT OUTER JOIN TB_SSCT_CNTR_REL CR2
+            ON CR2.OJ_DTL_CNTR_NO = CD.CNTR_NO
+           AND CR2.OJ_DTL_CNTR_SN = CD.CNTR_SN
+           AND CR2.CNTR_REL_DTL_CD = '216'	/* 모종결합 */
+           AND CR2.VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND CR2.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND CR2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL CD2
+            ON CD2.CNTR_NO = CR2.BASE_DTL_CNTR_NO
+           AND CD2.CNTR_SN = CR2.BASE_DTL_CNTR_SN
+           AND CD2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_BAS PB2
+            ON PB2.PD_CD = CD2.BASE_PD_CD
+           AND PB2.TEMP_SAVE_YN = 'N'
+           AND PB2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_PD_REL PR
+            ON PR.CNTR_NO = CD.CNTR_NO
+           AND PR.CNTR_SN = CD.CNTR_SN
+           AND PR.PD_REL_TP_CD = '03'
+           AND PR.VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND PR.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND PR.BASE_PD_CD = CD.BASE_PD_CD
+           AND PR.DTA_DL_YN = 'N'
+           AND ROWNUM <![CDATA[<=]]> 1
+          LEFT OUTER JOIN TB_PDBS_PD_BAS PB3
+            ON PB3.PD_CD = PR.OJ_PD_CD
+           AND PB3.TEMP_SAVE_YN = 'N'
+           AND PB3.DTA_DL_YN = 'N'
+         WHERE CD.DTA_DL_YN = 'N'
+           AND CD.SELL_TP_CD = '4'
+           AND CB.CNTR_CNFM_DTM BETWEEN #{cntrCnfmDtFrom}||'000000' AND #{cntrCnfmDtTo}||'235959'
+           <if test='@MybatisUtils@isNotEmpty(insDtFrom)'>AND WD.IST_DT >= #{insDtFrom}</if>
+           <if test='@MybatisUtils@isNotEmpty(insDtTo)'>AND WD.IST_DT <![CDATA[<=]]> #{insDtTo}</if>
+           <if test='@MybatisUtils@isNotEmpty(cntrNo)'>AND CD.CNTR_NO = #{cntrNo}</if>
+           <if test='@MybatisUtils@isNotEmpty(cntrSn)'>AND CD.CNTR_SN = #{cntrSn} </if>
+           <if test='@MybatisUtils@isNotEmpty(pdHclsfId)'>AND PB.PD_HCLSF_ID = #{pdHclsfId} </if>
+           <if test='@MybatisUtils@isNotEmpty(pdMclsfId)'>AND PB.PD_MCLSF_ID = #{pdMclsfId} </if>
+           <if test='@MybatisUtils@isNotEmpty(basePdCd)'>AND CD.BASE_PD_CD = #{basePdCd} </if>
+           <if test='@MybatisUtils@isNotEmpty(pdNm)'>AND PB.PD_NM LIKE '%'||#{pdNm}||'%' </if>
+           <if test='@MybatisUtils@isNotEmpty(rcgvpKnm)'>AND AB.RCGVP_KNM LIKE '%'||#{rcgvpKnm}||'%' </if>
+           <if test='@MybatisUtils@isNotEmpty(coIstDvCd)'>AND WD.CO_IST_DV_CD = #{coIstDvCd} </if>
+           <if test='@MybatisUtils@isNotEmpty(coIstUswyCd)'>AND WD.CO_IST_USWY_CD = #{coIstUswyCd} </if>
+           <if test='@MybatisUtils@isNotEmpty(cralLocaraTno)'>AND AB.CRAL_LOCARA_TNO = #{cralLocaraTno} </if>
+           <if test='@MybatisUtils@isNotEmpty(mexnoEncr)'>AND AB.MEXNO_ENCR = #{mexnoEncr} </if>
+           <if test='@MybatisUtils@isNotEmpty(cralIdvTno)'>AND AB.CRAL_IDV_TNO = #{cralIdvTno} </if>
+           <if test='@MybatisUtils@equals(outputDiv, "Y")'>AND CD.CNTR_PD_ENDDT IS NOT NULL </if>
+           <if test='@MybatisUtils@isNotEmpty(sellOgTpCd)'>AND CB.SELL_OG_TP_CD = #{sellOgTpCd} </if>
+    </select>
+
+</mapper>

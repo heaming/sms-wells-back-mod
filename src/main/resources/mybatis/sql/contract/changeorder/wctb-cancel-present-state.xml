@@ -1,0 +1,667 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbCancelPresentStateMapper">
+
+    <select id="selectRentalCancelPresentStates" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelPresentStateDto$SearchRentalRes">
+        SELECT F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', CD.SELL_TP_CD) AS SELL_TP_NM
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', CD.SELL_TP_DTL_CD) AS SELL_TP_DTL_NM
+             , RP.CNTR_NO
+             , RP.CNTR_SN
+             , SB.CST_KNM AS CNTR_CST_KNM
+             , F_CMZ_CD_NM('TNT_WELLS', 'COPN_DV_CD', CB.COPN_DV_CD) AS COPN_DV_NM
+             , SB.BZRNO
+             , CD.TXINV_PBL_OJ_YN
+             , SB.CST_NO
+             , MP2.OG_CD
+             , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = PB.PD_HCLSF_ID AND TEMP_SAVE_YN='N' AND DTA_DL_YN='N') AS PD_HCLSF_NM
+             , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = PB.PD_MCLSF_ID AND TEMP_SAVE_YN='N' AND DTA_DL_YN='N') AS PD_MCLSF_NM
+             , PB.PD_NM
+             , CD.STPL_PTRM
+             , SUBSTR(CB.CNTR_CNFM_DTM, 1,8) AS CNTR_CNFM_DTM
+             , WD.IST_DT
+             , RP.RSG_APLC_DT
+             , RP.RSG_FSH_DT
+             , '' AS CAN_DT_IN_DT
+             , RP.CNTR_STAT_CH_RSON_CD
+             , F_CMZ_CD_NM('TNT_WELLS', 'CMN_STAT_CH_RSON_CD', RP.CNTR_STAT_CH_RSON_CD) AS CNTR_STAT_CH_RSON_NM
+             , RP.ICHR_PRTNR_NO
+             , MP.PRTNR_KNM AS ICHR_PRTNR_NM
+             , WD.REQD_DT
+             , RP.PD_USE_DC
+             , RP.PRGS_NMN_N
+             , '('||RP.CNTR_STAT_CH_RSON_CD||')'||F_CMZ_CD_NM('TNT_WELLS', 'CMN_STAT_CH_RSON_CD', RP.CNTR_STAT_CH_RSON_CD) AS RSON_NM
+             , (NVL(RP.NOM_SL_AMT,0)
+               + NVL(RP.SPMT_SL_AMT,0)
+               - NVL(RP.NOM_DSC_AMT,0)
+               - NVL(RP.SPMT_DSC_AMT,0)) AS SL_AMT
+             , NVL(RP.SL_CTR_AMT,0)     AS SL_CTR_AMT
+             , NVL(RP.TOT_PRPD_AMT,0)   AS TOT_PRPD_AMT
+             , NVL(RP.CSMB_COST_BOR_AMT2,0) AS CSMB_COST_BOR_AMT
+             , NVL(RP.REQD_CS_BOR_AMT2,0) AS REQD_CS_BOR_AMT
+             , NVL(RP.BOR_AMT,0)        AS BOR_AMT
+             , NVL(RP.LS_RNTF,0)        AS LS_RNTF
+             , NVL(RP.TOT_RFND_AMT,0)   AS TOT_RFND_AMT
+             , '' AS EX_CNTR_NO_SN
+             , MO.BIZ_SPPT_PRTNR_NO
+             , PT.PRTNR_KNM AS BIZ_SPPT_PRTNR_NM
+          FROM TB_SSCT_CNTR_RSG_PROCS_IZ RP /* 계약해지처리내역 */
+         INNER JOIN TB_SSCT_CNTR_DTL CD
+            ON CD.CNTR_NO = RP.CNTR_NO
+           AND CD.CNTR_SN = RP.CNTR_SN
+           AND CD.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS CB
+            ON CB.CNTR_NO = RP.CNTR_NO
+           AND CB.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS SB
+            ON SB.CST_NO = CB.CNTR_CST_NO
+           AND SB.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL WD
+            ON WD.CNTR_NO = CD.CNTR_NO
+           AND WD.CNTR_SN = CD.CNTR_SN
+           AND WD.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON PB.PD_CD = CD.BASE_PD_CD
+           AND PB.TEMP_SAVE_YN = 'N'
+           AND PB.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ MP
+            ON MP.BASE_YM = SUBSTR(RP.RSG_APLC_DT,1,6)
+           AND MP.OG_TP_CD = RP.ICHR_OG_TP_CD
+           AND MP.PRTNR_NO = RP.ICHR_PRTNR_NO
+           AND MP.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_OG_IZ MO
+            ON MO.OG_ID = MP.OG_ID
+           AND MO.BASE_YM = MP.BASE_YM
+           AND MO.DTA_DL_YN = 'N'
+         LEFT OUTER JOIN TB_OGBS_PRTNR_BAS PT
+            ON PT.PRTNR_NO = MO.BIZ_SPPT_PRTNR_NO
+           AND PT.OG_TP_CD = MO.OG_TP_CD
+           AND PT.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ MP2
+            ON MP2.BASE_YM = SUBSTR(CB.CNTR_CNFM_DTM,1,6)
+           AND MP2.OG_TP_CD = CB.SELL_OG_TP_CD
+           AND MP2.PRTNR_NO = CB.SELL_PRTNR_NO
+           AND MP2.DTA_DL_YN = 'N'
+         WHERE RP.DTA_DL_YN = 'N'
+
+            <if test="@MybatisUtils@isNotEmpty(sellTpCd)">
+                AND CD.SELL_TP_CD = #{sellTpCd}             /* 판매유형코드 조건이 존재하는 경우 */
+            </if>
+
+            <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd)">
+                AND CD.SELL_TP_DTL_CD = #{sellTpDtlCd}      /* 판매유형상세코드 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cancelFromDt)">
+                AND RP.RSG_FSH_DT >= #{cancelFromDt}        /* 취소년월 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cancelToDt)">
+                AND RP.RSG_FSH_DT <![CDATA[<=]]> #{cancelToDt}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(rgstUsrEpNo)">
+                AND RP.ICHR_PRTNR_NO = #{rgstUsrEpNo}       /* 등록담당 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(pdHclsfId)">
+                AND PB.PD_HCLSF_ID = #{pdHclsfId}           /* 상품분류 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(pdMclsfId)">
+                AND PB.PD_MCLSF_ID = #{pdMclsfId}           /* 상품분류 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(basePdCd)">
+                AND CD.BASE_PD_CD = #{basePdCd}             /* 상품코드 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cntrStatChRsonCd)">
+                AND RP.CNTR_STAT_CH_RSON_CD = #{cntrStatChRsonCd}   /* 취소유형조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(copnDvCd)">
+                AND CB.COPN_DV_CD = #{copnDvCd}             /* 계약구분조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cntrFromDt)">
+                AND CB.CNTR_CNFM_DTM >= #{cntrFromDt}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cntrToDt)">
+                AND CB.CNTR_CNFM_DTM <![CDATA[<=]]> #{cntrToDt}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(installFromDt)">
+                AND WD.IST_DT >= #{installFromDt}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(installToDt)">
+                AND WD.IST_DT <![CDATA[<=]]> #{installToDt}
+            </if>
+    </select>
+
+    <select id="selectRegularShippingCancelPresentStates" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelPresentStateDto$SearchRegularShippingRes">
+        SELECT RP.CNTR_NO
+             , RP.CNTR_SN
+             , SB.CST_KNM AS CNTR_CST_KNM
+             , SB.BZRNO
+             , CD.TXINV_PBL_OJ_YN
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', CD.SELL_TP_DTL_CD) AS SELL_TP_DTL_NM
+             , PB.PD_NM
+             , CD.CNTR_PD_STRTDT
+             , RP.RSG_APLC_DT
+             , RP.RSG_FSH_DT
+             , DECODE(T7.CNTR_DTL_STAT_CD, '301', T7.CNTR_PD_ENDDT, '') AS FARM_ENDDT
+             , RP.PD_USE_DC
+             , WS.RENTAL_AMT
+             , WD.FRISU_BFSVC_PTRM_N
+             , RP.CAN_CTR_AMT
+             , RP.TOT_RFND_AMT
+             , MP.OG_NM
+             , MP.PRTNR_NO
+             , MP.PRTNR_KNM
+             , RP.CNTR_STAT_CH_RSON_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_STAT_CH_RSON_CD', RP.CNTR_STAT_CH_RSON_CD) AS CNTR_STAT_CH_RSON_NM
+             , CR.OJ_DTL_CNTR_NO
+             , CR.OJ_DTL_CNTR_SN
+          FROM TB_SSCT_CNTR_RSG_PROCS_IZ RP
+         INNER JOIN TB_SSCT_CNTR_DTL CD
+            ON CD.CNTR_NO = RP.CNTR_NO
+           AND CD.CNTR_SN = RP.CNTR_SN
+           AND CD.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL WD
+            ON WD.CNTR_NO = CD.CNTR_NO
+           AND WD.CNTR_SN = CD.CNTR_SN
+           AND WD.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS CB
+            ON CB.CNTR_NO = RP.CNTR_NO
+           AND CB.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON PB.PD_CD = CD.BASE_PD_CD
+           AND PB.TEMP_SAVE_YN = 'N'
+           AND PB.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS SB
+            ON SB.CST_NO = CB.CNTR_CST_NO
+           AND SB.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ MP
+            ON MP.BASE_YM = SUBSTR(RP.RSG_FSH_DT,1,6)
+           AND MP.OG_TP_CD = RP.ICHR_OG_TP_CD
+           AND MP.PRTNR_NO = RP.ICHR_PRTNR_NO
+           AND MP.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ WS
+            ON WS.CNTR_NO = RP.CNTR_NO
+           AND WS.CNTR_SN = RP.CNTR_SN
+           AND WS.SL_CL_YM = SUBSTR(RP.RSG_FSH_DT,1,6)
+           AND WS.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_REL CR
+            ON CR.BASE_DTL_CNTR_NO = RP.CNTR_NO
+           AND CR.BASE_DTL_CNTR_SN = RP.CNTR_SN
+           AND CR.VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND CR.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND CR.CNTR_REL_DTL_CD = '214'
+           AND CR.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T7
+            ON T7.CNTR_NO = CR.OJ_DTL_CNTR_NO
+           AND T7.CNTR_SN = CR.OJ_DTL_CNTR_SN
+           AND T7.DTA_DL_YN = 'N'
+         WHERE RP.DTA_DL_YN = 'N'
+           AND RP.SELL_TP_CD = '6'
+            <if test="@MybatisUtils@isNotEmpty(ogCd)">
+                AND MP.OG_CD = #{ogCd}   /* 소속구분 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cancelFromDt)">
+                AND RP.RSG_FSH_DT >= #{cancelFromDt}    /* 취소년월 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cancelToDt)">
+                AND RP.RSG_FSH_DT <![CDATA[<=]]> #{cancelToDt}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(sellOgTpCd)">
+                AND CB.SELL_OG_TP_CD = #{sellOgTpCd}    /* 판매구분(조직유형코드) 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(rgstUsrEpNo)">
+                AND RP.ICHR_PRTNR_NO = #{rgstUsrEpNo}   /* 등록담당 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+                AND RP.CNTR_NO = #{cntrNo}              /* 계약상세번호 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+                AND RP.CNTR_SN = #{cntrSn}
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cntrStatChRsonCd)">
+                AND RP.CNTR_STAT_CH_RSON_CD = #{cntrStatChRsonCd}   /* 취소유형조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(wellsFarmCancelDiv)">
+                <choose>
+                    <when test='@MybatisUtils@equals(wellsFarmCancelDiv, "Y")'>/* 웰스팜취소건일 경우 */
+                        AND T7.CNTR_DTL_STAT_CD = '303' AND T7.CNTR_PD_ENDDT IS NOT NULL
+                    </when>
+                    <when test='@MybatisUtils@equals(wellsFarmCancelDiv, "N")'> /* 웰스팜미취소일 경우 */
+                        AND T7.CNTR_PD_ENDDT IS NULL
+                    </when>
+                </choose>
+            </if>
+    </select>
+
+
+    <select id="selectSinglePaymentCancelPresentStates" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelPresentStateDto$SearchSinglePaymentRes">
+        SELECT CNTR_NO
+             , CNTR_SN
+             , OG_NM
+             , CNTR_CST_KNM
+             , OG_CD
+             , SELL_PRTNR_NO
+             , PRTNR_KNM
+             , ALNCMP_CD
+             , ALNCMP_NM
+             , SELL_EV_CD
+             , SELL_EV_NM
+             , BASE_PD_CD
+             , PD_NM
+             , CNTR_CNFM_DT
+             , IST_DT
+             , CNTR_PD_ENDDT
+             , PD_CH_DT
+             , SL_CH_DT
+             , REQD_AK_DT
+             , REQD_DT
+             , REQD_PSIC_ID
+             , PRS_GBN
+             , CNTR_TAM
+             , CNTR_AMT
+             , CRP_UC_AMT
+             , CNTR_DP_AMT
+             , CNTR_RF_AMT
+             , CNTR_INS_AMT
+             , NVL2(SL_CL_YM, 0, PD_CH_PERIOD) AS PD_CH_PERIOD
+             , NVL2(SL_CL_YM, 0, DECODE(REF_PD_CLSF_VAL, '05003', 0,     /* 커피원두는 취급하지 않음 */
+                                         <![CDATA[ CASE WHEN PD_CH_PERIOD <= 14 THEN 0
+                                                        WHEN PD_CH_PERIOD > 14 AND PD_CH_PERIOD < 32 THEN 35
+                                                        WHEN PD_CH_PERIOD > 32 AND PD_CH_PERIOD < 60 THEN 45
+                                                        ELSE 53
+                                                    END]]>
+                                        )
+                   ) AS PD_CH_PERIOD_RNTF
+             , NVL2(SL_CL_YM, 0, DECODE(REF_PD_CLSF_VAL, '05003', 0,     /* 커피원두는 취급하지 않음 */
+                                         <![CDATA[ CASE WHEN PD_CH_PERIOD <= 14 AND REF_PD_CLSF_VAL != '03003' THEN 40000
+                                                        WHEN PD_CH_PERIOD <= 14 AND REF_PD_CLSF_VAL = '03003' THEN 200000
+                                                        WHEN PD_CH_PERIOD > 14 AND PD_CH_PERIOD < 32 THEN CNTR_TAM*0.35
+                                                        WHEN PD_CH_PERIOD > 32 AND PD_CH_PERIOD < 60 THEN CNTR_TAM*0.45
+                                                        ELSE CNTR_TAM*0.53
+                                                    END ]]>
+                                        )
+                   ) AS PD_CH_PERIOD_AMT
+             , 0 AS PD_CH_RNTF_RPLC_DP_AMT
+             , 0 AS PD_CH_RNTF_ADD_DP_AMT
+             , NVL2(SL_CL_YM, 0, DECODE(REF_PD_CLSF_VAL, '05003', 0, RNTF_AMT)) AS PD_CH_RNTF_DP_AMT
+             , NVL2(SL_CL_YM, 0, DECODE(REF_PD_CLSF_VAL, '05003', 0,    /* 커피원두는 취급하지 않음 */
+                                         <![CDATA[ CASE WHEN PD_CH_PERIOD <= 14 AND REF_PD_CLSF_VAL != '03003' THEN 40000 - RNTF_AMT
+                                                        WHEN PD_CH_PERIOD <= 14 AND REF_PD_CLSF_VAL = '03003' THEN 200000 - RNTF_AMT
+                                                        WHEN PD_CH_PERIOD > 14 AND PD_CH_PERIOD < 32 THEN CNTR_TAM*0.35 - RNTF_AMT
+                                                        WHEN PD_CH_PERIOD > 32 AND PD_CH_PERIOD < 60 THEN CNTR_TAM*0.45 - RNTF_AMT
+                                                        ELSE CNTR_TAM*0.53 - RNTF_AMT
+                                                    END]]>
+                                        )
+                   ) AS NPD_RNTF_AMT
+             , NVL2(SL_CL_YM, RNTF_RPLC_AMT, 0) AS RNTF_RPLC_AMT
+             , NVL2(SL_CL_YM, ETC_PRPD_AMT, 0) AS ETC_PRPD_AMT
+          FROM (SELECT T1.CNTR_NO
+                     , T1.CNTR_SN
+                     , T9.OG_NM
+                     , T7.CST_KNM AS CNTR_CST_KNM
+                     , T5.OG_CD
+                     , T4.SELL_PRTNR_NO
+                     , T5.PRTNR_KNM
+                     , T1.ALNCMP_CD
+                     , F_CMZ_CD_NM('TNT_WELLS', 'ALNCMP_CD', T1.ALNCMP_CD) AS ALNCMP_NM
+                     , T6.SELL_EV_CD
+                     , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_EV_CD', T6.SELL_EV_CD) AS SELL_EV_NM
+                     , T1.BASE_PD_CD
+                     , T8.PD_NM
+                     , SUBSTR(T4.CNTR_CNFM_DTM,1,8) AS CNTR_CNFM_DT
+                     , T6.IST_DT
+                     , T1.CNTR_PD_ENDDT
+                     , T10.SL_CL_YM
+                     , NVL2(T10.SL_CL_YM, '', SUBSTR(T3.CNTR_CH_FSH_DTM,1,8)) AS PD_CH_DT
+                     , NVL2(T10.SL_CL_YM, SUBSTR(T3.CNTR_CH_FSH_DTM,1,8), '') AS SL_CH_DT
+                     , '' AS REQD_AK_DT      /* 일시불 철거요청일 컬럼 없음 */
+                     , T6.REQD_DT
+                     , '' AS REQD_PSIC_ID    /* 일시불 철거담당자 모름 */
+                     , NVL2(T10.SL_CL_YM, '매변', '상변') AS PRS_GBN
+                     , NVL(T1.CNTR_TAM,0) AS CNTR_TAM
+                     , T1.CNTR_AMT
+                     , T1.CRP_UC_AMT
+                     , (SELECT SUM(RVE_AMT)
+                          FROM TB_RVDW_RVE_DTL
+                         WHERE CNTR_NO = T1.CNTR_NO
+                           AND CNTR_SN = T1.CNTR_SN
+                           AND RVE_DV_CD = '01'
+                           AND DP_DV_CD IN ('1','3')
+                           AND RVE_PROCS_YN = 'Y'
+                           AND DTA_DL_YN = 'N'
+                       ) AS CNTR_DP_AMT
+                     , (SELECT SUM(RVE_AMT)
+                          FROM TB_RVDW_RVE_DTL
+                         WHERE CNTR_NO = T1.CNTR_NO
+                           AND CNTR_SN = T1.CNTR_SN
+                           AND RVE_DV_CD = '01'
+                           AND DP_DV_CD IN ('2','4')
+                           AND RVE_PROCS_YN = 'Y'
+                           AND DTA_DL_YN = 'N'
+                       ) AS CNTR_RF_AMT
+                     , (SELECT SUM(RVE_AMT)
+                          FROM TB_RVDW_RVE_DTL
+                         WHERE CNTR_NO = T1.CNTR_NO
+                           AND CNTR_SN = T1.CNTR_SN
+                           AND RVE_DV_CD = '03'
+                           AND DP_DV_CD IN ('1','3')
+                           AND RVE_PROCS_YN = 'Y'
+                           AND DTA_DL_YN = 'N'
+                     ) AS CNTR_INS_AMT
+                     , CASE WHEN T1.CNTR_PD_STRTDT IS NOT NULL AND T1.SPP_DUEDT IS NOT NULL
+                            THEN TO_DATE(T1.CNTR_PD_STRTDT,'YYYYMMDD')-TO_DATE(T1.SPP_DUEDT,'YYYYMMDD')
+                            ELSE 0
+                            END AS PD_CH_PERIOD  /* 상변 기간상출료 */
+                     , CASE WHEN T1.CNTR_PD_STRTDT IS NOT NULL AND T1.SPP_DUEDT IS NOT NULL
+                            THEN TO_DATE(T1.CNTR_PD_STRTDT,'YYYYMMDD')-TO_DATE(T1.SPP_DUEDT,'YYYYMMDD')
+                            ELSE 0
+                            END AS PD_CH_RNTF    /* 상변 기간상출료 - 손율 0밖에 나올 수 없음 */
+                     , T81.REF_PD_CLSF_VAL
+                     , (SELECT SUM(RVE_AMT)
+                          FROM TB_RVDW_RVE_DTL
+                         WHERE CNTR_NO = T1.CNTR_NO
+                           AND CNTR_SN = T1.CNTR_SN
+                           AND RVE_DV_CD IN ('09','10')
+                           AND PROCS_DV_CD = '1'
+                           AND RVE_PROCS_YN = 'Y'
+                           AND DTA_DL_YN = 'N'
+                       ) AS RNTF_AMT
+                     , (SELECT SUM(RVE_AMT)
+                          FROM TB_RVDW_RVE_DTL
+                         WHERE CNTR_NO = T1.CNTR_NO
+                           AND CNTR_SN = T1.CNTR_SN
+                           AND RVE_DV_CD IN ('09','10')
+                           AND PROCS_DV_CD = '2'
+                           AND RVE_PROCS_YN = 'Y'
+                           AND DTA_DL_YN = 'N'
+                       ) AS RNTF_RPLC_AMT
+                     , (SELECT SUM(RVE_AMT)
+                          FROM TB_RVDW_RVE_DTL
+                         WHERE CNTR_NO = T1.CNTR_NO
+                           AND CNTR_SN = T1.CNTR_SN
+                           AND RVE_DV_CD = '98'
+                           AND RVE_PROCS_YN = 'Y'
+                           AND DTA_DL_YN = 'N'
+                        ) AS ETC_PRPD_AMT
+                  FROM TB_SSCT_CNTR_DTL T1
+                  LEFT OUTER JOIN TB_SSCT_CNTR_CH_RCP_DTL T2
+                    ON T2.DTL_CNTR_NO = T1.CNTR_NO
+                   AND T2.DTL_CNTR_SN = T1.CNTR_SN
+                   AND T2.DTA_DL_YN = 'N'
+                  LEFT OUTER JOIN TB_SSCT_CNTR_CH_RCP_BAS T3
+                    ON T3.CNTR_CH_RCP_ID = T2.CNTR_CH_RCP_ID
+                   AND T3.CNTR_CH_TP_CD = '402'         /* 계약해약신청 */
+                   AND T3.CNTR_CH_FSH_DTM IS NOT NULL   /* 흐름상 필요하나 이행데이터가 보이지 않아 일단 보류 */
+                   AND T3.DTA_DL_YN = 'N'
+                 INNER JOIN TB_SSCT_CNTR_BAS T4
+                    ON T4.CNTR_NO = T1.CNTR_NO
+                   AND T4.DTA_DL_YN = 'N'
+                 INNER JOIN TB_OGBS_MM_PRTNR_IZ T5
+                    ON T5.BASE_YM = SUBSTR(T4.CNTR_CNFM_DTM,1,6)
+                   AND T5.OG_TP_CD = T4.SELL_OG_TP_CD
+                   AND T5.PRTNR_NO = T4.SELL_PRTNR_NO
+                   AND T5.DTA_DL_YN = 'N'
+                 INNER JOIN TB_SSCT_CNTR_WELLS_DTL T6
+                    ON T6.CNTR_NO = T1.CNTR_NO
+                   AND T6.CNTR_SN = T1.CNTR_SN
+                   AND T6.DTA_DL_YN = 'N'
+                 INNER JOIN TB_CUBS_CST_BAS T7
+                    ON T7.CST_NO = T4.CNTR_CST_NO
+                   AND T7.DTA_DL_YN = 'N'
+                 INNER JOIN TB_PDBS_PD_BAS T8
+                    ON T8.PD_CD = T1.BASE_PD_CD
+                   AND T8.TEMP_SAVE_YN = 'N'
+                   AND T8.DTA_DL_YN = 'N'
+                 INNER JOIN TB_PDBS_PD_CLSF_BAS T81
+                    ON T81.PD_CLSF_ID = T8.PD_MCLSF_ID
+                   AND T81.TEMP_SAVE_YN = 'N'
+                   AND T81.DTA_DL_YN = 'N'
+                  LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T9
+                    ON T9.BASE_YM = SUBSTR(T3.CNTR_CH_RCP_DTM,1,6)
+                   AND T9.OG_TP_CD = 'HR1'
+                   AND T9.PRTNR_NO = T3.CH_RCP_USR_ID
+                   AND T9.DTA_DL_YN = 'N'
+                  LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T10
+                    ON T10.CNTR_NO = T1.CNTR_NO
+                   AND T10.CNTR_SN = T1.CNTR_SN
+                   AND T10.SL_CL_YM = (SELECT MIN(SL_CL_YM)
+                                         FROM TB_CBCL_WELLS_SL_MM_CL_IZ
+                                        WHERE CNTR_NO = T1.CNTR_NO
+                                          AND CNTR_SN = T1.CNTR_SN
+                                          AND DTA_DL_YN = 'N')
+                   AND T10.DTA_DL_YN = 'N'
+                 WHERE T1.DTA_DL_YN = 'N'
+                   AND T1.SELL_TP_CD = '1'
+                   AND T1.CNTR_DTL_STAT_CD IN ('301','303')
+            <choose>
+                <when test='@MybatisUtils@equals(omssnDiv, "2")'>
+                    AND T3.CNTR_CH_RCP_ID IS NULL                       /* 누락건 - 설치 후 취소 건 중 상변/매변 누락 건 조회 */
+                </when>
+                <when test='@MybatisUtils@equals(omssnDiv, "3")'>
+                    AND T3.CNTR_CH_RCP_ID IS NOT NULL                   /* 누락건 - 매출일자 확인 건 */
+                    AND T10.SL_CL_YM IS NOT NULL
+                </when>
+                <otherwise>
+
+                    <if test="@MybatisUtils@isNotEmpty(ogCd)">
+                        AND T9.OG_CD = #{ogCd}                         /* 소속구분 조건이 존재하는 경우 */
+                    </if>
+                     <if test="@MybatisUtils@isNotEmpty(cancelFromDt)">
+                        <choose>
+                            <when test='@MybatisUtils@equals(dtDiv, "1")'>/* 설치일자 조건의 경우 */
+                                AND T6.IST_DT >= #{cancelFromDt}
+                            </when>
+                            <otherwise>                                 /* 취소일자 조건의 경우 */
+                                AND T1.CNTR_PD_ENDDT >= #{cancelFromDt}
+                            </otherwise>
+                        </choose>
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(cancelToDt)">
+                        <choose>
+                            <when test='@MybatisUtils@equals(dtDiv, "1")'>
+                                AND T6.IST_DT <![CDATA[<=]]> #{cancelToDt}
+                            </when>
+                            <otherwise>
+                                AND T1.CNTR_PD_ENDDT <![CDATA[<=]]> #{cancelToDt}
+                            </otherwise>
+                        </choose>
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(cntrNo)">        /* 계약상세번호 조건이 존재하는 경우 */
+                        AND T1.CNTR_NO = #{cntrNo}
+                    </if>
+                    <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+                        AND T1.CNTR_SN = #{cntrSn}
+                    </if>
+
+                    <choose>
+                        <when test='@MybatisUtils@equals(partDiv, "1")'>
+                            AND T10.SL_CL_YM IS NULL                    /* 부분조회 - 상변의 경우 */
+                        </when>
+                        <when test='@MybatisUtils@equals(partDiv, "2")'>
+                            AND T10.SL_CL_YM IS NOT NULL                /* 부분조회 - 매변의 경우 */
+                        </when>
+                    </choose>
+
+                    <if test="@MybatisUtils@isNotEmpty(reqdDiv)">
+                        <choose>
+                            <when test='@MybatisUtils@equals(reqdDiv, "NA")'>   /* 철거구분 조건이 존재하는 경우 */ <!-- TODO : - 없음 TO-BE 추가해야 함 -->
+                                /* REQD_AK_DT IS NULL AND REQD_DT IS NULL */
+                            </when>
+                            <when test='@MybatisUtils@equals(reqdDiv, "CA")'>
+                                /* REQD_AK_DT IS NOT NULL AND REQD_DT IS NULL */
+                                AND T6.REQD_DT IS NULL
+                            </when>
+                            <when test='@MybatisUtils@equals(reqdDiv, "CC")'>
+                                /* REQD_DT IS NOT NULL */
+                                AND T6.REQD_DT IS NOT NULL
+                            </when>
+                        </choose>
+                    </if>
+                </otherwise>
+            </choose>
+                )
+    </select>
+
+    <select id="selectMembershipCancelPresentStates" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelPresentStateDto$SearchMembershipRes">
+        SELECT RP.CNTR_NO
+             , RP.CNTR_SN
+             , CB.SELL_OG_TP_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'OG_TP_CD', CB.SELL_OG_TP_CD)||'('||CB.SELL_OG_TP_CD||')' AS OG_TP_NM
+             , MP.PRTNR_NO
+             , MP.PRTNR_KNM
+             , MP.OG_CD
+             , MP.OG_NM
+             , MO.HOO_PRTNR_NO
+             , SB.CST_KNM AS CNTR_CST_KNM
+             , CB.COPN_DV_CD
+             , '('||CB.COPN_DV_CD||')'||F_CMZ_CD_NM(#{session.tenantId}, 'COPN_DV_CD', CB.COPN_DV_CD) AS COPN_DV_NM
+             , NVL(GB.NEW_ADR_ZIP, GB.OLD_ADR_ZIP ) AS ZIP
+             , NVL(GB.RNADR, GB.LTN_ADR) AS ADR
+             , NVL(GB.RDADR, GB.LTN_DTL_ADR) AS DTL_ADR
+             , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = PB.PD_HCLSF_ID AND TEMP_SAVE_YN='N' AND DTA_DL_YN='N') AS PD_HCLSF_NM
+             , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = PB.PD_MCLSF_ID AND TEMP_SAVE_YN='N' AND DTA_DL_YN='N') AS PD_MCLSF_NM
+             , CD.BASE_PD_CD
+             , PB.PD_NM
+             , CD.TXINV_PBL_OJ_YN
+             , F_CMZ_CD_NM(#{session.tenantId}, 'DP_TP_CD', SR.DP_TP_CD) AS DP_TP_NM
+             , WD.IST_DT
+             , RP.RSG_APLC_DT
+             , RP.RSG_FSH_DT
+             , RP.PD_USE_DC
+             , '('||RP.CNTR_STAT_CH_RSON_CD||')' AS CNTR_STAT_CH_RSON_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'CMN_STAT_CH_RSON_CD', RP.CNTR_STAT_CH_RSON_CD) AS CNTR_STAT_CH_RSON_NM
+             , CASE WHEN RP.CNTR_STAT_CH_RSON_CD IN ('11','19') THEN CR.OJ_DTL_CNTR_NO
+                    ELSE ''
+                    END AS OJ_DTL_CNTR_NO
+             , CASE WHEN RP.CNTR_STAT_CH_RSON_CD IN ('11','19') THEN CR.OJ_DTL_CNTR_SN
+                    ELSE NULL
+                    END AS OJ_DTL_CNTR_SN
+             , RP.SL_SUM_AMT
+             , RP.SL_CTR_AMT   <!--설계 : CAN_CTR_AMT-->
+             , RP.TOT_PRPD_AMT
+             , RP.BOR_AMT
+             , RP.LS_RNTF
+             , RP.TOT_RFND_AMT
+             , RP.ICHR_PRTNR_NO
+             , RP.FST_RGST_DTM
+             , MO.BIZ_SPPT_PRTNR_NO
+             , PT.PRTNR_KNM AS BIZ_SPPT_PRTNR_NM
+          FROM TB_SSCT_CNTR_RSG_PROCS_IZ RP
+         INNER JOIN TB_SSCT_CNTR_DTL CD
+            ON CD.CNTR_NO = RP.CNTR_NO
+           AND CD.CNTR_SN = RP.CNTR_SN
+           AND CD.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL WD
+            ON WD.CNTR_NO = RP.CNTR_NO
+           AND WD.CNTR_SN = RP.CNTR_SN
+           AND WD.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS CB
+            ON CB.CNTR_NO = RP.CNTR_NO
+           AND CB.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON PB.PD_CD = CD.BASE_PD_CD
+           AND PB.TEMP_SAVE_YN = 'N'
+           AND PB.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS SB
+            ON SB.CST_NO = CB.CNTR_CST_NO
+           AND SB.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ MP
+            ON MP.BASE_YM = SUBSTR(CB.CNTR_CNFM_DTM,1,6)
+           AND MP.OG_TP_CD = CB.SELL_OG_TP_CD
+           AND MP.PRTNR_NO = CB.SELL_PRTNR_NO
+           AND MP.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_OG_IZ MO
+            ON MO.OG_ID = MP.OG_ID
+           AND MO.BASE_YM = MP.BASE_YM
+           AND MO.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ MP1
+            ON MP1.BASE_YM = SUBSTR(RP.RSG_APLC_DT,1,6)
+           AND MP1.OG_TP_CD = RP.ICHR_OG_TP_CD
+           AND MP1.PRTNR_NO = RP.ICHR_PRTNR_NO
+           AND MP1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS PT
+            ON PT.PRTNR_NO = MO.BIZ_SPPT_PRTNR_NO
+           AND PT.OG_TP_CD = 'HR1'
+           AND PT.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADR_REL AR
+            ON AR.DTL_CNTR_NO = CD.CNTR_NO
+           AND AR.DTL_CNTR_SN = CD.CNTR_SN
+           AND AR.VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND AR.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND AR.ADRPC_TP_CD IN ('2','3')
+           AND AR.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS AB
+            ON AB.CNTR_ADRPC_ID = AR.CNTR_ADRPC_ID
+           AND AB.DTA_DL_YN = 'N'
+         INNER JOIN TB_GBCO_ADR_BAS GB
+            ON GB.ADR_ID = AB.ADR_ID
+           AND GB.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_STLM_REL SR
+            ON SR.DTL_CNTR_NO = CD.CNTR_NO
+           AND SR.DTL_CNTR_SN = CD.CNTR_SN
+           AND SR.VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND SR.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND SR.DP_TP_CD IN ('0102','0203')
+           AND SR.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_REL CR
+            ON CR.BASE_DTL_CNTR_NO = CD.CNTR_NO
+           AND CR.BASE_DTL_CNTR_SN = CD.CNTR_SN
+           AND CR.VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND CR.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND CR.CNTR_REL_DTL_CD = '212'
+           AND CR.DTA_DL_YN = 'N'
+         WHERE RP.SELL_TP_CD = '3'
+           AND RP.DTA_DL_YN = 'N'
+
+            <if test="@MybatisUtils@isNotEmpty(ogCd)">
+           AND MP1.OG_CD = #{ogCd}   /* 소속구분 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cancelFromDt)">
+                <choose>
+                    <when test='@MybatisUtils@equals(dtDiv, "1")'>
+                        AND RP.RSG_APLC_DT >= #{cancelFromDt}   /* 탈퇴요청일자의 경우 */
+                    </when>
+                    <otherwise>
+                        AND RP.RSG_FSH_DT >= #{cancelFromDt}    /* 탈퇴일자의 경우 */
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cancelToDt)">
+                <choose>
+                    <when test='@MybatisUtils@equals(dtDiv, "1")'>
+                        AND RP.RSG_APLC_DT <![CDATA[<=]]> #{cancelToDt}
+                    </when>
+                    <otherwise>
+                        AND RP.RSG_FSH_DT <![CDATA[<=]]> #{cancelToDt}
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(sellOgTpCd)">
+                AND CB.SELL_OG_TP_CD = #{sellOgTpCd}        /* 판매구분(조직유형코드) 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(pdHclsfId)">
+                AND PB.PD_HCLSF_ID = #{pdHclsfId}          /* 상품분류 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(pdMclsfId)">
+                AND PB.PD_MCLSF_ID = #{pdMclsfId}          /* 상품분류 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(basePdCd)">
+                AND CD.BASE_PD_CD = #{basePdCd}             /* 상품코드 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(sellTpDtlCd)">
+                AND CD.SELL_TP_DTL_CD = #{sellTpDtlCd}      /* 판매유형코드 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cntrStatChRsonCd)">
+                AND RP.CNTR_STAT_CH_RSON_CD = #{cntrStatChRsonCd} /* 취소유형조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(copnDvCd)">
+                AND CB.COPN_DV_CD = #{copnDvCd}             /* 계약구분조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(rgstUsrEpNo)">
+                AND RP.ICHR_PRTNR_NO = #{rgstUsrEpNo}       /* 등록담당 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+                AND RP.CNTR_NO = #{cntrNo}                  /* 계약상세번호 조건이 존재하는 경우 */
+            </if>
+            <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+                AND RP.CNTR_SN = #{cntrSn}
+            </if>
+    </select>
+</mapper>

@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiRentalContractsMapper">
+    <select id="selectRentalContracts" resultType="com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiRentalContractsDvo">
+        SELECT T1.CNTR_NO
+             , T1.CNTR_SN
+             , T7.CST_KNM
+             , T7.BRYY_MMDD
+             , T4.LOCARA_TNO
+             , '****' AS EXNO_ENCR
+             , T4.IDV_TNO
+             , T4.CRAL_LOCARA_TNO
+             , '****' AS MEXNO_ENCR
+             , T4.CRAL_IDV_TNO
+             , NVL(T8.RNADR, T8.LTN_ADR) AS ADR
+             , '******' AS DTL_ADR
+             , T6.PD_NM
+             , T1.PD_QTY
+             , T1.STPL_PTRM
+             , T1.CNTR_AMT
+             , T1.CNTRAM_DSC_AMT
+             , T1.PD_BASE_AMT
+             , T1.FNL_AMT
+             , T1.SV_PRD
+             , T6.SV_PD_TP_CD
+             , T1.CNTR_PTRM
+             , CASE WHEN T9.DP_TP_CD = '0102' THEN '1' /* 1.은행 */
+                    WHEN T9.DP_TP_CD = '0203' THEN '2' /* 2.카드 */
+                    ELSE ''
+                    END AS FNT_DV_CD
+             , NVL(T9.BNK_NM, T9.CDCO_NM) AS BNK_CRD_NM
+             , T9.OWR_KNM AS ACHLDR_NM
+             , NVL(T9.ACNO_ENCR, T9.CRCDNO_ENCR) AS BNK_CRD_NO
+             , T9.MPY_BSDT AS FNT_DT
+             , T9.CARD_EXPDT_YM AS EXPDT_YM
+             , T1.TXINV_PBL_OJ_YN AS TXINV_PBL_YN
+             , T7.EMADR
+             , '' AS DSC_MCN		/* TO-BE 존재하지 않음 */
+             , T1.DSC_AMT AS MM_DSC_AMT
+             , T7.BZRNO
+             , '' AS ALNC_P_AMT	/* TO-BE 존재하지 않음 */
+          FROM TB_SSCT_CNTR_DTL T1
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADR_REL T3
+            ON T3.DTL_CNTR_NO = T1.CNTR_NO
+           AND T3.DTL_CNTR_SN = T1.CNTR_SN
+           AND T3.ADRPC_TP_CD = '3'
+           AND T3.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND T3.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4
+            ON T4.CNTR_ADRPC_ID = T3.CNTR_ADRPC_ID
+           AND T4.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL T5
+            ON T5.CNTR_NO = T1.CNTR_NO
+           AND T5.CNTR_SN = T1.CNTR_SN
+           AND T5.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS T6
+            ON T6.PD_CD = T1.BASE_PD_CD
+           AND T6.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS T7
+            ON T7.CST_NO = T2.CNTR_CST_NO
+           AND T7.DTA_DL_YN = 'N'
+         INNER JOIN TB_GBCO_ADR_BAS T8
+            ON T8.ADR_ID = T4.ADR_ID
+           AND T8.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN LATERAL (
+                                    SELECT A.DTL_CNTR_NO
+                                         , A.DTL_CNTR_SN
+                                         , MAX(A.DP_TP_CD) AS DP_TP_CD
+                                         , MAX(B.OWR_KNM) AS OWR_KNM
+                                         , MAX(B.ACNO_ENCR) AS ACNO_ENCR
+                                         , MAX(B.CRCDNO_ENCR) AS CRCDNO_ENCR
+                                         , MAX(B.MPY_BSDT) AS MPY_BSDT
+                                         , MAX(B.CARD_EXPDT_YM) AS CARD_EXPDT_YM
+                                         , MAX((SELECT MAX(V1.FNIT_NM)
+                                                  FROM TB_RVDW_FNIT_CD V1
+                                                 WHERE V1.FNIT_DV_CD = '1'
+                                                   AND V1.DTA_DL_YN = 'N'
+                                                   AND V1.FNIT_CD = B.BNK_CD)) AS BNK_NM
+                                         , MAX((SELECT MAX(V1.FNIT_NM)
+                                                  FROM TB_RVDW_FNIT_CD V1
+                                                 WHERE V1.FNIT_DV_CD = '2'
+                                                   AND V1.DTA_DL_YN = 'N'
+                                                   AND V1.FNIT_CD = B.CDCO_CD)) AS CDCO_NM
+                                      FROM TB_SSCT_CNTR_STLM_REL A
+                                     INNER JOIN TB_SSCT_CNTR_STLM_BAS B
+                                        ON B.CNTR_STLM_ID = A.CNTR_STLM_ID
+                                       AND B.DTA_DL_YN = 'N'
+                                     WHERE A.DTL_CNTR_NO = T1.CNTR_NO
+                                       AND A.DTL_CNTR_SN = T1.CNTR_SN
+                                       AND A.DTA_DL_YN = 'N'
+                                       AND A.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                                       AND A.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                                       AND A.DP_TP_CD IN ('0102','0203')	/* 계좌자동이체, 카드자동이체 */
+                                     GROUP BY A.DTL_CNTR_NO, A.DTL_CNTR_SN
+           ) T9
+            ON T9.DTL_CNTR_NO = T1.CNTR_NO
+           AND T9.DTL_CNTR_SN = T1.CNTR_SN
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+    </select>
+    <select id="selectRegDlvr" resultType="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiRentalContractsDto$SearchReq">
+        SELECT A.BASE_DTL_CNTR_NO AS CNTR_NO
+             , A.BASE_DTL_CNTR_SN AS CNTR_SN
+          FROM TB_SSCT_CNTR_REL A
+         INNER JOIN TB_SSCT_CNTR_DTL B
+            ON B.CNTR_NO = A.BASE_DTL_CNTR_NO
+           AND B.CNTR_SN = A.BASE_DTL_CNTR_SN
+           AND B.DTA_DL_YN = 'N'
+         WHERE A.CNTR_REL_DTL_CD IN ('214','216')
+           AND A.OJ_DTL_CNTR_NO = #{cntrNo}
+           AND A.OJ_DTL_CNTR_SN = #{cntrSn}
+           AND A.VL_END_DTM <![CDATA[>=]]>  TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND A.VL_STRT_DTM <![CDATA[<=]]>  TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND A.DTA_DL_YN = 'N'
+         FETCH FIRST 1 ROWS ONLY
+    </select>
+    <select id="selectRegDlvrCntr" resultType="com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiRentalContractsDvo">
+            SELECT T1.CNTR_NO AS RGLR_SPP_CNTR_NO
+                , T1.CNTR_SN AS RGLR_SPP_CNTR_SN
+                , T7.CST_KNM AS RGLR_SPP_CST_KNM
+                , T7.COPN_DV_CD AS RGLR_SPP_COPN_DV_CD
+                , T7.BRYY_MMDD AS RGLR_SPP_BRYY_MMDD
+                , T7.BZRNO AS RGLR_SPP_BZRNO
+                , T4.LOCARA_TNO AS RGLR_SPP_LOCARA_TNO
+                , '****' AS RGLR_SPP_EXNO_ENCR
+                , T4.IDV_TNO AS RGLR_SPP_IDV_TNO
+                , T4.CRAL_LOCARA_TNO AS RGLR_SPP_CRAL_LOCARA_TNO
+                , '****'  AS RGLR_SPP_MEXNO_ENCR
+                , T4.CRAL_IDV_TNO AS RGLR_SPP_CRAL_IDV_TNO
+                , NVL(T8.RNADR, T8.LTN_ADR) AS RGLR_SPP_ADR
+                , '******' AS RGLR_SPP_DTL_ADR
+                , T1.SV_PRD AS RGLR_SPP_PRD
+                , T6.PD_NM AS RGLR_SPP_PD_NM
+                , T1.FNL_AMT AS RGLR_SPP_SELL_AMT
+                , T1.FNL_AMT AS RGLR_SPP_MM_BILL_AMT
+                , CASE WHEN T9.DP_TP_CD = '0102' THEN '1' /* 1.은행 */
+                       WHEN T9.DP_TP_CD = '0203' THEN '2' /* 2.카드 */
+                       ELSE ''
+                       END AS RGLR_SPP_FNT_DV_CD
+                , NVL(T9.BNK_NM, T9.CDCO_NM) AS RGLR_SPP_BNK_CRD_NM
+                , T9.OWR_KNM AS RGLR_SPP_ACHLDR_NM
+                , NVL(T9.ACNO_ENCR, T9.CRCDNO_ENCR) AS RGLR_SPP_BNK_CRD_NO
+                , T9.MPY_BSDT AS RGLR_SPP_FNT_DT
+                , T9.CARD_EXPDT_YM AS RGLR_SPP_EXPDT_YM
+              FROM TB_SSCT_CNTR_DTL T1
+             INNER JOIN TB_SSCT_CNTR_BAS T2
+                ON T2.CNTR_NO = T1.CNTR_NO
+               AND T2.DTA_DL_YN = 'N'
+             INNER JOIN TB_SSCT_CNTR_ADR_REL T3
+                ON T3.DTL_CNTR_NO = T1.CNTR_NO
+               AND T3.DTL_CNTR_SN = T1.CNTR_SN
+               AND T3.ADRPC_TP_CD = '3'
+               AND T3.VL_END_DTM <![CDATA[>=]]>  TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+               AND T3.VL_STRT_DTM <![CDATA[<=]]>  TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+               AND T3.DTA_DL_YN = 'N'
+             INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4
+                ON T4.CNTR_ADRPC_ID = T3.CNTR_ADRPC_ID
+               AND T4.DTA_DL_YN = 'N'
+             INNER JOIN TB_SSCT_CNTR_WELLS_DTL T5
+                ON T5.CNTR_NO = T1.CNTR_NO
+               AND T5.CNTR_SN = T1.CNTR_SN
+               AND T5.DTA_DL_YN = 'N'
+             INNER JOIN TB_PDBS_PD_BAS T6
+                ON T6.PD_CD = T1.BASE_PD_CD
+               AND T6.DTA_DL_YN = 'N'
+             INNER JOIN TB_CUBS_CST_BAS T7
+                ON T7.CST_NO = T2.CNTR_CST_NO
+               AND T7.DTA_DL_YN = 'N'
+             INNER JOIN TB_GBCO_ADR_BAS T8
+                ON T8.ADR_ID = T4.ADR_ID
+               AND T8.DTA_DL_YN = 'N'
+              LEFT OUTER JOIN LATERAL (
+                                        SELECT
+                                            A.DTL_CNTR_NO
+                                            , A.DTL_CNTR_SN
+                                            , MAX(A.DP_TP_CD) AS DP_TP_CD
+                                            , MAX(B.OWR_KNM) AS OWR_KNM
+                                            , MAX(B.ACNO_ENCR) AS ACNO_ENCR
+                                            , MAX(B.CRCDNO_ENCR) AS CRCDNO_ENCR
+                                            , MAX(B.MPY_BSDT) AS MPY_BSDT
+                                            , MAX(B.CARD_EXPDT_YM) AS CARD_EXPDT_YM
+                                            , MAX((SELECT MAX(V1.FNIT_NM)
+                                                FROM TB_RVDW_FNIT_CD V1
+                                               WHERE V1.FNIT_DV_CD = '1'
+                                                 AND V1.DTA_DL_YN = 'N'
+                                                 AND V1.FNIT_CD = B.BNK_CD)) AS BNK_NM
+                                            , MAX((SELECT MAX(V1.FNIT_NM)
+                                                FROM TB_RVDW_FNIT_CD V1
+                                               WHERE V1.FNIT_DV_CD = '2'
+                                                 AND V1.DTA_DL_YN = 'N'
+                                                 AND V1.FNIT_CD = B.CDCO_CD)) AS CDCO_NM
+                                          FROM TB_SSCT_CNTR_STLM_REL A
+                                         INNER JOIN TB_SSCT_CNTR_STLM_BAS B
+                                            ON B.CNTR_STLM_ID = A.CNTR_STLM_ID
+                                           AND B.DTA_DL_YN = 'N'
+                                         WHERE A.DTL_CNTR_NO = T1.CNTR_NO
+                                           AND A.DTL_CNTR_SN = T1.CNTR_SN
+                                           AND A.DTA_DL_YN = 'N'
+                                           AND A.VL_END_DTM <![CDATA[>=]]>  TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                                           AND A.VL_STRT_DTM <![CDATA[<=]]>  TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                                           AND A.DP_TP_CD IN ('0102','0203')	/* 계좌자동이체, 카드자동이체 */
+                                         GROUP BY A.DTL_CNTR_NO, A.DTL_CNTR_SN
+               ) T9
+                ON T9.DTL_CNTR_NO = T1.CNTR_NO
+               AND T9.DTL_CNTR_SN = T1.CNTR_SN
+             WHERE T1.DTA_DL_YN = 'N'
+               AND T1.CNTR_NO = #{cntrNo}
+               AND T1.CNTR_SN = #{cntrSn}
+    </select>
+</mapper>

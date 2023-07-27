@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaOrderDetailLinkProductMapper">
+    <select id="selectLinkProducts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailLinkProductDto$SearchRes">
+        /*
+         * 연계상품 리스트 조회
+         * TABLE
+         * A1     TB_SSCT_CNTR_REL     계약관계
+         * A2     TB_SSCT_CNTR_REL     계약관계
+         * B1     INLINE_VIEW
+         * C1     TB_SSCT_CNTR_DTL     계약상세
+         * D1     TB_PDBS_PD_BAS       상품기본
+         */
+
+        SELECT DISTINCT
+               B1.CNTR_NO/* [계약상세번호] 상세계약번호 */
+             , B1.CNTR_SN/* [계약상세번호] 상세계약일련번호 */
+             , B1.CNTR_REL_TP_CD /* 계약관계유형코드 */
+             , AFMDBS.F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_REL_TP_CD', B1.CNTR_REL_TP_CD) AS CNTR_REL_TP_NM /* 계약관계유형코드명 */
+             , B1.CNTR_REL_DTL_CD /* 계약관계상세코드 */
+             , AFMDBS.F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_REL_DTL_CD', B1.CNTR_REL_DTL_CD) AS CNTR_REL_DTL_NM /* [연관계약명] 계약관계상세코드명 */
+             , B1.REL_DV /* 계약번호 구분 B:기준, O:대상*/
+             , C1.BASE_PD_CD /* [상품코드] 기준상품코드 */
+             , (
+                SELECT MAX(D1.PD_NM) /* 상품기본.상품명 */
+                  FROM TB_PDBS_PD_BAS D1 /* 상품기본 */
+                 WHERE D1.PD_CD = C1.BASE_PD_CD /* 상품기본.상품코드 = 계약상세.기준상품코드 */
+                   AND D1.DTA_DL_YN = 'N' /* 상품기본.데이터삭제여부가 'Y'가 아닌 건 */
+               ) AS BASE_PD_NM /* [상품명] */
+             , C1.PD_QTY /* [상품수량] */
+          FROM
+             (
+              SELECT A1.BASE_DTL_CNTR_NO AS CNTR_NO/* 기준상세계약번호 */
+                   , A1.BASE_DTL_CNTR_SN AS CNTR_SN/* 기준상세계약일련번호 */
+                   , A1.CNTR_REL_TP_CD /* 계약관계유형코드 */
+                   , A1.CNTR_REL_DTL_CD /* 계약관계상세코드 */
+                   , 'B' AS REL_DV /* 계약번호 구분 B:기준, O:대상*/
+                FROM TB_SSCT_CNTR_REL A1 /* 계약관계 */
+               WHERE 1=1
+                 AND A1.VL_END_DTM = '99991231235959'
+                 --AND A1.CNTR_UNIT_TP_CD = '020' /* 계약관계.계약단위유형코드 = '020'(계약상세) */
+                 AND A1.DTA_DL_YN = 'N'
+                 AND A1.OJ_DTL_CNTR_NO = #{cntrNo} /* 대상상세계약번호 */
+                 AND A1.OJ_DTL_CNTR_SN = #{cntrSn} /* 대상상세계약일련번호 */
+              UNION ALL
+              SELECT A2.OJ_DTL_CNTR_NO AS CNTR_NO /* 대상상세계약번호 */
+                   , A2.OJ_DTL_CNTR_SN AS CNTR_SN /* 대상상세계약일련번호 */
+                   , A2.CNTR_REL_TP_CD /* 계약관계유형코드 */
+                   , A2.CNTR_REL_DTL_CD /* 계약관계상세코드 */
+                   , 'O' AS REL_DV  /* 계약번호 구분 B:기준, O:대상*/
+                FROM TB_SSCT_CNTR_REL A2 /* 계약관계 */
+               WHERE 1=1
+                 AND A2.VL_END_DTM = '99991231235959'
+                 --AND A2.CNTR_UNIT_TP_CD = '020' /* 계약관계.계약단위유형코드 = '020'(계약상세) */
+                 AND A2.DTA_DL_YN = 'N'
+                 AND A2.BASE_DTL_CNTR_NO = #{cntrNo} /* 기준상세계약번호 */
+                 AND A2.BASE_DTL_CNTR_SN = #{cntrSn} /* 기준상세계약일련번호 */
+             ) B1
+         INNER JOIN TB_SSCT_CNTR_DTL C1 /* 계약상세 */
+            ON C1.CNTR_NO = B1.CNTR_NO
+           AND C1.CNTR_SN = B1.CNTR_SN
+           AND C1.DTA_DL_YN = 'N'
+           AND NOT EXISTS /* 조회건을 포함하는 경우 제거 */
+             (
+               SELECT C2.CNTR_NO
+                 FROM TB_SSCT_CNTR_DTL C2 /* 계약상세 */
+                WHERE 1 = 1
+                  AND C2.DTA_DL_YN = 'N'
+                  AND C2.CNTR_NO = C1.CNTR_NO
+                  AND C2.CNTR_SN = C1.CNTR_SN
+                  AND C2.CNTR_NO = #{cntrNo} /* 기준상세계약번호 */
+                  AND C2.CNTR_SN = #{cntrSn} /* 기준상세계약일련번호 */
+             )
+    </select>
+</mapper>

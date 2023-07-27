@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbSpayCanProcsMapper">
+    <select id="selectCntrDtl" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctbSpayCanProcsDto$SearchSsctCntrDtlRes">
+        SELECT CNTR_DTL_STAT_CD /* 계약상세상태코드 */
+             , BASE_PD_CD /* 기준상품코드 */
+             , CNTR_PD_STRTDT /* 계약상품시작일자 */
+             , ALNCMP_CD /* 제휴사코드 */
+          FROM TB_SSCT_CNTR_DTL
+         WHERE 1=1
+           AND DTA_DL_YN ='N'
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </select>
+    <select id="selectCttOjId" resultType="java.lang.String">
+        SELECT CTT_OJ_ID /* 컨택대상ID */
+          FROM TB_SSCT_CNTR_DTL
+         WHERE 1=1
+           AND DTA_DL_YN ='N'
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </select>
+    <!--계약상세-->
+    <update id="upateCntrDtl" >
+        UPDATE TB_SSCT_CNTR_DTL /* 계약상세 */
+           SET CNTR_DTL_STAT_CD    = '303'       /* 계약상세상태코드 */
+             , CTT_RS_CD    = '303'       /* 계약상세상태코드 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO             = #{cntrNo}              /* 계약번호 */
+           AND CNTR_SN             = #{cntrSn}              /* 계약일련번호 */
+    </update>
+
+    <!--계약상세변경이력 업데이트-->
+    <update id="updateCntrDchHist" >
+        UPDATE TB_SSCT_CNTR_DCH_HIST /* 계약상세변경이력 */
+           SET HIST_END_DTM        = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')       /* 이력종료일시 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO             = #{cntrNo}              /* 계약번호 */
+           AND CNTR_SN             = #{cntrSn}              /* 계약일련번호 */
+           AND HIST_END_DTM        = '99991231235959'
+    </update>
+
+    <!--계약상세변경이력-->
+    <insert id="insertCntrDchHist" >
+        INSERT INTO TB_SSCT_CNTR_DCH_HIST  (  /* 계약상세변경이력 */
+              CNTR_NO             /* 계약번호 */
+            , HIST_STRT_DTM       /* 이력시작일시 */
+            , CNTR_SN             /* 계약일련번호 */
+            , HIST_END_DTM        /* 이력종료일시 */
+            , BASE_PD_CD          /* 기준상품코드 */
+            , HGR_PD_CD           /* 상위상품코드 */
+            , PD_QTY              /* 상품수량 */
+            , SELL_TP_CD          /* 판매유형코드 */
+            , SELL_TP_DTL_CD      /* 판매유형상세코드 */
+            , CNTR_DTL_STAT_CD    /* 계약상세상태코드 */
+            , CNTR_PTRM_UNIT_CD   /* 계약기간단위코드 */
+            , CNTR_PTRM           /* 계약기간 */
+            , CNTR_PD_STRTDT      /* 계약상품시작일자 */
+            , CNTR_PD_ENDDT       /* 계약상품종료일자 */
+            , STPL_PTRM_UNIT_CD   /* 약정기간단위코드 */
+            , STPL_PTRM           /* 약정기간 */
+            , SV_PTRM_UNIT_CD     /* 서비스기간단위코드 */
+            , SV_PRD              /* 서비스주기 */
+            , CNTRW_TP_CD         /* 계약서유형코드 */
+            , BLG_CRP_CD          /* 소속법인코드 */
+            , RVE_CRP_CD          /* 수납법인코드 */
+            , CO_CD               /* 회사코드 */
+            , BOO_SELL_TP_CD      /* 예약판매유형코드 */
+            , PD_GD_CD            /* 상품등급코드 */
+            , PD_HCLSF_ID         /* 상품대분류ID */
+            , PD_MCLSF_ID         /* 상품중분류ID */
+            , PD_LCLSF_ID         /* 상품소분류ID */
+            , PD_DCLSF_ID         /* 상품세분류ID */
+            , SELL_DSC_DV_CD      /* 판매할인구분코드 */
+            , SELL_DSCR_CD        /* 판매할인율코드 */
+            , SELL_DSC_CTR_AMT    /* 판매할인조정금액 */
+            , SELL_DSC_TP_CD      /* 판매할인유형코드 */
+            , STLM_TP_CD          /* 결제유형코드 */
+            , CRNCY_DV_CD         /* 통화구분코드 */
+            , APY_EXCR            /* 적용환율 */
+            , PD_BASE_AMT         /* 상품기준금액 */
+            , SELL_AMT            /* 판매금액 */
+            , DSC_AMT             /* 할인금액 */
+            , FNL_AMT             /* 최종금액 */
+            , VAT                 /* 부가가치세 */
+            , CNTR_AMT            /* 계약금액 */
+            , CNTRAM_DSC_AMT      /* 계약금할인금액 */
+            , ISTM_MCN            /* 할부개월수 */
+            , ISTM_PCAM_AMT       /* 할부원금금액 */
+            , ISTM_INT_AMT        /* 할부이자금액 */
+            , MM_ISTM_AMT         /* 월할부금액 */
+            , CRP_UC_AMT          /* 법인미수금액 */
+            , SELL_FEE            /* 판매수수료 */
+            , CNTR_TAM            /* 계약총액 */
+            , ACKMT_PERF_RT       /* 인정실적율 */
+            , ACKMT_PERF_AMT      /* 인정실적금액 */
+            , CVT_PERF_AMT        /* 환산실적금액 */
+            , FEE_ACKMT_CT        /* 수수료인정건수 */
+            , FEE_ACKMT_BASE_AMT  /* 수수료인정기준금액 */
+            , FEE_FXAM_YN         /* 수수료정액여부 */
+            , SPP_DUEDT           /* 배송예정일자 */
+            , RESUB_YN            /* 재구독여부 */
+            , RSTL_YN             /* 재약정여부 */
+            , FRISU_YN            /* 무상여부 */
+            , FRISU_DSB_TP_CD     /* 무상지급유형코드 */
+            , TXINV_PBL_OJ_YN     /* 세금계산서발행대상여부 */
+            , ALNCMP_CD           /* 제휴사코드 */
+            , ALNCMP_CNTR_DRM_VAL /* 제휴사계약식별값 */
+            , SMTPL_ID            /* 스마트플랜ID */
+            , SMTPL_SN            /* 스마트플랜일련번호 */
+            , CTT_OJ_ID           /* 컨택대상ID */
+            , CTT_RS_CD           /* 컨택결과코드 */
+            , CTT_PSIC_ID         /* 컨택담당자ID */
+            , BF_ORD_NO           /* 이전주문번호 */
+            , CNTR_CH_RCP_ID      /* 계약변경접수ID */
+            , CNTR_CH_SN          /* 계약변경일련번호 */
+            , CNTR_CH_DTL_AK_CN   /* 계약변경상세요청내용 */
+            , DTA_DL_YN           /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+       SELECT CNTR_NO             /* 계약번호 */
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')       /* 이력시작일시 */
+            , CNTR_SN             /* 계약일련번호 */
+            , '99991231235959'        /* 이력종료일시 */
+            , BASE_PD_CD          /* 기준상품코드 */
+            , HGR_PD_CD           /* 상위상품코드 */
+            , PD_QTY              /* 상품수량 */
+            , SELL_TP_CD          /* 판매유형코드 */
+            , SELL_TP_DTL_CD      /* 판매유형상세코드 */
+            , CNTR_DTL_STAT_CD    /* 계약상세상태코드 */
+            , CNTR_PTRM_UNIT_CD   /* 계약기간단위코드 */
+            , CNTR_PTRM           /* 계약기간 */
+            , CNTR_PD_STRTDT      /* 계약상품시작일자 */
+            , CNTR_PD_ENDDT       /* 계약상품종료일자 */
+            , STPL_PTRM_UNIT_CD   /* 약정기간단위코드 */
+            , STPL_PTRM           /* 약정기간 */
+            , SV_PTRM_UNIT_CD     /* 서비스기간단위코드 */
+            , SV_PRD              /* 서비스주기 */
+            , CNTRW_TP_CD         /* 계약서유형코드 */
+            , BLG_CRP_CD          /* 소속법인코드 */
+            , RVE_CRP_CD          /* 수납법인코드 */
+            , CO_CD               /* 회사코드 */
+            , BOO_SELL_TP_CD      /* 예약판매유형코드 */
+            , PD_GD_CD            /* 상품등급코드 */
+            , PD_HCLSF_ID         /* 상품대분류ID */
+            , PD_MCLSF_ID         /* 상품중분류ID */
+            , PD_LCLSF_ID         /* 상품소분류ID */
+            , PD_DCLSF_ID         /* 상품세분류ID */
+            , SELL_DSC_DV_CD      /* 판매할인구분코드 */
+            , SELL_DSCR_CD        /* 판매할인율코드 */
+            , SELL_DSC_CTR_AMT    /* 판매할인조정금액 */
+            , SELL_DSC_TP_CD      /* 판매할인유형코드 */
+            , STLM_TP_CD          /* 결제유형코드 */
+            , CRNCY_DV_CD         /* 통화구분코드 */
+            , APY_EXCR            /* 적용환율 */
+            , PD_BASE_AMT         /* 상품기준금액 */
+            , SELL_AMT            /* 판매금액 */
+            , DSC_AMT             /* 할인금액 */
+            , FNL_AMT             /* 최종금액 */
+            , VAT                 /* 부가가치세 */
+            , CNTR_AMT            /* 계약금액 */
+            , CNTRAM_DSC_AMT      /* 계약금할인금액 */
+            , ISTM_MCN            /* 할부개월수 */
+            , ISTM_PCAM_AMT       /* 할부원금금액 */
+            , ISTM_INT_AMT        /* 할부이자금액 */
+            , MM_ISTM_AMT         /* 월할부금액 */
+            , CRP_UC_AMT          /* 법인미수금액 */
+            , SELL_FEE            /* 판매수수료 */
+            , CNTR_TAM            /* 계약총액 */
+            , ACKMT_PERF_RT       /* 인정실적율 */
+            , ACKMT_PERF_AMT      /* 인정실적금액 */
+            , CVT_PERF_AMT        /* 환산실적금액 */
+            , FEE_ACKMT_CT        /* 수수료인정건수 */
+            , FEE_ACKMT_BASE_AMT  /* 수수료인정기준금액 */
+            , FEE_FXAM_YN         /* 수수료정액여부 */
+            , SPP_DUEDT           /* 배송예정일자 */
+            , RESUB_YN            /* 재구독여부 */
+            , RSTL_YN             /* 재약정여부 */
+            , FRISU_YN            /* 무상여부 */
+            , FRISU_DSB_TP_CD     /* 무상지급유형코드 */
+            , TXINV_PBL_OJ_YN     /* 세금계산서발행대상여부 */
+            , ALNCMP_CD           /* 제휴사코드 */
+            , ALNCMP_CNTR_DRM_VAL /* 제휴사계약식별값 */
+            , SMTPL_ID            /* 스마트플랜ID */
+            , SMTPL_SN            /* 스마트플랜일련번호 */
+            , CTT_OJ_ID           /* 컨택대상ID */
+            , CTT_RS_CD           /* 컨택결과코드 */
+            , CTT_PSIC_ID         /* 컨택담당자ID */
+            , BF_ORD_NO           /* 이전주문번호 */
+            , CNTR_CH_RCP_ID      /* 계약변경접수ID */
+            , CNTR_CH_SN          /* 계약변경일련번호 */
+            , CNTR_CH_DTL_AK_CN   /* 계약변경상세요청내용 */
+            , DTA_DL_YN           /* 데이터삭제여부 */
+            , FST_RGST_DTM        /* 최초등록일시 */
+            , FST_RGST_USR_ID     /* 최초등록사용자ID */
+            , FST_RGST_PRG_ID     /* 최초등록프로그램ID */
+            , FST_RGST_DEPT_ID    /* 최초등록부서ID */
+            , FNL_MDFC_DTM        /* 최종수정일시 */
+            , FNL_MDFC_USR_ID     /* 최종수정사용자ID */
+            , FNL_MDFC_PRG_ID     /* 최종수정프로그램ID */
+            , FNL_MDFC_DEPT_ID    /* 최종수정부서ID */
+         FROM TB_SSCT_CNTR_DTL /* 계약상세 */
+        WHERE 1 = 1
+          AND CNTR_NO             = #{cntrNo}              /* 계약번호 */
+          AND CNTR_SN             = #{cntrSn}              /* 계약일련번호 */
+    </insert>
+
+    <!--계약상세상태변경이력-->
+    <update id="updateCntrDtlStatChHist" >
+        UPDATE TB_SSCT_CNTR_DTL_STAT_CH_HIST /* 계약상세상태변경이력 */
+           SET HIST_END_DTM             = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')             /* 이력종료일시 */
+             , CNTR_DTL_STAT_CD         = '303'          /* 계약상세상태코드 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO                  = #{cntrNo}                 /* 계약번호 */
+           AND CNTR_SN                  = #{cntrSn}                 /* 계약일련번호 */
+           AND HIST_END_DTM            = '99991231235959'            /* 이력종료일시 */
+
+    </update>
+    <!--계약상세상태변경이력-->
+    <insert id="insertCntrDtlStatChHist" >
+        INSERT INTO TB_SSCT_CNTR_DTL_STAT_CH_HIST (  /* 계약상세상태변경이력 */
+                  CNTR_NO                  /* 계약번호 */
+                , CNTR_SN                  /* 계약일련번호 */
+                , HIST_STRT_DTM            /* 이력시작일시 */
+                , HIST_END_DTM             /* 이력종료일시 */
+                , CNTR_DTL_STAT_CD         /* 계약상세상태코드 */
+                , CNTR_DTL_STAT_CH_RSON_CD /* 계약상세상태변경사유코드 */
+                , CNTR_DTL_STAT_CH_MO_CN   /* 계약상세상태변경메모내용 */
+                , DTA_DL_YN                /* 데이터삭제여부 */
+                <include refid="COMMON.insertSystemField" />)
+           SELECT CNTR_NO                  /* 계약번호 */
+                , CNTR_SN                  /* 계약일련번호 */
+                , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')            /* 이력시작일시 */
+                , '99991231235959'             /* 이력종료일시 */
+                , CNTR_DTL_STAT_CD         /* 계약상세상태코드 */
+                , CNTR_DTL_STAT_CH_RSON_CD /* 계약상세상태변경사유코드 */
+                , CNTR_DTL_STAT_CH_MO_CN   /* 계약상세상태변경메모내용 */
+                , DTA_DL_YN                /* 데이터삭제여부 */
+                <include refid="COMMON.insertSystemFieldValue" />
+             FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST /* 계약상세상태변경이력 */
+            WHERE 1 = 1
+              AND CNTR_NO                  = #{cntrNo}                 /* 계약번호 */
+              AND CNTR_SN                  = #{cntrSn}                 /* 계약일련번호 */
+              AND CNTR_DTL_STAT_CD         = '303'
+              AND HIST_STRT_DTM            = (SELECT MAX(HIST_STRT_DTM)
+                                               FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST
+                                              WHERE 1 = 1
+                                                AND CNTR_NO                  = #{cntrNo}                 /* 계약번호 */
+                                                AND CNTR_SN                  = #{cntrSn}                 /* 계약일련번호 */
+                                                AND CNTR_DTL_STAT_CD         = '303'
+                                            )
+    </insert>
+    <update id="updateSsopCttBas">
+        UPDATE TB_SSOP_CTT_BAS
+           SET CTT_RS_CD = '91'
+        <include refid="COMMON.updateSystemField"/>
+         WHERE CTT_OJ_ID = #{cttOjId}
+    </update>
+    <update id="updateSsopCttChHist">
+        UPDATE TB_SSOP_CTT_CH_HIST
+           SET HIST_END_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+         WHERE CTT_OJ_ID = #{cttOjId}
+           AND HIST_END_DTM = '99991231235959'
+    </update>
+    <insert id="insertSsopCttChHist">
+        INSERT INTO TB_SSOP_CTT_CH_HIST(
+               CTT_OJ_ID        /* 컨택대상ID */
+             , HIST_STRT_DTM    /* 이력시작일시 */
+             , HIST_END_DTM     /* 이력종료일시 */
+             , CST_NO           /* 고객번호 */
+             , CTT_CHNL_TP_CD   /* 컨택채널유형코드 */
+             , CTT_TP_CD        /* 컨택유형코드 */
+             , CTT_AK_RSON_CD   /* 컨택요청사유코드 */
+             , CTT_SELL_TP_CD   /* 컨택판매유형코드 */
+             , CNTR_NO          /* 계약번호 */
+             , CTT_PRGS_STAT_CD /* 컨택진행상태코드 */
+             , CTT_RCP_DTM      /* 컨택접수일시 */
+             , CTT_FSH_DTM      /* 컨택완료일시 */
+             , UC_TOT_AMT       /* 미수총금액 */
+             , CTT_AOFFCE_CD    /* 컨택사무소코드 */
+             , CTT_PSIC_ID      /* 컨택담당자ID */
+             , CTT_DUEDT        /* 컨택예정일자 */
+             , CTT_EXP_DV_CD    /* 컨택예정구분코드 */
+             , CTT_RS_CD        /* 컨택결과코드 */
+             , CTT_MO_CN        /* 컨택메모내용 */
+             , OTSD_LK_DRM_VAL  /* 외부연계식별값 */
+             , DTA_DL_YN        /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />
+        )
+        SELECT CTT_OJ_ID
+             , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+             , '99991231235959'
+             , CST_NO           /* 고객번호 */
+             , CTT_CHNL_TP_CD   /* 컨택채널유형코드 */
+             , CTT_TP_CD        /* 컨택유형코드 */
+             , CTT_AK_RSON_CD   /* 컨택요청사유코드 */
+             , CTT_SELL_TP_CD   /* 컨택판매유형코드 */
+             , CNTR_NO          /* 계약번호 */
+             , CTT_PRGS_STAT_CD /* 컨택진행상태코드 */
+             , CTT_RCP_DTM      /* 컨택접수일시 */
+             , CTT_FSH_DTM      /* 컨택완료일시 */
+             , UC_TOT_AMT       /* 미수총금액 */
+             , CTT_AOFFCE_CD    /* 컨택사무소코드 */
+             , CTT_PSIC_ID      /* 컨택담당자ID */
+             , CTT_DUEDT        /* 컨택예정일자 */
+             , CTT_EXP_DV_CD    /* 컨택예정구분코드 */
+             , CTT_RS_CD        /* 컨택결과코드 */
+             , CTT_MO_CN        /* 컨택메모내용 */
+             , OTSD_LK_DRM_VAL  /* 외부연계식별값 */
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SSOP_CTT_BAS
+         WHERE CTT_OJ_ID = #{cttOjId}
+           AND DTA_DL_YN = 'N'
+    </insert>
+</mapper>

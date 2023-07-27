@@ -1,0 +1,606 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaOrderDetailMngtInfMapper">
+    <select id="selectOrderDetailSpayCntrtMngtInqr" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtInfDto$SearchRes">
+        SELECT SUBSTR(T12.CNTR_CNFM_DTM,1,8)   AS CNTR_DT                  /*(1110) 계약일*/
+             , T14.PD_NM                       AS PD_NM                    /*(1121) 상품명*/
+             , T14.PD_CD                       AS PD_CD                    /*(1122) 상품코드*/
+             , T10.PD_QTY                      AS PD_QTY                   /*(1123) 상품수량*/
+             , T11.IST_DT                      AS IST_DT                   /*(1210) 설치일자*/
+             , NVL(F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T10.SELL_TP_CD),'-') || '(' ||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T10.SELL_TP_DTL_CD),'-') || ')'
+			                                   AS SELL_TP_NM               /*(1220) 판매유형(판매유형상세)*/
+             , CASE WHEN T10.SELL_DSC_DV_CD IS NOT NULL
+             		THEN NVL(F_CMZ_CD_NM('TNT_WELLS', T23.USER_DFN_02, T10.SELL_DSC_DV_CD),'-')
+             		ELSE '-' END               AS DSC_DV_NM                /*(1310) 할인구분*/
+             , CASE WHEN T10.SELL_DSC_TP_CD IS NOT NULL
+             		THEN T10.SELL_DSC_TP_CD||' '||NVL(F_CMZ_CD_NM('TNT_WELLS', T26.USER_DFN_02, T10.SELL_DSC_TP_CD),'-')
+             		ELSE '-' END               AS DSC_TP_NM                /*(1320) 유형(할인유형)*/
+             , NVL(T10.STPL_PTRM,0)||''||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'PTRM_UNIT_CD', T10.STPL_PTRM_UNIT_CD),'-')||' '||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'PMOT_CD', T15.PMOT_CD),'-')
+			                                   AS STPL_PTRM                /*(1410) 약정기간*/
+             , NVL(T25.PD_PRP_VAL02,'-')       AS PRD                      /*(1421) 주기(방문개월수)*/
+             , NVL(F_CMZ_CD_NM('TNT_WELLS', 'SV_TP_CD', T14.SV_PD_TP_CD),'-')
+			                                   AS USWY                     /*(1422) 용도*/
+             , T11.FRISU_AS_PTRM_N||' '||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'PTRM_UNIT_CD', T11.FRISU_AS_PTRM_UNIT_CD),'-')
+			                                   AS FRISU_AS                 /*(1510) 무상AS*/
+             , NVL(T13.OG_CD,'-')              AS SELL_PRTNR_BLG_CD        /*(1611) 판매자소속코드*/
+             , NVL(T17.DGR3_LEVL_DG_PRTNR_NM,'-') AS SELL_PRTNR_BLG_BRMGR_NM  /*(1612) 판매자소속지점장명*/
+             , NVL(T13.PRTNR_KNM,'-')          AS SELL_PRTNR_NM            /*(1621) 판매자성명*/
+             , NVL(T12.SELL_PRTNR_NO,'-')      AS SELL_PRTNR_NO            /*(1622) 판매파트너번호*/
+             , T11.CPS_DT                      AS CHDVC_DT                 /*(1710) 기변일자*/
+             , '-'                             AS PTY_CD                   /*(1720) 상대코드*/
+             , '-'                             AS ALNC_PTY_CD              /*(1810) 제휴상대코드*/
+             , '-'                             AS ETC_ARTC                 /*(1820) 기타사항*/
+             , ''                              AS CHNG_DT                  /*(1910) 교체일자*/
+             , ''                              AS REQD_DT                  /*(1920) 철거일자*/
+             , T22.CAN_DT                      AS CAN_DT                   /*(2010) 취소일자*/
+             , T10.CNTR_PD_ENDDT               AS SV_STP_DT                /*(2020) 서비스중지일자*/
+             , NVL(SUBSTR(T12.CNTR_CNFM_DTM,1,8),'') AS MSH_JOIN_DT        /* 멤버십가입*/
+             , NVL(T10.CNTR_PD_ENDDT,'')       AS MSH_WDWAL_DT             /* 멤버십탈퇴*/
+             , CASE WHEN T18.FXN_PRTNR_YN != 'N' /* 고정파트너여부*/ AND T18.FXN_PRTNR_DV_CD = '1' /* 고정파트너구분코드*/
+                        THEN (SELECT PRTNR_KNM
+                                FROM TB_OGBS_PRTNR_BAS
+                               WHERE OG_TP_CD = T18.FXN_PRTNR_OG_TP_CD
+                                 AND PRTNR_NO = T18.FXN_PRTNR_NO
+                                 AND DTA_DL_YN = 'N')
+                    WHEN T18.FXN_PRTNR_YN = 'N' /* 고정파트너여부*/ AND T18.MNGR_DV_CD = '1' /* 관리자구분코드*/
+                        THEN (SELECT PRTNR_KNM
+                                FROM TB_OGBS_PRTNR_BAS
+                               WHERE OG_TP_CD = T18.MNGT_PRTNR_OG_TP_CD
+                                 AND PRTNR_NO = T18.MNGT_PRTNR_NO
+                                 AND DTA_DL_YN = 'N')
+                    ELSE ''
+                    END                         AS ICHR_WELS_MNGER_NM       /* 담당웰스매니저명*/
+             , T11.WRFR_IST_MTH_CD              AS IST_MTH_CD               /* 설치방법코드*/
+             , NVL(F_CMZ_CD_NM('TNT_WELLS', 'WRFR_IST_MTH_CD', T11.WRFR_IST_MTH_CD),'-')
+                                                AS IST_MTH_NM               /* 설치방법명*/
+             , 0                                AS DUTY_STPL_MCNT           /* 의무약정개월*/
+             , 0                                AS RGST_CS                  /* 등록비용*/
+             , 0                                AS RENTAL_TAM               /* 렌탈총액*/
+             , NVL(T10.ACKMT_PERF_AMT,0)        AS ACKMT_PERF_AMT           /* 인정실적*/
+             , NVL(T13.OG_NM,'-')               AS SELL_PRTNR_BLG_NM        /* 판매자소속명*/
+          FROM TB_SSCT_CNTR_DTL T10 /* 계약상세*/
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T11 /* 계약WELLS상세*/
+            ON T10.CNTR_NO = T11.CNTR_NO
+           AND T10.CNTR_SN = T11.CNTR_SN
+           AND T11.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS T12 /* 계약기본*/
+            ON T10.CNTR_NO = T12.CNTR_NO
+           AND T12.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T13 /* 파트너기본*/
+            ON T12.SELL_OG_TP_CD = T13.OG_TP_CD
+           AND T12.SELL_PRTNR_NO = T13.PRTNR_NO
+           AND T13.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T14 /* 상품기본*/
+            ON T10.BASE_PD_CD = T14.PD_CD
+           AND T14.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_PMOT_IZ T15 /* 계약프로모션내역*/
+            ON T10.BASE_PD_CD = T15.PD_CD
+           AND T10.CNTR_NO = T15.DTL_CNTR_NO
+           AND T10.CNTR_SN = T15.DTL_CNTR_SN
+           AND T15.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T16 /* WELLS매출월마감내역*/
+            ON T16.SL_CL_YM = SUBSTR(T12.CNTR_CNFM_DTM,1,6)
+           AND T10.CNTR_NO = T16.CNTR_NO
+           AND T10.CNTR_SN = T16.CNTR_SN
+           AND T16.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T17 /* 월조직내역*/
+            ON T17.BASE_YM = SUBSTR(T12.CNTR_CNFM_DTM,1,6)
+           AND T13.OG_ID = T17.OG_ID
+           AND T17.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ T18 /* 월별고객서비스대상내역*/
+            ON T18.MNGT_YM = SUBSTR(T12.CNTR_CNFM_DTM,1,6)
+           AND T10.CNTR_NO = T18.CNTR_NO
+           AND T10.CNTR_SN = T18.CNTR_SN
+           AND T18.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T19 /* 파트너기본*/
+            ON T18.FXN_PRTNR_OG_TP_CD = T19.OG_TP_CD
+           AND T18.FXN_PRTNR_NO = T19.PRTNR_NO
+           AND T19.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T20 /* 파트너기본*/
+            ON T18.MNGT_PRTNR_OG_TP_CD = T20.OG_TP_CD
+           AND T18.MNGT_PRTNR_NO = T20.PRTNR_NO
+           AND T20.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN T_CMZ_CD_D T23 /* 코드상세*/
+            ON T23.TENANT_ID = 'TNT_WELLS'
+           AND T23.CD_ID = 'SELL_DSC_DV_CD' -- 할인구분
+           AND T23.PRTS_CD_ID = 'SELL_TP_CD'
+           AND T23.PRTS_CD_VLD_VAL = T10.SELL_TP_CD
+           AND T23.CD_USE_YN = 'Y'
+           AND T23.DEL_YN = 'N'
+          LEFT OUTER JOIN T_CMZ_CD_D T26 /* 코드상세*/
+            ON T26.TENANT_ID = 'TNT_WELLS'
+           AND T26.CD_ID = 'SELL_DSC_TP_CD' -- 할인유형
+           AND T26.PRTS_CD_ID = 'SELL_TP_CD'
+           AND T26.PRTS_CD_VLD_VAL = T10.SELL_TP_CD
+           AND T26.CD_USE_YN = 'Y'
+           AND T26.DEL_YN = 'N'
+          LEFT OUTER JOIN LATERAL (
+                    SELECT CNTR_NO
+                         , CNTR_SN
+                         , CAN_DT
+                      FROM (
+                            SELECT CNTR_NO
+                                 , CNTR_SN
+                                 , SUBSTR(HIST_STRT_DTM,1,8) AS CAN_DT
+                                 , ROW_NUMBER () OVER(PARTITION BY CNTR_NO, CNTR_SN ORDER BY HIST_STRT_DTM DESC) AS RN
+                              FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST
+                             WHERE 1 = 1
+                               AND DTA_DL_YN = 'N'
+                               AND CNTR_DTL_STAT_CD IN ('301','302','303')
+                           )
+                     WHERE RN = 1
+             ) T22 /* 취소일구하기*/
+            ON T10.CNTR_NO = T22.CNTR_NO
+           AND T10.CNTR_SN = T22.CNTR_SN
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T25 /* 상품각사속성상세*/
+		    ON T10.BASE_PD_CD = T25.PD_CD
+		   AND T25.PD_EXTS_PRP_GRP_CD = 'SCHD'
+		   AND T25.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND T10.CNTR_NO = #{cntrNo}
+           AND T10.CNTR_SN = #{cntrSn}
+           AND T10.SELL_TP_CD = '1'
+           AND T10.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectOrderDetailRentalMngtInqr" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtInfDto$SearchRes">
+        SELECT NVL(SUBSTR(T12.CNTR_CNFM_DTM,1,8),'')
+		                                       AS CNTR_DT                  /*(1110) 계약일*/
+             , T14.PD_NM                       AS PD_NM                    /*(1121) 상품명*/
+             , T14.PD_CD                       AS PD_CD                    /*(1122) 상품코드*/
+             , T10.PD_QTY                      AS PD_QTY                   /*(1123) 상품수량*/
+             , T11.IST_DT                      AS IST_DT                   /*(1210) 설치일자*/
+             , NVL(F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T10.SELL_TP_CD),'-') || '(' ||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T10.SELL_TP_DTL_CD),'-') || ')'
+			                                   AS SELL_TP_NM               /*(1220) 판매유형(판매유형상세)*/
+             , CASE WHEN T10.SELL_DSC_DV_CD IS NOT NULL
+             		THEN NVL(F_CMZ_CD_NM('TNT_WELLS', T23.USER_DFN_02, T10.SELL_DSC_DV_CD),'-')
+             		ELSE '-' END               AS DSC_DV_NM                /*(1310) 할인구분*/
+             , CASE WHEN T10.SELL_DSC_TP_CD IS NOT NULL
+             		THEN T10.SELL_DSC_TP_CD||' '||NVL(F_CMZ_CD_NM('TNT_WELLS', T26.USER_DFN_02, T10.SELL_DSC_TP_CD),'-')
+             		ELSE '-' END               AS DSC_TP_NM                /*(1320) 유형(할인유형)*/
+             , NVL(T10.STPL_PTRM,0)||''||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'PTRM_UNIT_CD', T10.STPL_PTRM_UNIT_CD),'-')||' '||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'PMOT_CD', T15.PMOT_CD),'-')
+				                               AS STPL_PTRM                /*(1410) 약정기간*/
+             , NVL(T25.PD_PRP_VAL02,'-')       AS PRD                      /*(1421) 주기(방문개월수)*/
+             , NVL(F_CMZ_CD_NM('TNT_WELLS', 'SV_TP_CD', T14.SV_PD_TP_CD),'-')
+			                                   AS USWY                     /*(1422) 용도*/
+             , T11.FRISU_AS_PTRM_N||' '||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'PTRM_UNIT_CD', T11.FRISU_AS_PTRM_UNIT_CD),'-')
+			                                   AS FRISU_AS                 /*(1510) 무상AS*/
+             , NVL(T13.OG_CD,'-')              AS SELL_PRTNR_BLG_CD        /*(1611) 판매자소속코드*/
+             , NVL(T19.DGR3_LEVL_DG_PRTNR_NM,'-') AS SELL_PRTNR_BLG_BRMGR_NM  /*(1612) 판매자소속지점장명*/
+             , NVL(T13.PRTNR_KNM,'-')          AS SELL_PRTNR_NM            /*(1621) 판매자성명*/
+             , NVL(T12.SELL_PRTNR_NO,'-')      AS SELL_PRTNR_NO            /*(1622) 판매파트너번호*/
+             , T11.CPS_DT                      AS CHDVC_DT                 /*(1710) 기변일자*/
+             , T17.OJ_DTL_CNTR_NO||'-'||T17.OJ_DTL_CNTR_SN
+			                                   AS PTY_CD  /*(1720) 상대코드*/
+             , T18.ALNCMP_CD                   AS ALNC_PTY_CD              /*(1810) 제휴상대코드*/
+             , '-'                             AS ETC_ARTC                 /*(1820) ■ TODO 기타사항(TB_SSCT_RENTAL_ADN_SV_IZ:렌탈부가서비스내역)*/
+             , Z301.CHNG_DT                    AS CHNG_DT                  /*(1910) 교체일자*/
+             , Z301.REQD_DT                    AS REQD_DT                  /*(1920) 철거일자*/
+             , T24.CAN_DT                      AS CAN_DT                   /*(2010) 취소일자*/
+             , T10.CNTR_PD_ENDDT               AS SV_STP_DT                /*(2020) 서비스중지일자*/
+             , NVL(SUBSTR(T12.CNTR_CNFM_DTM,1,8),'')
+			                                   AS MSH_JOIN_DT              /* 멤버십가입*/
+             , NVL(T10.CNTR_PD_ENDDT,'')       AS MSH_WDWAL_DT             /* 멤버십탈퇴*/
+             , CASE WHEN T20.FXN_PRTNR_YN != 'N' /* 고정파트너여부*/ AND T20.FXN_PRTNR_DV_CD = '1' /* 고정파트너구분코드*/
+                        THEN (SELECT PRTNR_KNM
+                                FROM TB_OGBS_PRTNR_BAS
+                               WHERE OG_TP_CD = T20.FXN_PRTNR_OG_TP_CD
+                                 AND PRTNR_NO = T20.FXN_PRTNR_NO
+                                 AND DTA_DL_YN = 'N')
+                    WHEN T20.FXN_PRTNR_YN = 'N' /* 고정파트너여부*/ AND T20.MNGR_DV_CD = '1' /* 관리자구분코드*/
+                        THEN (SELECT PRTNR_KNM
+                                FROM TB_OGBS_PRTNR_BAS
+                               WHERE OG_TP_CD = T20.MNGT_PRTNR_OG_TP_CD
+                                 AND PRTNR_NO = T20.MNGT_PRTNR_NO
+                                 AND DTA_DL_YN = 'N')
+                    ELSE ''
+                    END                        AS ICHR_WELS_MNGER_NM       /* 담당웰스매니저명*/
+             , T11.WRFR_IST_MTH_CD             AS IST_MTH_CD               /* 설치방법코드*/
+             , NVL(F_CMZ_CD_NM('TNT_WELLS', 'WRFR_IST_MTH_CD', T11.WRFR_IST_MTH_CD),'-')
+			                                   AS IST_MTH_NM               /* 설치방법명*/
+             , NVL(T10.STPL_PTRM,0)||''||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'PTRM_UNIT_CD', T10.STPL_PTRM_UNIT_CD),'-')
+			                                   AS DUTY_STPL_MCNT           /* 의무약정개월*/
+             , NVL(T16.RENTAL_RGST_COST,0)     AS RGST_CS                  /* 등록비용*/
+             , NVL(T10.CNTR_TAM,0)             AS RENTAL_TAM               /* 렌탈총액*/
+             , NVL(T10.ACKMT_PERF_AMT,0)       AS ACKMT_PERF_AMT           /* 인정실적*/
+             , NVL(T13.OG_NM,'-')              AS SELL_PRTNR_BLG_NM        /* 판매자소속명*/
+          FROM TB_SSCT_CNTR_DTL T10 /* 계약상세*/
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T11 /* 계약WELLS상세*/
+            ON T10.CNTR_NO = T11.CNTR_NO
+           AND T10.CNTR_SN = T11.CNTR_SN
+           AND T11.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS T12 /* 계약기본*/
+            ON T10.CNTR_NO = T12.CNTR_NO
+           AND T12.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T13 /* 파트너기본*/
+            ON T12.SELL_OG_TP_CD = T13.OG_TP_CD
+           AND T12.SELL_PRTNR_NO = T13.PRTNR_NO
+           AND T13.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T14 /* 상품기본*/
+            ON T10.BASE_PD_CD = T14.PD_CD
+           AND T14.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_PMOT_IZ T15 /* 계약프로모션내역*/
+            ON T10.BASE_PD_CD = T15.PD_CD
+           AND T10.CNTR_NO = T15.DTL_CNTR_NO
+           AND T10.CNTR_SN = T15.DTL_CNTR_SN
+           AND T15.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T16 /* WELLS매출월마감내역*/
+            ON T16.SL_CL_YM = SUBSTR(T12.CNTR_CNFM_DTM,1,6)
+           AND T10.CNTR_NO = T16.CNTR_NO
+           AND T10.CNTR_SN = T16.CNTR_SN
+           AND T16.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_REL T17 /* 계약관계*/
+            ON T17.VL_END_DTM = '99991231235959'
+           AND T10.CNTR_NO = T17.BASE_DTL_CNTR_NO
+           AND T10.CNTR_SN = T17.BASE_DTL_CNTR_SN
+           AND T17.CNTR_REL_DTL_CD = '215' /* 1+1연계*/
+           AND T17.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T18 /* 계약상세*/
+            ON T17.OJ_DTL_CNTR_NO = T18.CNTR_NO
+           AND T17.OJ_DTL_CNTR_SN = T18.CNTR_SN
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T19 /* 월조직내역*/
+            ON T19.BASE_YM = SUBSTR(T12.CNTR_CNFM_DTM,1,6)
+           AND T13.OG_ID = T19.OG_ID
+           AND T19.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ T20 /* 월별고객서비스대상내역*/
+            ON T20.MNGT_YM = SUBSTR(T12.CNTR_CNFM_DTM,1,6)
+           AND T10.CNTR_NO = T20.CNTR_NO
+           AND T10.CNTR_SN = T20.CNTR_SN
+           AND T20.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T21 /* 파트너기본*/
+            ON T20.FXN_PRTNR_OG_TP_CD = T21.OG_TP_CD
+           AND T20.FXN_PRTNR_NO = T21.PRTNR_NO
+           AND T21.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T22 /* 파트너기본*/
+            ON T20.MNGT_PRTNR_OG_TP_CD = T22.OG_TP_CD
+           AND T20.MNGT_PRTNR_NO = T22.PRTNR_NO
+           AND T22.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN T_CMZ_CD_D T23 /* 코드상세*/
+            ON T23.TENANT_ID = 'TNT_WELLS'
+           AND T23.CD_ID = 'SELL_DSC_DV_CD' -- 할인구분
+           AND T23.PRTS_CD_ID = 'SELL_TP_CD'
+           AND T23.PRTS_CD_VLD_VAL = T10.SELL_TP_CD
+           AND T23.CD_USE_YN = 'Y'
+           AND T23.DEL_YN = 'N'
+          LEFT OUTER JOIN T_CMZ_CD_D T26 /* 코드상세*/
+            ON T26.TENANT_ID = 'TNT_WELLS'
+           AND T26.CD_ID = 'SELL_DSC_TP_CD' -- 할인유형
+           AND T26.PRTS_CD_ID = 'SELL_TP_CD'
+           AND T26.PRTS_CD_VLD_VAL = T10.SELL_TP_CD
+           AND T26.CD_USE_YN = 'Y'
+           AND T26.DEL_YN = 'N'
+          LEFT OUTER JOIN LATERAL (
+                    SELECT CNTR_NO
+                         , CNTR_SN
+                         , CAN_DT
+                      FROM (
+                            SELECT CNTR_NO
+                                 , CNTR_SN
+                                 , SUBSTR(HIST_STRT_DTM,1,8) AS CAN_DT
+                                 , ROW_NUMBER () OVER(PARTITION BY CNTR_NO, CNTR_SN ORDER BY HIST_STRT_DTM DESC) AS RN
+                              FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST
+                             WHERE 1 = 1
+                               AND DTA_DL_YN = 'N'
+                               AND CNTR_DTL_STAT_CD IN ('301','302','303')
+                           )
+                     WHERE RN = 1
+             ) T24 /* 취소일구하기*/
+            ON T10.CNTR_NO = T24.CNTR_NO
+           AND T10.CNTR_SN = T24.CNTR_SN
+          LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_IZ Z301 /* 고객서비스수행내역*/
+            ON T10.CNTR_NO = Z301.CNTR_NO
+           AND T10.CNTR_SN = Z301.CNTR_SN
+           AND Z301.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T25 /* 상품각사속성상세*/
+		    ON T10.BASE_PD_CD = T25.PD_CD
+		   AND T25.PD_EXTS_PRP_GRP_CD = 'SCHD'
+		   AND T25.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND T10.CNTR_NO = #{cntrNo}
+           AND T10.CNTR_SN = #{cntrSn}
+           AND T10.SELL_TP_CD = '2'
+           AND T10.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectOrderDetailMembershipMngtInqr" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtInfDto$SearchRes">
+        SELECT NVL(SUBSTR(T12.CNTR_CNFM_DTM,1,8),'')
+		                                       AS CNTR_DT                  /*(1110) 계약일*/
+             , T14.PD_NM                       AS PD_NM                    /*(1121) 상품명*/
+             , T14.PD_CD                       AS PD_CD                    /*(1122) 상품코드*/
+             , T10.PD_QTY                      AS PD_QTY                   /*(1123) 상품수량*/
+             , T11.IST_DT                      AS IST_DT                   /*(1210) 설치일자*/
+             , NVL(F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T10.SELL_TP_CD),'-') || '(' ||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T10.SELL_TP_DTL_CD),'-') || ')'
+			                                   AS SELL_TP_NM               /*(1220) 판매유형(판매유형상세)*/
+             , CASE WHEN T10.SELL_DSC_DV_CD IS NOT NULL
+             		THEN NVL(F_CMZ_CD_NM('TNT_WELLS', T23.USER_DFN_02, T10.SELL_DSC_DV_CD),'-')
+             		ELSE '-' END               AS DSC_DV_NM                /*(1310) 할인구분*/
+             , CASE WHEN T10.SELL_DSC_TP_CD IS NOT NULL
+             		THEN T10.SELL_DSC_TP_CD||' '||NVL(F_CMZ_CD_NM('TNT_WELLS', T26.USER_DFN_02, T10.SELL_DSC_TP_CD),'-')
+             		ELSE '-' END               AS DSC_TP_NM                /*(1320) 유형(할인유형)*/
+             , NVL(T10.STPL_PTRM,0)||''||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'PTRM_UNIT_CD', T10.STPL_PTRM_UNIT_CD),'-')||' '||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'PMOT_CD', T15.PMOT_CD),'-')
+			                                   AS STPL_PTRM                /*(1410) 약정기간*/
+             , NVL(T25.PD_PRP_VAL02,'-')       AS PRD                      /*(1421) 주기(방문개월수)*/
+             , NVL(F_CMZ_CD_NM('TNT_WELLS', 'SV_TP_CD', T14.SV_PD_TP_CD),'-')
+			                                   AS USWY                     /*(1422) 용도*/
+             , T11.FRISU_AS_PTRM_N||' '||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'PTRM_UNIT_CD', T11.FRISU_AS_PTRM_UNIT_CD),'-')
+			                                   AS FRISU_AS                 /*(1510) 무상AS*/
+             , NVL(T13.OG_CD,'-')              AS SELL_PRTNR_BLG_CD        /*(1611) 판매자소속코드*/
+             , NVL(T19.DGR3_LEVL_DG_PRTNR_NM,'-') AS SELL_PRTNR_BLG_BRMGR_NM  /*(1612) 판매자소속지점장명*/
+             , NVL(T13.PRTNR_KNM,'-')          AS SELL_PRTNR_NM            /*(1621) 판매자성명*/
+             , NVL(T12.SELL_PRTNR_NO,'-')      AS SELL_PRTNR_NO            /*(1622) 판매파트너번호*/
+             , T11.CPS_DT                      AS CHDVC_DT                 /*(1710) 기변일자*/
+             , '-'                             AS PTY_CD                   /*(1720) 상대코드*/
+             , '-'                             AS ALNC_PTY_CD              /*(1810) 제휴상대코드*/
+             , '-'                             AS ETC_ARTC                 /*(1820) 기타사항*/
+             , ''                              AS CHNG_DT                  /*(1910) 교체일자*/
+             , ''                              AS REQD_DT                  /*(1920) 철거일자*/
+             , T24.CAN_DT                      AS CAN_DT                   /*(2010) 취소일자*/
+             , T10.CNTR_PD_ENDDT               AS SV_STP_DT                /*(2020) 서비스중지일자*/
+             , NVL(SUBSTR(T12.CNTR_CNFM_DTM,1,8),'')
+			                                   AS MSH_JOIN_DT              /* 멤버십가입*/
+             , NVL(T10.CNTR_PD_ENDDT,'')       AS MSH_WDWAL_DT             /* 멤버십탈퇴*/
+             , '-'                             AS ICHR_WELS_MNGER_NM       /* 담당웰스매니저명*/
+             , '-'                             AS IST_MTH_CD               /* 설치방법코드*/
+             , '-'                             AS IST_MTH_NM               /* 설치방법명*/
+             , 0                               AS DUTY_STPL_MCNT           /* 의무약정개월*/
+             , 0                               AS RGST_CS                  /* 등록비용*/
+             , 0                               AS RENTAL_TAM               /* 렌탈총액*/
+             , NVL(T10.ACKMT_PERF_AMT,0)       AS ACKMT_PERF_AMT           /* 인정실적*/
+             , NVL(T13.OG_NM,'-')              AS SELL_PRTNR_BLG_NM        /* 판매자소속명*/
+          FROM TB_SSCT_CNTR_DTL T10 /* 계약상세*/
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T11 /* 계약WELLS상세*/
+            ON T10.CNTR_NO = T11.CNTR_NO
+           AND T10.CNTR_SN = T11.CNTR_SN
+           AND T11.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS T12 /* 계약기본*/
+            ON T10.CNTR_NO = T12.CNTR_NO
+           AND T12.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T13 /* 파트너기본*/
+            ON T12.SELL_OG_TP_CD = T13.OG_TP_CD
+           AND T12.SELL_PRTNR_NO = T13.PRTNR_NO
+           AND T13.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T14 /* 상품기본*/
+            ON T10.BASE_PD_CD = T14.PD_CD
+           AND T14.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_PMOT_IZ T15 /* 계약프로모션내역*/
+            ON T10.BASE_PD_CD = T15.PD_CD
+           AND T10.CNTR_NO = T15.DTL_CNTR_NO
+           AND T10.CNTR_SN = T15.DTL_CNTR_SN
+           AND T15.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T16 /* WELLS매출월마감내역*/
+            ON T16.SL_CL_YM = SUBSTR(T12.CNTR_CNFM_DTM,1,6)
+           AND T10.CNTR_NO = T16.CNTR_NO
+           AND T10.CNTR_SN = T16.CNTR_SN
+           AND T16.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T19 /* 월조직내역*/
+            ON T19.BASE_YM = SUBSTR(T12.CNTR_CNFM_DTM,1,6)
+           AND T13.OG_ID = T19.OG_ID
+           AND T19.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ T20 /* 월별고객서비스대상내역*/
+            ON T20.MNGT_YM = SUBSTR(T12.CNTR_CNFM_DTM,1,6)
+           AND T10.CNTR_NO = T20.CNTR_NO
+           AND T10.CNTR_SN = T20.CNTR_SN
+           AND T20.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T21 /* 파트너기본*/
+            ON T20.FXN_PRTNR_OG_TP_CD = T21.OG_TP_CD
+           AND T20.FXN_PRTNR_NO = T21.PRTNR_NO
+           AND T21.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T22 /* 파트너기본*/
+            ON T20.MNGT_PRTNR_OG_TP_CD = T22.OG_TP_CD
+           AND T20.MNGT_PRTNR_NO = T22.PRTNR_NO
+           AND T22.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN T_CMZ_CD_D T23 /* 코드상세*/
+            ON T23.TENANT_ID = 'TNT_WELLS'
+           AND T23.CD_ID = 'SELL_DSC_DV_CD' -- 할인구분
+           AND T23.PRTS_CD_ID = 'SELL_TP_CD'
+           AND T23.PRTS_CD_VLD_VAL = T10.SELL_TP_CD
+           AND T23.CD_USE_YN = 'Y'
+           AND T23.DEL_YN = 'N'
+          LEFT OUTER JOIN T_CMZ_CD_D T26 /* 코드상세*/
+            ON T26.TENANT_ID = 'TNT_WELLS'
+           AND T26.CD_ID = 'SELL_DSC_TP_CD' -- 할인유형
+           AND T26.PRTS_CD_ID = 'SELL_TP_CD'
+           AND T26.PRTS_CD_VLD_VAL = T10.SELL_TP_CD
+           AND T26.CD_USE_YN = 'Y'
+           AND T26.DEL_YN = 'N'
+          LEFT OUTER JOIN LATERAL (
+                    SELECT CNTR_NO
+                         , CNTR_SN
+                         , CAN_DT
+                      FROM (
+                            SELECT CNTR_NO
+                                 , CNTR_SN
+                                 , SUBSTR(HIST_STRT_DTM,1,8) AS CAN_DT
+                                 , ROW_NUMBER () OVER(PARTITION BY CNTR_NO, CNTR_SN ORDER BY HIST_STRT_DTM DESC) AS RN
+                              FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST
+                             WHERE 1 = 1
+                               AND DTA_DL_YN = 'N'
+                               AND CNTR_DTL_STAT_CD IN ('301','302','303')
+                           )
+                     WHERE RN = 1
+             ) T24 /* 취소일구하기*/
+            ON T10.CNTR_NO = T24.CNTR_NO
+           AND T10.CNTR_SN = T24.CNTR_SN
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T25 /* 상품각사속성상세*/
+		    ON T10.BASE_PD_CD = T25.PD_CD
+		   AND T25.PD_EXTS_PRP_GRP_CD = 'SCHD'
+		   AND T25.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND T10.CNTR_NO = #{cntrNo}
+           AND T10.CNTR_SN = #{cntrSn}
+           AND T10.SELL_TP_CD = '3'
+           AND T10.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectOrderDetailRegularShippingsMngtInqr" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtInfDto$SearchRes">
+        SELECT NVL(SUBSTR(T12.CNTR_CNFM_DTM,1,8),'')
+		                                       AS CNTR_DT                  /*(1110) 계약일*/
+             , T14.PD_NM                       AS PD_NM                    /*(1121) 상품명*/
+             , T14.PD_CD                       AS PD_CD                    /*(1122) 상품코드*/
+             , T10.PD_QTY                      AS PD_QTY                   /*(1123) 상품수량*/
+             , T11.IST_DT                      AS IST_DT                   /*(1210) 설치일자*/
+             , NVL(F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T10.SELL_TP_CD),'-') || '(' ||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_DTL_CD', T10.SELL_TP_DTL_CD),'-') || ')'
+			                                   AS SELL_TP_NM               /*(1220) 판매유형(판매유형상세)*/
+             , CASE WHEN T10.SELL_DSC_DV_CD IS NOT NULL
+             		THEN NVL(F_CMZ_CD_NM('TNT_WELLS', T23.USER_DFN_02, T10.SELL_DSC_DV_CD),'-')
+             		ELSE '-' END               AS DSC_DV_NM                /*(1310) 할인구분*/
+             , CASE WHEN T10.SELL_DSC_TP_CD IS NOT NULL
+             		THEN T10.SELL_DSC_TP_CD||' '||NVL(F_CMZ_CD_NM('TNT_WELLS', T26.USER_DFN_02, T10.SELL_DSC_TP_CD),'-')
+             		ELSE '-' END               AS DSC_TP_NM                /*(1320) 유형(할인유형)*/
+             , NVL(T10.STPL_PTRM,0)||''||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'PTRM_UNIT_CD', T10.STPL_PTRM_UNIT_CD),'-')||' '||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'PMOT_CD', T15.PMOT_CD),'-')
+			                                   AS STPL_PTRM                /*(1410) 약정기간*/
+             , NVL(T25.PD_PRP_VAL02,'-')       AS PRD                      /*(1421) 주기(방문개월수)*/
+             , NVL(F_CMZ_CD_NM('TNT_WELLS', 'SV_TP_CD', T14.SV_PD_TP_CD),'-')
+			                                   AS USWY                     /*(1422) 용도*/
+             , T11.FRISU_AS_PTRM_N||' '||
+			   NVL(F_CMZ_CD_NM('TNT_WELLS', 'PTRM_UNIT_CD', T11.FRISU_AS_PTRM_UNIT_CD),'-')
+			                                   AS FRISU_AS                 /*(1510) 무상AS*/
+             , NVL(T13.OG_CD,'-')              AS SELL_PRTNR_BLG_CD        /*(1611) 판매자소속코드*/
+             , NVL(T19.DGR3_LEVL_DG_PRTNR_NM,'-') AS SELL_PRTNR_BLG_BRMGR_NM  /*(1612) 판매자소속지점장명*/
+             , NVL(T13.PRTNR_KNM,'-')          AS SELL_PRTNR_NM            /*(1621) 판매자성명*/
+             , NVL(T12.SELL_PRTNR_NO,'-')      AS SELL_PRTNR_NO            /*(1622) 판매파트너번호*/
+             , T11.CPS_DT                      AS CHDVC_DT                 /*(1710) 기변일자*/
+             , '-'                             AS PTY_CD                   /*(1720) 상대코드*/
+             , '-'                             AS ALNC_PTY_CD              /*(1810) 제휴상대코드*/
+             , '-'                             AS ETC_ARTC                 /*(1820) 기타사항*/
+             , ''                              AS CHNG_DT                  /*(1910) 교체일자*/
+             , ''                              AS REQD_DT                  /*(1920) 철거일자*/
+             , T24.CAN_DT                      AS CAN_DT                   /*(2010) 취소일자*/
+             , T10.CNTR_PD_ENDDT               AS SV_STP_DT                /*(2020) 서비스중지일자*/
+             , ''                              AS MSH_JOIN_DT              /* 멤버십가입*/
+             , ''                              AS MSH_WDWAL_DT             /* 멤버십탈퇴*/
+             , '-'                             AS ICHR_WELS_MNGER_NM       /* 담당웰스매니저명*/
+             , '-'                             AS IST_MTH_CD               /* 설치방법코드*/
+             , '-'                             AS IST_MTH_NM               /* 설치방법명*/
+             , 0                               AS DUTY_STPL_MCNT           /* 의무약정개월*/
+             , 0                               AS RGST_CS                  /* 등록비용*/
+             , 0                               AS RENTAL_TAM               /* 렌탈총액*/
+             , NVL(T10.ACKMT_PERF_AMT,0)       AS ACKMT_PERF_AMT           /* 인정실적*/
+             , NVL(T13.OG_NM,'-')              AS SELL_PRTNR_BLG_NM        /* 판매자소속명*/
+          FROM TB_SSCT_CNTR_DTL T10 /* 계약상세*/
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T11 /* 계약WELLS상세*/
+            ON T10.CNTR_NO = T11.CNTR_NO
+           AND T10.CNTR_SN = T11.CNTR_SN
+           AND T11.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS T12 /* 계약기본*/
+            ON T10.CNTR_NO = T12.CNTR_NO
+           AND T12.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T13 /* 파트너기본*/
+            ON T12.SELL_OG_TP_CD = T13.OG_TP_CD
+           AND T12.SELL_PRTNR_NO = T13.PRTNR_NO
+           AND T13.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T14 /* 상품기본*/
+            ON T10.BASE_PD_CD = T14.PD_CD
+           AND T14.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_PMOT_IZ T15 /* 계약프로모션내역*/
+            ON T10.BASE_PD_CD = T15.PD_CD
+           AND T10.CNTR_NO = T15.DTL_CNTR_NO
+           AND T10.CNTR_SN = T15.DTL_CNTR_SN
+           AND T15.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T16 /* WELLS매출월마감내역*/
+            ON T16.SL_CL_YM = SUBSTR(T12.CNTR_CNFM_DTM,1,6)
+           AND T10.CNTR_NO = T16.CNTR_NO
+           AND T10.CNTR_SN = T16.CNTR_SN
+           AND T16.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T19 /* 월조직내역*/
+            ON T19.BASE_YM = SUBSTR(T12.CNTR_CNFM_DTM,1,6)
+           AND T13.OG_ID = T19.OG_ID
+           AND T19.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SVPD_MCBY_CST_SV_OJ_IZ T20 /* 월별고객서비스대상내역*/
+            ON T20.MNGT_YM = SUBSTR(T12.CNTR_CNFM_DTM,1,6)
+           AND T10.CNTR_NO = T20.CNTR_NO
+           AND T10.CNTR_SN = T20.CNTR_SN
+           AND T20.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T21 /* 파트너기본*/
+            ON T20.FXN_PRTNR_OG_TP_CD = T21.OG_TP_CD
+           AND T20.FXN_PRTNR_NO = T21.PRTNR_NO
+           AND T21.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T22 /* 파트너기본*/
+            ON T20.MNGT_PRTNR_OG_TP_CD = T22.OG_TP_CD
+           AND T20.MNGT_PRTNR_NO = T22.PRTNR_NO
+           AND T22.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN T_CMZ_CD_D T23 /* 코드상세*/
+            ON T23.TENANT_ID = 'TNT_WELLS'
+           AND T23.CD_ID = 'SELL_DSC_DV_CD' -- 할인구분
+           AND T23.PRTS_CD_ID = 'SELL_TP_CD'
+           AND T23.PRTS_CD_VLD_VAL = T10.SELL_TP_CD
+           AND T23.CD_USE_YN = 'Y'
+           AND T23.DEL_YN = 'N'
+          LEFT OUTER JOIN T_CMZ_CD_D T26 /* 코드상세*/
+            ON T26.TENANT_ID = 'TNT_WELLS'
+           AND T26.CD_ID = 'SELL_DSC_TP_CD' -- 할인유형
+           AND T26.PRTS_CD_ID = 'SELL_TP_CD'
+           AND T26.PRTS_CD_VLD_VAL = T10.SELL_TP_CD
+           AND T26.CD_USE_YN = 'Y'
+           AND T26.DEL_YN = 'N'
+          LEFT OUTER JOIN LATERAL (
+                    SELECT CNTR_NO
+                         , CNTR_SN
+                         , CAN_DT
+                      FROM (
+                            SELECT CNTR_NO
+                                 , CNTR_SN
+                                 , SUBSTR(HIST_STRT_DTM,1,8) AS CAN_DT
+                                 , ROW_NUMBER () OVER(PARTITION BY CNTR_NO, CNTR_SN ORDER BY HIST_STRT_DTM DESC) AS RN
+                              FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST
+                             WHERE 1 = 1
+                               AND DTA_DL_YN = 'N'
+                               AND CNTR_DTL_STAT_CD IN ('301','302','303')
+                           )
+                     WHERE RN = 1
+             ) T24 /* 취소일구하기*/
+            ON T10.CNTR_NO = T24.CNTR_NO
+           AND T10.CNTR_SN = T24.CNTR_SN
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T25 /* 상품각사속성상세*/
+		    ON T10.BASE_PD_CD = T25.PD_CD
+		   AND T25.PD_EXTS_PRP_GRP_CD = 'SCHD'
+		   AND T25.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND T10.CNTR_NO = #{cntrNo}
+           AND T10.CNTR_SN = #{cntrSn}
+           AND T10.SELL_TP_CD = '6'
+           AND T10.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectCntrPmotList" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtInfDto$SearchCntrPmotRes">
+        SELECT PMOT_CD /* 프로모션코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'PMOT_CD', PMOT_CD) AS PMOT_NM /* 프로모션코드명 */
+             , PMOT_TP_CD /* 프로모션유형코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'PMOT_TP_CD', PMOT_TP_CD) AS PMOT_TP_NM /* 프로모션유형코드명 */
+          FROM TB_SSCT_CNTR_PMOT_IZ
+         WHERE 1 = 1
+           AND DTL_CNTR_NO = #{cntrNo}
+           AND DTL_CNTR_SN = #{cntrSn}
+           AND DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectFgptCntrList" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailMngtInfDto$SearchFgptCntrRes">
+        SELECT T1.FGPT_PD_CD	/* 사은품상품코드 */
+             , T2.PD_NM			/* 상품명 */
+             , T1.FGPT_QTY		/* 사은품수량 */
+          FROM TB_SSCT_FGPT_RCP_IZ T1	/* 사은품접수내역 */
+          LEFT OUTER JOIN TB_PDBS_PD_BAS T2 /* 상품기본 */
+            ON T2.PD_CD = T1.FGPT_PD_CD
+           AND T2.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND T1.DTL_CNTR_NO = #{cntrNo}
+           AND T1.DTL_CNTR_SN = #{cntrSn}
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+</mapper>

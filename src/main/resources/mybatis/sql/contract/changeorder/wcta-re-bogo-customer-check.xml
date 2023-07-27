@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctaReBogoCustomerCheckMapper">
+
+    <select id="selectReRntlPmotApyYn" resultType="string">
+        SELECT DECODE(COUNT(1), 0 ,'N', 'Y') AS LINK_CHECK /* 재렌탈 프로모션적용여부(Y:받은적있음 */
+          FROM (SELECT BASE_CNTR_NO     /* 기준계약번호 */
+                     , BASE_CNTR_SN     /* 기준계약상세번호 */
+                     , OJ_CNTR_NO       /* 대상계약번호 */
+                     , OJ_CNTR_SN       /* 대상계약번호 */
+                     , (SELECT PMOT_CD  /* 프로모션코드  */
+                          FROM (SELECT DTL_CNTR_NO, DTL_CNTR_SN, PMOT_CD
+                                     , ROW_NUMBER () OVER(PARTITION BY DTL_CNTR_NO, DTL_CNTR_SN ORDER BY CNTR_PMOT_ID DESC) AS RN /*계약프로모션ID 한건만*/
+                                  FROM TB_SSCT_CNTR_PMOT_IZ  /* T.계약프로모션내역 */
+                                 WHERE 1=1
+                                   AND CNTR_UNIT_TP_CD = '020'  /* 계약상세 */
+                                    AND DTL_CNTR_NO = BASE_CNTR_NO
+                                    AND DTL_CNTR_SN = BASE_CNTR_SN
+                                  )
+                                  WHERE RN = 1) AS  PMOT_CD /* 프로모션 코드 */
+                 FROM TB_SSCT_MCHN_CH_IZ    /* T.기기변경내역 */
+                WHERE 1=1
+                  AND OJ_CNTR_NO = #{ojCntrNo}
+                  AND OJ_CNTR_SN = #{ojCntrDtlNo}
+               ) T1
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T2           /* T.계약상세(대상)*/
+            ON T2.CNTR_NO = T1.OJ_CNTR_NO               /* 대상 계약번호 */
+           AND T2.CNTR_SN = T1.OJ_CNTR_SN               /* 대상 계약상세번호 */
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL T3           /* T.계약상세(기준) */
+            ON T3.CNTR_NO = T1.BASE_CNTR_NO             /* 기준 계약번호 */
+           AND T3.CNTR_SN = T1.BASE_CNTR_SN             /* 기준 계약상세번호 */
+          --LEFT OUTER JOIN TB_SSCT_CNTR_CH_RCP_DTL T4    /* T.계약변경접수상세(기준) - 렌탈취소건 */
+          --  ON T4.DTL_CNTR_NO = T1.BASE_CNTR_NO         /* 기준 계약번호 */
+          -- AND T4.DTL_CNTR_SN = T1.BASE_CNTR_SN         /* 기준 계약상세번호 */
+          --LEFT OUTER JOIN TB_SSCT_CNTR_CH_RCP_DTL T5    /* T.계약변경접수기본(기준) - 렌탈취소건 */
+          --  ON T5.CNTR_CH_RCP_ID = T4.CNTR_CH_RCP_ID    /* 계약변경접수ID */
+         WHERE 1=1
+           AND T1.PMOT_CD    = '02'     /* 프로모션코드 02(재렌탈) */
+           AND T2.SELL_TP_CD = '2'     /* 판매유형 */
+           AND NOT (T1.BASE_CNTR_NO = #{baseCntrNo} AND T1.BASE_CNTR_NO = #{baseCntrDtlNo})
+           AND T2.CNTR_PD_STRTDT IS NOT NULL  /* 기준계약-계약상품시작일자 (매출일) */
+           AND T2.CNTR_PD_ENDDT IS NULL  OR (T2.CNTR_PD_ENDDT IS NOT NULL AND (T2.CNTR_PD_ENDDT -T2.CNTR_PD_STRTDT) > 14) /* 기준계약-계약상품종료일자 (취소/철거일없음) 또는 사용일수 14일이내 제외 */
+           AND T2.HGR_PD_CD = T3.HGR_PD_CD /* 기준/대상의 상위상품코드가 같은지여부(asis 상품대분류여부 확인대용) */
+    </select>
+</mapper>

@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.risk.mapper.WctcIncompletenessSalesMapper">
+    <sql id="incompletenessSalesFields">
+           T1.BASE_CNTR_NO
+         , T1.BASE_CNTR_SN
+         , T1.OJ_CNTR_NO
+         , T1.OJ_CNTR_SN
+         , T2.CNTR_PD_STRTDT
+         , CASE WHEN T2.SELL_TP_CD = '2' AND T2.SELL_DSC_TP_CD = '3'
+                THEN 'Y'
+                ELSE 'N'
+                 END AS BASE_USED_CPS_YN
+         , CASE WHEN C1.BASE_CNTR_NO IS NOT NULL
+                 AND (SELECT COUNT(1)
+                        FROM TB_SSCT_CNTR_DTL
+                       WHERE CNTR_NO = C1.OJ_CNTR_NO) > 0
+                THEN 'Y'
+                ELSE 'N'
+                 END AS BASE_CHDVC_RERNT_YN
+         , I2.RCGVP_KNM AS BASE_RCGVP_KNM
+         , T4.IST_DT AS BASE_IST_DT
+         , T4.REQD_DT AS BASE_REQD_DT
+         , CASE WHEN T4.IST_DT IS NOT NULL
+                THEN (SELECT MONTHS_BETWEEN(TRUNC(SYSDATE, 'MM'), SUBSTR(T4.IST_DT, 0, 6) || '01') FROM DUAL)
+                ELSE 0
+                 END AS BASE_IST_GAP_MM
+         , I2.CRAL_LOCARA_TNO AS BASE_CRAL_LOCARA_TNO
+         , I2.MEXNO_ENCR AS BASE_MEXNO_ENCR
+         , I2.CRAL_IDV_TNO AS BASE_CRAL_IDV_TNO
+         , '' AS BASE_MPNO
+         , T2.BASE_PD_CD
+         , CASE WHEN I3.RNADR IS NOT NULL THEN I3.RNADR || ' ' || I3.RDADR
+                WHEN I3.LTN_ADR IS NOT NULL THEN I3.LTN_ADR || ' ' || I3.LTN_DTL_ADR
+                ELSE ''
+                END AS BASE_ADR
+         , T7.PRTNR_KNM
+         , T7.PRTNR_NO
+         , SUBSTR(T7.OG_CD, 0, 3) AS LOCARA_CD
+         , T7.OG_CD
+         , C3.DGR2_LEVL_OG_CD
+         , C3.DGR3_LEVL_OG_CD
+         , CASE WHEN C2.BASE_CNTR_NO IS NOT NULL
+                 AND (SELECT COUNT(1)
+                        FROM TB_SSCT_CNTR_DTL
+                       WHERE CNTR_NO = C2.OJ_CNTR_NO) > 0
+                THEN 'Y'
+                ELSE 'N'
+                 END AS OJ_CHDVC_RERNT_YN
+         , I5.RCGVP_KNM AS OJ_RCGVP_KNM
+         , T5.IST_DT AS OJ_IST_DT
+         , T5.REQD_DT AS OJ_REQD_DT
+         , CASE WHEN T4.IST_DT IS NOT NULL AND T5.IST_DT IS NOT NULL
+                THEN (SELECT MONTHS_BETWEEN(TRUNC(SYSDATE, 'MM'), SUBSTR(T5.IST_DT, 0, 6) || '01') FROM DUAL)
+                ELSE 0
+                 END AS OJ_IST_GAP_MM
+         , T3.BASE_PD_CD AS OJ_PD_CD
+         , CASE WHEN I6.RNADR IS NOT NULL THEN I6.RNADR || ' ' || I6.RDADR
+                WHEN I6.LTN_ADR IS NOT NULL THEN I6.LTN_ADR || ' ' || I6.LTN_DTL_ADR
+                ELSE ''
+                END AS OJ_ADR
+    </sql>
+
+    <sql id="incompletenessSalesFromClause">
+      LEFT OUTER JOIN TB_SSCT_CNTR_DTL T2
+        ON T2.CNTR_NO = T1.BASE_CNTR_NO
+       AND T2.CNTR_SN = T1.BASE_CNTR_SN
+       AND T2.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN TB_SSCT_CNTR_DTL T3
+        ON T3.CNTR_NO = T1.OJ_CNTR_NO
+       AND T3.CNTR_SN = T1.OJ_CNTR_SN
+       AND T3.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T4
+        ON T4.CNTR_NO = T1.BASE_CNTR_NO
+       AND T4.CNTR_SN = T1.BASE_CNTR_SN
+       AND T4.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T5
+        ON T5.CNTR_NO = T1.OJ_CNTR_NO
+       AND T5.CNTR_SN = T1.OJ_CNTR_SN
+       AND T5.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN TB_SSCT_CNTR_BAS T6
+        ON T6.CNTR_NO = T1.BASE_CNTR_NO
+       AND T6.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T7
+        ON T7.PRTNR_NO = T6.SELL_PRTNR_NO
+       AND T7.BASE_YM = SUBSTR(T6.CNTR_CNFM_DTM, 0, 6)
+       AND T7.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ C1
+        ON C1.BASE_CNTR_NO = T1.BASE_CNTR_NO
+       AND C1.BASE_CNTR_SN = T1.BASE_CNTR_SN
+       AND C1.DTA_DL_YN = 'N'
+       AND C1.MCHN_CH_SN = (
+                           SELECT MAX(MCHN_CH_SN)
+                             FROM TB_SSCT_MCHN_CH_IZ
+                            WHERE BASE_CNTR_NO = T1.BASE_CNTR_NO
+                              AND BASE_CNTR_SN = T1.BASE_CNTR_SN
+                           )
+      LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ C2
+        ON C2.BASE_CNTR_NO = T1.OJ_CNTR_NO
+       AND C2.BASE_CNTR_SN = T1.OJ_CNTR_SN
+       AND C2.DTA_DL_YN = 'N'
+       AND C2.MCHN_CH_SN = (
+                           SELECT MAX(MCHN_CH_SN)
+                             FROM TB_SSCT_MCHN_CH_IZ
+                            WHERE BASE_CNTR_NO = T1.OJ_CNTR_NO
+                              AND BASE_CNTR_SN = T1.OJ_CNTR_SN
+                           )
+      LEFT OUTER JOIN TB_OGBS_MM_OG_IZ C3
+        ON C3.BASE_YM = SUBSTR(T6.CNTR_CNFM_DTM, 0, 6)
+       AND C3.OG_ID = T7.OG_ID
+       AND C3.OG_TP_CD = T7.OG_TP_CD
+       AND C3.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL I1
+        ON I1.DTL_CNTR_NO = T1.BASE_CNTR_NO
+       AND I1.DTL_CNTR_SN = T1.BASE_CNTR_SN
+       AND I1.ADRPC_TP_CD = '3'
+       AND I1.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS I2
+        ON I2.CNTR_ADRPC_ID = I1.CNTR_ADRPC_ID
+       AND I2.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN TB_GBCO_ADR_BAS I3
+        ON I3.ADR_ID = I2.ADR_ID
+       AND I3.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL I4
+        ON I4.DTL_CNTR_NO = T1.OJ_CNTR_NO
+       AND I4.DTL_CNTR_SN = T1.OJ_CNTR_SN
+       AND I4.ADRPC_TP_CD = '3'
+       AND I4.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS I5
+        ON I5.CNTR_ADRPC_ID = I4.CNTR_ADRPC_ID
+       AND I5.DTA_DL_YN = 'N'
+      LEFT OUTER JOIN TB_GBCO_ADR_BAS I6
+        ON I6.ADR_ID = I2.ADR_ID
+       AND I6.DTA_DL_YN = 'N'
+    </sql>
+
+    <select id="isValidCntrs" resultType="String">
+        SELECT CASE WHEN (
+                         SELECT COUNT(1)
+                           FROM TB_SSCT_MCHN_CH_IZ
+                          WHERE BASE_CNTR_NO = #{baseCntrNo}
+                            AND BASE_CNTR_SN = #{baseCntrSn}
+                            AND OJ_CNTR_NO = #{ojCntrNo}
+                            AND OJ_CNTR_SN = #{ojCntrSn}
+                         ) > 0
+                    THEN 'Y'
+                    ELSE 'N'
+                     END AS IS_VALID_CNTRS
+          FROM DUAL
+    </select>
+
+    <select id="selectIncompletenessSales" resultType="com.kyowon.sms.wells.web.contract.risk.dto.WctcIncompletenessSalesDto$SearchRes">
+        SELECT
+             <include refid="incompletenessSalesFields" />
+             , '' AS ICPT_SELL_ID
+             , '' AS ICPT_SELL_EXR_DT
+             , '' AS ICPT_SELL_PROCS_TP_CD
+             , '' AS ICPT_SELL_RSON_CN
+             , '' AS FNL_MDFC_DTM
+          FROM (
+               SELECT #{baseCntrNo} AS BASE_CNTR_NO
+                    , #{baseCntrSn} AS BASE_CNTR_SN
+                    , #{ojCntrNo} AS OJ_CNTR_NO
+                    , #{ojCntrSn} AS OJ_CNTR_SN
+                 FROM DUAL
+               ) T1
+             <include refid="incompletenessSalesFromClause" />
+         WHERE 1=1
+    </select>
+
+    <select id="selectIncompletenessSalePages" resultType="com.kyowon.sms.wells.web.contract.risk.dto.WctcIncompletenessSalesDto$SearchRes">
+        SELECT
+             <include refid="incompletenessSalesFields" />
+             , T1.ICPT_SELL_ID
+             , SUBSTR(T1.ICPT_SELL_EXR_DT, 0, 6) AS ICPT_SELL_EXR_DT
+             , T1.ICPT_SELL_PROCS_TP_CD
+             , T1.ICPT_SELL_RSON_CN
+             , T1.FNL_MDFC_DTM
+          FROM TB_SSCT_ICPT_SELL_IZ T1
+             <include refid="incompletenessSalesFromClause" />
+         WHERE 1=1
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.ICPT_SELL_TP_CD = '030'
+        <if test='@MybatisUtils@equals(apyCls, "1")'>
+           AND T1.ICPT_SELL_EXR_DT BETWEEN #{strtYm} || '00' AND #{endYm} || '31'
+        </if>
+        <if test='@MybatisUtils@equals(apyCls, "2")'>
+           AND C1.BASE_CNTR_RCPDT BETWEEN #{strtYm} || '00' AND #{endYm} || '31'
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND (T1.BASE_CNTR_NO = #{cntrNo} OR T1.OJ_CNTR_NO = #{cntrNo})
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(dgr2LevlOgCd)'>
+           AND C3.DGR2_LEVL_OG_CD = #{dgr2LevlOgCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(dgr3LevlOgCd)'>
+           AND C3.DGR3_LEVL_OG_CD = #{dgr3LevlOgCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(prtnrKnm)'>
+           AND T7.PRTNR_KNM = #{prtnrKnm}
+        </if>
+    </select>
+
+    <insert id="insertIncompletenessSales">
+        <selectKey keyProperty="item.icptSellId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(MAX(TO_NUMBER(ICPT_SELL_ID)) + 1,15,0)
+              FROM TB_SSCT_ICPT_SELL_IZ
+        </selectKey>
+        INSERT INTO TB_SSCT_ICPT_SELL_IZ (
+               ICPT_SELL_ID
+             , ICPT_SELL_EXR_DT
+             , BASE_CNTR_NO
+             , BASE_CNTR_SN
+             , CNTR_DTL_STAT_CD
+             , ICPT_SELL_TP_CD
+             , ICPT_SELL_RSON_CN
+             , ICPT_SELL_OJ_PRTNR_NO
+             , OJ_CNTR_NO
+             , OJ_CNTR_SN
+             , ICPT_SELL_PROCS_TP_CD
+             , ICPT_SELL_PROCS_DTM
+             , ICPT_SELL_PROCS_TN
+             , RFND_PROCS_TP_CD
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{item.icptSellId}
+             , #{item.icptSellExrDt} || '01'
+             , #{item.baseCntrNo}
+             , #{item.baseCntrSn}
+             , (
+               SELECT CNTR_DTL_STAT_CD
+                 FROM TB_SSCT_CNTR_DTL
+                WHERE CNTR_NO = #{item.baseCntrNo}
+                  AND CNTR_SN = #{item.baseCntrSn}
+               )
+             , '030'
+             , #{item.icptSellRsonCn}
+             , (
+               SELECT SELL_PRTNR_NO
+                 FROM TB_SSCT_CNTR_BAS
+                WHERE CNTR_NO = #{item.baseCntrNo}
+               )
+             , #{item.ojCntrNo}
+             , #{item.ojCntrSn}
+             , #{item.icptSellProcsTpCd}
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , ''
+             , ''
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />)
+    </insert>
+
+    <update id="updateIncompletenessSales">
+        UPDATE TB_SSCT_ICPT_SELL_IZ
+           SET ICPT_SELL_EXR_DT = #{icptSellExrDt} || '01'
+             , BASE_CNTR_NO = #{baseCntrNo}
+             , BASE_CNTR_SN = #{baseCntrSn}
+             , CNTR_DTL_STAT_CD = (
+                                  SELECT T1.CNTR_DTL_STAT_CD
+                                    FROM TB_SSCT_CNTR_DTL T1
+                                   WHERE T1.CNTR_NO = #{baseCntrNo}
+                                     AND T1.CNTR_SN = #{baseCntrSn}
+                                     AND T1.DTA_DL_YN = 'N'
+                                  )
+             , ICPT_SELL_RSON_CN = #{icptSellRsonCn}
+             , ICPT_SELL_OJ_PRTNR_NO = (
+                                       SELECT T1.SELL_PRTNR_NO
+                                         FROM TB_SSCT_CNTR_BAS T1
+                                        WHERE T1.CNTR_NO = #{baseCntrNo}
+                                          AND T1.DTA_DL_YN = 'N'
+                                       )
+             , OJ_CNTR_NO = #{ojCntrNo}
+             , OJ_CNTR_SN = #{ojCntrSn}
+             , ICPT_SELL_PROCS_TP_CD = #{icptSellProcsTpCd}
+             , ICPT_SELL_PROCS_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+              <include refid="COMMON.updateSystemField"/>
+         WHERE ICPT_SELL_ID = #{icptSellId}
+    </update>
+
+    <update id="deleteIncompletenessSales">
+        UPDATE TB_SSCT_ICPT_SELL_IZ
+           SET DTA_DL_YN = 'Y'
+              <include refid="COMMON.updateSystemField"/>
+         WHERE ICPT_SELL_ID = #{icptSellId}
+    </update>
+
+    <insert id="insertIncompletenessSalesHist">
+        INSERT INTO TB_SSCT_ICPT_SELL_CH_HIST (
+               ICPT_SELL_ID
+             , HIST_STRT_DTM
+             , HIST_END_DTM
+             , ICPT_SELL_EXR_DT
+             , BASE_CNTR_NO
+             , BASE_CNTR_SN
+             , CNTR_DTL_STAT_CD
+             , ICPT_SELL_TP_CD
+             , ICPT_SELL_RSON_CN
+             , ICPT_SELL_OJ_PRTNR_NO
+             , OJ_CNTR_NO
+             , OJ_CNTR_SN
+             , ICPT_SELL_PROCS_TP_CD
+             , ICPT_SELL_PROCS_DTM
+             , ICPT_SELL_PROCS_TN
+             , RFND_PROCS_TP_CD
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{icptSellId}
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , '99991231235959'
+             , #{icptSellExrDt} || '01'
+             , #{baseCntrNo}
+             , #{baseCntrSn}
+             , (
+               SELECT T1.CNTR_DTL_STAT_CD
+                 FROM TB_SSCT_CNTR_DTL T1
+                WHERE T1.CNTR_NO = #{baseCntrNo}
+                  AND T1.CNTR_SN = #{baseCntrSn}
+                  AND T1.DTA_DL_YN = 'N'
+               )
+             , '030'
+             , #{icptSellRsonCn}
+             , (
+               SELECT T1.SELL_PRTNR_NO
+                 FROM TB_SSCT_CNTR_BAS T1
+                WHERE T1.CNTR_NO = #{baseCntrNo}
+                  AND T1.DTA_DL_YN = 'N'
+               )
+             , #{ojCntrNo}
+             , #{ojCntrSn}
+             , #{icptSellProcsTpCd}
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , ''
+             , ''
+             , 'N'
+            <include refid="COMMON.insertSystemFieldValue" />)
+    </insert>
+
+    <update id="updateIncompletenessSalesPrevHist">
+        UPDATE TB_SSCT_ICPT_SELL_CH_HIST
+           SET HIST_END_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+              <include refid="COMMON.updateSystemField"/>
+         WHERE ICPT_SELL_ID = #{icptSellId}
+           AND HIST_STRT_DTM = (
+                               SELECT MAX(HIST_STRT_DTM)
+                                 FROM TB_SSCT_ICPT_SELL_CH_HIST
+                                WHERE ICPT_SELL_ID = #{icptSellId}
+                               )
+    </update>
+</mapper>
+

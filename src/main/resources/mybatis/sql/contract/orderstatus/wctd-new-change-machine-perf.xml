@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.orderstatus.mapper.WctdNewChangeMachinePerfMapper">
+
+    <select id="selectNewChangeMachinePerfPages" resultType="com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdNewChangeMachinePerfDto$SearchRes">
+        WITH TB AS (
+            SELECT CD.CNTR_NO, CD.CNTR_SN, CD.CNTR_PD_STRTDT, CD.CNTR_PD_ENDDT, CD.SELL_TP_CD, CD.FNL_AMT, CD.PD_QTY, CD.SELL_TP_DTL_CD, CD.FEE_ACKMT_CT, CD.ACKMT_PERF_AMT, CD.BOO_SELL_TP_CD, CD.CNTR_DTL_STAT_CD
+                 , CB.SELL_PRTNR_NO AS PRTNR_NO, CB.SELL_OG_TP_CD AS OG_TP_CD
+                 , CD.CNTR_NO AS MM_CNTR_NO
+                 , CD.CNTR_PD_STRTDT AS SL_DT
+                 , CB.CNTR_CNFM_DTM
+              FROM TB_SSCT_CNTR_DTL CD
+             INNER JOIN TB_SSCT_CNTR_BAS CB
+                ON CB.CNTR_NO = CD.CNTR_NO
+               AND CB.DTA_DL_YN = 'N'
+            <choose>
+                 <when test="@MybatisUtils@isNotEmpty(ogTpCd)">AND CB.SELL_OG_TP_CD = #{ogTpCd}</when>
+                 <otherwise>AND CB.SELL_OG_TP_CD IN ('W01','W02')</otherwise>
+             </choose>
+             WHERE CD.DTA_DL_YN = 'N'
+        )
+        SELECT T0.OG_TP_CD
+             , OP.PRTNR_KNM AS PRTNR_NM
+             , OO.OG_NM
+             , T0.PRTNR_NO
+             , OP.RSB_DV_CD
+             , OO.DGR1_LEVL_OG_NM
+             , OO.DGR2_LEVL_OG_NM
+             , OO.DGR3_LEVL_OG_NM
+             , CASE WHEN T0.ACKMT_PERF_AMT > 0 AND T0.RNTL_TOT_CNT > 0 THEN 'O' ELSE 'N' END AS OPTN_DV
+             , T0.NEW_CNT
+             , T0.RE_RNTL_CNT
+             , T0.REFORM_CNT
+             , T0.MCHN_CH_1_CNT
+             , T0.MCHN_CH_2_CNT
+             , T0.RNTL_TOT_CNT
+             , T0.RNTL_ACKMT_CNT
+             , T0.SPAY_TOT_CNT
+             , T0.SPAY_ACKMT_CNT
+             , (T0.SPAY_TOT_CNT + T0.RNTL_TOT_CNT) AS TOT_CNT
+             , (T0.SPAY_ACKMT_CNT + T0.RNTL_ACKMT_CNT) AS TOT_ACKMT_CNT
+          FROM (SELECT OP.OG_TP_CD
+                   <choose>
+                       <when test='@MybatisUtils@equals(inqrDv, "2")'>
+                            , OO.DGR2_LEVL_OG_ID AS OG_ID, OO.DGR2_LEVL_DG_PRTNR_NO AS PRTNR_NO
+                       </when>
+                       <when test='@MybatisUtils@equals(inqrDv, "3")'>
+                            , OO.DGR3_LEVL_OG_ID AS OG_ID, OO.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
+                       </when>
+                       <when test='@MybatisUtils@equals(inqrDv, "4")'>
+                            , OP.OG_ID, OP.PRTNR_NO
+                       </when>
+                       <otherwise>
+                            , OO.DGR1_LEVL_OG_ID AS OG_ID, OO.DGR1_LEVL_DG_PRTNR_NO AS PRTNR_NO
+                       </otherwise>
+                   </choose>
+                     , NVL(SUM(DT.ACKMT_PERF_AMT), 0)   AS ACKMT_PERF_AMT
+                     , (NVL(SUM(MC.NEW_CNT), 0)+NVL(SUM(DT.RD_TOT_CNT), 0)) AS NEW_CNT
+                     , NVL(SUM(MC.RE_RNTL_CNT), 0)      AS RE_RNTL_CNT
+                     , NVL(SUM(RR.REFORM_CNT), 0)       AS REFORM_CNT
+                     , NVL(SUM(MC.MCHN_CH_1_CNT), 0)    AS MCHN_CH_1_CNT
+                     , NVL(SUM(MC.MCHN_CH_2_CNT), 0)    AS MCHN_CH_2_CNT
+                     , (NVL(SUM(MC.NEW_CNT), 0) + NVL(SUM(MC.RE_RNTL_CNT), 0) + NVL(SUM(DT.RD_TOT_CNT), 0) + NVL(SUM(MC.MCHN_CH_1_CNT), 0) + NVL(SUM(MC.MCHN_CH_2_CNT), 0) + NVL(SUM(RR.REFORM_CNT), 0)) AS RNTL_TOT_CNT
+                     , (NVL(SUM(MC.NEW_CNT), 0) + NVL(SUM(MC.RE_RNTL_CNT), 0) + NVL(SUM(RD_ACKMT_CNT), 0) + NVL(SUM(RR.REFORM_CNT), 0)) AS RNTL_ACKMT_CNT
+                     , NVL(SUM(DT.SPAY_TOT_CNT), 0)     AS SPAY_TOT_CNT
+                     , NVL(SUM(DT.SPAY_ACKMT_CNT), 0)   AS SPAY_ACKMT_CNT
+                  FROM TB_OGBS_MM_PRTNR_IZ OP
+                 INNER JOIN TB_OGBS_MM_OG_IZ OO
+                    ON OO.BASE_YM = OP.BASE_YM
+                   AND OO.OG_ID = OP.OG_ID
+                   AND OO.OG_TP_CD = OP.OG_TP_CD
+                   AND OO.DTA_DL_YN = 'N'
+                   <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">AND OO.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}</if>
+                   <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">AND OO.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}</if>
+                   <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">AND OO.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}</if>
+                  LEFT OUTER JOIN (SELECT TB.PRTNR_NO
+                                         , TB.OG_TP_CD
+                                         , NVL2(TB.MM_CNTR_NO, 0, TB.PD_QTY)
+                                           + NVL2(TB.MM_CNTR_NO, CASE WHEN MC.MCHN_CH_TP_CD NOT IN ('1','15','16','18','19') THEN TB.PD_QTY ELSE 0 END, 0)  AS NEW_CNT /* 신규 */
+                                         , NVL2(TB.MM_CNTR_NO, 0, CASE WHEN MC.MCHN_CH_TP_CD IN ('15','16','19') THEN TB.PD_QTY ELSE 0 END) AS RE_RNTL_CNT 	/* 재텐탈 */
+                                         , NVL2(TB.MM_CNTR_NO, 0, DECODE(MC.MCHN_CH_TP_CD, '18', TB.PD_QTY, 0)) AS MCHN_CH_1_CNT                            /* 기변1 */
+                                         , NVL2(TB.MM_CNTR_NO, 0, DECODE(MC.MCHN_CH_TP_CD, '1', TB.PD_QTY, 0)) AS MCHN_CH_2_CNT                             /* 기변1 */
+                                      FROM TB
+                                      LEFT OUTER JOIN (SELECT BASE_CNTR_NO, BASE_CNTR_SN
+                                                            , MAX(MCHN_CH_TP_CD) KEEP(DENSE_RANK FIRST ORDER BY MCHN_CH_SN DESC) AS MCHN_CH_TP_CD
+                                                         FROM TB_SSCT_MCHN_CH_IZ
+                                                        WHERE DTA_DL_YN = 'N'
+                                                        GROUP BY BASE_CNTR_NO, BASE_CNTR_SN) MC
+                                        ON MC.BASE_CNTR_NO = TB.CNTR_NO
+                                       AND MC.BASE_CNTR_SN = TB.CNTR_SN
+                                     WHERE TB.SELL_TP_CD = '2' /* 렌탈 */
+                                       AND TB.FNL_AMT > 100
+                                       <choose>
+                                           <when test='@MybatisUtils@equals(perfDv, "T")'>AND TB.CNTR_CNFM_DTM BETWEEN #{perfStrtDt} AND #{perfEndDt}</when>
+                                           <when test='@MybatisUtils@equals(perfDv, "S")'>
+                                               AND (TB.BOO_SELL_TP_CD = '2'                                             /* 1. 예약판매이거나 */
+                                                    OR SUBSTR(TB.CNTR_CNFM_DTM, 1, 6) = SUBSTR(TB.CNTR_PD_STRTDT, 1, 6)         /* 2. 접수일자와 매출일자가 동일하거나 */
+                                                    OR ((SUBSTR(TB.CNTR_PD_STRTDT, 1, 6) BETWEEN SUBSTR(#{perfStrtDt}, 1, 6) AND SUBSTR(#{perfEndDt}, 1,6)
+                                                         AND NOT (SUBSTR(TB.CNTR_PD_STRTDT, 1, 6) = SUBSTR(TB.CNTR_PD_ENDDT, 1, 6)
+                                                                  AND TB.CNTR_DTL_STAT_CD IN ('301','303','304','305'))
+                                                                 )
+                                                       )
+                                                   )
+                                           </when>
+                                       </choose>
+                       ) MC
+                    ON MC.OG_TP_CD = OP.OG_TP_CD
+                   AND MC.PRTNR_NO = OP.PRTNR_NO
+                  LEFT OUTER JOIN (SELECT TB.OG_TP_CD
+                                        , TB.PRTNR_NO
+                                        , TB.ACKMT_PERF_AMT
+                                        , CASE WHEN TB.SELL_TP_CD = '1' THEN DECODE(TB.SELL_TP_DTL_CD, '13', 1, CASE WHEN FEE_ACKMT_CT > 0 THEN 1 ELSE 0 END)
+                                               ELSE 0
+                                           END AS SPAY_TOT_CNT
+                                        , CASE WHEN TB.SELL_TP_CD = '1' THEN CASE WHEN FEE_ACKMT_CT > 0 THEN 1 ELSE 0 END
+                                                ELSE 0
+                                           END AS SPAY_ACKMT_CNT
+                                        , CASE WHEN TB.SELL_TP_CD = '6' THEN DECODE(TB.SELL_TP_DTL_CD, '62', 0, CASE WHEN FEE_ACKMT_CT > 1 THEN FEE_ACKMT_CT ELSE 1 END)
+                                                ELSE 0
+                                           END AS RD_TOT_CNT
+                                        , CASE WHEN TB.SELL_TP_CD = '6' THEN CASE WHEN FEE_ACKMT_CT > 0 THEN 1 ELSE 0 END
+                                                ELSE 0
+                                           END AS RD_ACKMT_CNT
+                                     FROM TB
+                                    WHERE TB.SELL_TP_CD IN ('1', '6')   /* 일시불/할부 , 정기배송 */
+
+                                    <choose>
+                                       <when test='@MybatisUtils@equals(perfDv, "T")'>AND TB.CNTR_CNFM_DTM BETWEEN #{perfStrtDt} AND #{perfEndDt}</when>
+                                       <when test='@MybatisUtils@equals(perfDv, "S")'>AND SUBSTR(TB.CNTR_PD_STRTDT, 1, 6) BETWEEN SUBSTR(#{perfStrtDt}, 1, 6) AND SUBSTR(#{perfEndDt}, 1,6)</when>
+                                   </choose>
+                       ) DT
+                    ON DT.OG_TP_CD = OP.OG_TP_CD
+                   AND DT.PRTNR_NO = OP.PRTNR_NO
+                  LEFT OUTER JOIN (SELECT RCP_OG_TP_CD
+                                        , RCP_PRTNR_NO
+                                        , CASE WHEN FEE_ACKMT_CT > 0 THEN 1 ELSE 0 END AS REFORM_CNT
+                                     FROM TB_SSCT_RENTAL_RSTL_IZ
+                                    WHERE SUBSTR(STPL_RCP_DTM, 1, 8) BETWEEN #{perfStrtDt} AND #{perfEndDt}
+                                     AND DTA_DL_YN = 'N'
+                       ) RR
+                    ON RR.RCP_OG_TP_CD = OP.OG_TP_CD
+                   AND RR.RCP_PRTNR_NO = OP.PRTNR_NO
+                 WHERE OP.BASE_YM = SUBSTR(#{perfStrtDt}, 1, 6)
+                   AND OP.DTA_DL_YN = 'N'
+                   <choose>
+                       <when test="@MybatisUtils@isNotEmpty(ogTpCd)">AND OP.OG_TP_CD = #{ogTpCd}</when>
+                       <otherwise>AND OP.OG_TP_CD IN ('W01','W02')</otherwise>
+                   </choose>
+                 GROUP BY OP.OG_TP_CD
+                   <choose>
+                       <when test='@MybatisUtils@equals(inqrDv, "2")'>, OO.DGR2_LEVL_OG_ID, OO.DGR2_LEVL_DG_PRTNR_NO</when>
+                       <when test='@MybatisUtils@equals(inqrDv, "3")'>, OO.DGR3_LEVL_OG_ID, OO.DGR3_LEVL_DG_PRTNR_NO</when>
+                       <when test='@MybatisUtils@equals(inqrDv, "4")'>, OP.OG_ID, OP.PRTNR_NO</when>
+                       <otherwise>,  OO.DGR1_LEVL_OG_ID, OO.DGR1_LEVL_DG_PRTNR_NO</otherwise>
+                   </choose>
+            ) T0
+        INNER JOIN TB_OGBS_MM_PRTNR_IZ OP /* 최종 파트너, 조직 조회용 */
+           ON OP.PRTNR_NO = T0.PRTNR_NO
+          AND OP.BASE_YM = SUBSTR(#{perfStrtDt}, 1, 6)
+          AND OP.OG_TP_CD = T0.OG_TP_CD
+          AND OP.DTA_DL_YN = 'N'
+        INNER JOIN TB_OGBS_MM_OG_IZ OO    /* 최종 파트너, 조직 조회용 */
+           ON OO.OG_ID = OP.OG_ID
+          AND OO.BASE_YM = OP.BASE_YM
+          AND OO.DTA_DL_YN = 'N'
+        WHERE 1=1
+        <choose>
+           <when test='@MybatisUtils@equals(optnDv, "O")'>
+               AND T0.ACKMT_PERF_AMT > 0
+               AND T0.RNTL_TOT_CNT > 0
+           </when>
+           <when test='@MybatisUtils@equals(optnDv, "N")'>
+               AND T0.ACKMT_PERF_AMT = 0
+               AND T0.RNTL_TOT_CNT = 0
+           </when>
+       </choose>
+
+    </select>
+
+
+    <select id="selectNewChangeMachinePerfSumm" resultType="com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdNewChangeMachinePerfDto$SearchRes">
+        WITH TB AS (
+            SELECT CD.CNTR_NO, CD.CNTR_SN, CD.CNTR_PD_STRTDT, CD.CNTR_PD_ENDDT, CD.SELL_TP_CD, CD.FNL_AMT, CD.PD_QTY, CD.SELL_TP_DTL_CD, CD.FEE_ACKMT_CT, CD.ACKMT_PERF_AMT, CD.BOO_SELL_TP_CD, CD.CNTR_DTL_STAT_CD
+                 , CB.SELL_PRTNR_NO AS PRTNR_NO, CB.SELL_OG_TP_CD AS OG_TP_CD
+                 , CD.CNTR_NO AS MM_CNTR_NO
+                 , CD.CNTR_PD_STRTDT AS SL_DT
+                 , CB.CNTR_CNFM_DTM
+              FROM TB_SSCT_CNTR_DTL CD
+             INNER JOIN TB_SSCT_CNTR_BAS CB
+                ON CB.CNTR_NO = CD.CNTR_NO
+               AND CB.DTA_DL_YN = 'N'
+            <choose>
+                 <when test="@MybatisUtils@isNotEmpty(ogTpCd)">AND CB.SELL_OG_TP_CD = #{ogTpCd}</when>
+                 <otherwise>AND CB.SELL_OG_TP_CD IN ('W01','W02')</otherwise>
+             </choose>
+             WHERE CD.DTA_DL_YN = 'N'
+        )
+        SELECT '' AS ogTpCd, '' AS prtnrNm, '' AS ogNm, '' AS prtnrNo, '' AS rsbDvCd, '' AS dgr1LevlOgNm, '' AS dgr2LevlOgNm, '' AS dgr3LevlOgNm, '' AS optnDv, '' AS ackmtPerfAmt
+             , SUM(T0.NEW_CNT) AS NEW_CNT
+             , SUM(T0.RE_RNTL_CNT) AS RE_RNTL_CNT
+             , SUM(T0.REFORM_CNT) AS REFORM_CNT
+             , SUM(T0.MCHN_CH_1_CNT) AS MCHN_CH_1_CNT
+             , SUM(T0.MCHN_CH_2_CNT) AS MCHN_CH_2_CNT
+             , SUM(T0.RNTL_TOT_CNT) AS RNTL_TOT_CNT
+             , SUM(T0.RNTL_ACKMT_CNT) AS RNTL_ACKMT_CNT
+             , SUM(T0.SPAY_TOT_CNT) AS SPAY_TOT_CNT
+             , SUM(T0.SPAY_ACKMT_CNT) AS SPAY_ACKMT_CNT
+             , SUM((T0.SPAY_TOT_CNT + T0.RNTL_TOT_CNT)) AS TOT_CNT
+             , SUM((T0.SPAY_ACKMT_CNT + T0.RNTL_ACKMT_CNT)) AS TOT_ACKMT_CNT
+          FROM (SELECT OP.OG_TP_CD
+                   <choose>
+                       <when test='@MybatisUtils@equals(inqrDv, "2")'>
+                            , OO.DGR2_LEVL_OG_ID AS OG_ID, OO.DGR2_LEVL_DG_PRTNR_NO AS PRTNR_NO
+                       </when>
+                       <when test='@MybatisUtils@equals(inqrDv, "3")'>
+                            , OO.DGR3_LEVL_OG_ID AS OG_ID, OO.DGR3_LEVL_DG_PRTNR_NO AS PRTNR_NO
+                       </when>
+                       <when test='@MybatisUtils@equals(inqrDv, "4")'>
+                            , OP.OG_ID, OP.PRTNR_NO
+                       </when>
+                       <otherwise>
+                            , OO.DGR1_LEVL_OG_ID AS OG_ID, OO.DGR1_LEVL_DG_PRTNR_NO AS PRTNR_NO
+                       </otherwise>
+                   </choose>
+                     , NVL(SUM(DT.ACKMT_PERF_AMT), 0)   AS ACKMT_PERF_AMT
+                     , (NVL(SUM(MC.NEW_CNT), 0)+NVL(SUM(DT.RD_TOT_CNT), 0)) AS NEW_CNT
+                     , NVL(SUM(MC.RE_RNTL_CNT), 0)      AS RE_RNTL_CNT
+                     , NVL(SUM(RR.REFORM_CNT), 0)       AS REFORM_CNT
+                     , NVL(SUM(MC.MCHN_CH_1_CNT), 0)    AS MCHN_CH_1_CNT
+                     , NVL(SUM(MC.MCHN_CH_2_CNT), 0)    AS MCHN_CH_2_CNT
+                     , (NVL(SUM(MC.NEW_CNT), 0) + NVL(SUM(MC.RE_RNTL_CNT), 0) + NVL(SUM(DT.RD_TOT_CNT), 0) + NVL(SUM(MC.MCHN_CH_1_CNT), 0) + NVL(SUM(MC.MCHN_CH_2_CNT), 0) + NVL(SUM(RR.REFORM_CNT), 0)) AS RNTL_TOT_CNT
+                     , (NVL(SUM(MC.NEW_CNT), 0) + NVL(SUM(MC.RE_RNTL_CNT), 0) + NVL(SUM(RD_ACKMT_CNT), 0) + NVL(SUM(RR.REFORM_CNT), 0)) AS RNTL_ACKMT_CNT
+                     , NVL(SUM(DT.SPAY_TOT_CNT), 0)     AS SPAY_TOT_CNT
+                     , NVL(SUM(DT.SPAY_ACKMT_CNT), 0)   AS SPAY_ACKMT_CNT
+                  FROM TB_OGBS_MM_PRTNR_IZ OP
+                 INNER JOIN TB_OGBS_MM_OG_IZ OO
+                    ON OO.BASE_YM = OP.BASE_YM
+                   AND OO.OG_ID = OP.OG_ID
+                   AND OO.OG_TP_CD = OP.OG_TP_CD
+                   AND OO.DTA_DL_YN = 'N'
+                   <if test="@MybatisUtils@isNotEmpty(dgr1LevlOgId)">AND OO.DGR1_LEVL_OG_ID = #{dgr1LevlOgId}</if>
+                   <if test="@MybatisUtils@isNotEmpty(dgr2LevlOgId)">AND OO.DGR2_LEVL_OG_ID = #{dgr2LevlOgId}</if>
+                   <if test="@MybatisUtils@isNotEmpty(dgr3LevlOgId)">AND OO.DGR3_LEVL_OG_ID = #{dgr3LevlOgId}</if>
+                  LEFT OUTER JOIN (SELECT TB.PRTNR_NO
+                                         , TB.OG_TP_CD
+                                         , NVL2(TB.MM_CNTR_NO, 0, TB.PD_QTY)
+                                           + NVL2(TB.MM_CNTR_NO, CASE WHEN MC.MCHN_CH_TP_CD NOT IN ('1','15','16','18','19') THEN TB.PD_QTY ELSE 0 END, 0)  AS NEW_CNT /* 신규 */
+                                         , NVL2(TB.MM_CNTR_NO, 0, CASE WHEN MC.MCHN_CH_TP_CD IN ('15','16','19') THEN TB.PD_QTY ELSE 0 END) AS RE_RNTL_CNT 	/* 재텐탈 */
+                                         , NVL2(TB.MM_CNTR_NO, 0, DECODE(MC.MCHN_CH_TP_CD, '18', TB.PD_QTY, 0)) AS MCHN_CH_1_CNT                            /* 기변1 */
+                                         , NVL2(TB.MM_CNTR_NO, 0, DECODE(MC.MCHN_CH_TP_CD, '1', TB.PD_QTY, 0)) AS MCHN_CH_2_CNT                             /* 기변1 */
+                                      FROM TB
+                                      LEFT OUTER JOIN (SELECT BASE_CNTR_NO, BASE_CNTR_SN
+                                                            , MAX(MCHN_CH_TP_CD) KEEP(DENSE_RANK FIRST ORDER BY MCHN_CH_SN DESC) AS MCHN_CH_TP_CD
+                                                         FROM TB_SSCT_MCHN_CH_IZ
+                                                        WHERE DTA_DL_YN = 'N'
+                                                        GROUP BY BASE_CNTR_NO, BASE_CNTR_SN) MC
+                                        ON MC.BASE_CNTR_NO = TB.CNTR_NO
+                                       AND MC.BASE_CNTR_SN = TB.CNTR_SN
+                                     WHERE TB.SELL_TP_CD = '2' /* 렌탈 */
+                                       AND TB.FNL_AMT > 100
+                                       <choose>
+                                           <when test='@MybatisUtils@equals(perfDv, "T")'>AND TB.CNTR_CNFM_DTM BETWEEN #{perfStrtDt} AND #{perfEndDt}</when>
+                                           <when test='@MybatisUtils@equals(perfDv, "S")'>
+                                               AND (TB.BOO_SELL_TP_CD = '2'                                             /* 1. 예약판매이거나 */
+                                                    OR SUBSTR(TB.CNTR_CNFM_DTM, 1, 6) = SUBSTR(TB.CNTR_PD_STRTDT, 1, 6)         /* 2. 접수일자와 매출일자가 동일하거나 */
+                                                    OR ((SUBSTR(TB.CNTR_PD_STRTDT, 1, 6) BETWEEN SUBSTR(#{perfStrtDt}, 1, 6) AND SUBSTR(#{perfEndDt}, 1,6)
+                                                         AND NOT (SUBSTR(TB.CNTR_PD_STRTDT, 1, 6) = SUBSTR(TB.CNTR_PD_ENDDT, 1, 6)
+                                                                  AND TB.CNTR_DTL_STAT_CD IN ('301','303','304','305'))
+                                                                 )
+                                                       )
+                                                   )
+                                           </when>
+                                       </choose>
+                       ) MC
+                    ON MC.OG_TP_CD = OP.OG_TP_CD
+                   AND MC.PRTNR_NO = OP.PRTNR_NO
+                  LEFT OUTER JOIN (SELECT TB.OG_TP_CD
+                                        , TB.PRTNR_NO
+                                        , TB.ACKMT_PERF_AMT
+                                        , CASE WHEN TB.SELL_TP_CD = '1' THEN DECODE(TB.SELL_TP_DTL_CD, '13', 1, CASE WHEN FEE_ACKMT_CT > 0 THEN 1 ELSE 0 END)
+                                               ELSE 0
+                                           END AS SPAY_TOT_CNT
+                                        , CASE WHEN TB.SELL_TP_CD = '1' THEN CASE WHEN FEE_ACKMT_CT > 0 THEN 1 ELSE 0 END
+                                                ELSE 0
+                                           END AS SPAY_ACKMT_CNT
+                                        , CASE WHEN TB.SELL_TP_CD = '6' THEN DECODE(TB.SELL_TP_DTL_CD, '62', 0, CASE WHEN FEE_ACKMT_CT > 1 THEN FEE_ACKMT_CT ELSE 1 END)
+                                                ELSE 0
+                                           END AS RD_TOT_CNT
+                                        , CASE WHEN TB.SELL_TP_CD = '6' THEN CASE WHEN FEE_ACKMT_CT > 0 THEN 1 ELSE 0 END
+                                                ELSE 0
+                                           END AS RD_ACKMT_CNT
+                                     FROM TB
+                                    WHERE TB.SELL_TP_CD IN ('1', '6')   /* 일시불/할부 , 정기배송 */
+                                    <choose>
+                                       <when test='@MybatisUtils@equals(perfDv, "T")'>AND TB.CNTR_CNFM_DTM BETWEEN #{perfStrtDt} AND #{perfEndDt}</when>
+                                       <when test='@MybatisUtils@equals(perfDv, "S")'>AND SUBSTR(TB.CNTR_PD_STRTDT, 1, 6) BETWEEN SUBSTR(#{perfStrtDt}, 1, 6) AND SUBSTR(#{perfEndDt}, 1,6)</when>
+                                   </choose>
+                       ) DT
+                    ON DT.OG_TP_CD = OP.OG_TP_CD
+                   AND DT.PRTNR_NO = OP.PRTNR_NO
+                  LEFT OUTER JOIN (SELECT RCP_OG_TP_CD
+                                        , RCP_PRTNR_NO
+                                        , CASE WHEN FEE_ACKMT_CT > 0 THEN 1 ELSE 0 END AS REFORM_CNT
+                                     FROM TB_SSCT_RENTAL_RSTL_IZ
+                                    WHERE SUBSTR(STPL_RCP_DTM, 1, 8) BETWEEN #{perfStrtDt} AND #{perfEndDt}
+                                     AND DTA_DL_YN = 'N'
+                       ) RR
+                    ON RR.RCP_OG_TP_CD = OP.OG_TP_CD
+                   AND RR.RCP_PRTNR_NO = OP.PRTNR_NO
+                 WHERE OP.BASE_YM = SUBSTR(#{perfStrtDt}, 1, 6)
+                   AND OP.DTA_DL_YN = 'N'
+                   <choose>
+                       <when test="@MybatisUtils@isNotEmpty(ogTpCd)">AND OP.OG_TP_CD = #{ogTpCd}</when>
+                       <otherwise>AND OP.OG_TP_CD IN ('W01','W02')</otherwise>
+                   </choose>
+                 GROUP BY OP.OG_TP_CD
+                   <choose>
+                       <when test='@MybatisUtils@equals(inqrDv, "2")'>, OO.DGR2_LEVL_OG_ID, OO.DGR2_LEVL_DG_PRTNR_NO</when>
+                       <when test='@MybatisUtils@equals(inqrDv, "3")'>, OO.DGR3_LEVL_OG_ID, OO.DGR3_LEVL_DG_PRTNR_NO</when>
+                       <when test='@MybatisUtils@equals(inqrDv, "4")'>, OP.OG_ID, OP.PRTNR_NO</when>
+                       <otherwise>,  OO.DGR1_LEVL_OG_ID, OO.DGR1_LEVL_DG_PRTNR_NO</otherwise>
+                   </choose>
+            ) T0
+        INNER JOIN TB_OGBS_MM_PRTNR_IZ OP /* 최종 파트너, 조직 조회용 */
+           ON OP.PRTNR_NO = T0.PRTNR_NO
+          AND OP.BASE_YM = SUBSTR(#{perfStrtDt}, 1, 6)
+          AND OP.OG_TP_CD = T0.OG_TP_CD
+          AND OP.DTA_DL_YN = 'N'
+        INNER JOIN TB_OGBS_MM_OG_IZ OO    /* 최종 파트너, 조직 조회용 */
+           ON OO.OG_ID = OP.OG_ID
+          AND OO.BASE_YM = OP.BASE_YM
+          AND OO.DTA_DL_YN = 'N'
+        WHERE 1=1
+        <choose>
+           <when test='@MybatisUtils@equals(optnDv, "O")'>
+               AND T0.ACKMT_PERF_AMT > 0
+               AND T0.RNTL_TOT_CNT > 0
+           </when>
+           <when test='@MybatisUtils@equals(optnDv, "N")'>
+               AND T0.ACKMT_PERF_AMT = 0
+               AND T0.RNTL_TOT_CNT = 0
+           </when>
+       </choose>
+
+    </select>
+</mapper>

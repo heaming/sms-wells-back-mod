@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiTaxInvoiceBaseMapper">
+
+    <!--
+    EAI INTERFACE 통신 시 data key는 snake case를 사용함.
+    resultMap을 사용하여 response dto에 매핑함.
+    -->
+    <resultMap id="taxInfo" type="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoiceBaseDto$SearchRes">
+        <constructor>
+            <arg name="APLC_DT" javaType="java.lang.String" column="APLC_DT"/>
+            <arg name="TXINV_ID" javaType="java.lang.String" column="TXINV_ID"/>
+            <arg name="SPLR_WRTE_DT" javaType="java.lang.String" column="SPLR_WRTE_DT"/>
+            <arg name="TXINV_PBL_MTHD_CD" javaType="java.lang.String" column="TXINV_PBL_MTHD_CD"/>
+            <arg name="TXINV_PBL_MTHD_NM" javaType="java.lang.String" column="TXINV_PBL_MTHD_NM"/>
+            <arg name="TXINV_BIL_DV_CD" javaType="java.lang.String" column="TXINV_BIL_DV_CD"/>
+            <arg name="TXINV_BIL_DV_NM" javaType="java.lang.String" column="TXINV_BIL_DV_NM"/>
+            <arg name="APLCNS_NM" javaType="java.lang.String" column="APLCNS_NM"/>
+            <arg name="DLPNR_NM" javaType="java.lang.String" column="DLPNR_NM"/>
+            <arg name="CNTR_NO" javaType="java.lang.String" column="CNTR_NO"/>
+            <arg name="CNTR_SN" javaType="java.lang.String" column="CNTR_SN"/>
+            <arg name="PLB_AMT" javaType="java.lang.Integer" column="PLB_AMT"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectTaxInvoices" resultMap="taxInfo">
+        SELECT TB.APLC_DT
+             , TB.TXINV_ID
+             , TB.SPLR_WRTE_DT
+             , TB.TXINV_PBL_MTHD_CD
+             , AFMDBS.F_CMZ_CD_NM(#{session.tenantId}, 'TXINV_PBL_MTHD_CD', NVL(TB.TXINV_PBL_MTHD_CD, '1')) AS TXINV_PBL_MTHD_NM
+             , TB.TXINV_BIL_DV_CD
+             , AFMDBS.F_CMZ_CD_NM(#{session.tenantId}, 'TXINV_BIL_DV_CD', TB.TXINV_BIL_DV_CD) AS TXINV_BIL_DV_NM
+             , TB.APLCNS_NM
+             , DB.DLPNR_NM
+             , TD.CNTR_NO
+             , TD.CNTR_SN
+             , TD.PLB_AMT
+          FROM TB_SSCT_TXINV_APLC_BAS TB
+         INNER JOIN (SELECT TXINV_ID
+                         , CNTR_NO
+                         , CNTR_SN
+                         , PLB_AMT
+                      FROM (SELECT ROW_NUMBER() OVER(PARTITION BY TXINV_ID ORDER BY DTL_SN) RN
+                                 , SUM(SPL_AMT + VAT) OVER(PARTITION BY TXINV_ID) AS PLB_AMT
+                                 , TXINV_ID
+                                 , CNTR_NO
+                                 , CNTR_SN
+                              FROM TB_SSCT_TXINV_APLC_DTL
+                             WHERE DTA_DL_YN = 'N'
+                           )
+                     WHERE RN = 1) TD
+            ON TB.TXINV_ID = TD.TXINV_ID
+          LEFT OUTER JOIN TB_GBCO_DLPNR_BAS	DB
+            ON TB.DLPNR_CD = DB.DLPNR_CD
+           AND DB.DTA_DL_YN = 'N'
+           <if test='@MybatisUtils@isNotEmpty(BZRNO)'>AND DB.BZRNO = #{BZRNO}</if>
+         WHERE TB.DTA_DL_YN = 'N'
+           AND TB.SPLR_WRTE_DT BETWEEN #{SPLR_WRTE_STRTDT} AND #{SPLR_WRTE_ENDDT}
+        <if test='@MybatisUtils@isNotEmpty(TXINV_PBL_MTHD_CD)'>
+            <choose>
+                <when test="@MybatisUtils@equals(TXINV_PBL_MTHD_CD, '1')">AND NVL(TB.TXINV_PBL_MTHD_CD, '1') = #{TXINV_PBL_MTHD_CD}</when>
+                <otherwise>AND TB.TXINV_PBL_MTHD_CD = #{TXINV_PBL_MTHD_CD}</otherwise>
+            </choose>
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(APLC_PSIC_ID)'>
+            AND TB.APLC_PSIC_ID = #{APLC_PSIC_ID}
+        </if>
+    </select>
+
+</mapper>

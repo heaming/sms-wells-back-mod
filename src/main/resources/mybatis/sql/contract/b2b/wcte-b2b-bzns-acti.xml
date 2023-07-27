@@ -1,0 +1,801 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.b2b.mapper.WcteB2bBznsActiMapper">
+    <select id="selectRentalMutuAlncCheck" resultType="com.kyowon.sms.wells.web.contract.b2b.dvo.WcteB2bBznsActiDvo">
+        SELECT E1.LEAD_CST_ID /* 리드고객기본.리드고객ID  테이블 수정용 */
+             , F1.LEAD_CST_RLPPL_ID /* 리드고객관계자상세.리드고객관계자ID 테이블 수정용 */
+             , A1.PRJ_NM /* 프로젝트명 [프로젝트ID] */
+             , A1.OPPT_ID /* 기회ID [고유번호] */
+             , SUBSTR(A1.FST_RGST_DTM, 1, 8) AS FST_RGST_DT /* 최초등록일시 - 잠재고객등록일자, 접근고객등록일자도 매핑되어 있으나 특정할 수 없음 [BO등록일] */
+             , D1.DGR3_LEVL_OG_CD /* 3차레벨조직코드 - 지점 [지점] */
+             , A1.OPPT_ICHR_PRTNR_NO /* 기회담당파트너번호 [사번] */
+             , D1.PRTNR_KNM /* 파트너한글명 [실무담당자(교원)] */
+             , A1.PRJ_FOM_CD /* 프로젝트형태코드 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'PRJ_FOM_CD', A1.PRJ_FOM_CD) AS PRJ_FOM_NM /* 프로젝트형태코드명 [형태] */
+             , E1.BZRNO /* 사업자등록번호 [사업자번호] */
+             , E1.LEAD_CST_NM /* 리드고객명 [업체명] */
+             , F1.LEAD_CST_RLPPL_NM /* 리드고객관계자명 [업체담당자(KEY-MAN)] */
+             , F1.LOCARA_TNO /* 지역전화번호 [업체연락처1(KEY_MAN)] */
+             , F1.EXNO_ENCR /* 전화국번호암호화 [업체연락처1(KEY_MAN)] */
+             , F1.IDV_TNO /* 개별전화번호 [업체연락처1(KEY_MAN)] */
+             , F1.CRAL_LOCARA_TNO /* 휴대지역전화번호 [업체연락처2(KEY_MAN)] */
+             , F1.MEXNO_ENCR /* 휴대전화국번호암호화 [업체연락처2(KEY_MAN)] */
+             , F1.CRAL_IDV_TNO /* 휴대개별전화번호 [업체연락처2(KEY_MAN)] */
+             , F1.EMADR_CN /* 이메일주소내용 [이메일(KEY-MAN)] */
+             , E1.CRDR_VAL /* 신용등급값 [신용등급] */
+             , A1.ET_BIDD_DT AS ET_BIDD_DT /* 예상입찰일자 [입찰예정월] */
+             , A1.OPPT_CNTR_FOM_CD /* 기회계약형태코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'OPPT_CNTR_FOM_CD', A1.OPPT_CNTR_FOM_CD) AS OPPT_CNTR_FOM_NM /* 기회계약형태코드명 [계약형태] */
+             , L1.TOT_QTY /* 상품총수량 [총수량]*/
+             , L1.WRFR_QTY /* 정수기수량 [정수기(제품)] */
+             , L1.ARCLE_QTY /* 공기청정기수량 [청정기(제품)] */
+             , L1.BDT_QTY /* 비데수량 [비데(제품)] */
+             , L1.ETC_QTY /* 기타수량 [기타(제품)] */
+             , A1.ET_RCVOD_QTY /* 예상수주수량 [예상수량] */
+             , A1.ET_RCVOD_RAT/* 예상수주비율 [수주확률] */
+             , A1.RCVOD_DT /* 수주일자 [수주일] */
+             , A1.LOSS_DT /* 실주일자 [낙주일] */
+             , A1.ET_CNTR_STRTDT /* 예상계약시작일자 [계약시작일] */
+             , L1.MAX_STPL_PTRM /* 약정기간(MAX) */ /* [의무약정] */
+             , A1.BIDD_BZS_NM /* 입찰업체명 [입찰업체] */
+             , A1.UNUITM_CN /* 특이사항내용[특이사항] */
+             , SUBSTR(A1.FNL_MDFC_DTM, 1, 8) AS FNL_MDFC_DT /* 최종수정일시 [최종수정일자] */
+             , A1.OG_TP_CD /* 조직코드 */
+          FROM TB_SSOP_OPPT_BAS A1 /* 기회기본 */
+          LEFT OUTER JOIN LATERAL
+             (
+              /* ※조직편제 참고 wells(M/P 영업부) → 총괄단 → 지역단 → 지점 */
+              SELECT B1.DGR1_LEVL_OG_CD /* 1차레벨조직코드 - 총괄단*/
+                   , B1.DGR1_LEVL_DG_PRTNR_NO /* 1차레벨대표파트너번호*/
+                   , B1.DGR1_LEVL_OG_ID /* 1차레벨조직ID */
+                   , B1.DGR1_LEVL_OG_NM /* 1차레벨조직명 */
+                   , B1.DGR2_LEVL_OG_CD /* 1차레벨조직코드 - 지역단 */
+                   , B1.DGR2_LEVL_DG_PRTNR_NO /* 월조직내역.2차상위대표파트너번호*/
+                   , B1.DGR2_LEVL_OG_ID /* 2차레벨조직ID */
+                   , B1.DGR2_LEVL_OG_NM /* 2차레벨조직명 */
+                   , B1.DGR3_LEVL_OG_CD /* 3차레벨조직코드 - 지점 */
+                   , B1.DGR3_LEVL_DG_PRTNR_NO /* 3차레벨대표파트너번호 */
+                   , B1.DGR3_LEVL_OG_ID /* 3차레벨조직ID */
+                   , B1.DGR3_LEVL_OG_NM /* 3차레벨조직명 */
+                   , B1.BIZ_SPPT_PRTNR_NO /* 업무지원파트너번호 */
+                   , B1.OG_UPBRNG_PRTNR_NO /* 영업지원파트너번호 */
+                   , B1.OG_CD /* 조직코드 */
+                   , B1.OG_ID /* 조직ID */
+                   , B1.BASE_YM /* 기준년월 */
+                   , C1.OG_NM /* 조직명 */
+                   , C1.PRTNR_NO /* 파트너번호 */
+                   , C1.PRTNR_KNM /* 파트너한글명 */
+                FROM TB_OGBS_MM_OG_IZ B1 /* 월조직내역 */
+               INNER JOIN TB_OGBS_MM_PRTNR_IZ C1 /* 월파트너내역 */
+                  ON C1.BASE_YM = B1.BASE_YM /* 월파트너내역.기준년월 = 월조직내역.기준년월 */
+                 AND C1.OG_TP_CD = B1.OG_TP_CD
+                 AND C1.OG_ID = B1.OG_ID /* 월조직내역.조직ID = 월파트너내역.조직ID */
+                 AND C1.DTA_DL_YN = 'N'
+                 AND B1.DTA_DL_YN = 'N'
+               WHERE 1=1
+                 AND B1.BASE_YM = SUBSTR(A1.FST_RGST_DTM, 1, 6) /* 월조직내역.기준년월 = 기회기본.최초등록일시 */
+                 AND C1.PRTNR_NO = A1.OPPT_ICHR_PRTNR_NO /*월파트너내역.파트너번호 = 기회기본.기회담당파트너번호  */
+                 AND C1.OG_TP_CD = A1.OG_TP_CD /* 사용자session.조직유형코드 */
+             ) D1
+            ON D1.PRTNR_NO = A1.OPPT_ICHR_PRTNR_NO /*월파트너내역.파트너번호 = 기회기본.기회담당파트너번호  */
+           AND A1.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSOP_LEAD_CST_BAS E1 /* 리드고객기본 */
+            ON E1.LEAD_CST_ID = A1.LEAD_CST_ID /* 리드고객기본.리드고객ID = 기회기본.리드고객ID */
+           AND E1.DTA_DL_YN = 'N'
+           AND A1.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSOP_LEAD_CST_RLPPL_DTL F1 /* 리드고객관계자상세 */
+            ON F1.LEAD_CST_ID = E1.LEAD_CST_ID /* 리드고객관계자상세.리드고객ID = 리드고객기본.리드고객ID */
+           AND F1.DTA_DL_YN = 'N'
+           AND E1.DTA_DL_YN = 'N'
+           AND F1.LEAD_RLPPL_DV_CD = '02' /* 리드관계자구분코드 = '02'(키맨) */
+          LEFT OUTER  JOIN LATERAL
+             (
+              SELECT K1.OPPT_ID /* 기회ID */
+                   , SUM(K1.PD_QTY) AS TOT_QTY /* 상품총수량 */
+                   , SUM(K1.WRFR_QTY) AS WRFR_QTY /* 정수기수량 */
+                   , SUM(K1.ARCLE_QTY) AS ARCLE_QTY /* 공기청정기수량 */
+                   , SUM(K1.BDT_QTY) AS BDT_QTY /* 비데수량 */
+                   , SUM(K1.ETC_QTY) AS ETC_QTY /* 기타수량 */
+                   , MAX(K1.STPL_PTRM) AS MAX_STPL_PTRM /* 약정기간(MAX) */
+                   , MIN(K1.STPL_PTRM) AS MIN_STPL_PTRM /* 약정기간(MIN) */
+                   , SUM(K1.STPL_PTRM) AS SUM_STPL_PTRM /* 약정기간(SUM) */
+                FROM
+                   (
+                    SELECT J1.OPPT_ID /* 기회ID */
+                         , J1.OPPT_SN /* 기회일련번호 */
+                         , J1.BASE_PD_CD /* 기준상품코드 */
+                         , J1.PD_QTY /* 상품수량 */
+                         , CASE WHEN J1.PD_CLSF_DV = '1'
+                                     THEN J1.PD_QTY
+                                ELSE 0
+                           END AS WRFR_QTY /* 정수기수량 */
+                         , CASE WHEN J1.PD_CLSF_DV = '2'
+                                     THEN J1.PD_QTY
+                                ELSE 0
+                           END AS ARCLE_QTY /* 공기청정기수량 */
+                         , CASE WHEN J1.PD_CLSF_DV = '3'
+                                     THEN J1.PD_QTY
+                                ELSE 0
+                           END AS BDT_QTY /* 비데수량 */
+                         , CASE WHEN J1.PD_CLSF_DV = '4'
+                                     THEN J1.PD_QTY
+                                ELSE 0
+                           END AS ETC_QTY /* 기타수량 */
+                         , J1.STPL_PTRM /* 약정기간 */
+                      FROM
+                         (
+                          SELECT G1.OPPT_ID /* 기회ID */
+                               , G1.OPPT_SN /* 기회일련번호 */
+                               , G1.BASE_PD_CD /* 기준상품코드 */
+                               , G1.PD_QTY /* 상품수량 */
+                               /* 상품분류 대/중/소가 상품에 따라 상이 하므로 상품분류ID(PD_CLSF_ID)로 구분 */
+                               , CASE WHEN H1.PD_CLSF_ID IN ( /* 정수기 - 정수기, 살균수기/필터시스템, 홈카페(기기만) */
+                                                             SELECT I1.PD_CLSF_ID
+                                                               FROM TB_PDBS_PD_CLSF_BAS I1/* 상품분류기본 */
+                                                              WHERE I1.DTA_DL_YN = 'N'
+                                                                AND I1.PD_TP_CD = 'P' /* 상품유형코드 = 'P'(기준상품) */
+                                                                AND REGEXP_LIKE(I1.REF_PD_CLSF_VAL, '^01001|^01002|^01003') /* 정수기(01001), 살균수기(01002) 홈카페(01003)-캡슐제외 */
+                                                                AND I1.REF_PD_CLSF_VAL NOT LIKE '01003002%' /* 홈카페 캡슐제외 */
+                                                            )
+                                           THEN '1'
+                                      WHEN H1.PD_CLSF_ID IN ( /* 공기청정기 */
+                                                             SELECT I2.PD_CLSF_ID
+                                                               FROM TB_PDBS_PD_CLSF_BAS I2/* 상품분류기본 */
+                                                              WHERE I2.DTA_DL_YN = 'N'
+                                                                AND I2.PD_TP_CD = 'P' /* 상품유형코드 = 'P'(기준상품) */
+                                                                AND REGEXP_LIKE(I2.REF_PD_CLSF_VAL, '^02001') /* 공기청정기(02001)*/
+                                                            )
+                                           THEN '2'
+                                      WHEN H1.PD_CLSF_ID IN ( /* 비데 */
+                                                             SELECT I3.PD_CLSF_ID
+                                                               FROM TB_PDBS_PD_CLSF_BAS I3/* 상품분류기본 */
+                                                              WHERE I3.DTA_DL_YN = 'N'
+                                                                AND I3.PD_TP_CD = 'P' /* 상품유형코드 = 'P'(기준상품) */
+                                                                AND REGEXP_LIKE(I3.REF_PD_CLSF_VAL, '^03001') /* 비데(03001)*/
+                                                            )
+                                           THEN '3'
+                                      ELSE '4'
+                                 END PD_CLSF_DV /* 상품분류구분 */
+                               , G1.STPL_PTRM /* 약정기간 */
+                            FROM TB_SSOP_OPPT_DTL G1/* 기회상세 */
+                           INNER JOIN TB_PDBS_PD_BAS H1 /* 상품기본 */
+                              ON H1.PD_CD = G1.BASE_PD_CD /* 상품기본.상품코드 = 기회상세.기준상품코드 */
+                             AND H1.DTA_DL_YN = 'N'
+                             AND H1.TEMP_SAVE_YN = 'N'
+                             AND G1.DTA_DL_YN = 'N'
+                           WHERE G1.OPPT_ID = A1.OPPT_ID /* 기회상세.기회ID = 기회기본.기회ID */
+                         ) J1
+                   ) K1
+               GROUP BY K1.OPPT_ID
+             ) L1
+            ON L1.OPPT_ID = A1.OPPT_ID
+         WHERE A1.DTA_DL_YN = 'N'
+           AND A1.FST_RGST_USR_ID =
+               CASE WHEN (
+                         SELECT MAX(T1.USR_ID)
+                           FROM T_CMP_USR_ACO_M T1
+                          INNER JOIN T_CMY_USR_M T2      --> HR의 재직중인 임직원 대상으로 제한
+                             ON T2.USR_ID = T1.USR_ID
+                            AND T2.IRSD_STT_CD = 'W'        -- 재직중인 사용자만 추출
+                            AND T2.TENANT_ID = 'TNT_WELLS'
+                            AND T2.OG_TP_CD = 'HR1'
+                            AND T1.DEL_YN = 'N'
+                            AND T2.DEL_YN = 'N'
+                          WHERE 1=1
+                            AND T1.RSB_CD IN ('22','175','178','219')
+                            AND T1.USR_ID = #{session.userId}
+                         ) IS NOT NULL THEN  A1.FST_RGST_USR_ID
+                         ELSE #{session.userId}
+                    END
+        <if test='@MybatisUtils@isNotEmpty(srchGbn)'>
+           AND A1.PRJ_FOM_CD = #{srchGbn}
+        </if>
+        <if test='@MybatisUtils@equals(srchDateGbn, "1")'>
+           AND SUBSTR(A1.FST_RGST_DTM, 1, 8) BETWEEN #{strtdt} AND #{enddt}
+        </if>
+        <if test='@MybatisUtils@equals(srchDateGbn, "2")'>
+           AND SUBSTR(A1.ET_BIDD_DT, 1, 8) BETWEEN #{strtdt} AND #{enddt}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(bzrno)'>
+           AND E1.BZRNO = #{bzrno}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(leadCstNm)'>
+           AND E1.LEAD_CST_NM LIKE '%'||#{leadCstNm}||'%'
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(prjNm)'>
+           AND A1.PRJ_NM LIKE '%'||#{prjNm}||'%'
+        </if>
+    </select>
+    <select id="selectKeyMan" resultType="com.kyowon.sms.wells.web.contract.b2b.dvo.WcteB2bBznsActiDvo">
+        SELECT LEAD_CST_RLPPL_NM /* 리드고객관계자명 [업체담당자(KEY-MAN)] */
+             , LOCARA_TNO /* 지역전화번호 [업체연락처1(KEY_MAN)] */
+             , EXNO_ENCR /* 전화국번호암호화 [업체연락처1(KEY_MAN)] */
+             , IDV_TNO /* 개별전화번호 [업체연락처1(KEY_MAN)] */
+             , CRAL_LOCARA_TNO /* 휴대지역전화번호 [업체연락처2(KEY_MAN)] */
+             , MEXNO_ENCR /* 휴대전화국번호암호화 [업체연락처2(KEY_MAN)] */
+             , CRAL_IDV_TNO /* 휴대개별전화번호 [업체연락처2(KEY_MAN)] */
+             , EMADR_CN /* 이메일주소내용 [이메일(KEY-MAN)] */
+          FROM TB_SSOP_LEAD_CST_RLPPL_DTL
+         WHERE 1=1
+           AND DTA_DL_YN = 'N'
+           AND LEAD_CST_ID = (
+               SELECT LEAD_CST_ID
+                 FROM TB_SSOP_LEAD_CST_BAS
+                WHERE BZRNO = #{bzrno}
+                  AND DTA_DL_YN = 'N'
+                  AND LEAD_CST_NM = #{leadCstNm}
+                  AND ROWNUM=1)
+    </select>
+    <insert id="insertSsopLeadCstBas">
+        <selectKey keyProperty="item.leadCstId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(LEAD_CST_ID)),0) +1,15,'0') FROM TB_SSOP_LEAD_CST_BAS
+        </selectKey>
+        INSERT INTO TB_SSOP_LEAD_CST_BAS (  /* 리드고객기본 */
+              LEAD_CST_ID       /* 리드고객ID */
+            , LEAD_CST_NM       /* 리드고객명 */
+            , BZRNO             /* 사업자등록번호 */
+            , CRDR_VAL          /* 신용등급값 */
+            , PRTNR_NO          /* 파트너번호 */
+            , LEAD_CST_STAT_CD  /* 리드고객상태코드 */
+            , DTA_DL_YN         /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{item.leadCstId}
+            , #{item.leadCstNm}
+            , #{item.bzrno}
+            , #{item.crdrVal}
+            , #{item.opptIchrPrtnrNo}
+            , '3' /* 3(법인고객) default */
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+    <update id="updateSsopLeadCstBas">
+        UPDATE TB_SSOP_LEAD_CST_BAS /* 리드고객기본 */
+           SET LEAD_CST_NM       = #{leadCstNm}         /* 리드고객명 */
+             , BZRNO             = #{bzrno}             /* 사업자등록번호 */
+             , CRDR_VAL          = #{crdrVal}           /* 신용등급값 */
+             , PRTNR_NO          = #{opptIchrPrtnrNo}   /* 파트너번호 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND LEAD_CST_ID       = #{leadCstId}         /* 리드고객ID */
+           AND DTA_DL_YN = 'N'
+    </update>
+    <update id="updateSsopLeadCstChHist">
+        UPDATE TB_SSOP_LEAD_CST_CH_HIST /* 리드고객변경이력 */
+           SET HIST_END_DTM      = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')        /* 이력종료일시 */
+         WHERE 1 = 1
+           AND LEAD_CST_ID       = #{leadCstId}         /* 리드고객ID */
+           AND HIST_END_DTM      = '99991231235959'        /* 이력종료일시 */
+           AND DTA_DL_YN = 'N'
+    </update>
+    <insert id="insertSsopLeadCstChHist">
+        INSERT INTO TB_SSOP_LEAD_CST_CH_HIST (  /* 리드고객변경이력 */
+              LEAD_CST_ID       /* 리드고객ID */
+            , HIST_STRT_DTM     /* 이력시작일시 */
+            , HIST_END_DTM      /* 이력종료일시 */
+            , LEAD_CST_NM       /* 리드고객명 */
+            , LEAD_CST_DLGPS_NM /* 리드고객대표자명 */
+            , LEAD_CST_BZCL_NM  /* 리드고객업태명 */
+            , LEAD_CST_ITEM_NM  /* 리드고객종목명 */
+            , BZRNO             /* 사업자등록번호 */
+            , CRP_SPMT_DRM_NM   /* 법인추가식별명 */
+            , CRDR_VAL          /* 신용등급값 */
+            , LEAD_OG_ID        /* 리드조직ID */
+            , PRTNR_DSN_DT      /* 파트너지정일자 */
+            , OG_TP_CD          /* 조직유형코드 */
+            , PRTNR_NO          /* 파트너번호 */
+            , LEAD_CST_STAT_CD  /* 리드고객상태코드 */
+            , PTL_CST_RGST_DT   /* 잠재고객등록일자 */
+            , ACSS_CST_RGST_DT  /* 접근고객등록일자 */
+            , CRP_CST_RGST_DT   /* 법인고객등록일자 */
+            , CRP_CST_NO        /* 법인고객번호 */
+            , DTA_DL_YN         /* 데이터삭제여부 */
+            , FST_RGST_DTM      /* 최초등록일시 */
+            , FST_RGST_USR_ID   /* 최초등록사용자ID */
+            , FST_RGST_PRG_ID   /* 최초등록프로그램ID */
+            , FST_RGST_DEPT_ID  /* 최초등록부서ID */
+            , FNL_MDFC_DTM      /* 최종수정일시 */
+            , FNL_MDFC_USR_ID   /* 최종수정사용자ID */
+            , FNL_MDFC_PRG_ID   /* 최종수정프로그램ID */
+            , FNL_MDFC_DEPT_ID  /* 최종수정부서ID */)
+        SELECT LEAD_CST_ID       /* 리드고객ID */
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')     /* 이력시작일시 */
+             , '99991231235959'      /* 이력종료일시 */
+             , LEAD_CST_NM       /* 리드고객명 */
+             , LEAD_CST_DLGPS_NM /* 리드고객대표자명 */
+             , LEAD_CST_BZCL_NM  /* 리드고객업태명 */
+             , LEAD_CST_ITEM_NM  /* 리드고객종목명 */
+             , BZRNO             /* 사업자등록번호 */
+             , CRP_SPMT_DRM_NM   /* 법인추가식별명 */
+             , CRDR_VAL          /* 신용등급값 */
+             , LEAD_OG_ID        /* 리드조직ID */
+             , PRTNR_DSN_DT      /* 파트너지정일자 */
+             , OG_TP_CD          /* 조직유형코드 */
+             , PRTNR_NO          /* 파트너번호 */
+             , LEAD_CST_STAT_CD  /* 리드고객상태코드 */
+             , PTL_CST_RGST_DT   /* 잠재고객등록일자 */
+             , ACSS_CST_RGST_DT  /* 접근고객등록일자 */
+             , CRP_CST_RGST_DT   /* 법인고객등록일자 */
+             , CRP_CST_NO        /* 법인고객번호 */
+             , DTA_DL_YN         /* 데이터삭제여부 */
+             , FST_RGST_DTM      /* 최초등록일시 */
+             , FST_RGST_USR_ID   /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID   /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID  /* 최초등록부서ID */
+             , FNL_MDFC_DTM      /* 최종수정일시 */
+             , FNL_MDFC_USR_ID   /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID   /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID  /* 최종수정부서ID */
+          FROM TB_SSOP_LEAD_CST_BAS /* 리드고객기본 */
+         WHERE 1 = 1
+           AND LEAD_CST_ID       = #{leadCstId}         /* 리드고객ID */
+    </insert>
+    <update id="deleteSsopLeadCstBas">
+        UPDATE TB_SSOP_LEAD_CST_BAS /* 리드고객기본 */
+           SET DTA_DL_YN       = 'Y'         /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND LEAD_CST_ID       = #{leadCstId}         /* 리드고객ID */
+           AND DTA_DL_YN = 'N'
+    </update>
+    <insert id="insertSsopLeadCstRlpplDtl">
+        <selectKey keyProperty="item.leadCstRlpplId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(LEAD_CST_RLPPL_ID)),0) +1,15,'0') FROM TB_SSOP_LEAD_CST_RLPPL_DTL
+        </selectKey>
+        INSERT INTO TB_SSOP_LEAD_CST_RLPPL_DTL (  /* 리드고객관계자상세 */
+              LEAD_CST_RLPPL_ID       /* 리드고객관계자ID */
+            , LEAD_CST_ID             /* 리드고객ID */
+            , LEAD_RLPPL_DV_CD        /* 리드관계자구분코드 */
+            , LEAD_CST_RLPPL_NM       /* 리드고객관계자명 */
+            , LOCARA_TNO              /* 지역전화번호 */
+            , EXNO_ENCR               /* 전화국번호암호화 */
+            , IDV_TNO                 /* 개별전화번호 */
+            , CRAL_LOCARA_TNO         /* 휴대지역전화번호 */
+            , MEXNO_ENCR              /* 휴대전화국번호암호화 */
+            , CRAL_IDV_TNO            /* 휴대개별전화번호 */
+            , EMADR_CN                /* 이메일주소내용 */
+            , DTA_DL_YN               /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{item.leadCstRlpplId}
+            , #{item.leadCstId}
+            , '02'                  /* (리드관계자구분코드)-02(키맨) default */
+            , #{item.leadCstRlpplNm}
+            , #{item.locaraTno}
+            , #{item.exnoEncr}
+            , #{item.idvTno}
+            , #{item.cralLocaraTno}
+            , #{item.mexnoEncr}
+            , #{item.cralIdvTno}
+            , #{item.emadrCn}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+    <update id="updateSsopLeadCstRlpplDtl">
+        UPDATE TB_SSOP_LEAD_CST_RLPPL_DTL /* 리드고객관계자상세 */
+           SET LEAD_CST_ID             = #{leadCstId}              /* 리드고객ID */
+             , LEAD_CST_RLPPL_NM       = #{leadCstRlpplNm}         /* 리드고객관계자명 */
+             , LOCARA_TNO              = #{locaraTno}              /* 지역전화번호 */
+             , EXNO_ENCR               = #{exnoEncr}               /* 전화국번호암호화 */
+             , IDV_TNO                 = #{idvTno}                 /* 개별전화번호 */
+             , CRAL_LOCARA_TNO         = #{cralLocaraTno}          /* 휴대지역전화번호 */
+             , MEXNO_ENCR              = #{mexnoEncr}              /* 휴대전화국번호암호화 */
+             , CRAL_IDV_TNO            = #{cralIdvTno}             /* 휴대개별전화번호 */
+             , EMADR_CN                = #{emadrCn}                /* 이메일주소내용 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND LEAD_CST_RLPPL_ID       = #{leadCstRlpplId}         /* 리드고객관계자ID */
+           AND DTA_DL_YN = 'N'
+    </update>
+    <update id="updateSsopLeadCstRlpplChHist">
+        UPDATE TB_SSOP_LEAD_CST_RLPPL_CH_HIST /* 리드고객관계자변경이력 */
+           SET HIST_END_DTM            = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')            /* 이력종료일시 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND LEAD_CST_RLPPL_ID       = #{leadCstRlpplId}         /* 리드고객관계자ID */
+           AND HIST_END_DTM           = '99991231235959'           /* 이력종료일시 */
+    </update>
+    <insert id="insertSsopLeadCstRlpplChHist">
+        INSERT INTO TB_SSOP_LEAD_CST_RLPPL_CH_HIST (  /* 리드고객관계자변경이력 */
+              LEAD_CST_RLPPL_ID       /* 리드고객관계자ID */
+            , HIST_STRT_DTM           /* 이력시작일시 */
+            , HIST_END_DTM            /* 이력종료일시 */
+            , LEAD_CST_ID             /* 리드고객ID */
+            , LEAD_RLPPL_DV_CD        /* 리드관계자구분코드 */
+            , LEAD_CST_RLPPL_NM       /* 리드고객관계자명 */
+            , LEAD_CST_RLPPL_DEPT_NM  /* 리드고객관계자부서명 */
+            , LOCARA_TNO              /* 지역전화번호 */
+            , EXNO_ENCR               /* 전화국번호암호화 */
+            , IDV_TNO                 /* 개별전화번호 */
+            , CRAL_LOCARA_TNO         /* 휴대지역전화번호 */
+            , MEXNO_ENCR              /* 휴대전화국번호암호화 */
+            , CRAL_IDV_TNO            /* 휴대개별전화번호 */
+            , ADR_ID                  /* 주소ID */
+            , EMADR_CN                /* 이메일주소내용 */
+            , LEAD_CTPLC_MO_CN        /* 리드연락처메모내용 */
+            , MVS_DSTC_RCVRY_BASE_DTM /* 소산파기복구기준일시 */
+            , MVS_DSTC_RCVRY_DV_CD    /* 소산파기복구구분코드 */
+            , MVS_DSTC_RCVRY_DTM      /* 소산파기복구일시 */
+            , DTA_DL_YN               /* 데이터삭제여부 */
+            , FST_RGST_DTM            /* 최초등록일시 */
+            , FST_RGST_USR_ID         /* 최초등록사용자ID */
+            , FST_RGST_PRG_ID         /* 최초등록프로그램ID */
+            , FST_RGST_DEPT_ID        /* 최초등록부서ID */
+            , FNL_MDFC_DTM            /* 최종수정일시 */
+            , FNL_MDFC_USR_ID         /* 최종수정사용자ID */
+            , FNL_MDFC_PRG_ID         /* 최종수정프로그램ID */
+            , FNL_MDFC_DEPT_ID        /* 최종수정부서ID */)
+        SELECT LEAD_CST_RLPPL_ID       /* 리드고객관계자ID */
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')     /* 이력시작일시 */
+             , '99991231235959'      /* 이력종료일시 */
+             , LEAD_CST_ID             /* 리드고객ID */
+             , LEAD_RLPPL_DV_CD        /* 리드관계자구분코드 */
+             , LEAD_CST_RLPPL_NM       /* 리드고객관계자명 */
+             , LEAD_CST_RLPPL_DEPT_NM  /* 리드고객관계자부서명 */
+             , LOCARA_TNO              /* 지역전화번호 */
+             , EXNO_ENCR               /* 전화국번호암호화 */
+             , IDV_TNO                 /* 개별전화번호 */
+             , CRAL_LOCARA_TNO         /* 휴대지역전화번호 */
+             , MEXNO_ENCR              /* 휴대전화국번호암호화 */
+             , CRAL_IDV_TNO            /* 휴대개별전화번호 */
+             , ADR_ID                  /* 주소ID */
+             , EMADR_CN                /* 이메일주소내용 */
+             , LEAD_CTPLC_MO_CN        /* 리드연락처메모내용 */
+             , MVS_DSTC_RCVRY_BASE_DTM /* 소산파기복구기준일시 */
+             , MVS_DSTC_RCVRY_DV_CD    /* 소산파기복구구분코드 */
+             , MVS_DSTC_RCVRY_DTM      /* 소산파기복구일시 */
+             , DTA_DL_YN               /* 데이터삭제여부 */
+             , FST_RGST_DTM            /* 최초등록일시 */
+             , FST_RGST_USR_ID         /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID         /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID        /* 최초등록부서ID */
+             , FNL_MDFC_DTM            /* 최종수정일시 */
+             , FNL_MDFC_USR_ID         /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID         /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID        /* 최종수정부서ID */
+          FROM TB_SSOP_LEAD_CST_RLPPL_DTL /* 리드고객관계자상세 */
+         WHERE 1 = 1
+           AND LEAD_CST_RLPPL_ID       = #{leadCstRlpplId}         /* 리드고객관계자ID */
+    </insert>
+    <update id="deleteSsopLeadCstRlpplDtl">
+        UPDATE TB_SSOP_LEAD_CST_RLPPL_DTL /* 리드고객관계자상세 */
+           SET DTA_DL_YN             =  'Y'                       /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND LEAD_CST_RLPPL_ID       = #{leadCstRlpplId}         /* 리드고객관계자ID */
+           AND DTA_DL_YN = 'N'
+    </update>
+    <insert id="insertSsopOpptBas">
+        <selectKey keyProperty="item.opptId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(OPPT_ID)),0) +1,15,'0') FROM TB_SSOP_OPPT_BAS
+        </selectKey>
+        INSERT INTO TB_SSOP_OPPT_BAS (  /* 기회기본 */
+              OPPT_ID            /* 기회ID */
+            , PRJ_NM             /* 프로젝트명 */
+            , LEAD_CST_ID        /* 리드고객ID */
+            , ET_CNTR_STRTDT     /* 예상계약시작일자 */
+            , ET_RCVOD_QTY       /* 예상수주수량 */
+            , ET_RCVOD_RAT       /* 예상수주비율 */
+            , ET_BIDD_DT         /* 예상입찰일자 */
+            , PRJ_FOM_CD         /* 프로젝트형태코드 */
+            , OPPT_CNTR_FOM_CD   /* 기회계약형태코드 */
+            , OG_TP_CD           /* 조직유형코드  */
+            , OPPT_ICHR_PRTNR_NO /* 기회담당파트너번호 */
+            , BIDD_BZS_NM        /* 입찰업체명 */
+            , RCVOD_DT           /* 수주일자 */
+            , LOSS_DT            /* 실주일자 */
+            , UNUITM_CN          /* 특이사항내용 */
+            , DTA_DL_YN          /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{item.opptId}
+            , #{item.prjNm}
+            , #{item.leadCstId}
+            , #{item.etCntrStrtdt}
+            , #{item.etRcvodQty}
+            , #{item.etRcvodRat}
+            , #{item.etBiddDt}
+            , #{item.prjFomCd}
+            , #{item.opptCntrFomCd}
+            , #{item.ogTpCd}
+            , #{item.opptIchrPrtnrNo}
+            , #{item.biddBzsNm}
+            , #{item.rcvodDt}
+            , #{item.lossDt}
+            , #{item.unuitmCn}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+    <update id="updateSsopOpptBas">
+        UPDATE TB_SSOP_OPPT_BAS /* 기회기본 */
+           SET PRJ_NM             = #{prjNm}              /* 프로젝트명 */
+             , LEAD_CST_ID        = #{leadCstId}          /* 리드고객ID */
+             , ET_CNTR_STRTDT     = #{etCntrStrtdt}       /* 예상계약시작일자 */
+             , ET_RCVOD_QTY       = #{etRcvodQty}         /* 예상수주수량 */
+             , ET_RCVOD_RAT       = #{etRcvodRat}         /* 예상수주비율 */
+             , ET_BIDD_DT         = #{etBiddDt}           /* 예상입찰일자 */
+             , PRJ_FOM_CD         = #{prjFomCd}           /* 프로젝트형태코드 */
+             , OPPT_CNTR_FOM_CD   = #{opptCntrFomCd}      /* 기회계약형태코드 */
+             , OG_TP_CD           = #{ogTpCd}             /* 조직유형코드  */
+             , OPPT_ICHR_PRTNR_NO = #{opptIchrPrtnrNo}    /* 기회담당파트너번호 */
+             , BIDD_BZS_NM        = #{biddBzsNm}          /* 입찰업체명 */
+             , RCVOD_DT           = #{rcvodDt}            /* 수주일자 */
+             , LOSS_DT            = #{lossDt}             /* 실주일자 */
+             , UNUITM_CN          = #{unuitmCn}           /* 특이사항내용 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND OPPT_ID            = #{opptId}             /* 기회ID */
+           AND DTA_DL_YN = 'N'
+    </update>
+    <update id="updateSsopOpptChHist">
+        UPDATE TB_SSOP_OPPT_CH_HIST /* 기회변경이력 */
+           SET HIST_END_DTM       = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')         /* 이력종료일시 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND OPPT_ID            = #{opptId}             /* 기회ID */
+           AND HIST_END_DTM      = '99991231235959'        /* 이력종료일시 */
+    </update>
+    <insert id="insertSsopOpptChHist">
+    INSERT INTO TB_SSOP_OPPT_CH_HIST (  /* 기회변경이력 */
+              OPPT_ID            /* 기회ID */
+            , HIST_STRT_DTM      /* 이력시작일시 */
+            , HIST_END_DTM       /* 이력종료일시 */
+            , PRJ_NM             /* 프로젝트명 */
+            , CRP_CST_DRM_TP_CD  /* 법인고객식별유형코드 */
+            , LEAD_CST_ID        /* 리드고객ID */
+            , CRP_CST_NO         /* 법인고객번호 */
+            , CRP_SPMT_DRM_NM    /* 법인추가식별명 */
+            , ET_CNTR_STRTDT     /* 예상계약시작일자 */
+            , ET_CNTR_ENDDT      /* 예상계약종료일자 */
+            , ET_RCVOD_QTY       /* 예상수주수량 */
+            , ET_RCVOD_RAT       /* 예상수주비율 */
+            , ET_BIDD_DT         /* 예상입찰일자 */
+            , ET_SL_AMT          /* 예상매출금액 */
+            , PRJ_FOM_CD         /* 프로젝트형태코드 */
+            , OPPT_CNTR_FOM_CD   /* 기회계약형태코드 */
+            , OPPT_RS_TP_CD      /* 기회결과유형코드 */
+            , OG_TP_CD           /* 조직유형코드 */
+            , OPPT_ICHR_PRTNR_NO /* 기회담당파트너번호 */
+            , PRPS_RQDT          /* 제안요청일자 */
+            , PRPS_RCP_CL_DT     /* 제안접수마감일자 */
+            , PRPS_ANCT_DT       /* 제안발표일자 */
+            , BZS_SLCTN_DT       /* 업체선정일자 */
+            , CMPTP_CN           /* 경쟁력내용 */
+            , CPTCO_NM           /* 경쟁사명 */
+            , BIDD_BZS_NM        /* 입찰업체명 */
+            , RCVOD_DT           /* 수주일자 */
+            , LOSS_DT            /* 실주일자 */
+            , PROT_NEGO_DT       /* 우선협상일자 */
+            , CNTR_TF_DT         /* 계약이관일자 */
+            , CNTR_NO            /* 계약번호 */
+            , UNUITM_CN          /* 특이사항내용 */
+            , DTA_DL_YN          /* 데이터삭제여부 */
+            , FST_RGST_DTM       /* 최초등록일시 */
+            , FST_RGST_USR_ID    /* 최초등록사용자ID */
+            , FST_RGST_PRG_ID    /* 최초등록프로그램ID */
+            , FST_RGST_DEPT_ID   /* 최초등록부서ID */
+            , FNL_MDFC_DTM       /* 최종수정일시 */
+            , FNL_MDFC_USR_ID    /* 최종수정사용자ID */
+            , FNL_MDFC_PRG_ID    /* 최종수정프로그램ID */
+            , FNL_MDFC_DEPT_ID   /* 최종수정부서ID */)
+        SELECT OPPT_ID            /* 기회ID */
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')     /* 이력시작일시 */
+             , '99991231235959'      /* 이력종료일시 */
+             , PRJ_NM             /* 프로젝트명 */
+             , CRP_CST_DRM_TP_CD  /* 법인고객식별유형코드 */
+             , LEAD_CST_ID        /* 리드고객ID */
+             , CRP_CST_NO         /* 법인고객번호 */
+             , CRP_SPMT_DRM_NM    /* 법인추가식별명 */
+             , ET_CNTR_STRTDT     /* 예상계약시작일자 */
+             , ET_CNTR_ENDDT      /* 예상계약종료일자 */
+             , ET_RCVOD_QTY       /* 예상수주수량 */
+             , ET_RCVOD_RAT       /* 예상수주비율 */
+             , ET_BIDD_DT         /* 예상입찰일자 */
+             , ET_SL_AMT          /* 예상매출금액 */
+             , PRJ_FOM_CD         /* 프로젝트형태코드 */
+             , OPPT_CNTR_FOM_CD   /* 기회계약형태코드 */
+             , OPPT_RS_TP_CD      /* 기회결과유형코드 */
+             , OG_TP_CD           /* 조직유형코드 */
+             , OPPT_ICHR_PRTNR_NO /* 기회담당파트너번호 */
+             , PRPS_RQDT          /* 제안요청일자 */
+             , PRPS_RCP_CL_DT     /* 제안접수마감일자 */
+             , PRPS_ANCT_DT       /* 제안발표일자 */
+             , BZS_SLCTN_DT       /* 업체선정일자 */
+             , CMPTP_CN           /* 경쟁력내용 */
+             , CPTCO_NM           /* 경쟁사명 */
+             , BIDD_BZS_NM        /* 입찰업체명 */
+             , RCVOD_DT           /* 수주일자 */
+             , LOSS_DT            /* 실주일자 */
+             , PROT_NEGO_DT       /* 우선협상일자 */
+             , CNTR_TF_DT         /* 계약이관일자 */
+             , CNTR_NO            /* 계약번호 */
+             , UNUITM_CN          /* 특이사항내용 */
+             , DTA_DL_YN          /* 데이터삭제여부 */
+             , FST_RGST_DTM       /* 최초등록일시 */
+             , FST_RGST_USR_ID    /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID    /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID   /* 최초등록부서ID */
+             , FNL_MDFC_DTM       /* 최종수정일시 */
+             , FNL_MDFC_USR_ID    /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID    /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID   /* 최종수정부서ID */
+          FROM TB_SSOP_OPPT_BAS /* 기회기본 */
+         WHERE 1 = 1
+           AND OPPT_ID            = #{opptId}             /* 기회ID */
+    </insert>
+    <update id="deleteSsopOpptBas">
+        UPDATE TB_SSOP_OPPT_BAS /* 기회기본 */
+           SET DTA_DL_YN             = 'Y'              /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND OPPT_ID            = #{opptId}             /* 기회ID */
+           AND DTA_DL_YN = 'N'
+    </update>
+    <select id="selectB2bBoMngtDtlIzs" resultType="com.kyowon.sms.wells.web.contract.b2b.dto.WcteB2bBznsActiDto$SearchDetailRes">
+        SELECT G2.OPPT_ID /* 기회ID [고유번호] */
+             , G2.OPPT_SN /* 기회일련번호 */
+             , (SELECT MAX(I4.PD_CLSF_NM) /* 상품분류명 */
+                  FROM TB_PDBS_PD_CLSF_BAS I4/* 상품분류기본 */
+                 WHERE I4.PD_CLSF_ID = H2.PD_MCLSF_ID /* 상품분류기본.상품분류ID = 상품기본.상품중분류ID */
+                   AND I4.DTA_DL_YN = 'N'
+                   AND I4.TEMP_SAVE_YN = 'N'
+               ) AS PD_CLSF_NM /* 상품분류명 [상품분류] */
+             , H2.PD_NM /* 상품명 [상품명] */
+             , G2.BASE_PD_CD /* 기준상품코드 [상품코드] */
+             , G2.PD_QTY /* 상품수량 [수량] */
+             , G2.FNL_AMT /* 최종금액 [입찰가격] */
+             , G2.UNUITM_CN /* [특이사항] */
+          FROM TB_SSOP_OPPT_DTL G2 /* 기회상세 */
+         INNER JOIN TB_PDBS_PD_BAS H2 /* 상품기본 */
+            ON H2.PD_CD = G2.BASE_PD_CD /* 상품기본.상품코드 = 기회상세.기준상품코드 */
+           AND H2.DTA_DL_YN = 'N'
+           AND H2.TEMP_SAVE_YN = 'N' /* 임시저장여부 = 'N' */
+           AND G2.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND OPPT_ID = #{opptId}
+    </select>
+    <insert id="insertSsopOpptDtl">
+        <selectKey keyProperty="item.opptSn" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(OPPT_SN)),0) +1,15,'0') FROM TB_SSOP_OPPT_DTL WHERE OPPT_ID = #{item.opptId}
+        </selectKey>
+        INSERT INTO TB_SSOP_OPPT_DTL (  /* 기회상세 */
+              OPPT_ID           /* 기회ID */
+            , OPPT_SN           /* 기회일련번호 */
+            , BASE_PD_CD        /* 기준상품코드 */
+            , PD_QTY            /* 상품수량 */
+            , FNL_AMT           /* 최종금액 */
+            , UNUITM_CN         /* 특이사항내용 */
+            , DTA_DL_YN         /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{item.opptId}
+            , #{item.opptSn}
+            , #{item.basePdCd}
+            , #{item.pdQty}
+            , #{item.fnlAmt}
+            , #{item.unuitmCn}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+    <update id="updateSsopOpptDtl">
+        UPDATE TB_SSOP_OPPT_DTL /* 기회상세 */
+           SET BASE_PD_CD        = #{basePdCd}          /* 기준상품코드 */
+             , PD_QTY            = #{pdQty}             /* 상품수량 */
+             , FNL_AMT           = #{fnlAmt}            /* 최종금액 */
+             , UNUITM_CN         = #{unuitmCn}          /* 특이사항내용 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND OPPT_ID           = #{opptId}            /* 기회ID */
+           AND OPPT_SN           = #{opptSn}            /* 기회일련번호 */
+           AND DTA_DL_YN = 'N'
+    </update>
+    <update id="updateSsopOpptDchHist">
+        UPDATE TB_SSOP_OPPT_DCH_HIST /* 기회상세변경이력 */
+           SET HIST_END_DTM       = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')         /* 이력종료일시 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND OPPT_ID            = #{opptId}             /* 기회ID */
+           AND OPPT_SN            = #{opptSn}             /* 기회일련번호 */
+           AND HIST_END_DTM      = '99991231235959'        /* 이력종료일시 */
+    </update>
+    <insert id="insertSsopOpptDchHist">
+        INSERT INTO TB_SSOP_OPPT_DCH_HIST (  /* 기회상세변경이력 */
+              OPPT_ID           /* 기회ID */
+            , HIST_STRT_DTM     /* 이력시작일시 */
+            , OPPT_SN           /* 기회일련번호 */
+            , HIST_END_DTM      /* 이력종료일시 */
+            , BASE_PD_CD        /* 기준상품코드 */
+            , HGR_PD_CD         /* 상위상품코드 */
+            , PD_QTY            /* 상품수량 */
+            , STPL_PTRM_UNIT_CD /* 약정기간단위코드 */
+            , STPL_PTRM         /* 약정기간 */
+            , ISTM_MCN          /* 할부개월수 */
+            , CNTR_PD_STRTDT    /* 계약상품시작일자 */
+            , CNTR_PD_ENDDT     /* 계약상품종료일자 */
+            , SELL_DSC_DV_CD    /* 판매할인구분코드 */
+            , SELL_DSCR_CD      /* 판매할인율코드 */
+            , SELL_DSC_CTR_AMT  /* 판매할인조정금액 */
+            , SELL_DSC_TP_CD    /* 판매할인유형코드 */
+            , SV_PTRM_UNIT_CD   /* 서비스기간단위코드 */
+            , SV_PRD            /* 서비스주기 */
+            , BLG_CRP_CD        /* 소속법인코드 */
+            , RVE_CRP_CD        /* 수납법인코드 */
+            , PD_GD_CD          /* 상품등급코드 */
+            , PD_HCLSF_ID       /* 상품대분류ID */
+            , PD_MCLSF_ID       /* 상품중분류ID */
+            , PD_LCLSF_ID       /* 상품소분류ID */
+            , PD_DCLSF_ID       /* 상품세분류ID */
+            , STLM_TP_CD        /* 결제유형코드 */
+            , CRNCY_DV_CD       /* 통화구분코드 */
+            , APY_EXCR          /* 적용환율 */
+            , FNL_AMT           /* 최종금액 */
+            , SELL_AMT          /* 판매금액 */
+            , VAT               /* 부가가치세 */
+            , DSC_AMT           /* 할인금액 */
+            , UNUITM_CN         /* 특이사항내용 */
+            , DTA_DL_YN         /* 데이터삭제여부 */
+            , FST_RGST_DTM      /* 최초등록일시 */
+            , FST_RGST_USR_ID   /* 최초등록사용자ID */
+            , FST_RGST_PRG_ID   /* 최초등록프로그램ID */
+            , FST_RGST_DEPT_ID  /* 최초등록부서ID */
+            , FNL_MDFC_DTM      /* 최종수정일시 */
+            , FNL_MDFC_USR_ID   /* 최종수정사용자ID */
+            , FNL_MDFC_PRG_ID   /* 최종수정프로그램ID */
+            , FNL_MDFC_DEPT_ID  /* 최종수정부서ID */)
+        SELECT OPPT_ID           /* 기회ID */
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')     /* 이력시작일시 */
+             , OPPT_SN           /* 기회일련번호 */
+             , '99991231235959'      /* 이력종료일시 */
+             , BASE_PD_CD        /* 기준상품코드 */
+             , HGR_PD_CD         /* 상위상품코드 */
+             , PD_QTY            /* 상품수량 */
+             , STPL_PTRM_UNIT_CD /* 약정기간단위코드 */
+             , STPL_PTRM         /* 약정기간 */
+             , ISTM_MCN          /* 할부개월수 */
+             , CNTR_PD_STRTDT    /* 계약상품시작일자 */
+             , CNTR_PD_ENDDT     /* 계약상품종료일자 */
+             , SELL_DSC_DV_CD    /* 판매할인구분코드 */
+             , SELL_DSCR_CD      /* 판매할인율코드 */
+             , SELL_DSC_CTR_AMT  /* 판매할인조정금액 */
+             , SELL_DSC_TP_CD    /* 판매할인유형코드 */
+             , SV_PTRM_UNIT_CD   /* 서비스기간단위코드 */
+             , SV_PRD            /* 서비스주기 */
+             , BLG_CRP_CD        /* 소속법인코드 */
+             , RVE_CRP_CD        /* 수납법인코드 */
+             , PD_GD_CD          /* 상품등급코드 */
+             , PD_HCLSF_ID       /* 상품대분류ID */
+             , PD_MCLSF_ID       /* 상품중분류ID */
+             , PD_LCLSF_ID       /* 상품소분류ID */
+             , PD_DCLSF_ID       /* 상품세분류ID */
+             , STLM_TP_CD        /* 결제유형코드 */
+             , CRNCY_DV_CD       /* 통화구분코드 */
+             , APY_EXCR          /* 적용환율 */
+             , FNL_AMT           /* 최종금액 */
+             , SELL_AMT          /* 판매금액 */
+             , VAT               /* 부가가치세 */
+             , DSC_AMT           /* 할인금액 */
+             , UNUITM_CN         /* 특이사항내용 */
+             , DTA_DL_YN         /* 데이터삭제여부 */
+             , FST_RGST_DTM      /* 최초등록일시 */
+             , FST_RGST_USR_ID   /* 최초등록사용자ID */
+             , FST_RGST_PRG_ID   /* 최초등록프로그램ID */
+             , FST_RGST_DEPT_ID  /* 최초등록부서ID */
+             , FNL_MDFC_DTM      /* 최종수정일시 */
+             , FNL_MDFC_USR_ID   /* 최종수정사용자ID */
+             , FNL_MDFC_PRG_ID   /* 최종수정프로그램ID */
+             , FNL_MDFC_DEPT_ID  /* 최종수정부서ID */
+          FROM TB_SSOP_OPPT_DTL /* 기회상세 */
+         WHERE 1 = 1
+           AND OPPT_ID           = #{opptId}            /* 기회ID */
+           AND OPPT_SN           = #{opptSn}            /* 기회일련번호 */
+    </insert>
+    <update id="deleteSsopOpptDtl">
+        UPDATE TB_SSOP_OPPT_DTL /* 기회상세 */
+           SET DTA_DL_YN             = 'Y'              /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND OPPT_ID            = #{opptId}             /* 기회ID */
+           AND OPPT_SN            = #{opptSn}             /* 기회일련번호 */
+           AND DTA_DL_YN = 'N'
+    </update>
+</mapper>
