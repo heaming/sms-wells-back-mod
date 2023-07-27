@@ -51,6 +51,7 @@ public class WctaContractService {
     public List<String> sendContractEmail(List<SaveSendEmailsReq> dtos) throws Exception {
         String templateId = "TMP_CTA_WELLS_ELCN_GUD";
         String pdfUrl = ""; // TODO 계약서 pdf 생성 로직 추가
+        String rstlYn = ""; // 재약정여부
         List<String> emailUids = Lists.newArrayList();
 
         for (SaveSendEmailsReq dto : dtos) {
@@ -69,6 +70,12 @@ public class WctaContractService {
             );
             String now = DateUtil.todayNnow();
             UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+            // 재약정 여부 체크
+            if ("Y".equals(dto.rstlYn())) {
+                rstlYn = "RSTL";
+            } else if ("N".equals(dto.rstlYn())) {
+                rstlYn = "";
+            }
             historyService.createContractNotifyFowrdindHistory(
                 WctzContractNotifyFowrdindHistDvo.builder()
                     .notyFwTpCd("10") // 알림발송유형코드
@@ -81,7 +88,9 @@ public class WctaContractService {
                     .cntrSn(dto.cntrSn()) // 계약일련번호
                     .fwLkIdkVal(emailUid) // 발송연계식별키값
                     .fwOjRefkVal1(templateId) // 발송대상참조키값1
+                    .fwOjRefkVal2(rstlYn) // 발송대상참조키값2(재약정여부)
                     .rcvrNm(dto.cntrNm()) // 수신자명
+                    .rcvrEmadr(dto.emadr()) // 수신자이메일주소
                     .notyFwRsCd("10") // 알림발송결과코드
                     .dtaDlYn("N") // 삭제여부
                     .build(),
