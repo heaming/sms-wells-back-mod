@@ -58,7 +58,26 @@ public class WctaContractRegStep4Service {
         // 법인이고, 계약자의 주소ID와 설치지 주소ID가 다른 경우가 존재한다면 첨부파일 노출
         String cntrtAdrId = cntrtInfo.getAdrId();
         List<WctaContractAdrRelDvo> adrRels = Lists.newArrayList();
-        dtls.stream().forEach((dtl) -> adrRels.add(dtl.getAdrRel()));
+        dtls.stream().forEach((dtl) -> {
+            adrRels.add(dtl.getAdrRel());
+            if (dtl.getSellTpCd().equals(CtContractConst.SELL_TP_CD_SPAY)) {
+                List<WctaContractStlmRelDvo> stlmRels = regService.selectContractStlmRels(cntrNo, dtl.getCntrSn());
+                dtl.setCntrAmtCrd(
+                    stlmRels.stream()
+                        .filter(
+                            (stlmRel) -> stlmRel.getRveDvCd().equals("01") && stlmRel.getDpTpCd().equals("0201")
+                        ).findFirst()
+                        .orElse(new WctaContractStlmRelDvo()).getStlmAmt()
+                );
+                dtl.setCntrAmtVac(
+                    stlmRels.stream()
+                        .filter(
+                            (stlmRel) -> stlmRel.getRveDvCd().equals("01") && stlmRel.getDpTpCd().equals("0101")
+                        ).findFirst()
+                        .orElse(new WctaContractStlmRelDvo()).getStlmAmt()
+                );
+            }
+        });
         step4Dvo.setIsUseAttach(
             adrRels.stream()
                 .anyMatch(
