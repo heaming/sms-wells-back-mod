@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaBlackContractMapper">
+    <select id="isBlacklist" resultType="String">
+        SELECT CASE WHEN SUM(CNT) > 0 THEN 'Y' ELSE 'N' END AS IS_BLACKLIST
+          FROM (
+        SELECT COUNT(1) AS CNT
+          FROM TB_CUBS_CST_BAS T1
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON T2.CNTR_CST_NO = T1.CST_NO
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_DTL T3
+            ON T3.CNTR_NO = T2.CNTR_NO
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_SELL_LM_OJ_IZ T4
+            ON T4.SELL_LM_CNTR_NO = T3.CNTR_NO
+           AND T4.SELL_LM_CNTR_SN = T3.CNTR_SN
+           AND T4.DTA_DL_YN = 'N'
+           AND T4.SELL_LM_RLS_DT IS NULL
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.CRAL_LOCARA_TNO = #{cralLocaraTno}
+           AND T1.MEXNO_ENCR = #{mexnoEncr}
+           AND T1.CRAL_IDV_TNO = #{cralidvtno}
+         UNION ALL
+        SELECT COUNT(1) AS CNT
+          FROM TB_SSCT_CNTR_ADRPC_BAS T1
+         INNER JOIN TB_SSCT_CNTR_ADR_REL T2
+            ON T2.CNTR_ADRPC_ID = T1.CNTR_ADRPC_ID
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_SELL_LM_OJ_IZ T3
+            ON T3.SELL_LM_CNTR_NO = T2.DTL_CNTR_NO
+           AND T3.SELL_LM_CNTR_SN = T2.DTL_CNTR_SN
+           AND T3.DTA_DL_YN = 'N'
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.CRAL_LOCARA_TNO = #{cralLocaraTno}
+           AND T1.MEXNO_ENCR = #{mexnoEncr}
+           AND T1.CRAL_IDV_TNO = #{cralidvtno}
+               )
+    </select>
+</mapper>

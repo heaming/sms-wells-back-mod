@@ -1,0 +1,1996 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaReceiptBulkUploadMapper">
+    <select id="isExistProduct" resultType="java.lang.Boolean">
+        SELECT COUNT(1)
+          FROM TB_PDBS_PD_BAS T_PD_BAS
+        WHERE T_PD_BAS.DTA_DL_YN = 'N'
+          AND T_PD_BAS.PD_TP_CD = 'P' /* 기준상품 */
+          AND T_PD_BAS.SELL_YN = 'Y'
+          AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T_PD_BAS.SELL_STRTDT AND T_PD_BAS.SELL_ENDDT
+          AND T_PD_BAS.PD_CD = #{pdCd}
+    </select>
+
+    <select id="isExistServiceProduct" resultType="java.lang.Boolean">
+        SELECT COUNT(1)
+          FROM TB_PDBS_PD_BAS T_PD_BAS
+         WHERE T_PD_BAS.DTA_DL_YN = 'N'
+           AND T_PD_BAS.PD_TP_CD = 'S' /* 서비스 */
+           AND T_PD_BAS.PD_CD = #{pdCd}
+    </select>
+
+    <select id="selectPdBasByPk"
+            resultType="com.kyowon.sms.wells.web.contract.common.dvo.WctzPdBasDvo">
+        SELECT PD_CD /*상품코드*/
+             , PD_TP_CD /*상품유형코드*/
+             , PD_TP_DTL_CD /*상품유형상세코드*/
+             , BZ_HDQ_DV_CD /*사업본부구분코드*/
+             , PD_CLSF_ID /*상품분류ID*/
+             , PD_HCLSF_ID /*상품대분류ID*/
+             , PD_MCLSF_ID /*상품중분류ID*/
+             , PD_LCLSF_ID /*상품소분류ID*/
+             , PD_DCLSF_ID /*상품세분류ID*/
+             , PD_NM /*상품명*/
+             , PD_ABBR_NM /*상품약어명*/
+             , CST_BASE_PD_ABBR_NM /*고객기준상품약어명*/
+             , PD_MNUL_ID /*상품설명서ID*/
+             , PD_EPL_CN /*상품설명내용*/
+             , PD_PRV_ID /*상품약관ID*/
+             , PMOT_PD_YN /*프로모션상품여부*/
+             , ALNC_PD_YN /*제휴상품여부*/
+             , SELL_YN /*판매여부*/
+             , SELL_STRTDT /*판매시작일자*/
+             , SELL_ENDDT /*판매종료일자*/
+             , SV_STRTDT /*서비스시작일자*/
+             , SV_ENDDT /*서비스종료일자*/
+             , OSTR_CNR_CD /*출고센터코드*/
+             , RVPY_STRTDT /*수불시작일자*/
+             , RVPY_ENDDT /*수불종료일자*/
+             , MNDT_SV_YN /*필수서비스여부*/
+             , SAP_MAT_GRP_VAL /*SAP자재그룹값*/
+             , SAP_PDCT_SCLSRT_STRC_VAL /*SAP제품계층구조값*/
+             , SAP_MAT_EVL_CLSS_VAL /*SAP자재평가클래스값*/
+             , SAP_MAT_CD /*SAP자재코드*/
+             , MODEL_NO /*모델번호*/
+             , IMG_APN_FILE_ID /*이미지첨부파일ID*/
+             , MPAC_YN /*합포장여부*/
+             , STOC_MNGT_OJ_YN /*재고관리대상여부*/
+             , BASE_PD_CHO_YN /*기준상품선택여부*/
+             , SPAY_SELL_PSB_YN /*일시불판매가능여부*/
+             , STEP_MNGT_YN /*스텝관리여부*/
+             , VAT_TP_CD /*부가가치세유형코드*/
+             , PDCT_UPRC_USE_YN /*제품단가사용여부*/
+             , RDS_YN /*RDS여부*/
+             , REDF_YN /*되물림여부*/
+             , PVDA_YN /*현재가치할인차금여부*/
+             , HD_CNDT_CD /*보류조건코드*/
+             , PRC_TP_CD /*가격유형코드*/
+             , CRNCY_DV_CD /*통화구분코드*/
+             , PYMNT_TP_CD /*지불유형코드*/
+             , CNTR_CLSF_CD /*계약분류코드*/
+             , DSC_TP_CD /*할인유형코드*/
+             , FEE_AMT /*수수료금액*/
+             , ACKMT_CT /*인정건수*/
+             , ACKMT_PERF_RT /*인정실적율*/
+             , TEMP_SAVE_YN /*임시저장여부*/
+             , SELL_PD_DV_CD /*판매상품구분코드*/
+             , HGR_PD_CD /*상위상품코드*/
+             , SELL_TP_DTL_CD /*판매유형상세코드*/
+             , PDCT_UPRC /*제품단가*/
+             , SL_RCOG_CLSF_CD /*매출인식분류코드*/
+             , SAP_PLNT_CD /*SAP플랜트코드*/
+             , FGPT_YN /*사은품여부*/
+             , SV_PD_TP_CD /*서비스상품유형코드*/
+             , SELL_TP_CD /*판매유형코드*/
+             , PD_EPL_URL_ADR /*상품설명URL주소*/
+             , SAP_MAT_TP_VAL /*SAP자재유형값*/
+          FROM TB_PDBS_PD_BAS T_PD_BAS
+         WHERE T_PD_BAS.DTA_DL_YN = 'N'
+           AND T_PD_BAS.PD_TP_CD = 'P' /* 기준상품 */
+           AND T_PD_BAS.SELL_YN = 'Y'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T_PD_BAS.SELL_STRTDT AND T_PD_BAS.SELL_ENDDT
+           AND T_PD_BAS.PD_CD = #{pdCd}
+    </select>
+
+    <sql id="selectKeyForPspcCstBas">
+        SELECT '0000' || LPAD(MAX(NVL(SUBSTR(PSPC_CST_ID, 5), 0)) + 1, 11, 0) FROM TB_SSOP_PSPC_CST_BAS
+    </sql>
+
+    <select id="selectPspcCstIdForNewPspcCstBas" resultType="java.lang.String">
+        <include refid="selectKeyForPspcCstBas"/>
+    </select>
+
+    <select id="selectPspcCstBasByPk"
+            resultType="com.kyowon.sms.wells.web.contract.common.dvo.WctzPspcCstBasDvo">
+        SELECT T_PSPC_CST_BAS.PSPC_CST_ID
+             , T_PSPC_CST_BAS.PSPC_CST_INFLW_DT
+             , T_PSPC_CST_BAS.PSPC_CST_KNM
+             , T_PSPC_CST_BAS.PSPC_CST_ENM
+             , T_PSPC_CST_BAS.COPN_DV_CD
+             , T_PSPC_CST_BAS.CRP_SPMT_DRM_NM
+             , T_PSPC_CST_BAS.CST_NO
+             , T_PSPC_CST_BAS.IDK_KND_CD
+             , T_PSPC_CST_BAS.IDK_VAL
+             , T_PSPC_CST_BAS.IDK_IS_DTM
+             , T_PSPC_CST_BAS.NAT_CD
+             , T_PSPC_CST_BAS.ADR_ID
+             , T_PSPC_CST_BAS.SEX_DV_CD
+             , T_PSPC_CST_BAS.BRYY_MMDD
+             , T_PSPC_CST_BAS.CRAL_LOCARA_TNO
+             , T_PSPC_CST_BAS.MEXNO_ENCR
+             , T_PSPC_CST_BAS.CRAL_IDV_TNO
+             , T_PSPC_CST_BAS.LOCARA_TNO
+             , T_PSPC_CST_BAS.EXNO_ENCR
+             , T_PSPC_CST_BAS.IDV_TNO
+             , T_PSPC_CST_BAS.EMADR
+             , T_PSPC_CST_BAS.NW_INFLW_CST_YN
+             , T_PSPC_CST_BAS.APLC_DVC_DV_CD
+             , T_PSPC_CST_BAS.PSPC_CST_INFLW_PH_CD
+             , T_PSPC_CST_BAS.PSPC_CST_FTF_YN
+             , T_PSPC_CST_BAS.MGNT_TP_CD
+             , T_PSPC_CST_BAS.PSPC_CST_RCP_CN
+             , T_PSPC_CST_BAS.EVN_NM
+             , T_PSPC_CST_BAS.RCMDR_PRTNR_NO
+             , T_PSPC_CST_BAS.OG_ASN_STAT_CD
+             , T_PSPC_CST_BAS.ICHR_PRTNR_NO
+             , T_PSPC_CST_BAS.PRTNR_MO_CN
+             , T_PSPC_CST_BAS.OTSD_LK_DRM_VAL
+             , T_PSPC_CST_BAS.PSPC_CST_DSTC_BASE_DTM
+             , T_PSPC_CST_BAS.MVS_DSTC_RCVRY_DV_CD
+             , T_PSPC_CST_BAS.MVS_DSTC_RCVRY_DTM
+             , T_PSPC_CST_BAS.DTA_DL_YN
+             , T_PSPC_CST_BAS.FST_RGST_DTM
+             , T_PSPC_CST_BAS.FST_RGST_USR_ID
+             , T_PSPC_CST_BAS.FST_RGST_PRG_ID
+             , T_PSPC_CST_BAS.FST_RGST_DEPT_ID
+             , T_PSPC_CST_BAS.FNL_MDFC_DTM
+             , T_PSPC_CST_BAS.FNL_MDFC_USR_ID
+             , T_PSPC_CST_BAS.FNL_MDFC_PRG_ID
+             , T_PSPC_CST_BAS.FNL_MDFC_DEPT_ID
+             , T_PSPC_CST_BAS.PSPC_CST_TP_CD
+             , T_PSPC_CST_BAS.BZRNO
+             , T_PSPC_CST_BAS.CTPV_NM
+             , T_PSPC_CST_BAS.REASN_CT
+             , T_PSPC_CST_BAS.PR_PRTNR_NW_INFLW_CST_YN
+             , T_PSPC_CST_BAS.PR_PRTNR_ASN_DTM
+             , T_PSPC_CST_BAS.OTSD_CHNL_SPMT_YN
+             , T_PSPC_CST_BAS.FRE_DGNS_TP_CD
+             , T_PSPC_CST_BAS.HGR_FRE_DGNS_TP_CD
+             , T_PSPC_CST_BAS.ICHR_OG_TP_CD
+             , T_PSPC_CST_BAS.PTL_CST_DB_DV_CD
+             , T_PSPC_CST_BAS.PSPC_CST_DIV_DV_CD
+             , T_PSPC_CST_BAS.OTSD_LK_OG_TP_CD
+             , T_PSPC_CST_BAS.OTSD_LK_PRTNR_NO
+          FROM TB_SSOP_PSPC_CST_BAS T_PSPC_CST_BAS
+         WHERE T_PSPC_CST_BAS.DTA_DL_YN = 'N'
+           AND T_PSPC_CST_BAS.PSPC_CST_ID = #{pspcCstId}
+    </select>
+
+    <insert id="insertPspcCstBas">
+        INSERT INTO TB_SSOP_PSPC_CST_BAS ( PSPC_CST_ID /*가망고객ID*/
+                                         <if test="@MybatisUtils@isNotEmpty(pspcCstInflwDt)"><trim>
+                                             , PSPC_CST_INFLW_DT /*가망고객유입일자*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(pspcCstKnm)"><trim>
+                                             , PSPC_CST_KNM /*가망고객한글명*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(pspcCstEnm)"><trim>
+                                             , PSPC_CST_ENM /*가망고객영문명*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(copnDvCd)"><trim>
+                                             , COPN_DV_CD /*법인격구분코드*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(crpSpmtDrmNm)"><trim>
+                                             , CRP_SPMT_DRM_NM /*법인추가식별명*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(cstNo)"><trim>
+                                             , CST_NO /*고객번호*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(idkKndCd)"><trim>
+                                             , IDK_KND_CD /*식별키종류코드*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(idkVal)"><trim>
+                                             , IDK_VAL /*식별키값*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(idkIsDtm)"><trim>
+                                             , IDK_IS_DTM /*식별키발급일시*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(natCd)"><trim>
+                                             , NAT_CD /*국가코드*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(adrId)"><trim>
+                                             , ADR_ID /*주소ID*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(sexDvCd)"><trim>
+                                             , SEX_DV_CD /*성별구분코드*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(bryyMmdd)"><trim>
+                                             , BRYY_MMDD /*생년월일*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)"><trim>
+                                             , CRAL_LOCARA_TNO /*휴대지역전화번호*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(mexnoEncr)"><trim>
+                                             , MEXNO_ENCR /*휴대전화국번호암호화*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(cralIdvTno)"><trim>
+                                             , CRAL_IDV_TNO /*휴대개별전화번호*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(locaraTno)"><trim>
+                                             , LOCARA_TNO /*지역전화번호*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(exnoEncr)"><trim>
+                                             , EXNO_ENCR /*전화국번호암호화*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(idvTno)"><trim>
+                                             , IDV_TNO /*개별전화번호*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(emadr)"><trim>
+                                             , EMADR /*이메일주소*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(nwInflwCstYn)"><trim>
+                                             , NW_INFLW_CST_YN /*신규유입고객여부*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(aplcDvcDvCd)"><trim>
+                                             , APLC_DVC_DV_CD /*신청디바이스구분코드*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(pspcCstInflwPhCd)"><trim>
+                                             , PSPC_CST_INFLW_PH_CD /*가망고객유입경로코드*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(pspcCstFtfYn)"><trim>
+                                             , PSPC_CST_FTF_YN /*가망고객대면여부*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(mgntTpCd)"><trim>
+                                             , MGNT_TP_CD /*중요도유형코드*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(pspcCstRcpCn)"><trim>
+                                             , PSPC_CST_RCP_CN /*가망고객접수내용*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(evnNm)"><trim>
+                                             , EVN_NM /*이벤트명*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(rcmdrPrtnrNo)"><trim>
+                                             , RCMDR_PRTNR_NO /*추천인파트너번호*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(ogAsnStatCd)"><trim>
+                                             , OG_ASN_STAT_CD /*조직배정상태코드*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(ichrPrtnrNo)"><trim>
+                                             , ICHR_PRTNR_NO /*담당파트너번호*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(prtnrMoCn)"><trim>
+                                             , PRTNR_MO_CN /*파트너메모내용*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(otsdLkDrmVal)"><trim>
+                                             , OTSD_LK_DRM_VAL /*외부연계식별값*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(pspcCstDstcBaseDtm)"><trim>
+                                             , PSPC_CST_DSTC_BASE_DTM /*가망고객파기기준일시*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(mvsDstcRcvryDvCd)"><trim>
+                                             , MVS_DSTC_RCVRY_DV_CD /*소산파기복구구분코드*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(mvsDstcRcvryDtm)"><trim>
+                                             , MVS_DSTC_RCVRY_DTM /*소산파기복구일시*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(dtaDlYn)"><trim>
+                                             , DTA_DL_YN /*데이터삭제여부*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(pspcCstTpCd)"><trim>
+                                             , PSPC_CST_TP_CD /*가망고객유형코드*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(bzrno)"><trim>
+                                             , BZRNO /*사업자등록번호*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(ctpvNm)"><trim>
+                                             , CTPV_NM /*시도명*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(reasnCt)"><trim>
+                                             , REASN_CT /*재배정건수*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(prPrtnrNwInflwCstYn)"><trim>
+                                             , PR_PRTNR_NW_INFLW_CST_YN /*홍보파트너신규유입고객여부*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(prPrtnrAsnDtm)"><trim>
+                                             , PR_PRTNR_ASN_DTM /*홍보파트너배정일시*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(otsdChnlSpmtYn)"><trim>
+                                             , OTSD_CHNL_SPMT_YN /*외부채널추가여부*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(freDgnsTpCd)"><trim>
+                                             , FRE_DGNS_TP_CD /*무료진단유형코드*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(hgrFreDgnsTpCd)"><trim>
+                                             , HGR_FRE_DGNS_TP_CD /*상위무료진단유형코드*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(ichrOgTpCd)"><trim>
+                                             , ICHR_OG_TP_CD /*담당조직유형코드*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(ptlCstDbDvCd)"><trim>
+                                             , PTL_CST_DB_DV_CD /*잠재고객DB구분코드*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(pspcCstDivDvCd)"><trim>
+                                             , PSPC_CST_DIV_DV_CD /*가망고객사업부구분코드*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(otsdLkOgTpCd)"><trim>
+                                             , OTSD_LK_OG_TP_CD /*외부연계조직유형코드*/
+                                         </trim></if>
+                                         <if test="@MybatisUtils@isNotEmpty(otsdLkPrtnrNo)"><trim>
+                                             , OTSD_LK_PRTNR_NO /*외부연계파트너번호*/
+                                         </trim></if>
+        <include refid="COMMON.insertSystemField"/>
+        )
+        VALUES (
+                 <choose>
+                     <when test="@MybatisUtils@isNotEmpty(pspcCstId)"><trim>
+                         #{pspcCstId} /*가망고객ID*/
+                     </trim></when>
+                     <otherwise><trim>
+                         (<include refid="selectKeyForPspcCstBas"/>)
+                     </trim></otherwise>
+                 </choose>
+               <if test="@MybatisUtils@isNotEmpty(pspcCstInflwDt)"><trim>
+                   , #{pspcCstInflwDt} /*가망고객유입일자*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(pspcCstKnm)"><trim>
+                   , #{pspcCstKnm} /*가망고객한글명*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(pspcCstEnm)"><trim>
+                   , #{pspcCstEnm} /*가망고객영문명*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(copnDvCd)"><trim>
+                   , #{copnDvCd} /*법인격구분코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(crpSpmtDrmNm)"><trim>
+                   , #{crpSpmtDrmNm} /*법인추가식별명*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(cstNo)"><trim>
+                   , #{cstNo} /*고객번호*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(idkKndCd)"><trim>
+                   , #{idkKndCd} /*식별키종류코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(idkVal)"><trim>
+                   , #{idkVal} /*식별키값*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(idkIsDtm)"><trim>
+                   , #{idkIsDtm} /*식별키발급일시*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(natCd)"><trim>
+                   , #{natCd} /*국가코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(adrId)"><trim>
+                   , #{adrId} /*주소ID*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(sexDvCd)"><trim>
+                   , #{sexDvCd} /*성별구분코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(bryyMmdd)"><trim>
+                   , #{bryyMmdd} /*생년월일*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)"><trim>
+                   , #{cralLocaraTno} /*휴대지역전화번호*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(mexnoEncr)"><trim>
+                   , #{mexnoEncr} /*휴대전화국번호암호화*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(cralIdvTno)"><trim>
+                   , #{cralIdvTno} /*휴대개별전화번호*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(locaraTno)"><trim>
+                   , #{locaraTno} /*지역전화번호*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(exnoEncr)"><trim>
+                   , #{exnoEncr} /*전화국번호암호화*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(idvTno)"><trim>
+                   , #{idvTno} /*개별전화번호*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(emadr)"><trim>
+                   , #{emadr} /*이메일주소*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(nwInflwCstYn)"><trim>
+                   , #{nwInflwCstYn} /*신규유입고객여부*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(aplcDvcDvCd)"><trim>
+                   , #{aplcDvcDvCd} /*신청디바이스구분코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(pspcCstInflwPhCd)"><trim>
+                   , #{pspcCstInflwPhCd} /*가망고객유입경로코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(pspcCstFtfYn)"><trim>
+                   , #{pspcCstFtfYn} /*가망고객대면여부*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(mgntTpCd)"><trim>
+                   , #{mgntTpCd} /*중요도유형코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(pspcCstRcpCn)"><trim>
+                   , #{pspcCstRcpCn} /*가망고객접수내용*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(evnNm)"><trim>
+                   , #{evnNm} /*이벤트명*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(rcmdrPrtnrNo)"><trim>
+                   , #{rcmdrPrtnrNo} /*추천인파트너번호*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(ogAsnStatCd)"><trim>
+                   , #{ogAsnStatCd} /*조직배정상태코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(ichrPrtnrNo)"><trim>
+                   , #{ichrPrtnrNo} /*담당파트너번호*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(prtnrMoCn)"><trim>
+                   , #{prtnrMoCn} /*파트너메모내용*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(otsdLkDrmVal)"><trim>
+                   , #{otsdLkDrmVal} /*외부연계식별값*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(pspcCstDstcBaseDtm)"><trim>
+                   , #{pspcCstDstcBaseDtm} /*가망고객파기기준일시*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(mvsDstcRcvryDvCd)"><trim>
+                   , #{mvsDstcRcvryDvCd} /*소산파기복구구분코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(mvsDstcRcvryDtm)"><trim>
+                   , #{mvsDstcRcvryDtm} /*소산파기복구일시*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(dtaDlYn)"><trim>
+                   , #{dtaDlYn} /*데이터삭제여부*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(pspcCstTpCd)"><trim>
+                   , #{pspcCstTpCd} /*가망고객유형코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(bzrno)"><trim>
+                   , #{bzrno} /*사업자등록번호*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(ctpvNm)"><trim>
+                   , #{ctpvNm} /*시도명*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(reasnCt)"><trim>
+                   , #{reasnCt} /*재배정건수*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(prPrtnrNwInflwCstYn)"><trim>
+                   , #{prPrtnrNwInflwCstYn} /*홍보파트너신규유입고객여부*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(prPrtnrAsnDtm)"><trim>
+                   , #{prPrtnrAsnDtm} /*홍보파트너배정일시*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(otsdChnlSpmtYn)"><trim>
+                   , #{otsdChnlSpmtYn} /*외부채널추가여부*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(freDgnsTpCd)"><trim>
+                   , #{freDgnsTpCd} /*무료진단유형코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(hgrFreDgnsTpCd)"><trim>
+                   , #{hgrFreDgnsTpCd} /*상위무료진단유형코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(ichrOgTpCd)"><trim>
+                   , #{ichrOgTpCd} /*담당조직유형코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(ptlCstDbDvCd)"><trim>
+                   , #{ptlCstDbDvCd} /*잠재고객DB구분코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(pspcCstDivDvCd)"><trim>
+                   , #{pspcCstDivDvCd} /*가망고객사업부구분코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(otsdLkOgTpCd)"><trim>
+                   , #{otsdLkOgTpCd} /*외부연계조직유형코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(otsdLkPrtnrNo)"><trim>
+                   , #{otsdLkPrtnrNo} /*외부연계파트너번호*/
+               </trim></if>
+        <include refid="COMMON.insertSystemFieldValue"/>
+               )
+    </insert>
+
+    <sql id="tbSsopPspcCstBasFields">
+  PSPC_CST_ID /*가망고객ID*/
+, PSPC_CST_INFLW_DT /*가망고객유입일자*/
+, PSPC_CST_KNM /*가망고객한글명*/
+, PSPC_CST_ENM /*가망고객영문명*/
+, COPN_DV_CD /*법인격구분코드*/
+, CRP_SPMT_DRM_NM /*법인추가식별명*/
+, CST_NO /*고객번호*/
+, IDK_KND_CD /*식별키종류코드*/
+, IDK_VAL /*식별키값*/
+, IDK_IS_DTM /*식별키발급일시*/
+, NAT_CD /*국가코드*/
+, ADR_ID /*주소ID*/
+, SEX_DV_CD /*성별구분코드*/
+, BRYY_MMDD /*생년월일*/
+, CRAL_LOCARA_TNO /*휴대지역전화번호*/
+, MEXNO_ENCR /*휴대전화국번호암호화*/
+, CRAL_IDV_TNO /*휴대개별전화번호*/
+, LOCARA_TNO /*지역전화번호*/
+, EXNO_ENCR /*전화국번호암호화*/
+, IDV_TNO /*개별전화번호*/
+, EMADR /*이메일주소*/
+, NW_INFLW_CST_YN /*신규유입고객여부*/
+, APLC_DVC_DV_CD /*신청디바이스구분코드*/
+, PSPC_CST_INFLW_PH_CD /*가망고객유입경로코드*/
+, PSPC_CST_FTF_YN /*가망고객대면여부*/
+, MGNT_TP_CD /*중요도유형코드*/
+, PSPC_CST_RCP_CN /*가망고객접수내용*/
+, EVN_NM /*이벤트명*/
+, RCMDR_PRTNR_NO /*추천인파트너번호*/
+, OG_ASN_STAT_CD /*조직배정상태코드*/
+, ICHR_PRTNR_NO /*담당파트너번호*/
+, PRTNR_MO_CN /*파트너메모내용*/
+, OTSD_LK_DRM_VAL /*외부연계식별값*/
+, PSPC_CST_DSTC_BASE_DTM /*가망고객파기기준일시*/
+, MVS_DSTC_RCVRY_DV_CD /*소산파기복구구분코드*/
+, MVS_DSTC_RCVRY_DTM /*소산파기복구일시*/
+, DTA_DL_YN /*데이터삭제여부*/
+, FST_RGST_DTM /*최초등록일시*/
+, FST_RGST_USR_ID /*최초등록사용자ID*/
+, FST_RGST_PRG_ID /*최초등록프로그램ID*/
+, FST_RGST_DEPT_ID /*최초등록부서ID*/
+, FNL_MDFC_DTM /*최종수정일시*/
+, FNL_MDFC_USR_ID /*최종수정사용자ID*/
+, FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+, FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+, PSPC_CST_TP_CD /*가망고객유형코드*/
+, BZRNO /*사업자등록번호*/
+, CTPV_NM /*시도명*/
+, REASN_CT /*재배정건수*/
+, PR_PRTNR_NW_INFLW_CST_YN /*홍보파트너신규유입고객여부*/
+, PR_PRTNR_ASN_DTM /*홍보파트너배정일시*/
+, OTSD_CHNL_SPMT_YN /*외부채널추가여부*/
+, FRE_DGNS_TP_CD /*무료진단유형코드*/
+, HGR_FRE_DGNS_TP_CD /*상위무료진단유형코드*/
+, ICHR_OG_TP_CD /*담당조직유형코드*/
+, PTL_CST_DB_DV_CD /*잠재고객DB구분코드*/
+, PSPC_CST_DIV_DV_CD /*가망고객사업부구분코드*/
+, OTSD_LK_OG_TP_CD /*외부연계조직유형코드*/
+, OTSD_LK_PRTNR_NO /*외부연계파트너번호*/
+    </sql>
+
+    <sql id="tbSsopPspcCstCnslBasFields">
+  PSPC_CST_CNSL_ID /*가망고객상담ID*/
+, PSPC_CST_ID /*가망고객ID*/
+, PSPC_CST_CNSL_TP_CD /*가망고객상담유형코드*/
+, APLC_SN /*신청일련번호*/
+, CNSL_PSB_STRT_DTM /*상담가능시작일시*/
+, CNSL_PSB_END_DTM /*상담가능종료일시*/
+, ALNCMP_CD /*제휴사코드*/
+, INRT_PD_HCLSF_ID /*관심상품대분류ID*/
+, INRT_PD_MCLSF_ID /*관심상품중분류ID*/
+, INRT_PD_LCLSF_ID /*관심상품소분류ID*/
+, INRT_PD_DCLSF_ID /*관심상품세분류ID*/
+, INRT_PD_CD /*관심상품코드*/
+, PSPC_CST_FTF_YN /*가망고객대면여부*/
+, VST_AG_DTM /*방문동의일시*/
+, ALNC_CNSL_CPON_ID /*제휴상담쿠폰ID*/
+, CNSL_CPON_USE_DTM /*상담쿠폰사용일시*/
+, ICHR_ASN_FSH_DTM /*담당배정완료일시*/
+, ICHR_PRTNR_NO /*담당파트너번호*/
+, CNSL_MO_CN /*상담메모내용*/
+, CNSL_EVL_DTM /*상담평가일시*/
+, CNSL_EVL_PC /*상담평가점수*/
+, CNSL_EVL_RLY_CN /*상담평가답변내용*/
+, DTA_DL_YN /*데이터삭제여부*/
+, FST_RGST_DTM /*최초등록일시*/
+, FST_RGST_USR_ID /*최초등록사용자ID*/
+, FST_RGST_PRG_ID /*최초등록프로그램ID*/
+, FST_RGST_DEPT_ID /*최초등록부서ID*/
+, FNL_MDFC_DTM /*최종수정일시*/
+, FNL_MDFC_USR_ID /*최종수정사용자ID*/
+, FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+, FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+, PSPC_CST_CNSL_RS_CD /*가망고객상담결과코드*/
+, ICHR_OG_TP_CD /*담당조직유형코드*/
+, CST_NO /*고객번호*/
+, CNSL_DTM /*상담일시*/
+, SELL_INFLW_CHNL_DV_CD /*판매유입채널구분코드*/
+, INRT_PD_DV_CD /*관심상품구분코드*/
+    </sql>
+
+    <sql id="tbSsopPspcCstCnslRcmdIzFields">
+PSPC_CST_CNSL_ID /*가망고객상담ID*/
+, PSPC_CST_CNSL_SN /*가망고객상담일련번호*/
+, MB_CST_NO /*회원고객번호*/
+, PD_CD /*상품코드*/
+, CNTR_NO /*계약번호*/
+, CNTR_SN /*계약일련번호*/
+, CNTR_RCP_FSH_DTM /*계약접수완료일시*/
+, DTA_DL_YN /*데이터삭제여부*/
+, FST_RGST_DTM /*최초등록일시*/
+, FST_RGST_USR_ID /*최초등록사용자ID*/
+, FST_RGST_PRG_ID /*최초등록프로그램ID*/
+, FST_RGST_DEPT_ID /*최초등록부서ID*/
+, FNL_MDFC_DTM /*최종수정일시*/
+, FNL_MDFC_USR_ID /*최종수정사용자ID*/
+, FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+, FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+, TRS_YN /*전송여부*/
+    </sql>
+
+    <sql id="flattenProspectCustomers">
+        SELECT #{dvo.wctzPspcCstBasDvo.pspcCstId} AS PSPC_CST_ID
+             , #{dvo.wctzPspcCstBasDvo.pspcCstInflwDt} AS PSPC_CST_INFLW_DT
+             , #{dvo.wctzPspcCstBasDvo.pspcCstKnm} AS PSPC_CST_KNM
+             , #{dvo.wctzPspcCstBasDvo.pspcCstEnm} AS PSPC_CST_ENM
+             , #{dvo.wctzPspcCstBasDvo.copnDvCd} AS COPN_DV_CD
+             , #{dvo.wctzPspcCstBasDvo.crpSpmtDrmNm} AS CRP_SPMT_DRM_NM
+             , #{dvo.wctzPspcCstBasDvo.cstNo} AS CST_NO
+             , #{dvo.wctzPspcCstBasDvo.idkKndCd} AS IDK_KND_CD
+             , #{dvo.wctzPspcCstBasDvo.idkVal} AS IDK_VAL
+             , #{dvo.wctzPspcCstBasDvo.idkIsDtm} AS IDK_IS_DTM
+             , #{dvo.wctzPspcCstBasDvo.natCd} AS NAT_CD
+             , #{dvo.wctzPspcCstBasDvo.adrId} AS ADR_ID
+             , #{dvo.wctzPspcCstBasDvo.sexDvCd} AS SEX_DV_CD
+             , #{dvo.wctzPspcCstBasDvo.bryyMmdd} AS BRYY_MMDD
+             , #{dvo.wctzPspcCstBasDvo.cralLocaraTno} AS CRAL_LOCARA_TNO
+             , #{dvo.wctzPspcCstBasDvo.mexnoEncr} AS MEXNO_ENCR
+             , #{dvo.wctzPspcCstBasDvo.cralIdvTno} AS CRAL_IDV_TNO
+             , #{dvo.wctzPspcCstBasDvo.locaraTno} AS LOCARA_TNO
+             , #{dvo.wctzPspcCstBasDvo.exnoEncr} AS EXNO_ENCR
+             , #{dvo.wctzPspcCstBasDvo.idvTno} AS IDV_TNO
+             , #{dvo.wctzPspcCstBasDvo.emadr} AS EMADR
+             , #{dvo.wctzPspcCstBasDvo.nwInflwCstYn} AS NW_INFLW_CST_YN
+             , #{dvo.wctzPspcCstBasDvo.aplcDvcDvCd} AS APLC_DVC_DV_CD
+             , #{dvo.wctzPspcCstBasDvo.pspcCstInflwPhCd} AS PSPC_CST_INFLW_PH_CD
+             , #{dvo.wctzPspcCstBasDvo.pspcCstFtfYn} AS PSPC_CST_FTF_YN
+             , #{dvo.wctzPspcCstBasDvo.mgntTpCd} AS MGNT_TP_CD
+             , #{dvo.wctzPspcCstBasDvo.pspcCstRcpCn} AS PSPC_CST_RCP_CN
+             , #{dvo.wctzPspcCstBasDvo.evnNm} AS EVN_NM
+             , #{dvo.wctzPspcCstBasDvo.rcmdrPrtnrNo} AS RCMDR_PRTNR_NO
+             , #{dvo.wctzPspcCstBasDvo.ogAsnStatCd} AS OG_ASN_STAT_CD
+             , #{dvo.wctzPspcCstBasDvo.ichrPrtnrNo} AS ICHR_PRTNR_NO
+             , #{dvo.wctzPspcCstBasDvo.prtnrMoCn} AS PRTNR_MO_CN
+             , #{dvo.wctzPspcCstBasDvo.otsdLkDrmVal} AS OTSD_LK_DRM_VAL
+             , #{dvo.wctzPspcCstBasDvo.pspcCstDstcBaseDtm} AS PSPC_CST_DSTC_BASE_DTM
+             , #{dvo.wctzPspcCstBasDvo.mvsDstcRcvryDvCd} AS MVS_DSTC_RCVRY_DV_CD
+             , #{dvo.wctzPspcCstBasDvo.mvsDstcRcvryDtm} AS MVS_DSTC_RCVRY_DTM
+             , #{dvo.wctzPspcCstBasDvo.pspcCstTpCd} AS PSPC_CST_TP_CD
+             , #{dvo.wctzPspcCstBasDvo.bzrno} AS BZRNO
+             , #{dvo.wctzPspcCstBasDvo.ctpvNm} AS CTPV_NM
+             , #{dvo.wctzPspcCstBasDvo.reasnCt} AS REASN_CT
+             , #{dvo.wctzPspcCstBasDvo.prPrtnrNwInflwCstYn} AS PR_PRTNR_NW_INFLW_CST_YN
+             , #{dvo.wctzPspcCstBasDvo.prPrtnrAsnDtm} AS PR_PRTNR_ASN_DTM
+             , #{dvo.wctzPspcCstBasDvo.otsdChnlSpmtYn} AS OTSD_CHNL_SPMT_YN
+             , #{dvo.wctzPspcCstBasDvo.freDgnsTpCd} AS FRE_DGNS_TP_CD
+             , #{dvo.wctzPspcCstBasDvo.hgrFreDgnsTpCd} AS HGR_FRE_DGNS_TP_CD
+             , #{dvo.wctzPspcCstBasDvo.ichrOgTpCd} AS ICHR_OG_TP_CD
+             , #{dvo.wctzPspcCstBasDvo.ptlCstDbDvCd} AS PTL_CST_DB_DV_CD
+             , #{dvo.wctzPspcCstBasDvo.pspcCstDivDvCd} AS PSPC_CST_DIV_DV_CD
+             , #{dvo.wctzPspcCstBasDvo.otsdLkOgTpCd} AS OTSD_LK_OG_TP_CD
+             , #{dvo.wctzPspcCstBasDvo.otsdLkPrtnrNo} AS OTSD_LK_PRTNR_NO
+             , #{dvo.wctzPspcCstCnslBasDvo.pspcCstCnslId} AS PSPC_CST_CNSL_ID
+             , #{dvo.wctzPspcCstCnslBasDvo.pspcCstCnslTpCd} AS PSPC_CST_CNSL_TP_CD
+             , #{dvo.wctzPspcCstCnslBasDvo.aplcSn} AS APLC_SN
+             , #{dvo.wctzPspcCstCnslBasDvo.cnslPsbStrtDtm} AS CNSL_PSB_STRT_DTM
+             , #{dvo.wctzPspcCstCnslBasDvo.cnslPsbEndDtm} AS CNSL_PSB_END_DTM
+             , #{dvo.wctzPspcCstCnslBasDvo.alncmpCd} AS ALNCMP_CD
+             , #{dvo.wctzPspcCstCnslBasDvo.inrtPdHclsfId} AS INRT_PD_HCLSF_ID
+             , #{dvo.wctzPspcCstCnslBasDvo.inrtPdMclsfId} AS INRT_PD_MCLSF_ID
+             , #{dvo.wctzPspcCstCnslBasDvo.inrtPdLclsfId} AS INRT_PD_LCLSF_ID
+             , #{dvo.wctzPspcCstCnslBasDvo.inrtPdDclsfId} AS INRT_PD_DCLSF_ID
+             , #{dvo.wctzPspcCstCnslBasDvo.inrtPdCd} AS INRT_PD_CD
+             , #{dvo.wctzPspcCstCnslBasDvo.vstAgDtm} AS VST_AG_DTM
+             , #{dvo.wctzPspcCstCnslBasDvo.alncCnslCponId} AS ALNC_CNSL_CPON_ID
+             , #{dvo.wctzPspcCstCnslBasDvo.cnslCponUseDtm} AS CNSL_CPON_USE_DTM
+             , #{dvo.wctzPspcCstCnslBasDvo.ichrAsnFshDtm} AS ICHR_ASN_FSH_DTM
+             , #{dvo.wctzPspcCstCnslBasDvo.ichrAsnnrNo} AS ICHR_ASNNR_NO
+             , #{dvo.wctzPspcCstCnslBasDvo.cnslMoCn} AS CNSL_MO_CN
+             , #{dvo.wctzPspcCstCnslBasDvo.cnslEvlDtm} AS CNSL_EVL_DTM
+             , #{dvo.wctzPspcCstCnslBasDvo.cnslEvlPc} AS CNSL_EVL_PC
+             , #{dvo.wctzPspcCstCnslBasDvo.cnslEvlRlyCn} AS CNSL_EVL_RLY_CN
+             , #{dvo.wctzPspcCstCnslBasDvo.pspcCstCnslRsCd} AS PSPC_CST_CNSL_RS_CD
+             , #{dvo.wctzPspcCstCnslBasDvo.cnslDtm} AS CNSL_DTM
+             , #{dvo.wctzPspcCstCnslBasDvo.sellInflwChnlDvCd} AS SELL_INFLW_CHNL_DV_CD
+             , #{dvo.wctzPspcCstCnslBasDvo.inrtPdDvCd} AS INRT_PD_DV_CD
+             , #{dvo.wctzPspcCstCnslRcmdIzDvo.pspcCstCnslSn} AS PSPC_CST_CNSL_SN
+             , #{dvo.wctzPspcCstCnslRcmdIzDvo.mbCstNo} AS MB_CST_NO
+             , #{dvo.wctzPspcCstCnslRcmdIzDvo.pdCd} AS PD_CD
+             , #{dvo.wctzPspcCstCnslRcmdIzDvo.cntrNo} AS CNTR_NO
+             , #{dvo.wctzPspcCstCnslRcmdIzDvo.cntrSn} AS CNTR_SN
+             , #{dvo.wctzPspcCstCnslRcmdIzDvo.cntrRcpFshDtm} AS CNTR_RCP_FSH_DTM
+             , #{dvo.wctzPspcCstCnslRcmdIzDvo.trsYn} AS TRS_YN
+             , 'N' AS DTA_DL_YN
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FST_RGST_DTM
+             , #{session.userId} AS FST_RGST_USR_ID
+             , #{session.pageId} AS FST_RGST_PRG_ID
+             , NVL(#{session.ogId}, 'NULL') AS FST_RGST_DEPT_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
+             , #{session.userId} AS FNL_MDFC_USR_ID
+             , #{session.pageId} AS FNL_MDFC_PRG_ID
+             , NVL(#{session.ogId}, 'NULL') AS FNL_MDFC_DEPT_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS HIST_STRT_DTM
+             , '99991231235959' AS HIST_END_DTM
+          FROM DUAL
+    </sql>
+
+    <insert id="insertProspectCustomers">
+        INSERT ALL
+            INTO TB_SSOP_PSPC_CST_BAS (<include refid="tbSsopPspcCstBasFields"/>)
+            VALUES (<include refid="tbSsopPspcCstBasFields"/>)
+            INTO TB_SSOP_PSPC_CST_CH_HIST (<include refid="tbSsopPspcCstBasFields"/>, HIST_STRT_DTM, HIST_END_DTM)
+            VALUES (<include refid="tbSsopPspcCstBasFields"/>, HIST_STRT_DTM, HIST_END_DTM)
+            INTO TB_SSOP_PSPC_CST_CNSL_BAS (<include refid="tbSsopPspcCstCnslBasFields"/>)
+            VALUES (<include refid="tbSsopPspcCstCnslBasFields"/>)
+            INTO TB_SSOP_PSPC_CST_CNSL_CH_HIST (<include refid="tbSsopPspcCstCnslBasFields"/>, HIST_STRT_DTM, HIST_END_DTM)
+            VALUES (<include refid="tbSsopPspcCstCnslBasFields"/>, HIST_STRT_DTM, HIST_END_DTM)
+            INTO TB_SSOP_PSPC_CST_CNSL_RCMD_IZ (<include refid="tbSsopPspcCstCnslRcmdIzFields"/>)
+            VALUES (<include refid="tbSsopPspcCstCnslRcmdIzFields"/>)
+            INTO TB_SSOP_PSPC_CST_CNSL_RCH_HIST (<include refid="tbSsopPspcCstCnslRcmdIzFields"/>, HIST_STRT_DTM, HIST_END_DTM)
+            VALUES (<include refid="tbSsopPspcCstCnslRcmdIzFields"/>, HIST_STRT_DTM, HIST_END_DTM)
+        <foreach collection="dvos" item="dvo" separator=" UNION ALL ">
+            <include refid="flattenProspectCustomers"/>
+        </foreach>
+    </insert>
+
+    <sql id="selectKeyForPspcCstCnslBas">
+        SELECT '0000' || LPAD(MAX(NVL(SUBSTR(PSPC_CST_CNSL_ID, 5), 0)) + 1, 11, 0) FROM TB_SSOP_PSPC_CST_CNSL_BAS
+    </sql>
+
+    <select id="selectPspcCstCnslIdForNewPspcCstCnslBas" resultType="java.lang.String">
+        <include refid="selectKeyForPspcCstCnslBas"/>
+    </select>
+
+    <insert id="insertPspcCstCnslBas">
+        INSERT INTO TB_SSOP_PSPC_CST_CNSL_BAS ( PSPC_CST_CNSL_ID /*가망고객상담ID*/
+                                              <if test="@MybatisUtils@isNotEmpty(pspcCstId)"><trim>
+                                                  , PSPC_CST_ID /*가망고객ID*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(pspcCstCnslTpCd)"><trim>
+                                                  , PSPC_CST_CNSL_TP_CD /*가망고객상담유형코드*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(aplcSn)"><trim>
+                                                  , APLC_SN /*신청일련번호*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(cnslPsbStrtDtm)"><trim>
+                                                  , CNSL_PSB_STRT_DTM /*상담가능시작일시*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(cnslPsbEndDtm)"><trim>
+                                                  , CNSL_PSB_END_DTM /*상담가능종료일시*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(alncmpCd)"><trim>
+                                                  , ALNCMP_CD /*제휴사코드*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(inrtPdHclsfId)"><trim>
+                                                  , INRT_PD_HCLSF_ID /*관심상품대분류ID*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(inrtPdMclsfId)"><trim>
+                                                  , INRT_PD_MCLSF_ID /*관심상품중분류ID*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(inrtPdLclsfId)"><trim>
+                                                  , INRT_PD_LCLSF_ID /*관심상품소분류ID*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(inrtPdDclsfId)"><trim>
+                                                  , INRT_PD_DCLSF_ID /*관심상품세분류ID*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(inrtPdCd)"><trim>
+                                                  , INRT_PD_CD /*관심상품코드*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(pspcCstFtfYn)"><trim>
+                                                  , PSPC_CST_FTF_YN /*가망고객대면여부*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(vstAgDtm)"><trim>
+                                                  , VST_AG_DTM /*방문동의일시*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(alncCnslCponId)"><trim>
+                                                  , ALNC_CNSL_CPON_ID /*제휴상담쿠폰ID*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(cnslCponUseDtm)"><trim>
+                                                  , CNSL_CPON_USE_DTM /*상담쿠폰사용일시*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(ichrAsnFshDtm)"><trim>
+                                                  , ICHR_ASN_FSH_DTM /*담당배정완료일시*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(ichrPrtnrNo)"><trim>
+                                                  , ICHR_PRTNR_NO /*담당파트너번호*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(cnslMoCn)"><trim>
+                                                  , CNSL_MO_CN /*상담메모내용*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(cnslEvlDtm)"><trim>
+                                                  , CNSL_EVL_DTM /*상담평가일시*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(cnslEvlPc)"><trim>
+                                                  , CNSL_EVL_PC /*상담평가점수*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(cnslEvlRlyCn)"><trim>
+                                                  , CNSL_EVL_RLY_CN /*상담평가답변내용*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(pspcCstCnslRsCd)"><trim>
+                                                  , PSPC_CST_CNSL_RS_CD /*가망고객상담결과코드*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(ichrOgTpCd)"><trim>
+                                                  , ICHR_OG_TP_CD /*담당조직유형코드*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(cstNo)"><trim>
+                                                  , CST_NO /*고객번호*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(cnslDtm)"><trim>
+                                                  , CNSL_DTM /*상담일시*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(sellInflwChnlDvCd)"><trim>
+                                                  , SELL_INFLW_CHNL_DV_CD /*판매유입채널구분코드*/
+                                              </trim></if>
+                                              <if test="@MybatisUtils@isNotEmpty(inrtPdDvCd)"><trim>
+                                                  , INRT_PD_DV_CD /*관심상품구분코드*/
+                                              </trim></if>
+        <include refid="COMMON.insertSystemField"/>
+        )
+        VALUES ( #{pspcCstCnslId} /*가망고객상담ID*/
+               <if test="@MybatisUtils@isNotEmpty(pspcCstId)"><trim>
+                   , #{pspcCstId} /*가망고객ID*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(pspcCstCnslTpCd)"><trim>
+                   , #{pspcCstCnslTpCd} /*가망고객상담유형코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(aplcSn)"><trim>
+                   , #{aplcSn} /*신청일련번호*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(cnslPsbStrtDtm)"><trim>
+                   , #{cnslPsbStrtDtm} /*상담가능시작일시*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(cnslPsbEndDtm)"><trim>
+                   , #{cnslPsbEndDtm} /*상담가능종료일시*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(alncmpCd)"><trim>
+                   , #{alncmpCd} /*제휴사코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(inrtPdHclsfId)"><trim>
+                   , #{inrtPdHclsfId} /*관심상품대분류ID*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(inrtPdMclsfId)"><trim>
+                   , #{inrtPdMclsfId} /*관심상품중분류ID*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(inrtPdLclsfId)"><trim>
+                   , #{inrtPdLclsfId} /*관심상품소분류ID*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(inrtPdDclsfId)"><trim>
+                   , #{inrtPdDclsfId} /*관심상품세분류ID*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(inrtPdCd)"><trim>
+                   , #{inrtPdCd} /*관심상품코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(pspcCstFtfYn)"><trim>
+                   , #{pspcCstFtfYn} /*가망고객대면여부*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(vstAgDtm)"><trim>
+                   , #{vstAgDtm} /*방문동의일시*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(alncCnslCponId)"><trim>
+                   , #{alncCnslCponId} /*제휴상담쿠폰ID*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(cnslCponUseDtm)"><trim>
+                   , #{cnslCponUseDtm} /*상담쿠폰사용일시*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(ichrAsnFshDtm)"><trim>
+                   , #{ichrAsnFshDtm} /*담당배정완료일시*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(ichrPrtnrNo)"><trim>
+                   , #{ichrPrtnrNo} /*담당파트너번호*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(cnslMoCn)"><trim>
+                   , #{cnslMoCn} /*상담메모내용*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(cnslEvlDtm)"><trim>
+                   , #{cnslEvlDtm} /*상담평가일시*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(cnslEvlPc)"><trim>
+                   , #{cnslEvlPc} /*상담평가점수*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(cnslEvlRlyCn)"><trim>
+                   , #{cnslEvlRlyCn} /*상담평가답변내용*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(pspcCstCnslRsCd)"><trim>
+                   , #{pspcCstCnslRsCd} /*가망고객상담결과코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(ichrOgTpCd)"><trim>
+                   , #{ichrOgTpCd} /*담당조직유형코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(cstNo)"><trim>
+                   , #{cstNo} /*고객번호*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(cnslDtm)"><trim>
+                   , #{cnslDtm} /*상담일시*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(sellInflwChnlDvCd)"><trim>
+                   , #{sellInflwChnlDvCd} /*판매유입채널구분코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(inrtPdDvCd)"><trim>
+                   , #{inrtPdDvCd} /*관심상품구분코드*/
+               </trim></if>
+        <include refid="COMMON.insertSystemFieldValue"/>
+               )
+    </insert>
+
+    <insert id="insertPspcCstCnslRcmdIz">
+        INSERT INTO TB_SSOP_PSPC_CST_CNSL_RCMD_IZ ( PSPC_CST_CNSL_ID /*가망고객상담ID*/
+                                                  , PSPC_CST_CNSL_SN /*가망고객상담일련번호*/
+                                                  <if test="@MybatisUtils@isNotEmpty(mbCstNo)"><trim>
+                                                      , MB_CST_NO /*회원고객번호*/
+                                                  </trim></if>
+                                                  <if test="@MybatisUtils@isNotEmpty(pdCd)"><trim>
+                                                      , PD_CD /*상품코드*/
+                                                  </trim></if>
+                                                  <if test="@MybatisUtils@isNotEmpty(cntrNo)"><trim>
+                                                      , CNTR_NO /*계약번호*/
+                                                  </trim></if>
+                                                  <if test="@MybatisUtils@isNotEmpty(cntrSn)"><trim>
+                                                      , CNTR_SN /*계약일련번호*/
+                                                  </trim></if>
+                                                  <if test="@MybatisUtils@isNotEmpty(cntrRcpFshDtm)"><trim>
+                                                      , CNTR_RCP_FSH_DTM /*계약접수완료일시*/
+                                                  </trim></if>
+                                                  <if test="@MybatisUtils@isNotEmpty(trsYn)"><trim>
+                                                      , TRS_YN /*전송여부*/
+                                                  </trim></if>
+        <include refid="COMMON.insertSystemField"/>
+        )
+        VALUES ( #{pspcCstCnslId} /*가망고객상담ID*/
+               , #{pspcCstCnslSn} /*가망고객상담일련번호*/
+               <if test="@MybatisUtils@isNotEmpty(mbCstNo)"><trim>
+                   , #{mbCstNo} /*회원고객번호*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(pdCd)"><trim>
+                   , #{pdCd} /*상품코드*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(cntrNo)"><trim>
+                   , #{cntrNo} /*계약번호*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(cntrSn)"><trim>
+                   , #{cntrSn} /*계약일련번호*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(cntrRcpFshDtm)"><trim>
+                   , #{cntrRcpFshDtm} /*계약접수완료일시*/
+               </trim></if>
+               <if test="@MybatisUtils@isNotEmpty(trsYn)"><trim>
+                   , #{trsYn} /*전송여부*/
+               </trim></if>
+        <include refid="COMMON.insertSystemFieldValue"/>
+               )
+    </insert>
+
+    <select id="isExistCstBas" resultType="java.lang.Boolean">
+        SELECT COUNT(1)
+          FROM TB_CUBS_CST_BAS
+         WHERE DTA_DL_YN = 'N'
+           AND CST_NO = #{cstNo}
+           AND CST_KNM = #{cstKnm}
+           <if test="@MybatisUtils@isNotEmpty(copnDvCd)"><trim>
+               AND COPN_DV_CD = #{copnDvCd}
+           </trim></if>
+           <choose>
+               <when test="@MybatisUtils@equals(copnDvCd, '1')"><trim>
+                   AND BRYY_MMDD = #{bryyMmdd}
+                   AND SEX_DV_CD = #{sexDvCd}
+               </trim></when>
+               <when test="@MybatisUtils@equals(copnDvCd, '2')"><trim>
+                   AND BZRNO = #{bzrno}
+               </trim></when>
+           </choose>
+           AND CRAL_LOCARA_TNO = #{cralLocaraTno}
+           AND MEXNO_ENCR = #{mexnoEncr}
+           AND CRAL_IDV_TNO = #{cralIdvTno}
+    </select>
+
+    <select id="selectCstBasWithInfos"
+            resultType="com.kyowon.sms.wells.web.contract.common.dvo.WctzCstBasDvo">
+        SELECT *
+          FROM TB_CUBS_CST_BAS
+         WHERE DTA_DL_YN = 'N'
+           AND CST_NO = #{cstNo}
+           AND CST_KNM = #{cstKnm}
+           <if test="@MybatisUtils@isNotEmpty(copnDvCd)"><trim>
+               AND COPN_DV_CD = #{copnDvCd}
+           </trim></if>
+           <choose>
+               <when test="@MybatisUtils@equals(copnDvCd, '1')"><trim>
+                   AND BRYY_MMDD = #{bryyMmdd}
+                   AND SEX_DV_CD = #{sexDvCd}
+               </trim></when>
+               <when test="@MybatisUtils@equals(copnDvCd, '2')"><trim>
+                   AND BZRNO = #{bzrno}
+               </trim></when>
+           </choose>
+    </select>
+
+    <select id="selectRentalPdPrcFnlDtl"
+            resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaRentalFinalPriceDvo">
+        SELECT T_PD_PRC_FNL_DTL.PD_PRC_FNL_DTL_ID /*상품가격최종상세ID*/
+             , T_PD_PRC_FNL_DTL.VER_SN /*버전일련번호*/
+             , T_PD_PRC_FNL_DTL.HIST_STRT_DTM /*이력시작일시*/
+             , T_PD_PRC_FNL_DTL.HIST_END_DTM /*이력종료일시*/
+             , T_PD_PRC_FNL_DTL.VL_STRT_DTM /*유효시작일시*/
+             , T_PD_PRC_FNL_DTL.VL_END_DTM /*유효종료일시*/
+             , T_PD_PRC_FNL_DTL.PD_CD /*상품코드*/
+             , T_PD_PRC_FNL_DTL.PD_PRC_ID /*상품가격ID*/
+             , T_PD_PRC_FNL_DTL.PD_PRC_DTL_ID /*상품가격상세ID*/
+             , T_PD_PRC_FNL_DTL.SELL_CHNL_CD /*판매채널코드*/
+             , T_PD_PRC_FNL_DTL.SV_PD_CD /*서비스상품코드*/
+             , T_PD_PRC_FNL_DTL.STPL_PRD_CD /*약정주기코드*/
+             , T_PD_PRC_FNL_DTL.FXAM_FXRT_DV_CD /*정액정률구분코드*/
+             , T_PD_PRC_FNL_DTL.CTR_VAL /*조정값*/
+             , T_PD_PRC_FNL_DTL.FNL_VAL /*최종값*/
+             , T_PD_PRC_FNL_DTL.VAT /*부가가치세*/
+             , T_PD_PRC_FNL_DTL.ACKMT_AMT /*인정금액*/
+             , T_PD_PRC_FNL_DTL.ACKMT_CT /*인정건수*/
+             , T_PD_PRC_FNL_DTL.SELL_FEE /*판매수수료*/
+             , T_PD_PRC_FNL_DTL.SV_FEE /*서비스수수료*/
+             , T_PD_PRC_FNL_DTL.DTA_DL_YN /*데이터삭제여부*/
+             , T_PD_PRC_FNL_DTL.CNDT_FXAM_FXRT_DV_CD /*조건정액정률구분코드*/
+             , T_PD_PRC_FNL_DTL.CNDT_DSC_PRUM_VAL /*조건할인할증값*/
+             , T_PD_PRC_FNL_DTL.BASE_PD_CD /*기준상품코드*/
+             , T_PD_PRC_FNL_DTL.SELL_TP_CD /*기준상품코드*/
+             , T_PD_PRC_DTL.BAS_VAL /*기준가*/
+          FROM TB_PDBS_PD_PRC_FNL_DTL                   T_PD_PRC_FNL_DTL /* 상품가격최종상세 */
+               INNER JOIN (SELECT PD_PRC_FNL_DTL_ID, MAX(VER_SN) AS MAX_VER_SN
+                             FROM TB_PDBS_PD_PRC_FNL_DTL
+                            WHERE DTA_DL_YN = 'N'
+                            GROUP BY PD_PRC_FNL_DTL_ID) T_MAX_VER_PD_PRC_FNL_DTL
+               ON T_PD_PRC_FNL_DTL.PD_PRC_FNL_DTL_ID = T_MAX_VER_PD_PRC_FNL_DTL.PD_PRC_FNL_DTL_ID
+                   AND T_PD_PRC_FNL_DTL.VER_SN = T_MAX_VER_PD_PRC_FNL_DTL.MAX_VER_SN
+               INNER JOIN TB_PDBS_PD_PRC_DTL            T_PD_PRC_DTL /* 상품가격상세 */
+               ON T_PD_PRC_DTL.PD_PRC_DTL_ID = T_PD_PRC_FNL_DTL.PD_PRC_DTL_ID
+               INNER JOIN (SELECT PD_PRC_DTL_ID, MAX(VER_SN) AS MAX_VER_SN
+                             FROM TB_PDBS_PD_PRC_DTL
+                            WHERE DTA_DL_YN = 'N'
+                            GROUP BY PD_PRC_DTL_ID)     T_MAX_VER_PD_PRC_DTL_ID
+               ON T_PD_PRC_DTL.PD_PRC_DTL_ID = T_MAX_VER_PD_PRC_DTL_ID.PD_PRC_DTL_ID
+                   AND T_PD_PRC_DTL.VER_SN = T_MAX_VER_PD_PRC_DTL_ID.MAX_VER_SN
+         WHERE TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T_PD_PRC_FNL_DTL.VL_STRT_DTM AND T_PD_PRC_FNL_DTL.VL_END_DTM
+           AND T_PD_PRC_FNL_DTL.PD_CD = #{pdCd}
+           AND T_PD_PRC_FNL_DTL.SELL_TP_CD = #{sellTpCd}
+           AND T_PD_PRC_FNL_DTL.SV_PD_CD = #{svPdCd}
+           AND T_PD_PRC_FNL_DTL.SELL_CHNL_CD = #{sellChnlCd}
+           AND T_PD_PRC_FNL_DTL.STPL_PRD_CD = #{stplPrdCd}
+           AND T_PD_PRC_FNL_DTL.PD_PRC_CNDT_CHRC_VAL07 = #{pdPrcCndtChrcVal07} /* 변동개월 == 계약기간 필수임 */
+           <if test="@MybatisUtils@isNotEmpty(pdPrcCndtChrcVal01)"><trim>
+               AND NVL(T_PD_PRC_FNL_DTL.PD_PRC_CNDT_CHRC_VAL01, 0) = #{pdPrcCndtChrcVal01} /* 계약금 0으로 입력 할 수도 */
+           </trim></if>
+           <if test="@MybatisUtils@isEmpty(pdPrcCndtChrcVal01)"><trim>
+               AND NVL(T_PD_PRC_FNL_DTL.PD_PRC_CNDT_CHRC_VAL01, 0) = 0
+           </trim></if>
+           <if test="@MybatisUtils@isNotEmpty(pdPrcCndtChrcVal02)"><trim>
+               AND T_PD_PRC_FNL_DTL.PD_PRC_CNDT_CHRC_VAL02 = #{pdPrcCndtChrcVal02}
+           </trim></if>
+           <if test="@MybatisUtils@isEmpty(pdPrcCndtChrcVal02)"><trim>
+               AND T_PD_PRC_FNL_DTL.PD_PRC_CNDT_CHRC_VAL02 IS NULL
+           </trim></if>
+           <if test="@MybatisUtils@isNotEmpty(pdPrcCndtChrcVal11)"><trim>
+               AND T_PD_PRC_FNL_DTL.PD_PRC_CNDT_CHRC_VAL11 = #{pdPrcCndtChrcVal11}
+           </trim></if>
+           <if test="@MybatisUtils@isEmpty(pdPrcCndtChrcVal11)"><trim>
+               AND T_PD_PRC_FNL_DTL.PD_PRC_CNDT_CHRC_VAL11 IS NULL
+           </trim></if>
+           <if test="@MybatisUtils@isNotEmpty(pdPrcCndtChrcVal03)"><trim>
+               AND T_PD_PRC_FNL_DTL.PD_PRC_CNDT_CHRC_VAL03 = #{pdPrcCndtChrcVal03}
+           </trim></if>
+           <if test="@MybatisUtils@isEmpty(pdPrcCndtChrcVal03)"><trim>
+               AND T_PD_PRC_FNL_DTL.PD_PRC_CNDT_CHRC_VAL03 IS NULL
+           </trim></if>
+    </select>
+
+    <select id="selectAlncmpDgPrtnr"
+            resultType="com.kyowon.sms.wells.web.contract.common.dvo.WctzMmPrtnrIzDvo">
+        SELECT BASE_YM /*기준년월*/
+             , OG_TP_CD /*조직유형코드*/
+             , PRTNR_NO /*파트너번호*/
+             , COPN_DV_CD /*법인격구분코드*/
+             , LNF_DV_CD /*내외국인구분코드*/
+             , PRTNR_KNM /*파트너한글명*/
+             , PRTNR_ENM /*파트너영문명*/
+             , OG_ID /*조직ID*/
+             , OG_CD /*조직코드*/
+             , OG_NM /*조직명*/
+             , PSTN_DV_CD /*직급구분코드*/
+             , RSB_DV_CD /*직책구분코드*/
+             , ROL_DV_CD /*직무구분코드*/
+             , PRTNR_GD_CD /*파트너등급코드*/
+             , BZ_STAT_CD /*사업상태코드*/
+             , SELL_PSB_PRTNR_YN /*판매가능파트너여부*/
+             , HIR_FOM_CD /*고용형태코드*/
+             , NVL(DECODE(SELL_INFLW_CHNL_DTL_CD, '6080', '1010', '8050', '1010', SELL_INFLW_CHNL_DTL_CD), '1010') AS SELL_INFLW_CHNL_DTL_CD
+          FROM TB_OGBS_MM_PRTNR_IZ
+         WHERE DTA_DL_YN = 'N'
+           AND BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND PRTNR_NO = #{alncmpDgPrtnrMapngCd}
+           AND OG_TP_CD = #{alncmpDgPrtnrOgTpCd} /* 제휴 ALC */
+    </select>
+
+    <select id="selectProductPriceDetail"
+            resultType="com.kyowon.sms.wells.web.contract.common.dvo.WctzPdPrcDtlDvo">
+
+    </select>
+
+    <select id="selectPdRels"
+            resultType="com.kyowon.sms.wells.web.contract.common.dvo.WctzPdRelDvo">
+        SELECT PD_REL_ID /*상품관계ID*/
+             , VL_STRT_DTM /*유효시작일시*/
+             , VL_END_DTM /*유효종료일시*/
+             , BASE_PD_CD /*기준상품코드*/
+             , PD_REL_TP_CD /*상품관계유형코드*/
+             , PD_REL_DTL_TP_CD /*상품관계상세유형코드*/
+             , OJ_PD_CD /*대상상품코드*/
+             , SV_PD_CD /*서비스상품코드*/
+             , RLTG_PD_CD /*실물상품코드*/
+             , STPL_PRD_CD /*약정주기코드*/
+             , CPB_DV_CD /*호환구분코드*/
+             , PD_GRP_ID /*상품그룹ID*/
+             , PD_DTL_ID /*상품상세ID*/
+             , DIVI_RAT /*안분비율*/
+             , BLAM_INPT_YN /*잔액산입여부*/
+             , TEMP_SAVE_YN /*임시저장여부*/
+             , DTA_DL_YN /*데이터삭제여부*/
+             , BAS_VAL /*기본값*/
+             , FNL_VAL /*최종값*/
+             , SPL_AMT /*공급금액*/
+             , VAT /*부가가치세*/
+             , ACKMT_CT /*인정건수*/
+             , ACKMT_AMT /*인정금액*/
+             , ACKMT_PERF_RT /*인정실적율*/
+             , SELL_FEE /*판매수수료*/
+             , FEE_FXAM_YN /*수수료정액여부*/
+             , SPP_TN /*배송회차*/
+             , BOO_SELL_YN /*예약판매여부*/
+             , BOO_SPP_DT /*예약배송일자*/
+             , NVL(ITM_QTY, 1) AS ITM_QTY/*품목수량*/
+          FROM TB_PDBS_PD_REL T_PD_REL
+         WHERE T_PD_REL.DTA_DL_YN = 'N'
+           <if test="@MybatisUtils@isNotEmpty(basePdCd)"><trim>
+               AND T_PD_REL.BASE_PD_CD = #{basePdCd}
+           </trim></if>
+           <if test="@MybatisUtils@isNotEmpty(pdRelTpCd)"><trim>
+               AND T_PD_REL.PD_REL_TP_CD = #{pdRelTpCd}
+           </trim></if>
+    </select>
+
+    <sql id="selectBulkContractDvo">
+        SELECT #{dvo.basePdCd} AS BASE_PD_CD
+             , #{dvo.copnDvCd} AS COPN_DV_CD
+             , #{dvo.cstNo} AS CNTR_CST_NO
+             , #{dvo.cstNo} AS CST_NO
+             , #{dvo.sellPrtnrNo} AS SELL_PRTNR_NO
+             , #{dvo.sellPrtnrNo} AS PRTNR_NO
+             , #{dvo.alncmpCd} AS ALNCMP_CD
+             , #{dvo.sellOgTpCd} AS SELL_OG_TP_CD
+             , #{dvo.cntrAmt} AS CNTR_AMT
+             , #{dvo.cntrPtrm} AS CNTR_PTRM
+             , #{dvo.svPdCd} AS SV_PD_CD
+             , #{dvo.stplPtrm} AS STPL_PTRM
+             , #{dvo.sellDscTpCd} AS SELL_DSC_TP_CD
+             , #{dvo.sellDscDvCd} AS SELL_DSC_DV_CD
+             , #{dvo.sellDscrCd} AS SELL_DSCR_CD
+             , #{dvo.sellDscCtrAmt} AS SELL_DSC_CTR_AMT
+             , #{dvo.otsdLkDrmVal} AS OTSD_LK_DRM_VAL
+             , #{dvo.adrId} AS ADR_ID
+             , #{dvo.pdHclsfId} AS PD_HCLSF_ID
+             , #{dvo.pdMclsfId} AS PD_MCLSF_ID
+             , #{dvo.pdLclsfId} AS PD_LCLSF_ID
+             , #{dvo.pdDclsfId} AS PD_DCLSF_ID
+             , #{dvo.sellTpCd} AS SELL_TP_CD
+             , #{dvo.sellTpDtlCd} AS SELL_TP_DTL_CD
+             , #{dvo.svPrd} AS SV_PRD
+             , #{dvo.pdBaseAmt} AS PD_BASE_AMT
+             , #{dvo.sellAmt} AS SELL_AMT
+             , #{dvo.dscAmt} AS DSC_AMT
+             , #{dvo.fnlAmt} AS FNL_AMT
+             , #{dvo.vat} AS VAT
+             , #{dvo.cntrTam} AS CNTR_TAM
+             , #{dvo.ackmtPerfRt} AS ACKMT_PERF_RT
+             , #{dvo.ackmtPerfAmt} AS ACKMT_PERF_AMT
+             , #{dvo.feeAckmtCt} AS FEE_ACKMT_CT
+             , #{dvo.feeAckmtBaseAmt} AS FEE_ACKMT_BASE_AMT
+             , #{dvo.cntrNo} AS CNTR_NO
+             , #{dvo.cntrNo} AS DTL_CNTR_NO
+             , #{dvo.cntrSn} AS CNTR_SN
+             , #{dvo.cntrSn} AS DTL_CNTR_SN
+             , #{dvo.cntrTpCd} AS CNTR_TP_CD
+             , #{dvo.cntrPrgsStatCd} AS CNTR_PRGS_STAT_CD
+             , #{dvo.cntrNatCd} AS CNTR_NAT_CD
+             , #{dvo.pdQty} AS PD_QTY
+             , #{dvo.cntrwTpCd} AS CNTRW_TP_CD
+             , #{dvo.txinvPblOjYn} AS TXINV_PBL_OJ_YN
+             , #{dvo.coCd} AS CO_CD
+             , #{dvo.cntramDscAmt} AS CNTRAM_DSC_AMT
+             , #{dvo.cntrPrtnrRelId} AS CNTR_PRTNR_REL_ID
+             , #{dvo.cntrUnitTpCd} AS CNTR_UNIT_TP_CD
+             , #{dvo.cntrPrtnrTpCd} AS CNTR_PRTNR_TP_CD
+             , #{dvo.cntrCstRelId} AS CNTR_CST_REL_ID
+             , #{dvo.cntrCstRelTpCd} AS CNTR_CST_REL_TP_CD
+             , #{dvo.cntrtRelCd} AS CNTRT_REL_CD
+             , #{dvo.sellInflwChnlDtlCd} AS SELL_INFLW_CHNL_DTL_CD
+             , #{dvo.pdctCntrPdRelId} AS PDCT_CNTR_PD_REL_ID
+             , #{dvo.pdctPdRelId} AS PDCT_PD_REL_ID
+             , #{dvo.pdctPdCd} AS PDCT_PD_CD
+             , #{dvo.pdctVlStrtDtm} AS PDCT_VL_STRT_DTM
+             , #{dvo.pdctVlEndDtm} AS PDCT_VL_END_DTM
+             , #{dvo.pdctPdQty} AS PDCT_PD_QTY
+             , #{dvo.svCntrPdRelId} AS SV_CNTR_PD_REL_ID
+             , #{dvo.svPdRelId} AS SV_PD_REL_ID
+             , #{dvo.svVlStrtDtm} AS SV_VL_STRT_DTM
+             , #{dvo.svVlEndDtm} AS SV_VL_END_DTM
+             , #{dvo.svPdQty} AS SV_PD_QTY
+             , #{dvo.cntrPrcCmptId} AS CNTR_PRC_CMPT_ID
+             , #{dvo.pdPrcFnlDtlId} AS PD_PRC_FNL_DTL_ID
+             , #{dvo.verSn} AS VER_SN
+             , #{dvo.fxamFxrtDvCd} AS FXAM_FXRT_DV_CD
+             , #{dvo.ctrVal} AS CTR_VAL
+             , #{dvo.fnlVal} AS FNL_VAL
+             , #{dvo.pdPrcId} AS PD_PRC_ID
+             , #{dvo.hcrDvCd} AS HCR_DV_CD
+             , #{dvo.frisuBfsvcPtrmN} AS FRISU_BFSVC_PTRM_N
+             , #{dvo.istDt} AS IST_DT
+             , #{dvo.bfsvcBzsDvCd} AS BFSVC_BZS_DV_CD
+             , #{dvo.splyBzsDvCd} AS SPLY_BZS_DV_CD
+             , 'N' AS DTA_DL_YN
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FST_RGST_DTM
+             , #{session.userId} AS FST_RGST_USR_ID
+             , #{session.pageId} AS FST_RGST_PRG_ID
+             , NVL(#{session.ogId}, 'NULL') AS FST_RGST_DEPT_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
+             , #{session.userId} AS FNL_MDFC_USR_ID
+             , #{session.pageId} AS FNL_MDFC_PRG_ID
+             , NVL(#{session.ogId}, 'NULL') AS FNL_MDFC_DEPT_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS HIST_STRT_DTM
+             , '99991231235959' AS HIST_END_DTM
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS VL_STRT_DTM
+             , '99991231235959' AS VL_END_DTM
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS CNTR_TEMP_SAVE_DTM
+          FROM DUAL
+    </sql>
+
+    <sql id="tbSsopCntrBasFieldsForRental">
+              CNTR_NO /*계약번호*/
+            , CNTR_CST_NO /*계약고객번호*/
+            , COPN_DV_CD /*법인격구분코드*/
+            , SELL_PRTNR_NO /*판매파트너번호*/
+            , CNTR_NAT_CD /*계약국가코드*/
+            , CNTR_PRGS_STAT_CD /*계약진행상태코드*/
+            , CNTR_TEMP_SAVE_DTM /*계약임시저장일시*/
+            , DTA_DL_YN /*데이터삭제여부*/
+            , FST_RGST_DTM /*최초등록일시*/
+            , FST_RGST_USR_ID /*최초등록사용자ID*/
+            , FST_RGST_PRG_ID /*최초등록프로그램ID*/
+            , FST_RGST_DEPT_ID /*최초등록부서ID*/
+            , FNL_MDFC_DTM /*최종수정일시*/
+            , FNL_MDFC_USR_ID /*최종수정사용자ID*/
+            , FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+            , FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+            , CNTR_TP_CD /*계약유형코드*/
+            , SELL_INFLW_CHNL_DTL_CD /*판매유입채널상세코드*/
+            , SELL_OG_TP_CD /*판매조직유형코드*/
+    </sql>
+
+    <sql id="tbSsopCntrDtlFieldsForRental">
+              CNTR_NO /*계약번호*/
+            , CNTR_SN /*계약일련번호*/
+            , BASE_PD_CD /*기준상품코드*/
+            , PD_QTY /*상품수량*/
+            , STPL_PTRM /*약정기간*/
+            , SELL_TP_CD /*판매유형코드*/
+            , SV_PRD /*서비스주기*/
+            , CO_CD /*회사코드*/
+            , PD_HCLSF_ID /*상품대분류ID*/
+            , PD_MCLSF_ID /*상품중분류ID*/
+            , PD_LCLSF_ID /*상품소분류ID*/
+            , PD_DCLSF_ID /*상품세분류ID*/
+            , PD_BASE_AMT /*상품기준금액*/
+            , FNL_AMT /*최종금액*/
+            , VAT /*부가가치세*/
+            , SELL_AMT /*판매금액*/
+            , CNTR_AMT /*계약금액*/
+            , ACKMT_PERF_RT /*인정실적율*/
+            , ACKMT_PERF_AMT /*인정실적금액*/
+            , DTA_DL_YN /*데이터삭제여부*/
+            , FST_RGST_DTM /*최초등록일시*/
+            , FST_RGST_USR_ID /*최초등록사용자ID*/
+            , FST_RGST_PRG_ID /*최초등록프로그램ID*/
+            , FST_RGST_DEPT_ID /*최초등록부서ID*/
+            , FNL_MDFC_DTM /*최종수정일시*/
+            , FNL_MDFC_USR_ID /*최종수정사용자ID*/
+            , FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+            , FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+            , CNTRW_TP_CD /*계약서유형코드*/
+            , TXINV_PBL_OJ_YN /*세금계산서발행대상여부*/
+            , FEE_ACKMT_CT /*수수료인정건수*/
+            , FEE_ACKMT_BASE_AMT /*수수료인정기준금액*/
+            , SELL_TP_DTL_CD /*판매유형상세코드*/
+            , SELL_DSC_DV_CD /*판매할인구분코드*/
+            , SELL_DSCR_CD /*판매할인율코드*/
+            , SELL_DSC_CTR_AMT /*판매할인조정금액*/
+            , SELL_DSC_TP_CD /*판매할인유형코드*/
+            , CNTRAM_DSC_AMT /*계약금할인금액*/
+            , ALNCMP_CD /*제휴사코드*/
+            , CNTR_TAM /*계약총액*/
+            , CNTR_PTRM /*계약기간*/
+    </sql>
+
+    <sql id="tbSsctCntrPrtnrRelFieldsForRental">
+              CNTR_PRTNR_REL_ID /*계약파트너관계ID*/
+            , VL_STRT_DTM /*유효시작일시*/
+            , VL_END_DTM /*유효종료일시*/
+            , CNTR_NO /*계약번호*/
+            , PRTNR_NO /*파트너번호*/
+            , CNTR_PRTNR_TP_CD /*계약파트너유형코드*/
+            , DTA_DL_YN /*데이터삭제여부*/
+            , FST_RGST_DTM /*최초등록일시*/
+            , FST_RGST_USR_ID /*최초등록사용자ID*/
+            , FST_RGST_PRG_ID /*최초등록프로그램ID*/
+            , FST_RGST_DEPT_ID /*최초등록부서ID*/
+            , FNL_MDFC_DTM /*최종수정일시*/
+            , FNL_MDFC_USR_ID /*최종수정사용자ID*/
+            , FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+            , FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+    </sql>
+
+    <select id="selectCntrPrtnrRelIdForNewCntrPrtnrRel" resultType="java.lang.String">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_PRTNR_REL_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_PRTNR_REL
+    </select>
+
+    <sql id="tbSsctCntrCstRelFieldsForRental">
+              CNTR_CST_REL_ID /*계약고객관계ID*/
+            , VL_STRT_DTM /*유효시작일시*/
+            , VL_END_DTM /*유효종료일시*/
+            , CNTR_UNIT_TP_CD /*계약단위유형코드*/
+            , DTL_CNTR_NO /*계약번호*/
+            , DTL_CNTR_SN /*계약일련번호*/
+            , COPN_DV_CD /*법인격구분코드*/
+            , CST_NO /*고객번호*/
+            , CNTR_CST_REL_TP_CD /*계약고객관계유형코드*/
+            , CNTRT_REL_CD /*계약자관계코드*/
+            , DTA_DL_YN /*데이터삭제여부*/
+            , FST_RGST_DTM /*최초등록일시*/
+            , FST_RGST_USR_ID /*최초등록사용자ID*/
+            , FST_RGST_PRG_ID /*최초등록프로그램ID*/
+            , FST_RGST_DEPT_ID /*최초등록부서ID*/
+            , FNL_MDFC_DTM /*최종수정일시*/
+            , FNL_MDFC_USR_ID /*최종수정사용자ID*/
+            , FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+            , FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+    </sql>
+
+    <select id="selectCntrCstRelIdForNewCntrCstRel" resultType="java.lang.String">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_CST_REL_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_CST_REL
+    </select>
+
+    <sql id="tbSsctCntrWellsDtlFieldsForRental">
+              CNTR_NO /*계약번호*/
+            , CNTR_SN /*계약일련번호*/
+            , OTSD_LK_DRM_VAL /*외부연계식별값*/
+            , DTA_DL_YN /*데이터삭제여부*/
+            , FST_RGST_DTM /*최초등록일시*/
+            , FST_RGST_USR_ID /*최초등록사용자ID*/
+            , FST_RGST_PRG_ID /*최초등록프로그램ID*/
+            , FST_RGST_DEPT_ID /*최초등록부서ID*/
+            , FNL_MDFC_DTM /*최종수정일시*/
+            , FNL_MDFC_USR_ID /*최종수정사용자ID*/
+            , FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+            , FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+    </sql>
+
+    <sql id="tbSsctCntrPdRelFieldsForRental">
+              CNTR_PD_REL_ID /*계약상품관계ID*/
+            , VL_STRT_DTM /*유효시작일시*/
+            , VL_END_DTM /*유효종료일시*/
+            , CNTR_NO /*계약번호*/
+            , CNTR_SN /*계약일련번호*/
+            , PD_REL_ID /*상품관계ID*/
+            , BASE_PD_CD /*기준상품코드*/
+            , OJ_PD_CD /*대상상품코드*/
+            , PD_REL_TP_CD /*상품관계유형코드*/
+            , PD_QTY /*상품수량*/
+            , DTA_DL_YN /*데이터삭제여부*/
+            , FST_RGST_DTM /*최초등록일시*/
+            , FST_RGST_USR_ID /*최초등록사용자ID*/
+            , FST_RGST_PRG_ID /*최초등록프로그램ID*/
+            , FST_RGST_DEPT_ID /*최초등록부서ID*/
+            , FNL_MDFC_DTM /*최종수정일시*/
+            , FNL_MDFC_USR_ID /*최종수정사용자ID*/
+            , FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+            , FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+    </sql>
+
+    <sql id="tbSsctCntrPdRelPdctValuesForRental">
+              PDCT_CNTR_PD_REL_ID /*계약상품관계ID*/
+            , PDCT_VL_STRT_DTM /*유효시작일시*/
+            , PDCT_VL_END_DTM /*유효종료일시*/
+            , CNTR_NO /*계약번호*/
+            , CNTR_SN /*계약일련번호*/
+            , PDCT_PD_REL_ID /*상품관계ID*/
+            , BASE_PD_CD /*기준상품코드*/
+            , PDCT_PD_CD /*대상상품코드*/
+            , '03' /*상품관계유형코드*/
+            , PDCT_PD_QTY /*상품수량*/
+            , DTA_DL_YN /*데이터삭제여부*/
+            , FST_RGST_DTM /*최초등록일시*/
+            , FST_RGST_USR_ID /*최초등록사용자ID*/
+            , FST_RGST_PRG_ID /*최초등록프로그램ID*/
+            , FST_RGST_DEPT_ID /*최초등록부서ID*/
+            , FNL_MDFC_DTM /*최종수정일시*/
+            , FNL_MDFC_USR_ID /*최종수정사용자ID*/
+            , FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+            , FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+    </sql>
+
+    <sql id="tbSsctCntrPdRelSvValuesForRental">
+              SV_CNTR_PD_REL_ID /*계약상품관계ID*/
+            , SV_VL_STRT_DTM /*유효시작일시*/
+            , SV_VL_END_DTM /*유효종료일시*/
+            , CNTR_NO /*계약번호*/
+            , CNTR_SN /*계약일련번호*/
+            , SV_PD_REL_ID /*상품관계ID*/
+            , BASE_PD_CD /*기준상품코드*/
+            , SV_PD_CD /*대상상품코드*/
+            , '05' /*상품관계유형코드*/
+            , SV_PD_QTY /*상품수량*/
+            , DTA_DL_YN /*데이터삭제여부*/
+            , FST_RGST_DTM /*최초등록일시*/
+            , FST_RGST_USR_ID /*최초등록사용자ID*/
+            , FST_RGST_PRG_ID /*최초등록프로그램ID*/
+            , FST_RGST_DEPT_ID /*최초등록부서ID*/
+            , FNL_MDFC_DTM /*최종수정일시*/
+            , FNL_MDFC_USR_ID /*최종수정사용자ID*/
+            , FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+            , FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+    </sql>
+
+    <select id="selectCntrPdRelIdForNewCntrPdRel" resultType="java.lang.String">
+        SELECT LPAD(NVL(MAX(CNTR_PD_REL_ID) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_PD_REL
+    </select>
+
+    <sql id="tbSsctCntrPrcCmptIzFields">
+              CNTR_PRC_CMPT_ID /*계약가격산출ID*/
+            , CNTR_NO /*계약번호*/
+            , CNTR_SN /*계약일련번호*/
+            , PD_CD /*상품코드*/
+            , PD_PRC_FNL_DTL_ID /*상품가격최종상세ID*/
+            , VER_SN /*버전일련번호*/
+            , PD_PRC_ID /*상품가격ID*/
+            , FXAM_FXRT_DV_CD /*정액정률구분코드*/
+            , CTR_VAL /*조정값*/
+            , FNL_VAL /*최종값*/
+            , DTA_DL_YN /*데이터삭제여부*/
+            , FST_RGST_DTM /*최초등록일시*/
+            , FST_RGST_USR_ID /*최초등록사용자ID*/
+            , FST_RGST_PRG_ID /*최초등록프로그램ID*/
+            , FST_RGST_DEPT_ID /*최초등록부서ID*/
+            , FNL_MDFC_DTM /*최종수정일시*/
+            , FNL_MDFC_USR_ID /*최종수정사용자ID*/
+            , FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+            , FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+    </sql>
+
+    <sql id="tbSsctCntrPrcCmptIzValues">
+              CNTR_PRC_CMPT_ID /*계약가격산출ID*/
+            , CNTR_NO /*계약번호*/
+            , CNTR_SN /*계약일련번호*/
+            , BASE_PD_CD /*상품코드*/
+            , PD_PRC_FNL_DTL_ID /*상품가격최종상세ID*/
+            , VER_SN /*버전일련번호*/
+            , PD_PRC_ID /*상품가격ID*/
+            , FXAM_FXRT_DV_CD /*정액정률구분코드*/
+            , CTR_VAL /*조정값*/
+            , FNL_VAL /*최종값*/
+            , DTA_DL_YN /*데이터삭제여부*/
+            , FST_RGST_DTM /*최초등록일시*/
+            , FST_RGST_USR_ID /*최초등록사용자ID*/
+            , FST_RGST_PRG_ID /*최초등록프로그램ID*/
+            , FST_RGST_DEPT_ID /*최초등록부서ID*/
+            , FNL_MDFC_DTM /*최종수정일시*/
+            , FNL_MDFC_USR_ID /*최종수정사용자ID*/
+            , FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+            , FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+    </sql>
+
+    <select id="selectCntrPrcCmptIdForNewCntrPrcCmptIz" resultType="java.lang.String">
+        SELECT LPAD(NVL(MAX(CNTR_PRC_CMPT_ID) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_PRC_CMPT_IZ
+    </select>
+
+    <insert id="insertBulkRentals">
+        INSERT ALL
+            INTO TB_SSCT_CNTR_BAS (<include refid="tbSsopCntrBasFieldsForRental"/>)
+            VALUES (<include refid="tbSsopCntrBasFieldsForRental"/>)
+            INTO TB_SSCT_CNTR_CH_HIST (<include refid="tbSsopCntrBasFieldsForRental"/>, HIST_STRT_DTM, HIST_END_DTM)
+            VALUES (<include refid="tbSsopCntrBasFieldsForRental"/>, HIST_STRT_DTM, HIST_END_DTM)
+            INTO TB_SSCT_CNTR_DTL (<include refid="tbSsopCntrDtlFieldsForRental"/>)
+            VALUES (<include refid="tbSsopCntrDtlFieldsForRental"/>)
+            INTO TB_SSCT_CNTR_DCH_HIST (<include refid="tbSsopCntrDtlFieldsForRental"/>, HIST_STRT_DTM, HIST_END_DTM)
+            VALUES (<include refid="tbSsopCntrDtlFieldsForRental"/>, HIST_STRT_DTM, HIST_END_DTM)
+            INTO TB_SSCT_CNTR_WELLS_DTL (<include refid="tbSsctCntrWellsDtlFieldsForRental"/>)
+            VALUES (<include refid="tbSsctCntrWellsDtlFieldsForRental"/>)
+            INTO TB_SSCT_CNTR_WELLS_DCH_HIST (<include refid="tbSsctCntrWellsDtlFieldsForRental"/>, HIST_STRT_DTM, HIST_END_DTM)
+            VALUES (<include refid="tbSsctCntrWellsDtlFieldsForRental"/>, HIST_STRT_DTM, HIST_END_DTM)
+            INTO TB_SSCT_CNTR_PRTNR_REL (<include refid="tbSsctCntrPrtnrRelFieldsForRental"/>)
+            VALUES (<include refid="tbSsctCntrPrtnrRelFieldsForRental"/>)
+            INTO TB_SSCT_CNTR_CST_REL (<include refid="tbSsctCntrCstRelFieldsForRental"/>)
+            VALUES (<include refid="tbSsctCntrCstRelFieldsForRental"/>)
+            INTO TB_SSCT_CNTR_PD_REL (<include refid="tbSsctCntrPdRelFieldsForRental"/>)
+            VALUES (<include refid="tbSsctCntrPdRelPdctValuesForRental"/>)
+            INTO TB_SSCT_CNTR_PD_REL (<include refid="tbSsctCntrPdRelFieldsForRental"/>)
+            VALUES (<include refid="tbSsctCntrPdRelSvValuesForRental"/>)
+            INTO TB_SSCT_CNTR_PRC_CMPT_IZ (<include refid="tbSsctCntrPrcCmptIzFields"/>)
+            VALUES (<include refid="tbSsctCntrPrcCmptIzValues"/>)
+            INTO TB_SSCT_CNTR_PRCCCH_HIST (<include refid="tbSsctCntrPrcCmptIzFields"/>, HIST_STRT_DTM, HIST_END_DTM)
+            VALUES (<include refid="tbSsctCntrPrcCmptIzValues"/>, HIST_STRT_DTM, HIST_END_DTM)
+        <foreach collection="dvos" item="dvo" separator=" UNION ALL ">
+            <include refid="selectBulkContractDvo"/>
+        </foreach>
+    </insert>
+
+    <select id="selectSpayPdPrcFnlDtl"
+            resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaSpayFinalPriceDvo">
+        SELECT T_PD_PRC_FNL_DTL.PD_PRC_FNL_DTL_ID /*상품가격최종상세ID*/
+             , T_PD_PRC_FNL_DTL.VER_SN /*버전일련번호*/
+             , T_PD_PRC_FNL_DTL.HIST_STRT_DTM /*이력시작일시*/
+             , T_PD_PRC_FNL_DTL.HIST_END_DTM /*이력종료일시*/
+             , T_PD_PRC_FNL_DTL.VL_STRT_DTM /*유효시작일시*/
+             , T_PD_PRC_FNL_DTL.VL_END_DTM /*유효종료일시*/
+             , T_PD_PRC_FNL_DTL.PD_CD /*상품코드*/
+             , T_PD_PRC_FNL_DTL.PD_PRC_ID /*상품가격ID*/
+             , T_PD_PRC_FNL_DTL.PD_PRC_DTL_ID /*상품가격상세ID*/
+             , T_PD_PRC_FNL_DTL.SELL_CHNL_CD /*판매채널코드*/
+             , T_PD_PRC_FNL_DTL.SV_PD_CD /*서비스상품코드*/
+             , T_PD_PRC_FNL_DTL.STPL_PRD_CD /*약정주기코드*/
+             , T_PD_PRC_FNL_DTL.FXAM_FXRT_DV_CD /*정액정률구분코드*/
+             , T_PD_PRC_FNL_DTL.CTR_VAL /*조정값*/
+             , T_PD_PRC_FNL_DTL.FNL_VAL /*최종값*/
+             , T_PD_PRC_FNL_DTL.VAT /*부가가치세*/
+             , T_PD_PRC_FNL_DTL.ACKMT_AMT /*인정금액*/
+             , T_PD_PRC_FNL_DTL.ACKMT_CT /*인정건수*/
+             , T_PD_PRC_FNL_DTL.SELL_FEE /*판매수수료*/
+             , T_PD_PRC_FNL_DTL.SV_FEE /*서비스수수료*/
+             , T_PD_PRC_FNL_DTL.DTA_DL_YN /*데이터삭제여부*/
+             , T_PD_PRC_FNL_DTL.CNDT_FXAM_FXRT_DV_CD /*조건정액정률구분코드*/
+             , T_PD_PRC_FNL_DTL.CNDT_DSC_PRUM_VAL /*조건할인할증값*/
+             , T_PD_PRC_FNL_DTL.BASE_PD_CD /*기준상품코드*/
+             , T_PD_PRC_FNL_DTL.SELL_TP_CD /*기준상품코드*/
+             , T_PD_PRC_DTL.BAS_VAL /*기준가*/
+          FROM TB_PDBS_PD_PRC_FNL_DTL                   T_PD_PRC_FNL_DTL /* 상품가격최종상세 */
+               INNER JOIN (SELECT PD_PRC_FNL_DTL_ID, MAX(VER_SN) AS MAX_VER_SN
+                             FROM TB_PDBS_PD_PRC_FNL_DTL
+                            WHERE DTA_DL_YN = 'N'
+                            GROUP BY PD_PRC_FNL_DTL_ID) T_MAX_VER_PD_PRC_FNL_DTL
+               ON T_PD_PRC_FNL_DTL.PD_PRC_FNL_DTL_ID = T_MAX_VER_PD_PRC_FNL_DTL.PD_PRC_FNL_DTL_ID
+                   AND T_PD_PRC_FNL_DTL.VER_SN = T_MAX_VER_PD_PRC_FNL_DTL.MAX_VER_SN
+               INNER JOIN TB_PDBS_PD_PRC_DTL            T_PD_PRC_DTL /* 상품가격상세 */
+               ON T_PD_PRC_DTL.PD_PRC_DTL_ID = T_PD_PRC_FNL_DTL.PD_PRC_DTL_ID
+               INNER JOIN (SELECT PD_PRC_DTL_ID, MAX(VER_SN) AS MAX_VER_SN
+                             FROM TB_PDBS_PD_PRC_DTL
+                            WHERE DTA_DL_YN = 'N'
+                            GROUP BY PD_PRC_DTL_ID)     T_MAX_VER_PD_PRC_DTL_ID
+               ON T_PD_PRC_DTL.PD_PRC_DTL_ID = T_MAX_VER_PD_PRC_DTL_ID.PD_PRC_DTL_ID
+                   AND T_PD_PRC_DTL.VER_SN = T_MAX_VER_PD_PRC_DTL_ID.MAX_VER_SN
+         WHERE TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T_PD_PRC_FNL_DTL.VL_STRT_DTM AND T_PD_PRC_FNL_DTL.VL_END_DTM
+           AND T_PD_PRC_FNL_DTL.PD_CD = #{pdCd}
+           AND T_PD_PRC_FNL_DTL.SELL_TP_CD = #{sellTpCd}
+           AND T_PD_PRC_FNL_DTL.SV_PD_CD = #{svPdCd}
+           AND T_PD_PRC_FNL_DTL.SELL_CHNL_CD = #{sellChnlCd}
+           <if test="@MybatisUtils@isNotEmpty(pdPrcFnlPrpVal10)"><trim>
+               AND T_PD_PRC_FNL_DTL.PD_PRC_FNL_PRP_VAL10 = #{pdPrcFnlPrpVal10}
+           </trim></if>
+           <if test="@MybatisUtils@isEmpty(pdPrcFnlPrpVal10)"><trim>
+               AND NVL(T_PD_PRC_FNL_DTL.PD_PRC_FNL_PRP_VAL10, 0) = 0
+           </trim></if>
+           <if test="@MybatisUtils@isNotEmpty(pdPrcCndtChrcVal06)"><trim>
+               AND T_PD_PRC_FNL_DTL.PD_PRC_CNDT_CHRC_VAL06 = #{pdPrcCndtChrcVal06}
+           </trim></if>
+           <if test="@MybatisUtils@isEmpty(pdPrcCndtChrcVal06)"><trim>
+               AND T_PD_PRC_FNL_DTL.PD_PRC_CNDT_CHRC_VAL06 IS NULL /* 정상가로해야하나 */
+           </trim></if>
+           <if test="@MybatisUtils@isNotEmpty(pdPrcCndtChrcVal13)"><trim>
+               AND T_PD_PRC_FNL_DTL.PD_PRC_CNDT_CHRC_VAL13 = #{pdPrcCndtChrcVal13}
+           </trim></if>
+           <if test="@MybatisUtils@isEmpty(pdPrcCndtChrcVal13)"><trim>
+               AND T_PD_PRC_FNL_DTL.PD_PRC_CNDT_CHRC_VAL13 IS NULL
+           </trim></if>
+           <if test="@MybatisUtils@isNotEmpty(pdPrcCndtChrcVal05)"><trim>
+               AND T_PD_PRC_FNL_DTL.PD_PRC_CNDT_CHRC_VAL05 = #{pdPrcCndtChrcVal05}
+           </trim></if>
+           <if test="@MybatisUtils@isEmpty(pdPrcCndtChrcVal05)"><trim>
+               AND T_PD_PRC_FNL_DTL.PD_PRC_CNDT_CHRC_VAL05 IS NULL
+           </trim></if>
+    </select>
+
+    <sql id="tbSsopCntrDtlFieldsForSpay">
+            CNTR_NO /*계약번호*/
+            , CNTR_SN /*계약일련번호*/
+            , BASE_PD_CD /*기준상품코드*/
+            , PD_QTY /*상품수량*/
+            , SELL_TP_CD /*판매유형코드*/
+            , SV_PRD /*서비스주기*/
+            , CO_CD /*회사코드*/
+            , PD_HCLSF_ID /*상품대분류ID*/
+            , PD_MCLSF_ID /*상품중분류ID*/
+            , PD_LCLSF_ID /*상품소분류ID*/
+            , PD_DCLSF_ID /*상품세분류ID*/
+            , PD_BASE_AMT /*상품기준금액*/
+            , FNL_AMT /*최종금액*/
+            , VAT /*부가가치세*/
+            , SELL_AMT /*판매금액*/
+            , CNTR_AMT /*계약금액*/
+            , ACKMT_PERF_RT /*인정실적율*/
+            , ACKMT_PERF_AMT /*인정실적금액*/
+            , DTA_DL_YN /*데이터삭제여부*/
+            , FST_RGST_DTM /*최초등록일시*/
+            , FST_RGST_USR_ID /*최초등록사용자ID*/
+            , FST_RGST_PRG_ID /*최초등록프로그램ID*/
+            , FST_RGST_DEPT_ID /*최초등록부서ID*/
+            , FNL_MDFC_DTM /*최종수정일시*/
+            , FNL_MDFC_USR_ID /*최종수정사용자ID*/
+            , FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+            , FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+            , CNTRW_TP_CD /*계약서유형코드*/
+            , TXINV_PBL_OJ_YN /*세금계산서발행대상여부*/
+            , FEE_ACKMT_CT /*수수료인정건수*/
+            , FEE_ACKMT_BASE_AMT /*수수료인정기준금액*/
+            , SELL_TP_DTL_CD /*판매유형상세코드*/
+            , SELL_DSC_DV_CD /*판매할인구분코드*/
+            , SELL_DSCR_CD /*판매할인율코드*/
+            , SELL_DSC_CTR_AMT /*판매할인조정금액*/
+            , SELL_DSC_TP_CD /*판매할인유형코드*/
+            , CNTRAM_DSC_AMT /*계약금할인금액*/
+            , ALNCMP_CD /*제휴사코드*/
+            , CNTR_TAM /*계약총액*/
+            , CNTR_PTRM /*계약기간*/
+    </sql>
+
+    <sql id="tbSsctCntrWellsDtlFieldsForSpay">
+              CNTR_NO /*계약번호*/
+            , CNTR_SN /*계약일련번호*/
+            , FRISU_BFSVC_PTRM_N /*무상BS기간수*/
+            , IST_DT /*설치일자*/
+            , BFSVC_BZS_DV_CD /*BS업체구분코드*/
+            , SPLY_BZS_DV_CD /*조달업체구분코드*/
+            , HCR_DV_CD /*홈케어구분코드*/
+            , DTA_DL_YN /*데이터삭제여부*/
+            , FST_RGST_DTM /*최초등록일시*/
+            , FST_RGST_USR_ID /*최초등록사용자ID*/
+            , FST_RGST_PRG_ID /*최초등록프로그램ID*/
+            , FST_RGST_DEPT_ID /*최초등록부서ID*/
+            , FNL_MDFC_DTM /*최종수정일시*/
+            , FNL_MDFC_USR_ID /*최종수정사용자ID*/
+            , FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+            , FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+    </sql>
+
+    <insert id="insertBulkSpays">
+        INSERT ALL
+            INTO TB_SSCT_CNTR_BAS (<include refid="tbSsopCntrBasFieldsForRental"/>)
+            VALUES (<include refid="tbSsopCntrBasFieldsForRental"/>)
+            INTO TB_SSCT_CNTR_CH_HIST (<include refid="tbSsopCntrBasFieldsForRental"/>, HIST_STRT_DTM, HIST_END_DTM)
+            VALUES (<include refid="tbSsopCntrBasFieldsForRental"/>, HIST_STRT_DTM, HIST_END_DTM)
+            INTO TB_SSCT_CNTR_DTL (<include refid="tbSsopCntrDtlFieldsForSpay"/>)
+            VALUES (<include refid="tbSsopCntrDtlFieldsForSpay"/>)
+            INTO TB_SSCT_CNTR_DCH_HIST (<include refid="tbSsopCntrDtlFieldsForSpay"/>, HIST_STRT_DTM, HIST_END_DTM)
+            VALUES (<include refid="tbSsopCntrDtlFieldsForSpay"/>, HIST_STRT_DTM, HIST_END_DTM)
+            INTO TB_SSCT_CNTR_WELLS_DTL (<include refid="tbSsctCntrWellsDtlFieldsForSpay"/>)
+            VALUES (<include refid="tbSsctCntrWellsDtlFieldsForSpay"/>)
+            INTO TB_SSCT_CNTR_WELLS_DCH_HIST (<include refid="tbSsctCntrWellsDtlFieldsForSpay"/>, HIST_STRT_DTM, HIST_END_DTM)
+            VALUES (<include refid="tbSsctCntrWellsDtlFieldsForSpay"/>, HIST_STRT_DTM, HIST_END_DTM)
+            INTO TB_SSCT_CNTR_PRTNR_REL (<include refid="tbSsctCntrPrtnrRelFieldsForRental"/>)
+            VALUES (<include refid="tbSsctCntrPrtnrRelFieldsForRental"/>)
+            INTO TB_SSCT_CNTR_CST_REL (<include refid="tbSsctCntrCstRelFieldsForRental"/>)
+            VALUES (<include refid="tbSsctCntrCstRelFieldsForRental"/>)
+            INTO TB_SSCT_CNTR_PD_REL (<include refid="tbSsctCntrPdRelFieldsForRental"/>)
+            VALUES (<include refid="tbSsctCntrPdRelPdctValuesForRental"/>)
+            INTO TB_SSCT_CNTR_PD_REL (<include refid="tbSsctCntrPdRelFieldsForRental"/>)
+            VALUES (<include refid="tbSsctCntrPdRelSvValuesForRental"/>)
+        <foreach collection="dvos" item="dvo" separator=" UNION ALL ">
+            <include refid="selectBulkContractDvo"/>
+        </foreach>
+    </insert>
+
+    <insert id="insertBulkSpay">
+        INSERT ALL
+            INTO TB_SSCT_CNTR_BAS (<include refid="tbSsopCntrBasFieldsForRental"/>)
+            VALUES (<include refid="tbSsopCntrBasFieldsForRental"/>)
+            INTO TB_SSCT_CNTR_CH_HIST (<include refid="tbSsopCntrBasFieldsForRental"/>, HIST_STRT_DTM, HIST_END_DTM)
+            VALUES (<include refid="tbSsopCntrBasFieldsForRental"/>, HIST_STRT_DTM, HIST_END_DTM)
+            INTO TB_SSCT_CNTR_DTL (<include refid="tbSsopCntrDtlFieldsForSpay"/>)
+            VALUES (<include refid="tbSsopCntrDtlFieldsForSpay"/>)
+            INTO TB_SSCT_CNTR_DCH_HIST (<include refid="tbSsopCntrDtlFieldsForSpay"/>, HIST_STRT_DTM, HIST_END_DTM)
+            VALUES (<include refid="tbSsopCntrDtlFieldsForSpay"/>, HIST_STRT_DTM, HIST_END_DTM)
+            INTO TB_SSCT_CNTR_WELLS_DTL (<include refid="tbSsctCntrWellsDtlFieldsForSpay"/>)
+            VALUES (<include refid="tbSsctCntrWellsDtlFieldsForSpay"/>)
+            INTO TB_SSCT_CNTR_WELLS_DCH_HIST (<include refid="tbSsctCntrWellsDtlFieldsForSpay"/>, HIST_STRT_DTM, HIST_END_DTM)
+            VALUES (<include refid="tbSsctCntrWellsDtlFieldsForSpay"/>, HIST_STRT_DTM, HIST_END_DTM)
+            INTO TB_SSCT_CNTR_PRTNR_REL (<include refid="tbSsctCntrPrtnrRelFieldsForRental"/>)
+            VALUES (<include refid="tbSsctCntrPrtnrRelFieldsForRental"/>)
+            INTO TB_SSCT_CNTR_CST_REL (<include refid="tbSsctCntrCstRelFieldsForRental"/>)
+            VALUES (<include refid="tbSsctCntrCstRelFieldsForRental"/>)
+            INTO TB_SSCT_CNTR_PD_REL (<include refid="tbSsctCntrPdRelFieldsForRental"/>)
+            VALUES (<include refid="tbSsctCntrPdRelPdctValuesForRental"/>)
+            INTO TB_SSCT_CNTR_PD_REL (<include refid="tbSsctCntrPdRelFieldsForRental"/>)
+            VALUES (<include refid="tbSsctCntrPdRelSvValuesForRental"/>)
+        SELECT #{basePdCd} AS BASE_PD_CD
+             , #{copnDvCd} AS COPN_DV_CD
+             , #{cstNo} AS CNTR_CST_NO
+             , #{cstNo} AS CST_NO
+             , #{sellPrtnrNo} AS SELL_PRTNR_NO
+             , #{sellPrtnrNo} AS PRTNR_NO
+             , #{alncmpCd} AS ALNCMP_CD
+             , #{sellOgTpCd} AS SELL_OG_TP_CD
+             , #{cntrAmt} AS CNTR_AMT
+             , #{cntrPtrm} AS CNTR_PTRM
+             , #{svPdCd} AS SV_PD_CD
+             , #{stplPtrm} AS STPL_PTRM
+             , #{sellDscTpCd} AS SELL_DSC_TP_CD
+             , #{sellDscDvCd} AS SELL_DSC_DV_CD
+             , #{sellDscrCd} AS SELL_DSCR_CD
+             , #{sellDscCtrAmt} AS SELL_DSC_CTR_AMT
+             , #{otsdLkDrmVal} AS OTSD_LK_DRM_VAL
+             , #{adrId} AS ADR_ID
+             , #{pdHclsfId} AS PD_HCLSF_ID
+             , #{pdMclsfId} AS PD_MCLSF_ID
+             , #{pdLclsfId} AS PD_LCLSF_ID
+             , #{pdDclsfId} AS PD_DCLSF_ID
+             , #{sellTpCd} AS SELL_TP_CD
+             , #{sellTpDtlCd} AS SELL_TP_DTL_CD
+             , #{svPrd} AS SV_PRD
+             , #{pdBaseAmt} AS PD_BASE_AMT
+             , #{sellAmt} AS SELL_AMT
+             , #{dscAmt} AS DSC_AMT
+             , #{fnlAmt} AS FNL_AMT
+             , #{vat} AS VAT
+             , #{cntrTam} AS CNTR_TAM
+             , #{ackmtPerfRt} AS ACKMT_PERF_RT
+             , #{ackmtPerfAmt} AS ACKMT_PERF_AMT
+             , #{feeAckmtCt} AS FEE_ACKMT_CT
+             , #{feeAckmtBaseAmt} AS FEE_ACKMT_BASE_AMT
+             , #{cntrNo} AS CNTR_NO
+             , #{cntrSn} AS CNTR_SN
+             , #{cntrTpCd} AS CNTR_TP_CD
+             , #{cntrPrgsStatCd} AS CNTR_PRGS_STAT_CD
+             , #{cntrNatCd} AS CNTR_NAT_CD
+             , #{pdQty} AS PD_QTY
+             , #{cntrwTpCd} AS CNTRW_TP_CD
+             , #{txinvPblOjYn} AS TXINV_PBL_OJ_YN
+             , #{coCd} AS CO_CD
+             , #{cntramDscAmt} AS CNTRAM_DSC_AMT
+             , #{cntrPrtnrRelId} AS CNTR_PRTNR_REL_ID
+             , #{cntrUnitTpCd} AS CNTR_UNIT_TP_CD
+             , #{cntrPrtnrTpCd} AS CNTR_PRTNR_TP_CD
+             , #{cntrCstRelId} AS CNTR_CST_REL_ID
+             , #{cntrCstRelTpCd} AS CNTR_CST_REL_TP_CD
+             , #{cntrtRelCd} AS CNTRT_REL_CD
+             , #{sellInflwChnlDtlCd} AS SELL_INFLW_CHNL_DTL_CD
+             , #{pdctCntrPdRelId} AS PDCT_CNTR_PD_REL_ID
+             , #{pdctPdRelId} AS PDCT_PD_REL_ID
+             , #{pdctPdCd} AS PDCT_PD_CD
+             , #{pdctVlStrtDtm} AS PDCT_VL_STRT_DTM
+             , #{pdctVlEndDtm} AS PDCT_VL_END_DTM
+             , #{pdctPdQty} AS PDCT_PD_QTY
+             , #{svCntrPdRelId} AS SV_CNTR_PD_REL_ID
+             , #{svPdRelId} AS SV_PD_REL_ID
+             , #{svVlStrtDtm} AS SV_VL_STRT_DTM
+             , #{svVlEndDtm} AS SV_VL_END_DTM
+             , #{svPdQty} AS SV_PD_QTY
+             , #{cntrPrcCmptId} AS CNTR_PRC_CMPT_ID
+             , #{pdPrcFnlDtlId} AS PD_PRC_FNL_DTL_ID
+             , #{verSn} AS VER_SN
+             , #{fxamFxrtDvCd} AS FXAM_FXRT_DV_CD
+             , #{ctrVal} AS CTR_VAL
+             , #{fnlVal} AS FNL_VAL
+             , #{pdPrcId} AS PD_PRC_ID
+             , #{hcrDvCd} AS HCR_DV_CD
+             , #{frisuBfsvcPtrmN} AS FRISU_BFSVC_PTRM_N
+             , #{istDt} AS IST_DT
+             , #{bfsvcBzsDvCd} AS BFSVC_BZS_DV_CD
+             , #{splyBzsDvCd} AS SPLY_BZS_DV_CD
+             , 'N' AS DTA_DL_YN
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FST_RGST_DTM
+             , #{session.userId} AS FST_RGST_USR_ID
+             , #{session.pageId} AS FST_RGST_PRG_ID
+             , NVL(#{session.ogId}, 'NULL') AS FST_RGST_DEPT_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
+             , #{session.userId} AS FNL_MDFC_USR_ID
+             , #{session.pageId} AS FNL_MDFC_PRG_ID
+             , NVL(#{session.ogId}, 'NULL') AS FNL_MDFC_DEPT_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS HIST_STRT_DTM
+             , '99991231235959' AS HIST_END_DTM
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS VL_STRT_DTM
+             , '99991231235959' AS VL_END_DTM
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS CNTR_TEMP_SAVE_DTM
+          FROM DUAL
+    </insert>
+
+    <select id="selectNewCntrNo" resultType="java.lang.String">
+        SELECT 'W' || TO_CHAR(SYSDATE, 'YYYY') || LPAD(SQ_SSCT_CNTR_BAS$CNTR_NO.NEXTVAL, 7, 0)
+          FROM DUAL
+    </select>
+
+    <select id="selectIstlcValidation" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaIstlcValidationDvo">
+        SELECT T_CST_BAS.CST_NO
+             , T_CNTR_DTL.CNTR_PD_STRTDT
+             , T_CST_BAS.COPN_DV_CD
+             , T_CNTR_ADR_REL.CNTR_ADR_REL_ID
+             , T_CNTR_ADR_REL.ADRPC_TP_CD
+             , T_CNTR_ADR_REL.CNTR_UNIT_TP_CD
+          FROM TB_SSCT_CNTR_DTL                T_CNTR_DTL /*계약상세*/
+               INNER JOIN TB_SSCT_CNTR_BAS     T_CNTR_BAS /*계약기본*/
+               ON T_CNTR_BAS.DTA_DL_YN = 'N'
+                   AND T_CNTR_BAS.CNTR_NO = T_CNTR_DTL.CNTR_NO
+               INNER JOIN TB_CUBS_CST_BAS      T_CST_BAS
+               ON T_CST_BAS.DTA_DL_YN = 'N'
+                   AND T_CST_BAS.CST_NO = T_CNTR_BAS.CNTR_CST_NO
+               INNER JOIN TB_SSCT_CNTR_ADR_REL T_CNTR_ADR_REL /*계약주소관계*/
+               ON T_CNTR_ADR_REL.DTA_DL_YN = 'N'
+                   AND T_CNTR_ADR_REL.DTL_CNTR_NO = T_CNTR_DTL.CNTR_NO
+                   AND T_CNTR_ADR_REL.DTL_CNTR_SN = T_CNTR_DTL.CNTR_SN
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                       BETWEEN T_CNTR_ADR_REL.VL_STRT_DTM || '000000' AND T_CNTR_ADR_REL.VL_END_DTM || '235959'
+                   AND T_CNTR_ADR_REL.ADRPC_TP_CD IN ('2', '3') /* 주소지 유형 코드: 2.배달주소, 3.설치주소*/
+         WHERE T_CNTR_DTL.DTA_DL_YN = 'N'
+        <if test="@MybatisUtils@isNotEmpty(cntrNo)"><trim>
+            AND T_CNTR_DTL.CNTR_NO = #{cntrNo}
+        </trim></if>
+        <if test="@MybatisUtils@isNotEmpty(cntrSn)"><trim>
+            AND T_CNTR_DTL.CNTR_SN = #{cntrSn}
+        </trim></if>
+    </select>
+
+    <select id="selectNewCntrAdrpcId" resultType="java.lang.String">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_ADRPC_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_ADRPC_BAS
+    </select>
+
+    <select id="selectNewCntrAdrRelId" resultType="java.lang.String">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_ADR_REL_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_ADR_REL
+    </select>
+
+    <sql id="tbSsctCntrAdrpcBasFields">
+        CNTR_ADRPC_ID /*계약주소지ID*/
+        , CNTR_NO /*계약번호*/
+        , CNTR_CST_NO /*계약고객번호*/
+        , CNTRT_REL_CD /*계약자관계코드*/
+        , RCGVP_KNM /*수령자한글명*/
+        , RCGVP_ENM /*수령자영문명*/
+        , COPN_DV_CD /*법인격구분코드*/
+        , CRP_SPMT_DRM_NM /*법인추가식별명*/
+        , NAT_CD /*국가코드*/
+        , ADR_DV_CD /*주소구분코드*/
+        , ADR_ID /*주소ID*/
+        , CRAL_LOCARA_TNO /*휴대지역전화번호*/
+        , MEXNO_ENCR /*휴대전화국번호암호화*/
+        , CRAL_IDV_TNO /*휴대개별전화번호*/
+        , LOCARA_TNO /*지역전화번호*/
+        , EXNO_ENCR /*전화국번호암호화*/
+        , IDV_TNO /*개별전화번호*/
+        , EMADR /*이메일주소*/
+        , CNR_SPP_YN /*센터배송여부*/
+        , MVS_DSTC_RCVRY_BASE_DTM /*소산파기복구기준일시*/
+        , MVS_DSTC_RCVRY_DV_CD /*소산파기복구구분코드*/
+        , MVS_DSTC_RCVRY_DTM /*소산파기복구일시*/
+        , DTA_DL_YN /*데이터삭제여부*/
+        , FST_RGST_DTM /*최초등록일시*/
+        , FST_RGST_USR_ID /*최초등록사용자ID*/
+        , FST_RGST_PRG_ID /*최초등록프로그램ID*/
+        , FST_RGST_DEPT_ID /*최초등록부서ID*/
+        , FNL_MDFC_DTM /*최종수정일시*/
+        , FNL_MDFC_USR_ID /*최종수정사용자ID*/
+        , FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+        , FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+        , OG_TP_CD /*조직유형코드*/
+        , BLD_CD /*빌딩코드*/
+    </sql>
+
+    <insert id="insertBulkAdprcBases">
+        INSERT ALL
+            INTO TB_SSCT_CNTR_ADRPC_BAS (<include refid="tbSsctCntrAdrpcBasFields"/>)
+            VALUES (<include refid="tbSsctCntrAdrpcBasFields"/>)
+            INTO TB_SSCT_CNTR_ADR_CH_HIST (<include refid="tbSsctCntrAdrpcBasFields"/>, HIST_STRT_DTM, HIST_END_DTM)
+            VALUES (<include refid="tbSsctCntrAdrpcBasFields"/>, HIST_STRT_DTM, HIST_END_DTM)
+        <foreach collection="dvos" item="dvo" separator=" UNION ALL ">
+            SELECT #{dvo.cntrAdrpcId} AS CNTR_ADRPC_ID
+                 , #{dvo.cntrNo} AS CNTR_NO
+                 , #{dvo.cntrCstNo} AS CNTR_CST_NO
+                 , #{dvo.cntrtRelCd} AS CNTRT_REL_CD
+                 , #{dvo.rcgvpKnm} AS RCGVP_KNM
+                 , #{dvo.rcgvpEnm} AS RCGVP_ENM
+                 , #{dvo.copnDvCd} AS COPN_DV_CD
+                 , #{dvo.crpSpmtDrmNm} AS CRP_SPMT_DRM_NM
+                 , #{dvo.natCd} AS NAT_CD
+                 , #{dvo.adrDvCd} AS ADR_DV_CD
+                 , #{dvo.adrId} AS ADR_ID
+                 , #{dvo.cralLocaraTno} AS CRAL_LOCARA_TNO
+                 , #{dvo.mexnoEncr} AS MEXNO_ENCR
+                 , #{dvo.cralIdvTno} AS CRAL_IDV_TNO
+                 , #{dvo.locaraTno} AS LOCARA_TNO
+                 , #{dvo.exnoEncr} AS EXNO_ENCR
+                 , #{dvo.idvTno} AS IDV_TNO
+                 , #{dvo.emadr} AS EMADR
+                 , #{dvo.cnrSppYn} AS CNR_SPP_YN
+                 , #{dvo.mvsDstcRcvryBaseDtm} AS MVS_DSTC_RCVRY_BASE_DTM
+                 , #{dvo.mvsDstcRcvryDvCd} AS MVS_DSTC_RCVRY_DV_CD
+                 , #{dvo.mvsDstcRcvryDtm} AS MVS_DSTC_RCVRY_DTM
+                 , 'N' AS DTA_DL_YN
+                 , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FST_RGST_DTM
+                 , #{session.userId} AS FST_RGST_USR_ID
+                 , #{session.pageId} AS FST_RGST_PRG_ID
+                 , NVL(#{session.ogId}, 'NULL') AS FST_RGST_DEPT_ID
+                 , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
+                 , #{session.userId} AS FNL_MDFC_USR_ID
+                 , #{session.pageId} AS FNL_MDFC_PRG_ID
+                 , NVL(#{session.ogId}, 'NULL') AS FNL_MDFC_DEPT_ID
+                 , #{dvo.ogTpCd} AS OG_TP_CD
+                 , #{dvo.bldCd} AS BLD_CD
+                 , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS HIST_STRT_DTM
+                 , '99991231235959' AS HIST_END_DTM
+          FROM DUAL
+        </foreach>
+    </insert>
+
+    <insert id="insertBulkCntrAdrRels">
+        INSERT INTO TB_SSCT_CNTR_ADR_REL ( CNTR_ADR_REL_ID /*계약주소관계ID*/
+                                         , VL_STRT_DTM /*유효시작일시*/
+                                         , VL_END_DTM /*유효종료일시*/
+                                         , ADRPC_TP_CD /*주소지유형코드*/
+                                         , CNTR_UNIT_TP_CD /*계약단위유형코드*/
+                                         , CNTR_NO /*계약번호*/
+                                         , DTL_CNTR_NO /*상세계약번호*/
+                                         , DTL_CNTR_SN /*상세계약일련번호*/
+                                         , CNTR_ADRPC_ID /*계약주소지ID*/
+                                         , VST_RQDT /*방문요청일자*/
+                                         , VST_AK_STRT_HM /*방문요청시작시분*/
+                                         , VST_AK_END_HM /*방문요청종료시분*/
+                                         , URGT_OJ_YN /*긴급대상여부*/
+                                         , CNTRW_POSND_TP_CD /*계약서발송처유형코드*/
+                                         , SPP_MTHD_TP_CD /*배송방식유형코드*/
+                                         , SPP_ICHR_AOFFCE_CD /*배송담당사무소코드*/
+                                         , CNTR_CH_RCP_ID /*계약변경접수ID*/
+                                         , DTA_DL_YN /*데이터삭제여부*/
+                                         , FST_RGST_DTM /*최초등록일시*/
+                                         , FST_RGST_USR_ID /*최초등록사용자ID*/
+                                         , FST_RGST_PRG_ID /*최초등록프로그램ID*/
+                                         , FST_RGST_DEPT_ID /*최초등록부서ID*/
+                                         , FNL_MDFC_DTM /*최종수정일시*/
+                                         , FNL_MDFC_USR_ID /*최종수정사용자ID*/
+                                         , FNL_MDFC_PRG_ID /*최종수정프로그램ID*/
+                                         , FNL_MDFC_DEPT_ID /*최종수정부서ID*/
+                                         , SPP_ICHR_USR_ID /*배송담당사용자ID*/
+                                         , SPP_MTHD_CD /*배송방식코드*/
+        )
+        <foreach collection="dvos" item="dvo" separator=" UNION ALL ">
+            SELECT #{dvo.cntrAdrRelId} AS CNTR_ADR_REL_ID /*계약주소관계ID*/
+                 , #{dvo.vlStrtDtm} AS VL_STRT_DTM /*유효시작일시*/
+                 , #{dvo.vlEndDtm} AS VL_END_DTM /*유효종료일시*/
+                 , #{dvo.adrpcTpCd} AS ADRPC_TP_CD /*주소지유형코드*/
+                 , #{dvo.cntrUnitTpCd} AS CNTR_UNIT_TP_CD /*계약단위유형코드*/
+                 , #{dvo.cntrNo} AS CNTR_NO /*계약번호*/
+                 , #{dvo.dtlCntrNo} AS DTL_CNTR_NO /*상세계약번호*/
+                 , #{dvo.dtlCntrSn} AS DTL_CNTR_SN /*상세계약일련번호*/
+                 , #{dvo.cntrAdrpcId} AS CNTR_ADRPC_ID /*계약주소지ID*/
+                 , #{dvo.vstRqdt} AS VST_RQDT /*방문요청일자*/
+                 , #{dvo.vstAkStrtHm} AS VST_AK_STRT_HM /*방문요청시작시분*/
+                 , #{dvo.vstAkEndHm} AS VST_AK_END_HM /*방문요청종료시분*/
+                 , #{dvo.urgtOjYn} AS URGT_OJ_YN /*긴급대상여부*/
+                 , #{dvo.cntrwPosndTpCd} AS CNTRW_POSND_TP_CD /*계약서발송처유형코드*/
+                 , #{dvo.sppMthdTpCd} AS SPP_MTHD_TP_CD /*배송방식유형코드*/
+                 , #{dvo.sppIchrAoffceCd} AS SPP_ICHR_AOFFCE_CD /*배송담당사무소코드*/
+                 , #{dvo.cntrChRcpId} AS CNTR_CH_RCP_ID /*계약변경접수ID*/
+                 , 'N' AS DTA_DL_YN
+                 , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FST_RGST_DTM
+                 , #{session.userId} AS FST_RGST_USR_ID
+                 , #{session.pageId} AS FST_RGST_PRG_ID
+                 , NVL(#{session.ogId}, 'NULL') AS FST_RGST_DEPT_ID
+                 , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
+                 , #{session.userId} AS FNL_MDFC_USR_ID
+                 , #{session.pageId} AS FNL_MDFC_PRG_ID
+                 , NVL(#{session.ogId}, 'NULL') AS FNL_MDFC_DEPT_ID
+                 , #{dvo.sppIchrUsrId} AS SPP_ICHR_USR_ID /*배송담당사용자ID*/
+                 , #{dvo.sppMthdCd} AS SPP_MTHD_CD /*배송방식코드*/
+            FROM DUAL
+        </foreach>
+    </insert>
+
+    <update id="updateBulkExpireCntrAdrRels">
+        UPDATE TB_SSCT_CNTR_ADR_REL
+           SET VL_END_DTM = ${now}
+         WHERE CNTR_ADR_REL_ID IN
+        <foreach collection="origCntrAdrRelIds" item="origCntrAdrRelId" separator="," open="(" close=")">
+            #{origCntrAdrRelId}
+        </foreach>
+           AND VL_END_DTM = '99991231235959'
+    </update>
+</mapper>

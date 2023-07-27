@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbDeviceChangeMapper">
+    <select id="selectDeviceChanges" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbDeviceChangeDvo">
+        SELECT C.OJ_CNTR_NO /* 기변고객년도/코드-기기변경내역.대상계약번호 */
+             , C.OJ_CNTR_SN /* 기변고객년도/코드-기기변경내역.대상계약일련번호 */
+             , C.SELL_TP_CD /* 전업무유형-기기변경내역.판매유형코드*/
+             , C.BASE_PD_CD /* 전상품코드-대상계약번호/일련번호의 기준상품코드(계약상세) */
+             , C.CNTR_PD_STRTDT AS SL_DT /* 메츨일자-대상계약번호/일련번호의 계약싱품시작일자-계약실적 월마감 확정된 이후 수정 필요*/
+             , '' AS CAN_DT /* 취소일자-기존 계약실적월마감(TB_CBCL_CNTR_PERF_MM_CL)에서 조회. 계약실적 월마감 테이블 확정 이후 수정 필요*/
+             , C.REQD_DT /* 철거일자-계약WELLS상세.철거일자 */
+             , C.CNTR_PD_ENDDT /* 완료일자-만료철거년?(예정일?) LC3100P.LCENDY 매핑 대상이 없어 계약상세.계약상품종료일자로 대체*/
+             , C.MCHN_CH_TP_CD /* 최종유형-기기변경내역.기기변경유형코드 매핑 대상이 없어 기기변경유형코드로 대체 ▶as-is 최종유형 매핑 값 LC2290P.LCFLG3(유형3) 원기준은 LCFLG2(유형2) */
+             , C.ACKMT_PERF_RT /* 최종실적율-계약상세.인정실적율 - 매핑 대상이 없어 인정실적율로 대체 ▶ 최종실적율 매핑 값(LC2290P.LCRATE) */
+             , B.CNTR_NO /* 계약상세.계약번호 */
+             , B.CNTR_SN /* 계약상세.계약일련번호 */
+          FROM WSMDBS.TB_SSCT_CNTR_BAS A /* 계약기본 */
+         INNER JOIN WSMDBS.TB_SSCT_CNTR_DTL B /* 계약상세 */
+            ON B.DTA_DL_YN = 'N'
+           AND A.DTA_DL_YN = 'N'
+           AND A.CNTR_NO = B.CNTR_NO /* 계약기본.계약번호 = 계약상세.계약번호 */
+          LEFT OUTER JOIN LATERAL (
+               SELECT C.BASE_CNTR_NO /* 기기변경내역.기준계약번호 */
+                    , C.BASE_CNTR_SN /* 기기변경내역.기준계약일련번호 */
+                    , C.OJ_CNTR_NO /* 기기변경내역.대상계약번호 */
+                    , C.OJ_CNTR_SN /* 기기변경내역.대상계약일련번호 */
+                    , C.MCHN_CH_TP_CD /* 기기변경내역.기기변경유형코드 - ▶as-is 최종유형 매핑 값(LC2290P.LCFLG3 원기준은 LCFLG2(판패유형2) */
+                    , B2.BASE_PD_CD /* 계약상세.기준상품코드 */
+                    , B2.SELL_TP_CD /* 계약상세.판매유형코드 */
+                    , B2.CNTR_PD_STRTDT /* 계약상세.계약상품시작일자-실적월마감 테이블 확정 된 이후 변경 필요, 매핑기준 매출일자=계약상품 시작/종료일자로 되어있어 해당 분 반영 */
+                    , B2.CNTR_PD_ENDDT /* 계약상세.계약상품종료일자-만료철거년?(예정일?) LC3100P.LCENDY 매핑 대상이 없어 계약상품종료일자로 대체 */
+                    , B2.ACKMT_PERF_RT /* 계약상세.인정실적율 - 매핑 대상이 없어 인정실적율로 대체*/
+                    , D.IST_DT /* 계약WELLS상세.설치일자 */
+                    , D.REQD_DT /* 계약WELLS상세.철거일자 */
+                 FROM WSMDBS.TB_SSCT_MCHN_CH_IZ C/* 기기변경내역 */
+                INNER JOIN WSMDBS.TB_SSCT_CNTR_DTL B2 /* 계약상세 */
+                   ON C.DTA_DL_YN = 'N' /* 기기변경내역.데이터삭제여부가 'N'인 건 */
+                  AND B2.DTA_DL_YN = 'N' /* 계약상세.데이터삭제여부가 'N'인 건 */
+                  AND B2.CNTR_NO = C.OJ_CNTR_NO /* 계약상세.계약번호 = 기기변경내역.대상계약번호*/
+                  AND B2.CNTR_SN = C.OJ_CNTR_SN /* 계약상세.계약일련번호 = 기기변경내역.대상계약일련번호 */
+                 LEFT OUTER JOIN WSMDBS.TB_SSCT_CNTR_WELLS_DTL D /* 계약WELLS상세 */
+                   ON D.CNTR_NO = B2.CNTR_NO /* 계약WELLS상세.계약번호 = 계약상세.계약번호 */
+                  AND D.CNTR_SN = B2.CNTR_SN /* 계약WELLS상세.계약일련번호 = 계약상세.계약일련번호 */
+                WHERE C.BASE_CNTR_NO = B.CNTR_NO /* 기기변경내역.기준계약번호 = 계약상세.계약번호 */
+                  AND C.BASE_CNTR_SN = B.CNTR_SN /* 기기변경내역.기준계약일련번호 = 계약상세.계약일련번호 */
+               ) C
+            ON C.BASE_CNTR_NO = B.CNTR_NO /* 기기변경내역.기준계약번호 = 계약상세.계약번호 */
+           AND C.BASE_CNTR_SN = B.CNTR_SN /* 기기변경내역.기준계약일련번호 = 계약상세.계약일련번호 */
+         WHERE 1 = 1
+           AND A.CNTR_NO = #{cntrNo} /* 입력 파라미터 ▶as-is : PARM-YEAR(고객년도), PARM-CODE(고객코드) */
+    </select>
+</mapper>

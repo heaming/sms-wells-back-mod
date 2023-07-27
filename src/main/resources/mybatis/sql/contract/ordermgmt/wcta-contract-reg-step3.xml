@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractRegStep3Mapper">
+
+    <select id="selectAdrInfoByCntrAdrpcId" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep3Dvo">
+        SELECT CASE WHEN T1.ADR_DV_CD = '1' THEN T2.NEW_ADR_ZIP
+                    WHEN T1.ADR_DV_CD = '2' THEN T2.OLD_ADR_ZIP
+                    ELSE ''
+                    END AS ZIP
+             , CASE WHEN T1.ADR_DV_CD = '1' THEN T2.RNADR
+                    WHEN T1.ADR_DV_CD = '2' THEN T2.LTN_ADR
+                    ELSE ''
+                    END AS ADR
+             , CASE WHEN T1.ADR_DV_CD = '1' THEN T2.RDADR
+                    WHEN T1.ADR_DV_CD = '2' THEN T2.LTN_DTL_ADR
+                    ELSE ''
+                    END AS ADR_DTL
+             , T1.ADR_ID
+          FROM TB_SSCT_CNTR_ADRPC_BAS T1
+         INNER JOIN TB_GBCO_ADR_BAS T2
+            ON T2.ADR_ID = T1.ADR_ID
+           AND T2.DTA_DL_YN = 'N'
+         WHERE T1.CNTR_ADRPC_ID = #{cntrAdrpcId}
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectAdrInfoByCntrCstNo" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractAdrpcBasDvo">
+        SELECT T1.CST_KNM AS RCGVP_KNM
+             , T1.CRAL_LOCARA_TNO
+             , T1.MEXNO_ENCR
+             , T1.CRAL_IDV_TNO
+             , CASE WHEN T2.RNADR IS NOT NULL THEN T2.RNADR
+                    WHEN T2.LTN_ADR IS NOT NULL THEN T2.LTN_ADR
+                    ELSE ''
+                    END AS ADR
+             , CASE WHEN T2.RDADR IS NOT NULL THEN T2.RDADR
+                    WHEN T2.LTN_DTL_ADR IS NOT NULL THEN T2.LTN_DTL_ADR
+                    ELSE ''
+                    END AS ADR_DTL
+             , CASE WHEN T2.NEW_ADR_ZIP IS NOT NULL THEN T2.NEW_ADR_ZIP
+                    WHEN T2.OLD_ADR_ZIP IS NOT NULL THEN T2.OLD_ADR_ZIP
+                    ELSE ''
+                    END AS ZIP
+             , CASE WHEN T2.RNADR IS NOT NULL THEN '1'
+                    ELSE '2'
+                    END AS ADR_DV_CD
+             , T1.ADR_ID
+          FROM TB_CUBS_CST_BAS T1
+         INNER JOIN TB_GBCO_ADR_BAS T2
+            ON T2.ADR_ID = T1.ADR_ID
+           AND T2.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND T1.CST_NO = #{cstNo}
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+
+    <!-- STEP3 저장 -->
+    <update id="updateCntrDtlStep3">
+        UPDATE TB_SSCT_CNTR_DTL /* 계약상세 */
+           SET RVE_CRP_CD          = #{rveCrpCd}            /* 수납법인코드 */
+             , STLM_TP_CD          = #{stlmTpCd}            /* 결제유형코드 */
+             , CRNCY_DV_CD         = #{crncyDvCd}           /* 통화구분코드 */
+             , CNTR_AMT            = #{cntrAmt}             /* 계약금액 */
+             , ISTM_MCN            = #{istmMcn}             /* 할부개월수 */
+             , ISTM_PCAM_AMT       = #{istmPcamAmt}         /* 할부원금금액 */
+             , ISTM_INT_AMT        = #{istmIntAmt}          /* 할부이자금액 */
+             , MM_ISTM_AMT         = #{mmIstmAmt}           /* 월할부금액 */
+             , SPP_DUEDT           = #{sppDuedt}            /* 배송예정일자 */
+             , TXINV_PBL_OJ_YN     = #{txinvPblOjYn}        /* 세금계산서발행여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO             = #{cntrNo}              /* 계약번호 */
+           AND CNTR_SN             = #{cntrSn}              /* 계약일련번호 */
+           AND DTA_DL_YN = 'N'
+    </update>
+
+    <insert id="insertCntrStlmRelStep3">
+        <selectKey keyProperty="item.cntrStlmRelId" resultType="java.lang.String" order="BEFORE">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_STLM_REL_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_STLM_REL
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_STLM_REL (  /* 계약결제관계 */
+               CNTR_STLM_REL_ID   /* 계약결제관계ID */
+             , VL_STRT_DTM        /* 유효시작일시 */
+             , VL_END_DTM         /* 유효종료일시 */
+             , CNTR_UNIT_TP_CD    /* 계약단위유형코드 */
+             , CNTR_STLM_ID       /* 계약결제ID */
+             , CNTR_NO            /* 계약번호 */
+             , DTL_CNTR_NO        /* 상세계약번호 */
+             , DTL_CNTR_SN        /* 상세계약일련번호 */
+             , DP_TP_CD           /* 입금유형코드 */
+             , RVE_DV_CD          /* 수납구분코드 */
+             , ISLND_INCMDC_TP_CD /* 도서지역소득공제유형코드 */
+             , STLM_AMT           /* 결제금액 */
+             <include refid="COMMON.insertSystemField" />)
+         VALUES (
+               #{item.cntrStlmRelId}
+             , #{item.vlStrtDtm}
+             , #{item.vlEndDtm}
+             , #{item.cntrUnitTpCd}
+             , #{item.cntrStlmId}
+             , #{item.cntrNo}
+             , #{item.dtlCntrNo}
+             , #{item.dtlCntrSn}
+             , #{item.dpTpCd}
+             , #{item.rveDvCd}
+             , #{item.islndIncmdcTpCd}
+             , #{item.stlmAmt}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertCntrStlmBasStep3">
+        <selectKey keyProperty="item.cntrStlmId" resultType="java.lang.String" order="BEFORE">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_STLM_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_STLM_BAS
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_STLM_BAS (  /* 계약결제기본 */
+               CNTR_STLM_ID            /* 계약결제ID */
+             , CST_NO                  /* 고객번호 */
+             , CNTR_NO                 /* 계약번호 */
+             , CNTRT_REL_CD            /* 계약자관계코드 */
+             , OWR_KNM                 /* 소유자한글명 */
+             , OWR_ENM                 /* 소유자영문명 */
+             , BRYY_MMDD               /* 생년월일 */
+             , BZRNO                   /* 사업자등록번호 */
+             , DP_TP_CD                /* 입금유형코드 */
+             , BNK_CD                  /* 은행코드 */
+             , CDCO_CD                 /* 카드사코드 */
+             , ACNO_ENCR               /* 계좌번호암호화 */
+             , CRCDNO_ENCR             /* 신용카드번호암호화 */
+             , CARD_EXPDT_YM           /* 카드유효기간년월 */
+             , MLG_TP_CD               /* 마일리지유형코드 */
+             , MLG_DRM_VAL             /* 마일리지식별값 */
+             , MPY_BSDT                /* 납부기준일자 */
+             , HS_CTF_YN               /* 본인인증여부 */
+             , DCEVDN_DOC_ID           /* 증빙서류문서ID */
+             , PYER_NO                 /* 납부자번호 */
+             , VNCO_DV_CD              /* VAN사구분코드 */
+             , FNIT_APR_RS_CD          /* 금융기관승인결과코드 */
+             , FNIT_APR_FSH_DTM        /* 금융기관승인완료일시 */
+             , FNIT_RSG_FSH_DTM        /* 금융기관해지완료일시 */
+             , AC_FNT_IMPS_CD          /* 계좌이체불능코드 */
+             , CARD_FNT_IMPS_CD        /* 카드이체불능코드 */
+             , AC_CH_AK_DV_CD          /* 계좌변경요청구분코드 */
+             , RVE_CRP_CD              /* 수납법인코드 */
+             , FNT_EVID_DRM_VAL        /* 이체증빙식별값 */
+             , REUSE_OJ_YN             /* 재사용대상여부 */
+             , SIGN_FILE_ID            /* 서명파일ID */
+             , MVS_DSTC_RCVRY_BASE_DTM /* 소산파기복구기준일시 */
+             , MVS_DSTC_RCVRY_DV_CD    /* 소산파기복구구분코드 */
+             , MVS_DSTC_RCVRY_DTM      /* 소산파기복구일시 */
+             <include refid="COMMON.insertSystemField" />)
+         VALUES (
+               #{item.cntrStlmId}
+             , #{item.cstNo}
+             , #{item.cntrNo}
+             , #{item.cntrtRelCd}
+             , #{item.owrKnm}
+             , #{item.owrEnm}
+             , #{item.bryyMmdd}
+             , #{item.bzrno}
+             , #{item.dpTpCd}
+             , #{item.bnkCd}
+             , #{item.cdcoCd}
+             , #{item.acnoEncr}
+             , #{item.crcdnoEncr}
+             , #{item.cardExpdtYm}
+             , #{item.mlgTpCd}
+             , #{item.mlgDrmVal}
+             , #{item.mpyBsdt}
+             , #{item.hsCtfYn}
+             , #{item.dcevdnDocId}
+             , #{item.pyerNo}
+             , #{item.vncoDvCd}
+             , #{item.fnitAprRsCd}
+             , #{item.fnitAprFshDtm}
+             , #{item.fnitRsgFshDtm}
+             , #{item.acFntImpsCd}
+             , #{item.cardFntImpsCd}
+             , #{item.acChAkDvCd}
+             , #{item.rveCrpCd}
+             , #{item.fntEvidDrmVal}
+             , #{item.reuseOjYn}
+             , #{item.signFileId}
+             , #{item.mvsDstcRcvryBaseDtm}
+             , #{item.mvsDstcRcvryDvCd}
+             , #{item.mvsDstcRcvryDtm}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertCntrAdrpcBasStep3">
+        <selectKey keyProperty="item.cntrAdrpcId" resultType="java.lang.String" order="BEFORE">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_ADRPC_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_ADRPC_BAS
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_ADRPC_BAS (  /* 계약주소지기본 */
+               CNTR_ADRPC_ID           /* 계약주소지ID */
+             , CNTR_NO                 /* 계약번호 */
+             , CNTR_CST_NO             /* 계약고객번호 */
+             , CNTRT_REL_CD            /* 계약자관계코드 */
+             , RCGVP_KNM               /* 수령자한글명 */
+             , RCGVP_ENM               /* 수령자영문명 */
+             , COPN_DV_CD              /* 법인격구분코드 */
+             , CRP_SPMT_DRM_NM         /* 법인추가식별명 */
+             , NAT_CD                  /* 국가코드 */
+             , ADR_DV_CD               /* 주소구분코드 */
+             , ADR_ID                  /* 주소ID */
+             , CRAL_LOCARA_TNO         /* 휴대지역전화번호 */
+             , MEXNO_ENCR              /* 휴대전화국번호암호화 */
+             , CRAL_IDV_TNO            /* 휴대개별전화번호 */
+             , LOCARA_TNO              /* 지역전화번호 */
+             , EXNO_ENCR               /* 전화국번호암호화 */
+             , IDV_TNO                 /* 개별전화번호 */
+             , EMADR                   /* 이메일주소 */
+             , CNR_SPP_YN              /* 센터배송여부 */
+             , OG_TP_CD                /* 조직유형코드 */
+             , BLD_CD                  /* 빌딩코드 */
+             , MVS_DSTC_RCVRY_BASE_DTM /* 소산파기복구기준일시 */
+             , MVS_DSTC_RCVRY_DV_CD    /* 소산파기복구구분코드 */
+             , MVS_DSTC_RCVRY_DTM      /* 소산파기복구일시 */
+             <include refid="COMMON.insertSystemField" />)
+         VALUES (
+               #{item.cntrAdrpcId}
+             , #{item.cntrNo}
+             , #{item.cntrCstNo}
+             , #{item.cntrtRelCd}
+             , #{item.rcgvpKnm}
+             , #{item.rcgvpEnm}
+             , #{item.copnDvCd}
+             , #{item.crpSpmtDrmNm}
+             , #{item.natCd}
+             , #{item.adrDvCd}
+             , #{item.adrId}
+             , #{item.cralLocaraTno}
+             , #{item.mexnoEncr}
+             , #{item.cralIdvTno}
+             , #{item.locaraTno}
+             , #{item.exnoEncr}
+             , #{item.idvTno}
+             , #{item.emadr}
+             , #{item.cnrSppYn}
+             , #{item.ogTpCd}
+             , #{item.bldCd}
+             , #{item.mvsDstcRcvryBaseDtm}
+             , #{item.mvsDstcRcvryDvCd}
+             , #{item.mvsDstcRcvryDtm}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertCntrAdrRelStep3">
+        <selectKey keyProperty="item.cntrAdrRelId" resultType="java.lang.String" order="BEFORE">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_ADR_REL_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_ADR_REL
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_ADR_REL (  /* 계약주소관계 */
+               CNTR_ADR_REL_ID    /* 계약주소관계ID */
+             , VL_STRT_DTM        /* 유효시작일시 */
+             , VL_END_DTM         /* 유효종료일시 */
+             , ADRPC_TP_CD        /* 주소지유형코드 */
+             , CNTR_UNIT_TP_CD    /* 계약단위유형코드 */
+             , CNTR_NO            /* 계약번호 */
+             , DTL_CNTR_NO        /* 상세계약번호 */
+             , DTL_CNTR_SN        /* 상세계약일련번호 */
+             , CNTR_ADRPC_ID      /* 계약주소지ID */
+             , VST_RQDT           /* 방문요청일자 */
+             , VST_AK_STRT_HM     /* 방문요청시작시분 */
+             , VST_AK_END_HM      /* 방문요청종료시분 */
+             , URGT_OJ_YN         /* 긴급대상여부 */
+             , CNTRW_POSND_TP_CD  /* 계약서발송처유형코드 */
+             , SPP_MTHD_TP_CD     /* 배송방식유형코드 */
+             , SPP_ICHR_AOFFCE_CD /* 배송담당사무소코드 */
+             , SPP_ICHR_USR_ID    /* 배송담당사용자ID */
+             , CNTR_CH_RCP_ID     /* 계약변경접수ID */
+             <include refid="COMMON.insertSystemField" />)
+         VALUES (
+               #{item.cntrAdrRelId}
+             , #{item.vlStrtDtm}
+             , #{item.vlEndDtm}
+             , #{item.adrpcTpCd}
+             , #{item.cntrUnitTpCd}
+             , #{item.cntrNo}
+             , #{item.dtlCntrNo}
+             , #{item.dtlCntrSn}
+             , #{item.cntrAdrpcId}
+             , #{item.vstRqdt}
+             , #{item.vstAkStrtHm}
+             , #{item.vstAkEndHm}
+             , #{item.urgtOjYn}
+             , #{item.cntrwPosndTpCd}
+             , #{item.sppMthdTpCd}
+             , #{item.sppIchrAoffceCd}
+             , #{item.sppIchrUsrId}
+             , #{item.cntrChRcpId}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updateCntrWellsDtlStep3">
+        UPDATE TB_SSCT_CNTR_WELLS_DTL /* 계약WELLS상세 */
+           SET IST_PLC_TP_CD            = #{istPlcTpCd}              /* 설치장소유형코드 */
+             , FMMB_N                   = #{fmmbN}                   /* 가구원수 */
+             , USE_ELECT_TP_CD          = #{useElectTpCd}            /* 사용전력유형코드 */
+             , SRCWT_TP_CD              = #{srcwtTpCd}               /* 상수원유형코드 */
+             , WPRS_ITST_TP_CD          = #{wprsItstTpCd}            /* 수압강도유형코드 */
+             , IST_AK_ARTC_MO_CN        = #{istAkArtcMoCn}           /* 설치요청사항메모내용 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO                  = #{cntrNo}                  /* 계약번호 */
+           AND CNTR_SN                  = #{cntrSn}                  /* 계약일련번호 */
+    </update>
+
+    <update id="updateCstStlmInMthCd">
+        UPDATE TB_SSCT_CNTR_BAS /* 계약기본 */
+           SET CST_STLM_IN_MTH_CD     = #{cstStlmInMthCd}        /* 고객결제입력방법코드 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO                = #{cntrNo}                /* 계약번호 */
+    </update>
+
+    <delete id="deleteCntrStlmBasStep3">
+        DELETE TB_SSCT_CNTR_STLM_BAS
+         WHERE CNTR_NO = #{cntrNo}
+    </delete>
+
+    <delete id="deleteCntrStlmRelsStep3">
+        DELETE TB_SSCT_CNTR_STLM_REL
+         WHERE DTL_CNTR_NO = #{cntrNo}
+    </delete>
+
+    <delete id="deleteCntrAdrpcBasStep3">
+        DELETE TB_SSCT_CNTR_ADRPC_BAS
+         WHERE CNTR_NO = #{cntrNo}
+    </delete>
+
+    <delete id="deleteCntrAdrRelsStep3">
+        DELETE TB_SSCT_CNTR_ADR_REL
+         WHERE DTL_CNTR_NO = #{cntrNo}
+    </delete>
+</mapper>

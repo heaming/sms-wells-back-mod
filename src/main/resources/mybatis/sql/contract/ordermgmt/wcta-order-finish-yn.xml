@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaOrderFinishYnMapper">
+    <select id="selectOrderFinishYn" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderFinishYnDvo">
+        SELECT B.COPN_DV_CD /* 계약기본.법인격구분코드 1:개인, 2:법인 */
+             , SUBSTR(TRIM(B.CNTR_CAN_DTM), 1, 8) AS CNTR_CAN_DT /* 계약기본.계약취소일시 [취소일자] */
+             , CASE WHEN TRIM(B.CNTR_CAN_DTM) IS NULL THEN 'N' ELSE 'Y' END CNTR_CAN_YN /* 취소여부 - 계약기본.계약취소일시 계약취소일자가 있으면 취소여부 'Y' [취소여부] */
+             , CASE WHEN TRIM(C.FULPY_DT) IS NULL THEN 'N' ELSE 'Y' END FULPY_YN /* 완료여부 - WELLS매출월마감내역.완불일자 완불일자가 있으면 완료여부 'Y' [완료여부] */
+             , SUBSTR(TRIM(C.FULPY_DT), 1, 8) AS FULPY_DT /* WELLS매출월마감내역.완불일자 [완료일자] */
+             , CASE WHEN TRIM(C.DFA_PRCSDT) IS NULL THEN 'N' ELSE 'Y' END DFA_YN /* 대손여부 - WELLS매출월마감내역.대손처리일자 대손처리일자가 있으면 대손여부 'Y' [대손여부] */
+             , NVL((
+               SELECT MAX(D.EOT_DLQ_AMT) KEEP ( DENSE_RANK FIRST ORDER BY  D.PERF_YM DESC NULLS LAST) AS EOT_DLQ_AMT /* 연체기본.기말연체금액 */
+                 FROM TB_CBCL_DLQ_BAS D /* 연체기본 */
+                WHERE D.DTA_DL_YN = 'N' /* 연체기본.데이터삭제여부 = 'N' */
+                  AND D.CNTR_NO = A.CNTR_NO /* 연체기본.계약번호 = 계약상세.계약번호 */
+                  AND D.CNTR_SN = A.CNTR_SN /* 연체기본.계약일련번호 = 계약상세.계약일련번호 */
+             ), 0) AS EOT_DLQ_AMT /* 연체기본.기말연체금액 [연체금]*/
+             , NVL((
+               SELECT MAX(D.DLQ_MCN) KEEP ( DENSE_RANK FIRST ORDER BY  D.PERF_YM DESC NULLS LAST) AS EOT_DLQ_DT /* 연체기본.연체개월수 */
+                 FROM TB_CBCL_DLQ_BAS D /* 연체기본 */
+                WHERE D.DTA_DL_YN = 'N' /* 연체기본.데이터삭제여부 = 'N' */
+                  AND D.CNTR_NO = A.CNTR_NO /* 연체기본.계약번호 = 계약상세.계약번호 */
+                  AND D.CNTR_SN = A.CNTR_SN /* 연체기본.계약일련번호 = 계약상세.계약일련번호 */
+             ), 0) AS EOT_DLQ_DT /* 연체기본.연체개월수 [연체개월]*/
+             , C.EOT_UC_AMT AS UC_AMT /* WELLS매출월마감내역.기말미수금액 - [미수금액] */
+          FROM TB_SSCT_CNTR_DTL A /* 계약상세 */
+         INNER JOIN TB_SSCT_CNTR_BAS B /* 계약기본 */
+            ON A.CNTR_NO = B.CNTR_NO /* 계약상세.계약번호 = 계약기본.계약번호  */
+           AND A.DTA_DL_YN = 'N' /* 계약상세.데이터삭제여부 = 'N' */
+           AND B.DTA_DL_YN = 'N' /* 계약기본.데이터삭제여부 = 'N' */
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ C /* WELLS매출월마감내역 */
+            ON C.DTA_DL_YN = 'N' /* WELLS매출월마감내역.데이터삭제여부 = 'N' */
+           AND C.CNTR_NO = A.CNTR_NO /* WELLS매출월마감내역.계약번호 = 계약상세.계약번호 */
+           AND C.CNTR_SN = A.CNTR_SN /* WELLS매출월마감내역.계약일련번호 = 계약상세.계약일련번호 */
+        <choose>
+            <when test="@MybatisUtils@isNotEmpty(baseYm)">
+           AND C.SL_CL_YM = #{baseYm} /* WELLS매출월마감내역.기준년월 = 입력파라미터 기준년월 */
+            </when>
+            <otherwise>
+           AND C.SL_CL_YM = (
+               SELECT MAX(SL_CL_YM)
+                 FROM TB_CBCL_WELLS_SL_MM_CL_IZ
+                WHERE 1=1 /* WELLS매출월마감내역 */
+                  AND C.CNTR_NO = A.CNTR_NO /* WELLS매출월마감내역.계약번호 = 계약상세.계약번호 */
+                  AND C.CNTR_SN = A.CNTR_SN) /* WELLS매출월마감내역.계약일련번호 = 계약상세.계약일련번호 */
+            </otherwise>
+        </choose>
+         WHERE 1=1
+           AND A.CNTR_NO = #{cntrNo} /* 조회조건-계약번호 */
+           AND A.CNTR_SN = #{cntrSn} /* 조회조건-계약일련번호  */
+    </select>
+</mapper>

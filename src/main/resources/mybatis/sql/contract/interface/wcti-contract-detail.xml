@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiContractDetailMapper">
+
+    <select id="selectContractDetails" resultType="com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractDetailDvo">
+        SELECT CB.CNTR_NO
+             , CD.CNTR_SN
+             , CD.CNTR_DTL_STAT_CD
+             , AFMDBS.F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_DTL_STAT_CD', CD.CNTR_DTL_STAT_CD) AS CNTR_DTL_STAT_NM
+             , CD.PD_HCLSF_ID
+             , CD.PD_MCLSF_ID
+             , CD.PD_LCLSF_ID
+             , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = PB.PD_HCLSF_ID AND DTA_DL_YN = 'N' AND TEMP_SAVE_YN = 'N' AND USE_YN='Y') AS PD_HCLSF_NM
+             , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = PB.PD_MCLSF_ID AND DTA_DL_YN = 'N' AND TEMP_SAVE_YN = 'N' AND USE_YN='Y') AS PD_MCLSF_NM
+             , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = PB.PD_LCLSF_ID AND DTA_DL_YN = 'N' AND TEMP_SAVE_YN = 'N' AND USE_YN='Y') AS PD_LCLSF_NM
+             , CD.BASE_PD_CD
+             , PB.PD_NM AS BASE_PD_NM
+             , NVL(CS.CST_KNM, CS.CST_ENM) AS CNTRT_NM
+             , CS.BRYY_MMDD
+             , CS.SEX_DV_CD
+             , SUBSTR(CB.CNTR_CNFM_DTM, 0, 8) AS CNTR_DT
+             , CD.SELL_TP_CD                  AS CNTR_SELL_TP_CD
+             , AFMDBS.F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', CD.SELL_TP_CD) AS CNTR_SELL_TP_NM
+             , CS.CRAL_LOCARA_TNO   AS CNTR_CRAL_LOCARA_TNO
+             , CS.MEXNO_ENCR        AS CNTR_MEXNO
+             , CS.CRAL_IDV_TNO      AS CNTR_CRAL_IDV_TNO
+             , CC.LOCARA_TNO        AS CNTR_LOCARA_TNO
+             , CC.EXNO_ENCR	        AS CNTR_EXNO
+             , CC.IDV_TNO           AS CNTR_IDV_TNO
+             , CS.ADR_ID            AS CNTR_ADRPC_ID
+             , NVL(AD.RNADR, AD.LTN_ADR) AS CNTR_ADR
+             , NVL(AD.RDADR, AD.LTN_DTL_ADR) AS CNTR_DTL_ADR
+             , AB.CRAL_LOCARA_TNO
+             , AB.MEXNO
+             , AB.CRAL_IDV_TNO
+             , AB.LOCARA_TNO
+             , AB.EXNO
+             , AB.IDV_TNO
+             , AB.ADRPC_ID
+             , AB.ADR
+             , AB.DTL_ADR
+             , NVL(AB.RCGVP_KNM, AB.RCGVP_ENM) AS ISTLL_NM
+          FROM TB_SSCT_CNTR_BAS CB
+         INNER JOIN TB_SSCT_CNTR_DTL CD
+            ON CB.CNTR_NO = CD.CNTR_NO
+           AND CD.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON CD.BASE_PD_CD = PB.PD_CD
+           AND PB.DTA_DL_YN = 'N'
+           AND PB.TEMP_SAVE_YN = 'N'
+        <if test='@MybatisUtils@isNotEmpty(pdNm)'>AND PB.PD_NM LIKE '%'||#{pdNm}||'%'</if>
+        <if test='@MybatisUtils@isNotEmpty(sellTpCd)'>AND PB.SELL_TP_CD = #{sellTpCd}</if>
+         INNER JOIN TB_CUBS_CST_BAS CS
+            ON CB.CNTR_CST_NO = CS.CST_NO
+           AND CS.DTA_DL_YN = 'N'
+           AND CS.TEMP_SAVE_YN = 'N'
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS AD
+            ON AD.ADR_ID = CS.ADR_ID
+           AND AD.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CUBS_CST_CTPLC_BAS CC /* 계약기본 연락처,주소 정보 */
+            ON CC.CST_CTPLC_OJ_REFK_VAL = CS.CST_NO
+           AND CC.CTPLC_TP_CD = DECODE(CS.COPN_DV_CD, '1', '04', '2', '05')
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN CC.HIST_STRT_DTM AND CC.HIST_END_DTM
+           AND CC.DTA_DL_YN = 'N'
+           AND CC.FST_RGST_DTM = (SELECT MAX(FST_RGST_DTM)  <!-- 이력시작일시, 종료일시 칼럼이 있지만 실제 이력 종료일시는 모두 '999912..' 로 쌓인다고 함  -->
+                                    FROM TB_CUBS_CST_CTPLC_BAS
+                                   WHERE CST_CTPLC_OJ_REFK_VAL = CC.CST_CTPLC_OJ_REFK_VAL
+                                     AND CTPLC_TP_CD = DECODE(CS.COPN_DV_CD, '1', '04', '2', '05')
+                                     AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN HIST_STRT_DTM AND HIST_END_DTM
+                                     AND DTA_DL_YN = 'N')
+          LEFT OUTER JOIN (SELECT AR.DTL_CNTR_NO, AR.DTL_CNTR_SN
+                                , AB.CRAL_LOCARA_TNO
+                                , AB.MEXNO_ENCR AS MEXNO
+                                , AB.CRAL_IDV_TNO
+                                , AB.LOCARA_TNO
+                                , AB.EXNO_ENCR AS EXNO
+                                , AB.IDV_TNO
+                                , AB.CNTR_ADRPC_ID AS ADRPC_ID
+                                , NVL(AD.RNADR, AD.LTN_ADR) AS ADR
+                                , NVL(AD.RDADR, AD.LTN_DTL_ADR) AS DTL_ADR
+                                , AB.RCGVP_KNM
+                                , AB.RCGVP_ENM
+                             FROM TB_SSCT_CNTR_ADRPC_BAS AB
+                            INNER JOIN TB_SSCT_CNTR_ADR_REL AR
+                               ON AR.CNTR_ADRPC_ID = AB.CNTR_ADRPC_ID
+                              AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN AR.VL_STRT_DTM AND AR.VL_END_DTM
+                              AND AR.DTA_DL_YN = 'N'
+                              AND AR.CNTR_UNIT_TP_CD = '020'
+                              AND AR.ADRPC_TP_CD = '3'
+                             LEFT OUTER JOIN TB_GBCO_ADR_BAS AD
+                               ON AD.ADR_ID = AB.ADR_ID
+                              AND AD.DTA_DL_YN = 'N'
+                            WHERE AB.DTA_DL_YN = 'N') AB /* 배송지 연락처,주소 정보 */
+            ON AB.DTL_CNTR_NO = CD.CNTR_NO
+           AND AB.DTL_CNTR_SN = CD.CNTR_SN
+         WHERE CB.CNTR_CST_NO = #{cstNo}
+           AND CB.DTA_DL_YN = 'N'
+         ORDER BY CB.CNTR_NO, CD.CNTR_SN, PB.PD_HCLSF_ID, PB.PD_MCLSF_ID, PB.PD_LCLSF_ID
+    </select>
+</mapper>

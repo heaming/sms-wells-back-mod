@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaSeedingMapper">
+
+    <select id="selectMachinery"
+            resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSeedingDto$SearchMachineRes">
+        SELECT T_CNTR_DTL.CNTR_NO
+             , T_CNTR_DTL.CNTR_SN
+             , T_PD_BAS.PD_CD
+             , T_PD_BAS.PD_NM
+             , T_CNTR_WELLS_DTL.IST_DT
+             , CASE
+                   WHEN T_PD_CLSF_BAS.REF_PD_CLSF_VAL = '05001003001' THEN '12구'
+                   WHEN T_PD_CLSF_BAS.REF_PD_CLSF_VAL = '05001003002' THEN '6구'
+                                                                      ELSE ''
+               END AS POS_QTY
+          FROM TB_SSCT_CNTR_DTL                  T_CNTR_DTL
+               INNER JOIN TB_SSCT_CNTR_BAS       T_CNTR_BAS
+               ON T_CNTR_BAS.DTA_DL_YN = 'N'
+                   AND T_CNTR_BAS.CNTR_NO = T_CNTR_DTL.CNTR_NO
+               INNER JOIN TB_PDBS_PD_BAS         T_PD_BAS
+               ON T_PD_BAS.DTA_DL_YN = 'N'
+                   AND T_PD_BAS.PD_CD = T_CNTR_DTL.BASE_PD_CD
+               INNER JOIN TB_PDBS_PD_CLSF_BAS    T_PD_CLSF_BAS
+               ON T_PD_CLSF_BAS.DTA_DL_YN = 'N'
+                   AND T_PD_CLSF_BAS.PD_CLSF_ID = T_PD_BAS.PD_DCLSF_ID
+                   AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL LIKE '05001003%'
+               INNER JOIN TB_SSCT_CNTR_WELLS_DTL T_CNTR_WELLS_DTL
+               ON T_CNTR_WELLS_DTL.DTA_DL_YN = 'N'
+                   AND T_CNTR_WELLS_DTL.CNTR_NO = T_CNTR_DTL.CNTR_NO
+                   AND T_CNTR_WELLS_DTL.CNTR_SN = T_CNTR_DTL.CNTR_SN
+         WHERE T_CNTR_DTL.DTA_DL_YN = 'N'
+           AND T_CNTR_DTL.SELL_TP_CD IN ('1', '2')
+           AND NOT EXISTS(
+             SELECT 1
+               FROM TB_SSCT_CNTR_REL
+              WHERE DTA_DL_YN = 'N'
+                AND OJ_DTL_CNTR_NO = T_CNTR_DTL.CNTR_NO
+                AND OJ_DTL_CNTR_SN = T_CNTR_DTL.CNTR_SN
+                AND CNTR_REL_DTL_CD = '216' /*모종결합*/
+                AND VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                AND VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             )
+           AND T_CNTR_BAS.CNTR_CST_NO = #{cntrCstNo}
+           <choose>
+               <when test="@MybatisUtils@equals(rglrSppMchnTpCd, '1')"><trim>
+                   AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL = '05001003001'
+               </trim></when>
+               <when test="@MybatisUtils@equals(rglrSppMchnTpCd, '2')"><trim>
+                   AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL = '05001003002'
+               </trim></when>
+               <when test="@MybatisUtils@equals(rglrSppMchnTpCd, '3')"><trim>
+                   AND T_PD_CLSF_BAS.REF_PD_CLSF_VAL = '05001003003'
+               </trim></when>
+           </choose>
+    </select>
+
+    <select id="selectWctaPkgBasePd"
+            resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaPkgBasePdDvo">
+        SELECT T_PD_BAS.PD_CD
+             , T_PD_BAS.SELL_TP_DTL_CD
+             , T_PD_ECOM_PRP_DTL.PD_PRP_VAL12 AS TOT_QTY /* 정기배송, 커피캡슐 총상품수량 */
+             , T_PD_ECOM_PRP_DTL.PD_PRP_VAL04 AS TOT_KND_QTY /* 모종의 경우 사용, 제품 선택 수량 모종임에도 0 인경우는 자유패키지가 아닙니다 에러 처리. */
+          FROM TB_PDBS_PD_BAS                     T_PD_BAS
+               INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T_PD_ECOM_PRP_DTL
+               ON T_PD_ECOM_PRP_DTL.PD_CD = T_PD_BAS.PD_CD
+                   AND T_PD_ECOM_PRP_DTL.DTA_DL_YN = 'N'
+                   AND T_PD_ECOM_PRP_DTL.PD_EXTS_PRP_GRP_CD = 'CNTR' /* 상품확장속성그룹코드: 계약 */
+                   AND T_PD_ECOM_PRP_DTL.PD_PRP_VAL03 = 'Y' /* 제품선택이 필요한 상품 */
+         WHERE T_PD_BAS.DTA_DL_YN = 'N'
+           AND T_PD_BAS.SELL_TP_CD = '6'
+           AND T_PD_BAS.SELL_TP_DTL_CD IN ('62', '63')
+           AND T_PD_BAS.PD_CD = #{basePdCd}
+    </select>
+
+    <select id="selectFrdmPkgs" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaPkgPdDvo">
+        SELECT T_PKG_PD_BAS.PD_CD
+             , T_PKG_PD_BAS.PD_NM
+             , T_PD_REL.FNL_VAL
+          FROM TB_PDBS_PD_BAS            T_PD_BAS
+               INNER JOIN TB_PDBS_PD_REL T_PD_REL
+               ON T_PD_REL.DTA_DL_YN = 'N'
+                   AND T_PD_REL.PD_REL_TP_CD = '21' /*패키지 구성제품*/
+                   AND T_PD_BAS.PD_CD = T_PD_REL.BASE_PD_CD
+               INNER JOIN TB_PDBS_PD_BAS T_PKG_PD_BAS
+               ON T_PKG_PD_BAS.DTA_DL_YN = 'N'
+                   AND T_PKG_PD_BAS.PD_CD = T_PD_REL.OJ_PD_CD
+         WHERE T_PD_BAS.DTA_DL_YN = 'N'
+           AND T_PD_BAS.PD_CD = #{basePdCd}
+    </select>
+
+    <select id="selectCapsules" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaPkgPdDvo">
+        /* 자유선택패키지 인 경우, 패키지에서 선택가능한 제품의 목록 및 가격 조회*/
+        SELECT T3.PD_CD
+             , T3.PD_NM
+             , T2.PD_REL_ID
+             , T2.PD_REL_TP_CD
+             , T1.SELL_AMT AS PRC
+          FROM TB_PDBS_SDING_PRC_BAS T1
+         INNER JOIN TB_PDBS_PD_REL T2
+            ON T2.OJ_PD_CD = T1.PDCT_PD_CD
+           AND T2.PD_REL_TP_CD = '05'
+         INNER JOIN TB_PDBS_PD_BAS T3
+            ON T3.PD_CD = T1.PDCT_PD_CD
+         WHERE 1=1
+           AND T2.BASE_PD_CD = #{basePdCd} /* 자유선택패키지 상품코드 */
+           AND T1.RGLR_SPP_MCHN_TP_CD = #{rglrSppMchnTpCd} /* 정기배송기기유형코드: 기기유형 1-와이드 2-슬림 */
+           AND T1.RGLR_SPP_MCHN_KND_CD = '2' /* 2- 커피머신 */
+           AND T1.RGLR_SPP_PRC_DV_CD = #{rglrSppPrcDvCd} /* 정기배송가격구분코드: 정기배송변동, 정기배송고정, 일시불, 결합 */
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T1.APY_STRTDT AND T1.APY_ENDDT
+           AND T1.PD_PRC_TCNT = (SELECT MAX(T3.PD_PRC_TCNT)
+                                   FROM TB_PDBS_SDING_PRC_BAS T3
+                                  WHERE 1=1
+                                    AND T3.PDCT_PD_CD = T1.PDCT_PD_CD
+                                    AND T3.RGLR_SPP_MCHN_TP_CD = T1.RGLR_SPP_MCHN_TP_CD
+                                    AND T3.RGLR_SPP_PRC_DV_CD = T1.RGLR_SPP_PRC_DV_CD
+                                        )
+           AND T1.USE_YN = 'Y'
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.BASE_PD_CD IS NULL
+    </select>
+
+
+    <select id="selectSeedings" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaPkgPdDvo">
+        /* 자유선택패키지 인 경우, 패키지에서 선택가능한 제품의 목록 및 가격 조회*/
+        SELECT T3.PD_CD
+             , T3.PD_NM
+             , T2.PD_REL_ID
+             , T2.PD_REL_TP_CD
+             , T1.SELL_AMT AS PRC
+          FROM TB_PDBS_SDING_PRC_BAS T1
+         INNER JOIN TB_PDBS_PD_REL T2
+            ON T2.OJ_PD_CD = T1.PDCT_PD_CD
+           AND T2.PD_REL_TP_CD = '05'
+         INNER JOIN TB_PDBS_PD_BAS T3
+            ON T3.PD_CD = T1.PDCT_PD_CD
+         WHERE 1=1
+           AND T2.BASE_PD_CD = #{basePdCd} /* 자유선택패키지 상품코드 */
+           AND T1.RGLR_SPP_MCHN_TP_CD = #{rglrSppMchnTpCd} /* 정기배송기기유형코드: 기기유형 1-와이드 2-슬림 */
+           AND T1.RGLR_SPP_MCHN_KND_CD = '1' /* 1- 웰스팜 */
+           AND T1.RGLR_SPP_PRC_DV_CD = #{rglrSppPrcDvCd} /* 정기배송가격구분코드: 정기배송변동, 정기배송고정, 일시불, 결합 */
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN T1.APY_STRTDT AND T1.APY_ENDDT
+           AND T1.PD_PRC_TCNT = (SELECT MAX(T3.PD_PRC_TCNT)
+                                   FROM TB_PDBS_SDING_PRC_BAS T3
+                                  WHERE 1=1
+                                    AND T3.PDCT_PD_CD = T1.PDCT_PD_CD
+                                    AND T3.RGLR_SPP_MCHN_TP_CD = T1.RGLR_SPP_MCHN_TP_CD
+                                    AND T3.RGLR_SPP_PRC_DV_CD = T1.RGLR_SPP_PRC_DV_CD
+                                        )
+           AND T1.USE_YN = 'Y'
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.BASE_PD_CD IS NULL
+    </select>
+</mapper>

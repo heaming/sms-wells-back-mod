@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaDocumentReceiptPssMapper">
+    <select id="selectDocumentReceipts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaDocumentReceiptPssDvo">
+        SELECT
+               T1.CNTR_CH_RCP_ID AS CNTR_CH_RCP_ID                   /* 접수번호(수정용) 시퀀스 */
+             , TO_NUMBER(T1.CNTR_CH_RCP_ID) AS RE_CNTR_CH_RCP_ID     /* 접수번호(표시용) 시퀀스 */
+             , SUBSTR(T1.CNTR_CH_RCP_DTM, 0,8) AS CNTR_CH_RCP_D      /* 접수일자 */
+             , SUBSTR(T1.CNTR_CH_RCP_DTM,9)    AS CNTR_CH_RCP_TM     /* 접수시간 */
+             , CASE WHEN T1.CNTR_CH_PRGS_STAT_CD IN ('55','60','70')THEN  '99'   /* 기타종료 */
+                    WHEN T1.CNTR_CH_PRGS_STAT_CD = '10' AND  T3.CNTR_CH_RCP_ID IS NOT NULL THEN '19' /* 재접수 */
+                    WHEN T1.CNTR_CH_PRGS_STAT_CD = '20' AND  T3.CNTR_CH_RCP_ID IS NOT NULL THEN '29' /* 재접수 완료 */
+                    ELSE T1.CNTR_CH_PRGS_STAT_CD END CNTR_CH_PRGS_STAT_CD  /*계약변경진행상태코드 : 접수대기~처리완료 - ASIS :  접수상태(기타종료 축약) */
+             , CASE WHEN T1.CNTR_CH_PRGS_STAT_CD IN ('55','60','70')THEN  '기타종료'   /* 기타종료 (99) */
+                    WHEN T1.CNTR_CH_PRGS_STAT_CD = '10' AND  T3.CNTR_CH_RCP_ID IS NOT NULL THEN '재접수'    /* 재접수(19) */
+                    WHEN T1.CNTR_CH_PRGS_STAT_CD = '20' AND  T3.CNTR_CH_RCP_ID IS NOT NULL THEN '재접수완료' /* 재접수 완료(29) */
+                    ELSE F_CMZ_CD_NM('TNT_WELLS', 'CNTR_CH_PRGS_STAT_CD', T1.CNTR_CH_PRGS_STAT_CD) END CNTR_CH_PRGS_STAT_NM  /* 계약변경진행상태코드 : 접수대기~처리완료 - ASIS :  접수상태(기타종료 축약) */
+             , CASE WHEN T1.CNTR_CH_PRGS_STAT_CD IN ('55','60','70') THEN  F_CMZ_CD_NM('TNT_WELLS', 'CNTR_CH_PRGS_STAT_CD', T1.CNTR_CH_PRGS_STAT_CD)
+                    ELSE '' END CNTR_CH_PRGS_STAT_NM_END   /* 계약변경진행상태코드 : 접수대기~처리완료 - ASIS :  접수상태(기타종료 상세) */
+             , T2.CST_KNM                        /* 계약자명 */
+             , T2.CRAL_LOCARA_TNO                /* 휴대지역전화번호 */
+             , T2.MEXNO_ENCR                     /* 휴대전화국번호암호화 */
+             , T2.CRAL_IDV_TNO                   /* 휴대개별전화번호 */
+             , T1.CNTR_CH_TP_CD                  /* 계약변경유형코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'CNTR_CH_TP_CD', T1.CNTR_CH_TP_CD) AS CNTR_CH_TP_NM    /* 계약변경유형코드*/
+             , T1.FNL_MDFC_DTM                   /* 수정일자 */
+          FROM TB_SSCT_CNTR_CH_RCP_BAS T1        /* T.계약변경접수기본 */
+         INNER JOIN TB_CUBS_CST_BAS T2     /* T.고객기본 */
+            ON T2.CST_NO = T1.CST_NO
+           AND T2.DTA_DL_YN = 'N'
+         LEFT OUTER JOIN LATERAL(SELECT MAX(HST.CNTR_CH_RCP_ID) AS CNTR_CH_RCP_ID
+                                   FROM TB_SSCT_CNTR_CH_RCCH_HIST HST   /* T.계약변경접수변경이력 */
+                                  WHERE 1=1
+                                    AND HST.CNTR_CH_RCP_ID = T1.CNTR_CH_RCP_ID
+                                    AND HST.CNTR_CH_PRGS_STAT_CD IN ('10','20') /* 접수대기(10), 접수완료(20) */
+                                    AND HST.HIST_END_DTM != '99991231235959' /* 현재건(99991231235959) 제외 */
+                                    AND HST.DTA_DL_YN = 'N'
+                            ) T3 /* 이전 접수,접수완료건을 확인하여 재접수여부 확인 */
+            ON T3.CNTR_CH_RCP_ID = T1.CNTR_CH_RCP_ID
+         WHERE 1=1
+           AND T1.CNTR_CH_TP_CD IN ('103','104','301','401')    /* 계약변경유형코드 TOBE:ASIS 명의변경(103:3), 개명신청(104:1), 자동이체변경(301:2), 계약해약신청(401:4)  */
+           AND T1.CNTR_CH_RCP_DTM BETWEEN #{cntrChRcpStrtDtm}||'000000' AND #{cntrChRcpFinsDtm}||'235959'
+        <if test="@MybatisUtils@isNotEmpty(cntrChPrgsStatCd)">
+            <choose>
+                <when test='@MybatisUtils@equals(cntrChPrgsStatCd, "99")'> /* 기타종료 */
+                    AND T1.CNTR_CH_PRGS_STAT_CD IN ('55','60','70')
+                </when>
+                <when test='@MybatisUtils@equals(cntrChPrgsStatCd, "19")'> /* 재접수 */
+                    AND T1.CNTR_CH_PRGS_STAT_CD = '10' AND T3.CNTR_CH_RCP_ID IS NOT NULL
+                </when>
+                <when test='@MybatisUtils@equals(cntrChPrgsStatCd, "29")'> /* 재접수 완료 */
+                    AND T1.CNTR_CH_PRGS_STAT_CD = '20' AND T3.CNTR_CH_RCP_ID IS NOT NULL
+                </when>
+                <otherwise>
+                    AND T1.CNTR_CH_PRGS_STAT_CD = #{cntrChPrgsStatCd}
+                </otherwise>
+            </choose>
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cntrChTpCd)">
+           AND T1.CNTR_CH_TP_CD = #{cntrChTpCd}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cntrChRcpId)">
+           AND TO_NUMBER(T1.CNTR_CH_RCP_ID) = #{cntrChRcpId}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cstKnm)">
+           AND T2.CST_KNM LIKE '%' || #{cstKnm} || '%'
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
+           AND T2.CRAL_LOCARA_TNO = #{cralLocaraTno}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
+           AND T2.MEXNO_ENCR = #{mexnoEncr}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
+           AND T2.CRAL_IDV_TNO = #{cralIdvTno}
+        </if>
+    </select>
+
+    <update id="updateDocumentRcpCnfm">
+        UPDATE TB_SSCT_CNTR_CH_RCP_BAS
+           SET CNTR_CH_PRGS_STAT_CD = #{cntrChPrgsStatCd}
+          <if test="@MybatisUtils@isNotEmpty(cntrChAkCn)">
+             , CNTR_CH_AK_CN = #{cntrChAkCn}
+          </if>
+               <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND CNTR_CH_RCP_ID = #{cntrChRcpId}
+    </update>
+
+    <select id="selectDocumentRcpDtlInqrs" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaDocumentRcpDtlInqrsDvo">
+        SELECT
+               T1.CNTR_CH_RCP_ID     /* 접수번호 */
+             , T2.CST_KNM            /* 고객명 */
+             , T2.CRAL_LOCARA_TNO    /* 휴대지역전화번호 */
+             , T2.MEXNO_ENCR         /* 휴대전화국번호암호화 */
+             , T2.CRAL_IDV_TNO       /* 휴대개별전화번호 */
+             , T2.BRYY_MMDD          /* 생년월일 */
+             , T1.CNTR_CH_PRGS_MO_CN /* 상담사 메모 */
+             , T1.CNTR_CH_TP_CD      /* 계약변경유형코드 (ASIS) 서류접수유형 1: 개명신청, 2: 자동이체변경, 3: 명의변경, 4: 해지신청 */ /*처리업무:명의변경*/
+             , T3.DTL_CNTR_NO        /* 계약번호 */
+             , T3.DTL_CNTR_SN        /* 계약상세번호*/
+             , CONCAT(CONCAT(T3.DTL_CNTR_NO, '-'), T3.DTL_CNTR_SN) AS CNTR_DTL_NO /* 계약번호 - 계약일련번호 [계약상세번호] */
+             , T3.SELL_TP_CD         /* 판매유형코드 계약구분 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T3.SELL_TP_CD ) AS SELL_TP_NM /* 판매유형코드명 */
+             , SUBSTR(T1.CNTR_CH_RCP_DTM,0,8) AS CNTR_CH_RCP_D /* 접수일자 */
+             , SUBSTR(T1.CNTR_CH_RCP_DTM,9) AS CNTR_CH_RCP_TM /* 접수시간 */
+             , CASE WHEN T1.CNTR_CH_PRGS_STAT_CD IN ('55','60','70') THEN  '99'   /* 기타종료 */
+                    WHEN T1.CNTR_CH_PRGS_STAT_CD = '10' AND  T4.CNTR_CH_RCP_ID IS NOT NULL THEN '19' /* 재접수 */
+                    WHEN T1.CNTR_CH_PRGS_STAT_CD = '20' AND  T4.CNTR_CH_RCP_ID IS NOT NULL THEN '29' /* 재접수 완료 */
+                    ELSE T1.CNTR_CH_PRGS_STAT_CD END CNTR_CH_PRGS_STAT_CD  /*계약변경진행상태코드 : 접수대기~처리완료 - ASIS :  접수상태(기타종료 축약) */
+             , CASE WHEN T1.CNTR_CH_PRGS_STAT_CD = '10' AND  T4.CNTR_CH_RCP_ID IS NOT NULL THEN '재접수'    /* 재접수(19) */
+                    WHEN T1.CNTR_CH_PRGS_STAT_CD = '20' AND  T4.CNTR_CH_RCP_ID IS NOT NULL THEN '재접수완료' /* 재접수 완료(29) */
+                    ELSE F_CMZ_CD_NM('TNT_WELLS', 'CNTR_CH_PRGS_STAT_CD', T1.CNTR_CH_PRGS_STAT_CD) END CNTR_CH_PRGS_STAT_NM  /* 계약변경진행상태코드 : 접수대기~처리완료 - ASIS :  접수상태(기타종료 축약) */
+             , T1.CNTR_CH_TP_CD      /* 계약변경유형코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'CNTR_CH_TP_CD', T1.CNTR_CH_TP_CD ) AS CNTR_CH_TP_NM /* 판매유형 */
+             , T1.FNL_MDFC_DTM       /* 수정일자 */
+             , T1.CNTR_CH_AK_CN      /* 재접수 사유 */
+             , T3.CNTR_CH_RSON_CD      /* 계약변경사유코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'CNTR_CH_RSON_CD', T3.CNTR_CH_RSON_CD ) AS CNTR_CH_RSON_NM /* 계약변경사유코드명 */
+          FROM TB_SSCT_CNTR_CH_RCP_BAS T1    /* 계약변경접수기본 */
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T2 /* 고객기본 */
+            ON T1.CST_NO = T2.CST_NO
+         INNER JOIN LATERAL(SELECT T11.CNTR_CH_RCP_ID
+                             , T11.DTL_CNTR_NO  /* 계약번호 */
+                             , T11.DTL_CNTR_SN  /* 계약상세번호 */
+                             , T31.SELL_TP_CD   /* 판매유형코드 */
+                             , T11.CNTR_CH_RSON_CD  /* 계약변경사유코드 */
+                          FROM ( /* 계약변경접수ID로 계약변경접수상세 최상위값 */
+                               SELECT DTL_CNTR_NO
+                                    , DTL_CNTR_SN
+                                    , CNTR_CH_RCP_ID  /* 대상의 기기변경유형코드 */
+                                    , CNTR_CH_RSON_CD  /* 대상의 계약변경사유코드 */
+                                  FROM (SELECT DTL_CNTR_NO, DTL_CNTR_SN, CNTR_CH_RCP_ID, CNTR_CH_RSON_CD
+                                             , ROW_NUMBER () OVER( ORDER BY CNTR_CH_SN DESC) AS RN /* 일련번호로 한건만 */
+                                          FROM TB_SSCT_CNTR_CH_RCP_DTL  /* T.계약변경접수상세 */
+                                         WHERE 1=1
+                                           AND CNTR_UNIT_TP_CD IN ('20','020') /* 계약단위유형코드 : 계약상세 */
+                                           AND CNTR_CH_RCP_ID = T1.CNTR_CH_RCP_ID
+                                           AND DTA_DL_YN = 'N'
+                                        )
+                                  WHERE RN = 1) T11
+                           LEFT JOIN TB_SSCT_CNTR_DTL T31    /* T.계약상세 */
+                             ON T11.DTL_CNTR_NO = T31.CNTR_NO
+                            AND T11.DTL_CNTR_SN = T31.CNTR_SN
+                          WHERE 1=1
+               ) T3
+            ON T3.CNTR_CH_RCP_ID = T1.CNTR_CH_RCP_ID
+         LEFT OUTER JOIN LATERAL(SELECT MAX(HST.CNTR_CH_RCP_ID) AS CNTR_CH_RCP_ID
+                                   FROM TB_SSCT_CNTR_CH_RCCH_HIST HST   /* T.계약변경접수변경이력 */
+                                  WHERE 1=1
+                                    AND HST.CNTR_CH_RCP_ID = T1.CNTR_CH_RCP_ID
+                                    AND HST.CNTR_CH_PRGS_STAT_CD IN ('10','20') /* 접수대기(10), 접수완료(20) */
+                                    AND HST.HIST_END_DTM != '99991231235959' /* 현재건(99991231235959) 제외 */
+                                    AND HST.DTA_DL_YN = 'N'
+                            ) T4 /* 이전 접수,접수완료건을 확인하여 재접수여부 확인 */
+            ON T4.CNTR_CH_RCP_ID = T1.CNTR_CH_RCP_ID
+         WHERE 1=1
+           AND T1.CNTR_CH_RCP_ID = #{cntrChRcpId}
+    </select>
+
+    <select id="selectDocumentRcpDtlFileList" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaDocumentReceiptPssDto$SearchDocumentRcpDtlFileInfoRes">
+        SELECT
+               CASE WHEN CNTR_CH_TP_CD = '104' /*개명신청*/
+                    THEN (CASE WHEN CNTR_CH_DOC_SEQ = 1 THEN '신분증사본'
+                               WHEN CNTR_CH_DOC_SEQ > 1 THEN '기타'
+                               ELSE '' END )
+                    WHEN CNTR_CH_TP_CD = '301' /*자동이체 변경*/
+                    THEN (CASE WHEN CNTR_CH_DOC_SEQ = 1 THEN 'CMS변경신청서'
+                               WHEN CNTR_CH_DOC_SEQ = 2 THEN '신분증사본'
+                               WHEN CNTR_CH_DOC_SEQ = 3 THEN '통장사본'
+                               WHEN CNTR_CH_DOC_SEQ = 4 THEN '가족관계증명서류'
+                               WHEN CNTR_CH_DOC_SEQ = 5 THEN '사업자등록증(법인)'
+                               WHEN CNTR_CH_DOC_SEQ > 5 THEN '기타'
+                               ELSE '' END )
+                    WHEN CNTR_CH_TP_CD = '103' /*명의 변경*/
+                    THEN (CASE WHEN CNTR_CH_DOC_SEQ = 1 THEN '명의변경신청서'
+                               WHEN CNTR_CH_DOC_SEQ = 2 THEN '동의서'
+                               WHEN CNTR_CH_DOC_SEQ = 3 THEN '신분증사본'
+                               WHEN CNTR_CH_DOC_SEQ = 4 THEN '통장사본'
+                               WHEN CNTR_CH_DOC_SEQ = 5 THEN '사업자등록증(법인)'
+                               WHEN CNTR_CH_DOC_SEQ > 5 THEN '기타'
+                               ELSE '' END )
+                    WHEN CNTR_CH_TP_CD = '401' /*해지/철회신청*/
+                    THEN (CASE WHEN CNTR_CH_DOC_SEQ = 1 THEN '증빙서류'
+                               WHEN CNTR_CH_DOC_SEQ > 1 THEN '기타'
+                               ELSE '' END )
+                    ELSE '' END AS CNTR_CH_DOC_DV_NM /* 첨부파일종류 문서분류명 */
+             , T3.CNTR_CH_DOC_SEQ
+             , T3.CNTR_CH_TP_CD
+             , T3.DCMT_RCP_SN
+             , T3.FILE_NM
+             , T3.REAL_FPATH
+             , T3.FNL_MDFC_DTM
+             , T3.FILE_UID
+          FROM (SELECT ROW_NUMBER() OVER (ORDER BY T1.DCMT_RCP_SN) AS CNTR_CH_DOC_SEQ
+                      , T0.CNTR_CH_TP_CD  /* 계약변경유형코드 */
+                      , T1.DCMT_RCP_SN        /* 서류접수일련번호 */
+                      , T2.FILE_NM            /* 파일명 */
+                      , T2.REAL_FPATH         /* 파일실제경로 */
+                      , T2.FNL_MDFC_DTM       /* 파일최종등록일 */
+                      , T2.FILE_UID           /* 파일UID */
+                  FROM TB_SSCT_CNTR_CH_RCP_BAS T0 /*계약변경접수기본 */
+                 INNER JOIN TB_SSCT_CNTR_CH_DCMT_RCP_IZ T1 /* T.계약변경서류접수내역 */
+                    ON T1.CNTR_CH_RCP_ID = T0.CNTR_CH_RCP_ID
+                 INNER JOIN T_CMD_ATTH_FILE_D T2              /* T.파일상세 */
+                    ON T2.TENANT_ID = 'TNT_WELLS'
+                   AND T2.ATTH_DOC_ID = T1.APN_FILE_ID         /* 첨부파일ID=첨부문서ID */
+                   AND T2.DEL_YN = 'N'
+                 WHERE 1=1
+                   AND T1.CNTR_CH_RCP_ID = #{cntrChRcpId}
+                 ORDER BY T1.DCMT_RCP_SN
+              ) T3
+    </select>
+</mapper>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaMembershipJoinTcntMapper">
+    <select id="selectMembershipJoinTcnt" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaMembershipJoinTcntDto$SearchRes">
+         SELECT T1.BASE_DTL_CNTR_NO /* 계약관계.기준상세계약번호 */
+              , T1.BASE_DTL_CNTR_SN /* 계약관계.기준상세계약일련번호 */
+           FROM TB_SSCT_CNTR_REL T1 /* 계약관계 */
+          INNER JOIN TB_SSCT_CNTR_DTL T2 /*계약상세  */
+             ON T2.CNTR_NO = T1.OJ_DTL_CNTR_NO /* 계약상세.계약번호 = 계약관계.대상상세계약번호 */
+            AND T2.CNTR_SN = T1.OJ_DTL_CNTR_SN /* 계약상세.계약일련번호 = 계약관계.대상상세계약일련번호 */
+            AND T2.DTA_DL_YN = 'N'
+          WHERE 1=1 /*  */
+            AND T1.OJ_DTL_CNTR_NO = #{cntrNo} /* 조회조건 : 계약관계.대상상세계약번호 */
+            AND T1.OJ_DTL_CNTR_SN = #{cntrSn} /* 조회조건 : 계약관계.대상상세계약일련번호 */
+            AND T1.CNTR_REL_TP_CD = '10' /* 계약관계.계약관계유형코드 */
+            AND T1.CNTR_REL_DTL_CD = '212' /* 계약관계.계약관계상세코드 */
+            AND T1.DTA_DL_YN = 'N'
+            AND T1.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            AND T1.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+
+    </select>
+</mapper>

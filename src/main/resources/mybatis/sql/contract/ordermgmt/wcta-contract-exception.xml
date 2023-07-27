@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractExceptionMapper">
+    <select id="selectContractExceptionPages" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaContractExceptionDto$SearchRes">
+        SELECT *
+          FROM (
+        SELECT T1.EX_PROCS_ID
+             , T1.EX_PROCS_CD
+             , T1.EX_PROCS_OJ_DRM_TP_CD
+             , CASE WHEN T1.EX_PROCS_CD = 'W01'
+                    THEN (
+                         SELECT D1.EX_PROCS_CHVAL
+                           FROM TB_SSCT_CNTR_EX_OJ_DTL D1
+                          WHERE D1.EX_PROCS_ID = T1.EX_PROCS_ID
+                            AND D1.EX_PROCS_TP_CD = 'C1'
+                            AND D1.DTA_DL_YN = 'N'
+                         )
+                    WHEN T1.EX_PROCS_CD = 'W04'
+                    THEN (
+                         SELECT D1.EX_PROCS_CHVAL
+                           FROM TB_SSCT_CNTR_EX_OJ_DTL D1
+                          WHERE D1.EX_PROCS_ID = T1.EX_PROCS_ID
+                            AND D1.EX_PROCS_TP_CD = 'C5'
+                            AND D1.DTA_DL_YN = 'N'
+                         )
+                    WHEN T1.EX_PROCS_OJ_DRM_TP_CD = '1'
+                    THEN T1.EX_PROCS_OJ_DRM_VAL
+                    WHEN T1.EX_PROCS_OJ_DRM_TP_CD = '2'
+                    THEN ''
+                    WHEN T1.EX_PROCS_OJ_DRM_TP_CD = '5'
+                    THEN ''
+                    ELSE ''
+               END AS CST_NO
+             , CASE WHEN T1.EX_PROCS_CD = 'W02'
+                    THEN (
+                         SELECT D1.EX_PROCS_CHVAL
+                           FROM TB_SSCT_CNTR_EX_OJ_DTL D1
+                          WHERE D1.EX_PROCS_ID = T1.EX_PROCS_ID
+                            AND D1.EX_PROCS_TP_CD = 'C2'
+                            AND D1.DTA_DL_YN = 'N'
+                         )
+                    WHEN T1.EX_PROCS_OJ_DRM_TP_CD = '1'
+                    THEN ''
+                    WHEN T1.EX_PROCS_OJ_DRM_TP_CD = '2'
+                    THEN ''
+                    WHEN T1.EX_PROCS_OJ_DRM_TP_CD = '5'
+                    THEN T1.EX_PROCS_OJ_DRM_VAL
+                    ELSE ''
+               END AS PRTNR_NO
+             , CASE WHEN T1.EX_PROCS_CD = 'W02'
+                    THEN (
+                         SELECT D1.EX_PROCS_CHVAL
+                           FROM TB_SSCT_CNTR_EX_OJ_DTL D1
+                          WHERE D1.EX_PROCS_ID = T1.EX_PROCS_ID
+                            AND D1.EX_PROCS_TP_CD = 'C4'
+                            AND D1.DTA_DL_YN = 'N'
+                         )
+                    WHEN T1.EX_PROCS_OJ_DRM_TP_CD = '1'
+                    THEN ''
+                    WHEN T1.EX_PROCS_OJ_DRM_TP_CD = '2'
+                    THEN T1.EX_PROCS_OJ_DRM_VAL
+                    WHEN T1.EX_PROCS_OJ_DRM_TP_CD = '5'
+                    THEN ''
+                    ELSE ''
+               END AS CNTR_NO
+             , CASE WHEN T1.EX_PROCS_CD = 'W02'
+                    THEN (
+                         SELECT D1.EX_PROCS_CHVAL
+                           FROM TB_SSCT_CNTR_EX_OJ_DTL D1
+                          WHERE D1.EX_PROCS_ID = T1.EX_PROCS_ID
+                            AND D1.EX_PROCS_TP_CD = 'C3'
+                            AND D1.DTA_DL_YN = 'N'
+                         )
+                    ELSE T1.OG_TP_CD
+               END AS OG_TP_CD
+             , T1.DTA_DL_YN
+             , T1.EX_PROCS_DTL_CN
+             , T1.VL_STRT_DTM
+             , T1.VL_END_DTM
+             , T1.FST_RGST_USR_ID
+             , (
+               SELECT USR_NM
+                 FROM T_CMP_USR_ACO_M
+                WHERE DEL_YN = 'N'
+                  AND USR_ID = T1.FST_RGST_USR_ID
+               ) AS FST_RGST_USR_NM
+             , SUBSTR(T1.FST_RGST_DTM, 1, 8) AS FST_RGST_DTM
+             , T1.FNL_MDFC_USR_ID
+             , (
+               SELECT USR_NM
+                 FROM T_CMP_USR_ACO_M
+                WHERE DEL_YN = 'N'
+                  AND USR_ID = T1.FNL_MDFC_USR_ID
+               ) AS FNL_MDFC_USR_NM
+             , SUBSTR(T1.FNL_MDFC_DTM, 1, 8) AS FNL_MDFC_DTM
+          FROM TB_SSCT_CNTR_EX_OJ_BAS T1
+         WHERE 1 = 1
+           AND T1.VL_STRT_DTM <![CDATA[>=]]> #{strtDt} || '000000'
+           AND T1.VL_END_DTM <![CDATA[<=]]> #{endDt} || '235959'
+               )
+         WHERE 1 = 1
+        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+           AND PRTNR_NO = #{prtnrNo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cstNo)'>
+           AND CST_NO = #{cstNo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND CNTR_NO = #{cntrNo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(exProcsCd)'>
+           AND EX_PROCS_CD = #{exProcsCd}
+        </if>
+    </select>
+
+    <insert id="insertContractExceptionBas">
+        <selectKey keyProperty="item.exProcsId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(MAX(TO_NUMBER(EX_PROCS_ID)) + 1,15,0)
+              FROM TB_SSCT_CNTR_EX_OJ_BAS
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_EX_OJ_BAS (
+               EX_PROCS_ID
+             , VL_STRT_DTM
+             , VL_END_DTM
+             , EX_PROCS_CD
+             , EX_PROCS_OJ_DRM_TP_CD
+             , EX_PROCS_OJ_DRM_VAL
+             , OG_TP_CD
+             , EX_PROCS_DTL_CN
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{item.exProcsId}
+             , #{item.vlStrtDtm} || '000000'
+             , #{item.vlEndDtm} || '235959'
+             , #{item.exProcsCd}
+             , #{item.exProcsOjDrmTpCd}
+             , #{item.exProcsOjDrmVal}
+             , CASE WHEN #{item.exProcsCd} = 'W02'
+                    THEN ''
+                    ELSE #{item.ogTpCd}
+               END
+             , #{item.exProcsDtlCn}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updateContractExceptionBas">
+        UPDATE TB_SSCT_CNTR_EX_OJ_BAS
+           SET VL_STRT_DTM = #{vlStrtDtm}
+             , VL_END_DTM = #{vlEndDtm}
+             , EX_PROCS_CD = #{exProcsCd}
+             , EX_PROCS_OJ_DRM_TP_CD = #{exProcsOjDrmTpCd}
+             , EX_PROCS_OJ_DRM_VAL = #{exProcsOjDrmVal}
+             , OG_TP_CD = #{ogTpCd}
+             , EX_PROCS_DTL_CN = #{exProcsDtlCn}
+        <if test='@MybatisUtils@isNotEmpty(dtaDlYn)'>
+             , DTA_DL_YN = #{dtaDlYn}
+        </if>
+             <include refid="COMMON.updateSystemField"/>
+         WHERE EX_PROCS_ID = #{exProcsId}
+    </update>
+
+    <insert id="insertContractExceptionDtl">
+        INSERT INTO TB_SSCT_CNTR_EX_OJ_DTL (
+               EX_PROCS_ID
+             , EX_SN
+             , VL_STRT_DTM
+             , VL_END_DTM
+             , EX_PROCS_TP_CD
+             , EX_PROCS_NUVAL
+             , EX_PROCS_CHVAL
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{exProcsId}
+             , #{exSn}
+             , #{vlStrtDtm}
+             , #{vlEndDtm}
+             , #{exProcsTpCd}
+             , TO_NUMBER(#{exProcsNuval})
+             , #{exProcsChval}
+             <include refid="COMMON.insertSystemFieldValue" />)
+    </insert>
+
+    <delete id="deleteContractExceptionBas">
+        DELETE
+          FROM TB_SSCT_CNTR_EX_OJ_BAS
+         WHERE EX_PROCS_ID = #{exProcsId}
+    </delete>
+
+    <delete id="deleteContractExceptionDtl">
+        DELETE
+          FROM TB_SSCT_CNTR_EX_OJ_DTL
+         WHERE EX_PROCS_ID = #{exProcsId}
+    </delete>
+</mapper>

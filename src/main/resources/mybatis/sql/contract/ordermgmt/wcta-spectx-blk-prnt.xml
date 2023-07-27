@@ -1,0 +1,573 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaSpectxBlkPrntMapper">
+    <select id="selectSpectxBlkPrnts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSpectxBlkPrntDto$SearchRes">
+        SELECT A1.SPECTX_GRP_NO /* 거래명세서그룹번호 [그룹번호] */
+             , B1.SELL_TP_CD /* 판매유형코드 [계약구분] */
+             , B1.CNTR_NO || '-' || B1.CNTR_SN AS CNTR_DTL_NO /* [계약상세번호] */
+             , B1.CNTR_NO /* 계약번호 */
+             , B1.CNTR_SN /* 계약일련번호 */
+             , B1.CST_NM /* 고객명 [고객명] */
+             , SUBSTR(F1.SPECTX_PRNT_DT, 1, 4) AS SPECTX_PRNT_Y /* 거래명세서출력일자 - 발행년도 거래명세서출력일자로 대체 >> 컬럼 제거 검토 [발행년도] */
+             , B1.SPECTX_PBL_D_DV_CD /* 거래명세서발행일구분코드 [발행일]*/
+             , B1.SPECTX_PRD_DV_CD /* 거래명세서주기구분코드 [발행주기]*/
+             , A1.EMADR /* 이메일주소 [이메일] */
+             , A1.FAX_LOCARA_TNO /* 팩스지역전화번호 [팩스번호]*/
+             , A1.FAX_EXNO /* 팩스전화국번호 [팩스번호] */
+             , A1.FAX_IDV_TNO /* 팩스개별전화번호 [팩스번호] */
+             , A1.FST_RGST_USR_ID /* 최초등록사용자ID */
+             , (
+                SELECT MAX(G1.EPNO)
+                  FROM T_CMP_USR_ACO_M G1 /* 사용자기본 */
+                 WHERE G1.USR_ID = A1.FST_RGST_USR_ID /* 사용자기본.사용자ID = 계약상세.최초등록사용자 */
+                   AND G1.DEL_YN = 'N'
+               ) AS EP_NO
+             , SUBSTR(A1.FST_RGST_DTM, 1, 8) AS FST_RGST_D /* 등록일 */
+             , A1.FST_RGST_DTM /* 등록일시 */
+             , B1.LSTMM_YN /* 전월여부 */
+             , E1.CST_NO /* 고객번호-저장시 필요 */
+          FROM TB_SSCT_SPECTX_IS_BAS A1 /* 거래명세서발급기본  */
+         INNER JOIN TB_SSCT_SPECTX_IS_DTL B1 /* 거래명세서발급상세 */
+           ON B1.SPECTX_GRP_NO = A1.SPECTX_GRP_NO /* 거래명세서발급기본.거래명세서그룹번호 = 거래명세서발급상세.거래명세서그룹번호 */
+          AND B1.DTA_DL_YN = 'N'
+          AND A1.DTA_DL_YN = 'N'
+        INNER JOIN TB_SSCT_CNTR_DTL C1 /* 계약상세 */
+           ON C1.CNTR_SN = B1.CNTR_SN /* 계약상세.계약일련번호 = 거래명세서발급상세.계약일련번호 */
+          AND C1.CNTR_NO = B1.CNTR_NO /* 계약상세.계약번호 = 거래명세서발급상세.계약번호 */
+          AND C1.DTA_DL_YN = 'N'
+          AND B1.DTA_DL_YN = 'N'
+        INNER JOIN TB_SSCT_CNTR_BAS D1 /* 계약기본 */
+           ON D1.CNTR_NO = C1.CNTR_NO /* 계약기본.계약번호 = 계약상세.계약번호 */
+          AND D1.DTA_DL_YN = 'N'
+          AND C1.DTA_DL_YN = 'N'
+        INNER JOIN TB_CUBS_CST_BAS E1 /* 고객기본 */
+           ON E1.CST_NO = D1.CNTR_CST_NO /* 고객기본.고객번호 = 계약기본.계약고객번호 */
+          AND E1.DTA_DL_YN = 'N'
+          AND E1.TEMP_SAVE_YN = 'N' /* 고객기본.임시저장여부 = 'N' */
+          AND D1.DTA_DL_YN = 'N'
+        INNER JOIN TB_SSCT_SPECTX_PBL_HIST F1 /* 거래명세서발행이력 */
+           ON F1.SPECTX_GRP_NO = B1.SPECTX_GRP_NO /* 거래명세서발행이력.거래명세서그룹번호 = 거래명세서발급상세.거래명세서그룹번호 */
+          AND F1.CNTR_NO = B1.CNTR_NO
+          AND F1.CNTR_SN = B1.CNTR_SN
+          AND F1.CH_SN = B1.CH_SN /* 거래명세서발행이력.변경일련번호 = 거래명세서발급상세.변경일련번호 */
+          AND F1.DTA_DL_YN = 'N'
+          AND B1.DTA_DL_YN = 'N'
+        WHERE 1=1
+        <if test='@MybatisUtils@isNotEmpty(rgstStartDt) and @MybatisUtils@isNotEmpty(rgstEndDt) '>
+          AND SUBSTR(A1.FST_RGST_DTM, 1, 8) BETWEEN #{rgstStartDt} AND #{rgstEndDt} /* 등록일 FROM~TO*/
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+          AND B1.CNTR_NO = #{cntrNo} /* 계약상세번호 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+          AND B1.CNTR_SN = #{cntrSn} /* 계약상세번호 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(grpStartNo)'>
+          AND A1.SPECTX_GRP_NO BETWEEN #{grpStartNo} AND #{grpEndNo}  /* 그룹코드 FROM~TO */
+        </if>
+        ORDER BY A1.SPECTX_GRP_NO, F1.SPECTX_PRNT_DT, B1.CNTR_NO, B1.CNTR_SN
+    </select>
+    <select id="selectTradeSpcshCst" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSpectxBlkPrntDto$SearchCntrRes">
+        /* 거래명세서 계약상세번호 포커스 아웃 시 고객정보 조회 */
+        SELECT A1.SELL_TP_CD /* 판매유형코드 */
+             , B1.CNTR_CST_NO /* 계약고객번호 */
+             , C1.CST_KNM /* 고객한글명 */
+             , C1.CST_NO /* 고객번호 */
+             , C1.EMADR /* 이메일주소 */
+             , (
+                SELECT MAX(E1.MPY_BSDT) KEEP (DENSE_RANK FIRST ORDER BY D1.VL_END_DTM DESC NULLS LAST, E1.FNL_MDFC_DTM DESC NULLS LAST, E1.FST_RGST_DTM DESC NULLS LAST)
+                  FROM TB_SSCT_CNTR_STLM_REL D1 /* 계약결제관계 */
+                 INNER JOIN TB_SSCT_CNTR_STLM_BAS E1 /* 계약결제기본 */
+                    ON E1.CNTR_STLM_ID = D1.CNTR_STLM_ID /* 계약결제기본.계약결제ID = 계약결제관계.계약결제ID */
+                   AND E1.DTA_DL_YN = 'N'
+                   AND D1.DTA_DL_YN = 'N'
+                   AND TRIM(E1.MPY_BSDT) IS NOT NULL /* 계약결제기본.납부기준일자가 NULL이 아닌 건 */
+                 WHERE D1.DTL_CNTR_NO = A1.CNTR_NO
+                   AND D1.DTL_CNTR_SN = A1.CNTR_SN
+                   AND D1.DTA_DL_YN = 'N'
+                   --AND D1.VL_END_DTM = '99991231235959' /* 유효종료일시='99991231235959' → 유효한 건 */
+                   AND D1.CNTR_UNIT_TP_CD = '020' /* 계약단위유형코드 = '020'(계약상세) */
+                   AND D1.RVE_DV_CD IN ('03','04','05') /* 계약결제관계.수납구분코드 '03'(월납입액(할부금,렌탈료)), '04'(멤버십회비), '05'(정기배송회비) */
+                   AND D1.DP_TP_CD IN
+                     (
+                        '0101', '0102', '0103', '0104' /* 계좌 - 0101:개별수납(가상계좌), 0102:계좌자동이체, 0103:PG-계좌이체, 0104:법인계좌(회사통장) */
+                      , '0201', '0202', '0203', '0204' /* 카드 - 0201:개별수납(신용카드), 0202:여민동락카드(바우처), 0203:카드자동이체, 0204:PG-신용카드 */
+                     )
+                   AND EXISTS /* 공통코드 SPECTX_PBL_D_DV_CD의 값과 동일 한건이 있어야 함) */
+                     (
+                      SELECT CD_VLD_VAL
+                        FROM T_CMZ_CD_D F1
+                       WHERE F1.CD_ID = 'SPECTX_PBL_D_DV_CD'
+                         AND F1.CD_VLD_VAL = E1.MPY_BSDT
+                         AND F1.TENANT_ID = 'TNT_WELLS'
+                     )
+               ) AS SPECTX_PBL_D /* 발행일 */
+             , A1.CNTR_NO /* 계약번호 */
+             , A1.CNTR_SN /* 계약일련번호 */
+             , A1.CNTR_NO||A1.CNTR_SN AS DTL_CNTR_NO /* 계약상세번호 */
+          FROM WSMDBS.TB_SSCT_CNTR_DTL A1 /* 계약상세 */
+         INNER JOIN WSMDBS.TB_SSCT_CNTR_BAS B1 /* 계약기본 */
+            ON A1.CNTR_NO = B1.CNTR_NO
+           AND A1.DTA_DL_YN = 'N'
+           AND B1.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS C1 /* 고객기본 */
+            ON C1.CST_NO = B1.CNTR_CST_NO /* 고객기본.고객번호 = 계약기본.계약고객번호 */
+           AND C1.DTA_DL_YN = 'N'
+           AND C1.TEMP_SAVE_YN = 'N' /* 고객기본.임시저장여부 = 'N' */
+           AND A1.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND A1.CNTR_NO = #{cntrNo}
+           AND A1.CNTR_SN = #{cntrSn}
+    </select>
+    <select id="selectSpectxGrpNoCheck" resultType="int">
+        SELECT COUNT(*)
+          FROM TB_SSCT_SPECTX_IS_DTL
+         WHERE 1=1
+           AND SPECTX_GRP_NO      = #{spectxGrpNo}       /* 거래명세서그룹번호 */
+           AND DTA_DL_YN = 'N'
+    </select>
+    <insert id="insertSsctSpectxIsBas">
+        <selectKey keyProperty="item.spectxGrpNo" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(MAX(TO_NUMBER(SPECTX_GRP_NO)) + 1,5,0)
+              FROM TB_SSCT_SPECTX_IS_BAS
+        </selectKey>
+        INSERT INTO TB_SSCT_SPECTX_IS_BAS (  /* 거래명세서발급기본 */
+              SPECTX_GRP_NO    /* 거래명세서그룹번호 */
+            , CH_SN            /* 변경일련번호 */
+            , EMADR            /* 이메일주소 */
+            , FAX_LOCARA_TNO   /* 팩스지역전화번호 */
+            , FAX_EXNO         /* 팩스전화국번호 */
+            , FAX_IDV_TNO      /* 팩스개별전화번호 */
+            , DTA_DL_YN        /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{item.spectxGrpNo}
+            , '1'
+            , ''
+            , ''
+            , ''
+            , ''
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertSsctSpectxIsDtl">
+        INSERT INTO TB_SSCT_SPECTX_IS_DTL (  /* 거래명세서발급상세 */
+              SPECTX_GRP_NO      /* 거래명세서그룹번호 */
+            , CNTR_NO            /* 계약번호 */
+            , CNTR_SN            /* 계약일련번호 */
+            , CST_NO             /* 고객번호 */
+            , CST_NM             /* 고객명 */
+            , CH_SN              /* 변경일련번호 */
+            , SELL_TP_CD         /* 판매유형코드 */
+            , SPECTX_PBL_D_DV_CD /* 거래명세서발행일구분코드 */
+            , SPECTX_PRD_DV_CD   /* 거래명세서주기구분코드 */
+            , LSTMM_YN           /* 전월여부 */
+            , DTA_DL_YN          /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{spectxGrpNo}
+            , #{cntrNo}
+            , #{cntrSn}
+            , #{cstNo}
+            , #{cstNm}
+            , '1'
+            , #{sellTpCd}
+            , #{spectxPblDDvCd}
+            , #{spectxPrdDvCd}
+            , NVL(#{lstmmYn},'N')
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+    <insert id="insertSsctSpectxIsChHist">
+        INSERT INTO TB_SSCT_SPECTX_IS_CH_HIST (  /* 거래명세서발급변경이력 */
+              SPECTX_GRP_NO    /* 거래명세서그룹번호 */
+            , CH_SN            /* 변경일련번호 */
+            , EMADR            /* 이메일주소 */
+            , FAX_LOCARA_TNO   /* 팩스지역전화번호 */
+            , FAX_EXNO         /* 팩스전화국번호 */
+            , FAX_IDV_TNO      /* 팩스개별전화번호 */
+            , DTA_DL_YN        /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        SELECT SPECTX_GRP_NO    /* 거래명세서그룹번호 */
+             , (SELECT NVL(MAX(CH_SN),0)+1
+                  FROM TB_SSCT_SPECTX_IS_CH_HIST
+                 WHERE 1 = 1
+                   AND SPECTX_GRP_NO    = #{spectxGrpNo}      /* 거래명세서그룹번호 */)            /* 변경일련번호 */
+             , EMADR            /* 이메일주소 */
+             , FAX_LOCARA_TNO   /* 팩스지역전화번호 */
+             , FAX_EXNO         /* 팩스전화국번호 */
+             , FAX_IDV_TNO      /* 팩스개별전화번호 */
+             , DTA_DL_YN        /* 데이터삭제여부 */
+                <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SSCT_SPECTX_IS_BAS /* 거래명세서발급기본 */
+         WHERE 1 = 1
+           AND SPECTX_GRP_NO    = #{spectxGrpNo}      /* 거래명세서그룹번호 */
+    </insert>
+    <insert id="insertSsctSpectxPblHist">
+       INSERT INTO TB_SSCT_SPECTX_PBL_HIST (  /* 거래명세서발행이력 */
+              SPECTX_GRP_NO      /* 거래명세서그룹번호 */
+            , CNTR_NO            /* 계약번호 */
+            , CNTR_SN            /* 계약일련번호 */
+            , CH_SN              /* 변경일련번호 */
+            , CST_NO             /* 고객번호 */
+            , CST_NM             /* 고객명 */
+            , SELL_TP_CD         /* 판매유형코드 */
+            , SL_YM              /* 매출년월 */
+            , SPECTX_PBL_D_DV_CD /* 거래명세서발행일구분코드 */
+            , SPECTX_PRD_DV_CD   /* 거래명세서주기구분코드 */
+            , LSTMM_YN           /* 전월여부 */
+            , SPECTX_PRNT_DT     /* 거래명세서출력일자 --*/
+            , SPECTX_FW_DTM      /* 거래명세서발송일시 --*/
+            , DTA_DL_YN          /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />)
+        SELECT SPECTX_GRP_NO      /* 거래명세서그룹번호 */
+             , CNTR_NO            /* 계약번호 */
+             , CNTR_SN            /* 계약일련번호 */
+             , (SELECT NVL(MAX(CH_SN),0)+1
+                  FROM TB_SSCT_SPECTX_PBL_HIST
+                 WHERE 1 = 1
+                   AND SPECTX_GRP_NO      = #{spectxGrpNo}       /* 거래명세서그룹번호 */
+                   AND CNTR_NO            = #{cntrNo}            /* 계약번호 */
+                   AND CNTR_SN            = #{cntrSn}            /* 계약일련번호 */)               /* 변경일련번호 */
+             , CST_NO             /* 고객번호 */
+             , CST_NM             /* 고객명 */
+             , SELL_TP_CD         /* 판매유형코드 */
+             , ''                 /* 매출년월 */
+             , SPECTX_PBL_D_DV_CD /* 거래명세서발행일구분코드 */
+             , SPECTX_PRD_DV_CD   /* 거래명세서주기구분코드 */
+             , LSTMM_YN           /* 전월여부 */
+             , ''                 /* 거래명세서출력일자 --*/
+             , ''                 /* 거래명세서발송일시 --*/
+             , DTA_DL_YN          /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SSCT_SPECTX_IS_DTL /* 거래명세서발급상세 */
+         WHERE 1 = 1
+           AND SPECTX_GRP_NO      = #{spectxGrpNo}       /* 거래명세서그룹번호 */
+           AND CNTR_NO            = #{cntrNo}            /* 계약번호 */
+           AND CNTR_SN            = #{cntrSn}            /* 계약일련번호 */
+    </insert>
+    <update id="updateSsctSpectxIsBas">
+        UPDATE TB_SSCT_SPECTX_IS_BAS /* 거래명세서발급기본 */
+           SET CH_SN            = (SELECT MAX(CH_SN)
+                                     FROM TB_SSCT_SPECTX_IS_CH_HIST
+                                    WHERE 1 = 1
+                                      AND SPECTX_GRP_NO    = #{spectxGrpNo}      /* 거래명세서그룹번호 */)             /* 변경일련번호 */
+             , EMADR            = #{emadr}            /* 이메일주소 */
+             , FAX_LOCARA_TNO   = #{faxLocaraTno}     /* 팩스지역전화번호 */
+             , FAX_EXNO         = #{faxExno}          /* 팩스전화국번호 */
+             , FAX_IDV_TNO      = #{faxIdvTno}        /* 팩스개별전화번호 */
+             , DTA_DL_YN        = 'N'          /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND SPECTX_GRP_NO    = #{spectxGrpNo}      /* 거래명세서그룹번호 */
+    </update>
+    <update id="updateSsctSpectxIsBasFirst">
+        UPDATE TB_SSCT_SPECTX_IS_BAS /* 거래명세서발급기본 */
+           SET EMADR            = #{emadr}            /* 이메일주소 */
+             , FAX_LOCARA_TNO   = #{faxLocaraTno}     /* 팩스지역전화번호 */
+             , FAX_EXNO         = #{faxExno}          /* 팩스전화국번호 */
+             , FAX_IDV_TNO      = #{faxIdvTno}        /* 팩스개별전화번호 */
+             , DTA_DL_YN        = 'N'          /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND SPECTX_GRP_NO    = #{spectxGrpNo}      /* 거래명세서그룹번호 */
+    </update>
+    <update id="updateSsctSpectxIsDtl">
+        UPDATE TB_SSCT_SPECTX_IS_DTL /* 거래명세서발급상세 */
+           SET CST_NO             = #{cstNo}             /* 고객번호 */
+             , CST_NM             = #{cstNm}             /* 고객명 */
+             , CH_SN              = (SELECT MAX(CH_SN)
+                                       FROM TB_SSCT_SPECTX_PBL_HIST
+                                      WHERE 1 = 1
+                                        AND SPECTX_GRP_NO      = #{spectxGrpNo}       /* 거래명세서그룹번호 */
+                                        AND CNTR_NO            = #{cntrNo}            /* 계약번호 */
+                                        AND CNTR_SN            = #{cntrSn}            /* 계약일련번호 */)              /* 변경일련번호 */
+             , SELL_TP_CD         = #{sellTpCd}          /* 판매유형코드 */
+             , SPECTX_PBL_D_DV_CD = #{spectxPblDDvCd}    /* 거래명세서발행일구분코드 */
+             , SPECTX_PRD_DV_CD   = #{spectxPrdDvCd}     /* 거래명세서주기구분코드 */
+             , LSTMM_YN           = NVL(#{lstmmYn},'N')           /* 전월여부 */
+             , DTA_DL_YN          = 'N'           /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND SPECTX_GRP_NO      = #{spectxGrpNo}       /* 거래명세서그룹번호 */
+           AND CNTR_NO            = #{cntrNo}            /* 계약번호 */
+           AND CNTR_SN            = #{cntrSn}            /* 계약일련번호 */
+    </update>
+    <update id="updateSsctSpectxIsBasDtaDlY">
+        UPDATE TB_SSCT_SPECTX_IS_BAS /* 거래명세서발급기본 */
+           SET DTA_DL_YN = 'Y'
+        <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND SPECTX_GRP_NO    = #{spectxGrpNo}      /* 거래명세서그룹번호 */
+    </update>
+    <update id="updateSsctSpectxIsDtlDtaDlY">
+        UPDATE TB_SSCT_SPECTX_IS_DTL /* 거래명세서발급상세 */
+           SET DTA_DL_YN = 'Y'
+        <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND SPECTX_GRP_NO      = #{spectxGrpNo}       /* 거래명세서그룹번호 */
+           AND CNTR_NO            = #{cntrNo}            /* 계약번호 */
+           AND CNTR_SN            = #{cntrSn}            /* 계약일련번호 */
+    </update>
+    <select id="selectTradeSpcshFwInqrs" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaSpectxBlkPrntDto$SpectxFwRes">
+        SELECT L1.SPECTX_GRP_NO /* 거래명세서그룹번호[그룹번호] */
+     , MAX(L1.CST_NM) AS CST_NM /* 고객명 - 고객기본.고객한글명(CST_KNM)으로 대체 가능 [발급명] */
+     , L1.SL_CL_YM /* 매출마감년월 [기간] */
+     , MAX(L1.CST_KNM) AS CST_KNM /* 고객한글명 */
+     , MAX(L1.CST_NO) AS CST_NO /* 고객번호 */
+     , MAX(L1.SPECTX_PBL_D_DV_CD) AS SPECTX_PBL_D_DV_CD /* 거래명세서발행일구분코드 [발행일] */
+     , MAX(L1.SPECTX_PRNT_DT) AS SPECTX_PRNT_DT /* 거래명세서 출력일자 [출력일] */
+     , MAX(L1.SPECTX_PRD_DV_CD) AS SPECTX_PRD_DV_CD /* 거래명세서주기구분코드 */
+     , MAX(L1.IS_YN) AS IS_YN /* 발급여부 - 매출년월에 따라 발급여부 조회(화면에서 하드코딩 된 발급여부 값) 1:Y, 2:N [발급여부] */
+     , MAX(L1.SPECTX_FW_DTM) AS SPECTX_FW_DTM /* 거래명세서발송일시 [발급일시]*/
+     , MAX(L1.SPECTX_FW_D) AS SPECTX_FW_D /* 거래명세서발송일시 */
+     , MAX(L1.SPECTX_FW_TM) AS SPECTX_FW_TM /* 거래명세서발송일시 */
+     , MAX(L1.DP_TP_CD) AS DP_TP_CD /* 입급유형코드 [수납유형] */
+     , MAX(L1.CNTR_NO) AS CNTR_NO /* 계약번호 [계약번호] */
+     , MAX(L1.CNTR_SN) AS CNTR_SN /* 계약일련번호 [계약번호] */
+     , COUNT(L1.CNTR_SN) AS CNTR_CN /* 계약일련번호 건수 [계약건수] */
+     , MAX(L1.BASE_PD_CD) AS BASE_PD_CD /* 대표상품코드 */
+     , MAX(L1.BASE_PD_NM) AS BASE_PD_NM /* 대표상품코드명 [상품명]*/
+     , SUM(L1.NOM_SL_AMT) AS NOM_SL_AMT /* 정상매출금액 [매출액] */
+     , MAX(L1.EMADR) AS EMADR /* 이메일주소 [이메일] */
+     , MAX(L1.FAX_LOCARA_TNO) AS FAX_LOCARA_TNO /* 팩스지역전화번호 [팩스번호] */
+     , MAX(L1.FAX_EXNO) AS FAX_EXNO /* 팩스전화국번호 [팩스번호] */
+     , MAX(L1.FAX_IDV_TNO) AS FAX_IDV_TNO /* 팩스개별전화번호 [팩스번호] */
+     , MAX(L1.LSTMM_YN) AS LSTMM_YN /* 전월여부 */
+  FROM
+     (
+      WITH W1 AS (
+            SELECT A1.SPECTX_GRP_NO /* 거래명세서그룹번호 */
+                 , B1.CST_NM /* 고객명 - 고객기본.고객한글명(CST_KNM)으로 대체 가능 [발급명] */
+                 , E1.CST_KNM /* 고객한글명 */
+                 , E1.CST_NO /* 고객번호 */
+                 , F1.SPECTX_PRNT_DT /* 거래명세서출력일자 */
+                 , F1.SPECTX_PBL_D_DV_CD /* 거래명세서발행일구분코드 */
+                 , F1.SPECTX_PRD_DV_CD /* 거래명세서주기구분코드 */
+                 , CASE WHEN TRIM(F1.SL_YM) IS NOT NULL
+                             THEN '1'
+                        ELSE '2'
+                   END AS IS_YN /* 발급여부 - 매출년월에 따라 발급여부 조회(화면에서 하드코딩 된 발급여부 값) 1:Y, 2:N [발급여부] */
+                 , F1.SPECTX_FW_DTM /* 거래명세서발송일시 */
+                 , SUBSTR(F1.SPECTX_FW_DTM, 1, 8) AS SPECTX_FW_D /* 거래명세서발송일시 [발급일] */
+                 , SUBSTR(F1.SPECTX_FW_DTM, 9, 6) AS SPECTX_FW_TM /* 거래명세서발송일시 [발급시간] */
+                 , (
+                    SELECT MAX(H1.DP_TP_CD) KEEP (DENSE_RANK FIRST ORDER BY H1.VL_END_DTM DESC NULLS LAST)
+                      FROM TB_SSCT_CNTR_STLM_REL H1 /* 계약결제관계 */
+                     WHERE H1.DTL_CNTR_NO = C1.CNTR_NO /* 계약결제관계.상세계약번호 = 계약상세.계약번호 */
+                       AND H1.DTL_CNTR_SN = C1.CNTR_SN /* 계약결제관계.상세계약일련번호 = 계약상세.계약일련번호 */
+                       --AND H1.VL_END_DTM = '99991231235959' /* 계약결제관계.유효종료일시 최종값인 건 */
+                       AND H1.DTA_DL_YN = 'N'
+                       AND H1.RVE_DV_CD IN ('03', '04', '05') /* 수납구분코드 03:월납입액(할부금,렌탈료), 04:멤버십회비, '05':정기배송회비 */
+                   ) AS DP_TP_CD /* 입급유형코드 */
+                 , B1.CNTR_NO /* 계약번호 [고객번호] 화면 계약번호로 변경 필요 */
+                 , B1.CNTR_SN /* 계약일련번호 */
+                 , (
+                    SELECT MAX(C2.BASE_PD_CD) KEEP (DENSE_RANK FIRST ORDER BY C2.CNTR_SN ASC NULLS LAST)
+                      FROM TB_SSCT_CNTR_DTL C2 /* 계약상세 */
+                     WHERE C2.CNTR_NO = C1.CNTR_NO
+                       AND C2.CNTR_SN = C1.CNTR_SN
+                       AND C2.DTA_DL_YN = 'N'
+                   ) AS BASE_PD_CD /* 대표상품코드 */
+                 , (
+                    SELECT NVL(I1.NOM_SL_AMT,0) /* 정상매출금액 */
+                      FROM TB_CBCL_WELLS_SL_MM_CL_IZ I1 /* WELLS매출월마감내역 */
+                     WHERE I1.SL_CL_YM = F1.SL_YM /* WELLS매출월마감내역.매출마감년월 = 거래명세서발행이력.매출년월 */
+                       AND I1.CNTR_NO = F1.CNTR_NO /* WELLS매출월마감내역.계약번호 = 거래명세서발행이력.계약번호*/
+                       AND I1.CNTR_SN = F1.CNTR_SN /* WELLS매출월마감내역.계약일련번호 = 거래명세서발행이력.계약일련번호*/
+                       AND I1.DTA_DL_YN = 'N'
+                       AND B1.DTA_DL_YN = 'N'
+                   ) AS NOM_SL_AMT /* 매출액 */
+                 , A1.EMADR /* 이메일주소 */
+                 , A1.FAX_LOCARA_TNO /* 팩스지역전화번호 */
+                 , A1.FAX_EXNO /* 팩스전화국번호 */
+                 , A1.FAX_IDV_TNO /* 팩스개별전화번호 */
+                 , B1.LSTMM_YN /* 전월여부 */
+              FROM TB_SSCT_SPECTX_IS_BAS A1 /* 거래명세서발급기본  */
+             INNER JOIN TB_SSCT_SPECTX_IS_DTL B1 /* 거래명세서발급상세 */
+               ON B1.SPECTX_GRP_NO = A1.SPECTX_GRP_NO /* 거래명세서발급기본.거래명세서그룹번호 = 거래명세서발급상세.거래명세서그룹번호 */
+              AND B1.DTA_DL_YN = 'N'
+              AND A1.DTA_DL_YN = 'N'
+            INNER JOIN TB_SSCT_CNTR_DTL C1 /* 계약상세 */
+               ON C1.CNTR_NO = B1.CNTR_NO /* 계약상세.계약번호 = 거래명세서발급상세.계약번호 */
+              AND C1.CNTR_SN = B1.CNTR_SN /* 계약상세.계약일련번호 = 거래명세서발급상세.계약일련번호 */
+              AND C1.DTA_DL_YN = 'N'
+              AND B1.DTA_DL_YN = 'N'
+            INNER JOIN TB_SSCT_CNTR_BAS D1 /* 계약기본 */
+               ON D1.CNTR_NO = C1.CNTR_NO /* 계약기본.계약번호 = 계약상세.계약번호 */
+              AND D1.DTA_DL_YN = 'N'
+              AND C1.DTA_DL_YN = 'N'
+            INNER JOIN TB_CUBS_CST_BAS E1 /* 고객기본 */
+               ON E1.CST_NO = D1.CNTR_CST_NO /* 고객기본.고객번호 = 계약기본.계약고객번호 */
+              AND E1.DTA_DL_YN = 'N'
+              AND E1.TEMP_SAVE_YN = 'N' /* 고객기본.임시저장여부 = 'N' */
+              AND D1.DTA_DL_YN = 'N'
+            INNER JOIN TB_SSCT_SPECTX_PBL_HIST F1 /* 거래명세서발행이력 */
+               ON F1.SPECTX_GRP_NO = B1.SPECTX_GRP_NO /* 거래명세서발행이력.거래명세서그룹번호 = 거래명세서발급상세.거래명세서그룹번호 */
+              AND F1.CNTR_NO = B1.CNTR_NO
+              AND F1.CNTR_SN = B1.CNTR_SN
+              AND F1.CH_SN = B1.CH_SN /* 거래명세서발행이력.변경일련번호 = 거래명세서발급상세.변경일련번호 */
+              AND F1.DTA_DL_YN = 'N'
+              AND B1.DTA_DL_YN = 'N'
+                 )  /* 거래명세서발송대상 */
+      SELECT W1.SPECTX_GRP_NO /* 거래명세서그룹번호 */
+           , W1.CST_NM /* 고객명 - 고객기본.고객한글명(CST_KNM)으로 대체 가능 [발급명] */
+           , TO_CHAR(J1.SL_CL_YM+1) AS SL_CL_YM /* 매출마감년월 */
+           , W1.CST_KNM /* 고객한글명 */
+           , W1.CST_NO /* 고객번호 */
+           , W1.SPECTX_PRNT_DT /* 거래명세서출력일자 */
+           , W1.SPECTX_PBL_D_DV_CD /* 거래명세서발행일구분코드 */
+           , W1.SPECTX_PRD_DV_CD /* 거래명세서주기구분코드 */
+           , W1.IS_YN /* 발급여부 - 매출년월에 따라 발급여부 조회(화면에서 하드코딩 된 발급여부 값) 1:Y, 2:N [발급여부] */
+           , W1.SPECTX_FW_DTM /* 거래명세서발송일시 */
+           , W1.SPECTX_FW_D /* 거래명세서발송일시 [발급일] */
+           , W1.SPECTX_FW_TM /* 거래명세서발송일시 [발급시간] */
+           , W1.DP_TP_CD /* 입급유형코드 */
+           , W1.CNTR_NO /* 계약번호 [고객번호] 화면 계약번호로 변경 필요 */
+           , W1.CNTR_SN /* 계약일련번호 */
+           , W1.BASE_PD_CD /* 대표상품코드 */
+           , (
+              SELECT MAX(K1.PD_NM) /* 상품기본.상품명 */
+                FROM TB_PDBS_PD_BAS K1 /* 상품기본 */
+               WHERE K1.PD_CD = W1.BASE_PD_CD /* 상품기본.상품코드 = 대표기준상품코드 */
+                 AND K1.DTA_DL_YN != 'Y' /* 상품기본.데이터삭제여부가 'Y'가 아닌 건 */
+             ) AS BASE_PD_NM /* [상품명] */
+           , W1.NOM_SL_AMT /* 정상매출금액 [매출액]*/
+           , W1.EMADR /* 이메일주소 */
+           , W1.FAX_LOCARA_TNO /* 팩스지역전화번호 */
+           , W1.FAX_EXNO /* 팩스전화국번호 */
+           , W1.FAX_IDV_TNO /* 팩스개별전화번호 */
+           , W1.LSTMM_YN /* 전월여부 */
+        FROM W1 W1
+       INNER JOIN LATERAL
+           (
+            SELECT I1.SL_CL_YM /* 매출마감년월 */
+                 , I1.CNTR_NO
+                 , I1.CNTR_SN
+                 , NVL(I1.NOM_SL_AMT,0) AS NOM_SL_AMT /* 정상매출금액 */
+              FROM TB_CBCL_WELLS_SL_MM_CL_IZ I1 /* WELLS매출월마감내역 */
+             WHERE I1.CNTR_NO = W1.CNTR_NO /* WELLS매출월마감내역.계약번호 = 거래명세서발행이력.계약번호*/
+               AND I1.CNTR_SN = W1.CNTR_SN /* WELLS매출월마감내역.계약일련번호 = 거래명세서발행이력.계약일련번호*/
+               AND I1.DTA_DL_YN = 'N'
+               AND I1.SL_CL_YM BETWEEN #{fromDate} AND #{toDate}
+           ) J1
+          ON J1.CNTR_NO = W1.CNTR_NO
+         AND J1.CNTR_SN = W1.CNTR_SN
+       WHERE W1.LSTMM_YN = 'N' /* 전월여부 = 'N' */
+      UNION ALL
+      SELECT W2.SPECTX_GRP_NO /* 거래명세서그룹번호 */
+           , W2.CST_NM /* 고객명 - 고객기본.고객한글명(CST_KNM)으로 대체 가능 [발급명] */
+           , J2.SL_CL_YM /* 매출마감년월 [기간] */
+           , W2.CST_KNM /* 고객한글명[발급명]*/
+           , W2.CST_NO /* 고객번호 */
+           , W2.SPECTX_PRNT_DT /* 거래명세서출력일자 */
+           , W2.SPECTX_PBL_D_DV_CD /* 거래명세서발행일구분코드 */
+           , W2.SPECTX_PRD_DV_CD /* 거래명세서주기구분코드 */
+           , W2.IS_YN /* 발급여부 - 매출년월에 따라 발급여부 조회(화면에서 하드코딩 된 발급여부 값) 1:Y, 2:N [발급여부] */
+           , W2.SPECTX_FW_DTM /* 거래명세서발송일시 */
+           , W2.SPECTX_FW_D /* 거래명세서발송일시 [발급일] */
+           , W2.SPECTX_FW_TM /* 거래명세서발송일시 [발급시간] */
+           , W2.DP_TP_CD /* 입급유형코드 */
+           , W2.CNTR_NO /* 계약번호 [고객번호] 화면 계약번호로 변경 필요 */
+           , W2.CNTR_SN /* 계약일련번호 */
+           , W2.BASE_PD_CD /* 대표상품코드 */
+           , (
+              SELECT MAX(K2.PD_NM) /* 상품기본.상품명 */
+                FROM TB_PDBS_PD_BAS K2 /* 상품기본 */
+               WHERE K2.PD_CD = W2.BASE_PD_CD /* 상품기본.상품코드 = 대표기준상품코드 */
+                 AND K2.DTA_DL_YN != 'Y' /* 상품기본.데이터삭제여부가 'Y'가 아닌 건 */
+             ) AS BASE_PD_NM /* [상품명] */
+           , W2.NOM_SL_AMT /* 정상매출금액 [매출액]*/
+           , W2.EMADR /* 이메일주소 */
+           , W2.FAX_LOCARA_TNO /* 팩스지역전화번호 */
+           , W2.FAX_EXNO /* 팩스전화국번호 */
+           , W2.FAX_IDV_TNO /* 팩스개별전화번호 */
+           , W2.LSTMM_YN /* 전월여부 */
+        FROM W1 W2
+       INNER JOIN LATERAL
+           (
+            SELECT I2.SL_CL_YM /* 매출마감년월 */
+                 , I2.CNTR_NO
+                 , I2.CNTR_SN
+                 , NVL(I2.NOM_SL_AMT,0) AS NOM_SL_AMT /* 정상매출금액 */
+              FROM TB_CBCL_WELLS_SL_MM_CL_IZ I2 /* WELLS매출월마감내역 */
+             WHERE I2.CNTR_NO = W2.CNTR_NO /* WELLS매출월마감내역.계약번호 = 거래명세서발행이력.계약번호*/
+               AND I2.CNTR_SN = W2.CNTR_SN /* WELLS매출월마감내역.계약일련번호 = 거래명세서발행이력.계약일련번호*/
+               AND I2.DTA_DL_YN = 'N'
+               AND I2.SL_CL_YM BETWEEN #{fromDate} AND TO_CHAR(ADD_MONTHS(TO_DATE(#{toDate}||'01', 'YYYYMMDD'),-1), 'YYYYMM')
+           ) J2
+          ON J2.CNTR_NO = W2.CNTR_NO
+         AND J2.CNTR_SN = W2.CNTR_SN
+       WHERE W2.LSTMM_YN = 'Y' /* 전월여부 = 'Y' */
+     ) L1
+       WHERE 1=1
+        <if test='@MybatisUtils@isNotEmpty(spectxPblDDvCd)'>
+          AND L1.SPECTX_PBL_D_DV_CD = #{spectxPblDDvCd} /* 계약상세번호 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(fromGrpNo) and @MybatisUtils@isNotEmpty(toGrpNo)'>
+          AND L1.SPECTX_GRP_NO BETWEEN #{fromGrpNo} AND #{toGrpNo}  /* 그룹코드 FROM~TO */
+        </if>
+         <if test='@MybatisUtils@isNotEmpty(isYn)'>
+          AND L1.IS_YN = #{isYn} /* 발급여부 */
+        </if>
+        GROUP BY L1.SPECTX_GRP_NO, L1.SL_CL_YM
+    </select>
+    <insert id="insertSsctSpectxPblHistSend">
+       INSERT INTO TB_SSCT_SPECTX_PBL_HIST (  /* 거래명세서발행이력 */
+              SPECTX_GRP_NO      /* 거래명세서그룹번호 */
+            , CNTR_NO            /* 계약번호 */
+            , CNTR_SN            /* 계약일련번호 */
+            , CH_SN              /* 변경일련번호 */
+            , CST_NO             /* 고객번호 */
+            , CST_NM             /* 고객명 */
+            , SELL_TP_CD         /* 판매유형코드 */
+            , SL_YM              /* 매출년월 */
+            , SPECTX_PBL_D_DV_CD /* 거래명세서발행일구분코드 */
+            , SPECTX_PRD_DV_CD   /* 거래명세서주기구분코드 */
+            , LSTMM_YN           /* 전월여부 */
+            , SPECTX_PRNT_DT     /* 거래명세서출력일자 --*/
+            , SPECTX_FW_DTM      /* 거래명세서발송일시 --*/
+            , DTA_DL_YN          /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />)
+        SELECT SPECTX_GRP_NO      /* 거래명세서그룹번호 */
+             , CNTR_NO            /* 계약번호 */
+             , CNTR_SN            /* 계약일련번호 */
+             , (SELECT NVL(MAX(CH_SN),0)+1
+                  FROM TB_SSCT_SPECTX_PBL_HIST
+                 WHERE 1 = 1
+                   AND SPECTX_GRP_NO      = #{spectxGrpNo}       /* 거래명세서그룹번호 */
+                   AND CNTR_NO            = #{cntrNo}            /* 계약번호 */
+                   AND CNTR_SN            = #{cntrSn}            /* 계약일련번호 */)               /* 변경일련번호 */
+             , CST_NO             /* 고객번호 */
+             , CST_NM             /* 고객명 */
+             , SELL_TP_CD         /* 판매유형코드 */
+             , TO_CHAR(SYSDATE, 'YYYYMM')                 /* 매출년월 */
+             , SPECTX_PBL_D_DV_CD /* 거래명세서발행일구분코드 */
+             , SPECTX_PRD_DV_CD   /* 거래명세서주기구분코드 */
+             , LSTMM_YN           /* 전월여부 */
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')                 /* 거래명세서출력일자 --*/
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')                 /* 거래명세서발송일시 --*/
+             , DTA_DL_YN          /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SSCT_SPECTX_IS_DTL /* 거래명세서발급상세 */
+         WHERE 1 = 1
+           AND SPECTX_GRP_NO      = #{spectxGrpNo}       /* 거래명세서그룹번호 */
+           AND CNTR_NO            = #{cntrNo}            /* 계약번호 */
+           AND CNTR_SN            = #{cntrSn}            /* 계약일련번호 */
+    </insert>
+    <update id="updateSsctSpectxIsDtlChSn">
+        UPDATE TB_SSCT_SPECTX_IS_DTL /* 거래명세서발급상세 */
+           SET CH_SN              = (SELECT MAX(CH_SN)
+                                       FROM TB_SSCT_SPECTX_PBL_HIST
+                                      WHERE 1 = 1
+                                        AND SPECTX_GRP_NO      = #{spectxGrpNo}       /* 거래명세서그룹번호 */
+                                        AND CNTR_NO            = #{cntrNo}            /* 계약번호 */
+                                        AND CNTR_SN            = #{cntrSn}            /* 계약일련번호 */)              /* 변경일련번호 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND SPECTX_GRP_NO      = #{spectxGrpNo}       /* 거래명세서그룹번호 */
+           AND CNTR_NO            = #{cntrNo}            /* 계약번호 */
+           AND CNTR_SN            = #{cntrSn}            /* 계약일련번호 */
+    </update>
+</mapper>

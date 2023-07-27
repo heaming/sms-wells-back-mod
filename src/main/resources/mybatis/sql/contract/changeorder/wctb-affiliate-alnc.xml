@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbAffiliateAlncMapper">
+
+    <select id="selectAffiliateAlncCheck" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbAffiliateAlncDvo">
+        SELECT KLSLEY /* 계약년 WORK-SLEY:WORK-SLET */
+             , KLSLEM /* 계약월 */
+             , KLSLED /* 계약일 */
+          FROM TB_IFIN_LIF_ORD_RCV_ETXT /* ZA_라이프주문수신전문 (KLLIB.KL3000P)*/
+         WHERE 1=1
+           AND KLYEAR = #{klyear}
+           AND KLCODE = #{klcode}
+    </select>
+
+    <select id="selectAffiliateAlnc" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbAffiliateAlncDvo">
+      SELECT T11.CNTR_NO
+           , T11.CNTR_SN
+           , T80.ACMPAL_CNTR_ID  /* 관계사제휴계약ID - 업데이트 대상키(관계사제휴계약내역) */
+           /* 선납적용구분코드을 결정하기 위한 조건 */
+           , T11.BASE_PD_CD   /* 상품코드(LC3100P@LCICDE)  '' */
+           , T70.PMOT_CD      /* 프로모션 코드 (LC3100P@LCFLG4 18,19,03)  에 해당하는 TOBE맵핑필요(TODO)*/
+           , CASE WHEN T20.SELL_TP_DTL_CD  IN ('2','4') THEN 'Y'
+                  ELSE 'N' END AS LEASE_YN  /* 리스여부 (LC3100P@LCDTYP:2) - 판매유형상세코드 - 리스(2), 환경리스(4)*/
+           , T70.PMOT_FVR_MCN  AS DSC_MCN     /* 할인개월(LC31.LCFLG8)  - TOBE 프로모션 - 할인개월 :: ASIS의 LC3100P.LCFLG8(프로모션_할인개월수) TODO 맵핑안됨 (프로모션혜택상세@프로모션혜택ID (월별 혜택이 정의된 ID, 아직미정의됨))*/
+           , T11.ISTM_MCN     /*할부개월수 - 렌탈기간(LC31.LCMONT) */
+           , SUBSTR(T10.CNTR_RCP_FSH_DTM,0, 8) AS CNTR_DT  /* 계약일(LC3100P@LCCRTY)- 계약접수완료일시 */
+           , T11.SELL_DSC_DV_CD                /* 할인적용유형 - 할인구분(LCETC3)  7:다자녀 (RENTAL_DSC_APY_TP_CD 동일)*/
+           , T11.STPL_PTRM AS RECAP_DUTY_PTRM_N            /* 유상의무기간수 (의무기간:LCGUB3)*/
+           , '' AS GRP_DV                     /* 그룹구분(LCET17:P:패키지할인)  TODO.맵핑없음. TOBE프로모션에 선언되어야함. */
+        FROM TB_SSCT_CNTR_BAS T10                  /* T.계약기본 */
+       INNER JOIN TB_SSCT_CNTR_DTL T11             /* T.계약상세 */
+          ON T11.CNTR_NO = T10.CNTR_NO              /*계약번호  */
+         AND T11.SELL_TP_CD IN ('2')   /* 판매유형코드 : 할부,렌탈,멤버십,정기배송*/
+         AND T11.DTA_DL_YN = 'N'
+       INNER JOIN TB_SSCT_CNTR_WELLS_DTL T12  /* T.WELLS상세 */
+          ON T12.CNTR_NO = T11.CNTR_NO              /*계약번호  */
+         AND T12.CNTR_SN = T11.CNTR_SN              /*계약번호  */
+         AND T12.DTA_DL_YN = 'N'
+       INNER JOIN TB_PDBS_PD_BAS T20         /* T.상품기본 -  */
+          ON T20.PD_CD = T11.BASE_PD_CD           /* 상품코드 */
+         AND T20.SELL_TP_CD = '2'                 /* 판매유형코드 : 렌탈(2)*/
+         AND T20.TEMP_SAVE_YN = 'N'               /* 임시저장여부 */
+         AND T20.DTA_DL_YN = 'N'                  /* 데이터삭제여부 */
+        LEFT OUTER JOIN LATERAL (SELECT DTL_CNTR_NO
+                                      , DTL_CNTR_SN
+                                      , PMOT_CD       /* 프로모션코드  */
+                                      , PMOT_FVR_MCN  /* 프로모션 할인 개월*/
+                                   FROM (SELECT DTL_CNTR_NO
+                                              , DTL_CNTR_SN
+                                              , PMOT_CD
+                                              , CASE WHEN PMOT_FVR_DTL_ID = (SELECT PMOT_FVR_DTL_ID
+                                                                               FROM TB_PDBS_PMOT_FVR_DTL /*프로모션혜택상세*/
+                                                                           WHERE 1=1
+                                                                             AND PMOT_FVR_ID = 'TODO' /* 프로모션혜택상세@프로모션혜택ID (월별 혜택이 정의된 ID, 아직미정의됨)*/
+                                                                             AND VL_END_DTM = '99991231235959'
+                                                                             AND DTA_DL_YN = 'N'
+                                                                          )
+                                                     THEN PMOT_FVR_QTY
+                                                     ELSE 0 END AS PMOT_FVR_MCN   /*월별 혜택적용시 수량이 월임.*/
+                                              , ROW_NUMBER () OVER(PARTITION BY DTL_CNTR_NO, DTL_CNTR_SN ORDER BY CNTR_PMOT_ID DESC) AS RN /*계약프로모션ID 한건만*/
+                                           FROM TB_SSCT_CNTR_PMOT_IZ  /* T.계약프로모션내역 */
+                                          WHERE 1=1
+                                            AND CNTR_UNIT_TP_CD = '020'  /*계약상세 */
+                                            AND DTL_CNTR_NO = T11.CNTR_NO
+                                            AND DTL_CNTR_SN = T11.CNTR_SN
+                                            AND DTA_DL_YN = 'N'  /* 데이터삭제여부 */
+                                        )
+                                  WHERE RN = 1
+          ) T70 /* 프로모션코드, 프로모션 할인개월 */
+          ON T70.DTL_CNTR_NO = T11.CNTR_NO
+         AND T70.DTL_CNTR_SN = T11.CNTR_SN
+       INNER JOIN TB_SSCT_ACMPAL_CNTR_IZ T80  /* T.관계사제휴계약내역 */
+          ON T80.BASE_CNTR_NO = T11.CNTR_NO  /* 계약정보 */
+         AND T80.BASE_CNTR_SN = T11.CNTR_SN
+         AND T80.SELL_TP_CD = '2'             /*판매유형코드 : 렌탈(2)*/
+         AND T80.DTA_DL_YN = 'N'
+       WHERE 1=1
+         AND ROWNUM <![CDATA[<]]> 10
+         AND T11.CNTR_NO = #{cntrNo}
+         AND T11.CNTR_SN = #{cntrSn}
+         AND T11.ALNCMP_CD = #{alncmpCd}    /* PARM-GUBN - 제휴사코드(LC3100P@LCETC8) 체크:  17:상조제휴, 70:플래너상조제휴, 54:포인트플러스399, 55:포인트플러스599 등 */
+         AND T80.ALNC_STAT_TP_CD = '10'   /* 제휴상태　체크(LC3100P@LCETC2 : 1) - 제휴상태유형코드 : 제휴정상:10, 제휴해지:20  */
+    </select>
+
+    <update id="updateCntrWellsDtl">
+        UPDATE TB_SSCT_CNTR_WELLS_DTL
+           SET PRM_APY_DV_CD = #{prmApyDvCd}
+         WHERE 1=1
+           AND CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+
+    <update id="updateAcmpalCntrIz">
+        UPDATE TB_SSCT_ACMPAL_CNTR_IZ
+           SET ALNC_STAT_TP_CD = '20'
+             , ALNC_CAN_DT = #{alncCanDt}
+             , ALNC_CAN_RSON_CD = #{alncCanRsonCd}
+         WHERE 1=1
+           AND ACMPAL_CNTR_ID = #{acmpalCntrId}
+    </update>
+</mapper>

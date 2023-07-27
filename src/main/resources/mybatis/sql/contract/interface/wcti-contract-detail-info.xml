@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiContractDetailInfoMapper">
+
+    <select id="selectContractDetail" resultType="com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractDetailInfoDvo">
+        SELECT T1.CNTR_NO
+            , T1.CNTR_SN
+            , T1.CNTR_DTL_STAT_CD
+            , F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_DTL_STAT_CD', T1.CNTR_DTL_STAT_CD) AS CNTR_DTL_STAT_NM
+            , T2.COPN_DV_CD
+            , T1.SELL_TP_CD
+            , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_NM
+            , T1.SELL_TP_DTL_CD
+            , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_DTL_CD', T1.SELL_TP_DTL_CD) AS SELL_TP_DTL_NM
+            , T2.SELL_INFLW_CHNL_DTL_CD
+            , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_INFLW_CHNL_DTL_CD', T2.SELL_INFLW_CHNL_DTL_CD) AS SELL_INFLW_CHNL_DTL_NM
+            , T11.CNTR_DTL_STAT_CH_RSON_CD
+            , F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_DTL_STAT_CH_RSON_CD', T11.CNTR_DTL_STAT_CH_RSON_CD) AS CNTR_DTL_STAT_CH_RSON_NM
+            , T2.CNTR_CST_NO
+            , T7.CST_KNM AS CNTR_CST_KNM
+            , T7.BRYY_MMDD
+            , T7.SEX_DV_CD
+            , T1.BASE_PD_CD
+            , T6.PD_NM AS BASE_PD_NM
+            , T61.OJ_PD_CD AS SV_PD_CD
+            , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = T61.OJ_PD_CD AND DTA_DL_YN = 'N' AND TEMP_SAVE_YN = 'N') AS SV_PD_NM
+            , T1.PD_QTY
+            , T6.PD_HCLSF_ID
+            , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = T6.PD_HCLSF_ID AND DTA_DL_YN = 'N' AND TEMP_SAVE_YN = 'N') AS PD_HCLSF_NM
+            , T6.PD_MCLSF_ID
+            , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = T6.PD_MCLSF_ID AND DTA_DL_YN = 'N' AND TEMP_SAVE_YN = 'N') AS PD_MCLSF_NM
+            , T6.PD_LCLSF_ID
+            , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = T6.PD_LCLSF_ID AND DTA_DL_YN = 'N' AND TEMP_SAVE_YN = 'N') AS PD_LCLSF_NM
+            , T6.PD_DCLSF_ID
+            , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = T6.PD_DCLSF_ID AND DTA_DL_YN = 'N' AND TEMP_SAVE_YN = 'N') AS PD_DCLSF_NM
+            , SUBSTR(T2.CNTR_RCP_FSH_DTM,1,8) AS CNTR_RCP_DT
+            , SUBSTR(T2.CNTR_CNFM_DTM,1,8) AS CNTR_CNFM_DT
+            , T1.CNTR_PD_STRTDT
+            , T1.CNTR_PD_ENDDT
+            , T7.CRAL_LOCARA_TNO AS CNTR_CRAL_LOCARA_TNO
+            , T7.MEXNO_ENCR AS CNTR_MEXNO
+            , T7.CRAL_IDV_TNO AS CNTR_CRAL_IDV_TNO
+            , T12.LOCARA_TNO AS CNTR_LOCARA_TNO
+            , T12.EXNO_ENCR AS CNTR_EXNO
+            , T12.IDV_TNO AS CNTR_IDV_TNO
+            , T7.ADR_ID AS CNTR_ADR_ID
+            , NVL(T9.RNADR, T9.LTN_ADR) AS CNTR_ADR
+            , NVL(T9.RDADR, T9.LTN_DTL_ADR) AS CNTR_DTL_ADR
+            , NVL(T9.NEW_ADR_ZIP, T9.OLD_ADR_ZIP) AS CNTR_ADR_ZIP
+            , T4.RCGVP_KNM AS IST_CST_NM
+            , T4.CRAL_LOCARA_TNO
+            , T4.MEXNO_ENCR AS MEXNO
+            , T4.CRAL_IDV_TNO
+            , T4.LOCARA_TNO
+            , T4.EXNO_ENCR AS EXNO
+            , T4.IDV_TNO
+            , T4.ADR_ID
+            , NVL(T91.RNADR, T91.LTN_ADR) AS ADR
+            , NVL(T91.RDADR, T91.LTN_DTL_ADR) AS DTL_ADR
+            , NVL(T91.NEW_ADR_ZIP, T91.OLD_ADR_ZIP) AS ADR_ZIP
+            , T3.VST_RQDT
+            , T3.SPP_MTHD_TP_CD
+            , F_CMZ_CD_NM(#{session.tenantId}, 'SPP_MTHD_TP_CD', T3.SPP_MTHD_TP_CD) AS SPP_MTHD_TP_CD_NM
+            , T3.SPP_ICHR_AOFFCE_CD
+            , F_CMZ_CD_NM(#{session.tenantId}, 'SPP_ICHR_AOFFCE_CD', T3.SPP_ICHR_AOFFCE_CD) AS SPP_ICHR_AOFFCE_NM
+            , T1.BOO_SELL_TP_CD
+            , T1.CO_CD
+            , F_CMZ_CD_NM(#{session.tenantId}, 'CO_CD', T1.CO_CD) AS CO_NM
+            , T1.CNTR_TAM
+            , T1.SELL_AMT
+            , T1.DSC_AMT
+            , T1.FNL_AMT
+            , T1.CNTR_AMT
+            , T1.ISTM_PCAM_AMT
+            , T1.MM_ISTM_AMT
+            , T1.ISTM_INT_AMT
+            , T13.DP_TOT_AMT
+            , T13.BLTF_AMT
+            , T13.RFND_AMT
+            , T14.EOT_UC_AMT AS UC_TOT_AMT
+            , T1.FEE_ACKMT_BASE_AMT
+            , T18.DLQ_MCN
+            , T18.EOT_DLQ_AMT AS DLQ_AMT
+            , T1.CNTR_PTRM
+            , T1.SPP_DUEDT
+            , T5.IST_DT
+            , T5.REQD_DT
+            , DECODE(T1.CNTR_DTL_STAT_CD, '303', T1.CNTR_PD_ENDDT, '') AS CAN_DT
+            , T1.CNTR_PD_STRTDT AS SL_DT
+            , T5.CPS_DT
+            , CASE WHEN T7.PRTNR_NO IS NOT NULL THEN 'Y' ELSE 'N' END AS ENSM_CNTR_YN
+            , CASE WHEN T10.BASE_CNTR_NO IS NOT NULL THEN 'Y' ELSE 'N' END AS MCHN_CH_YN
+            , T10.MCHN_CH_TP_CD
+            , F_CMZ_CD_NM(#{session.tenantId}, 'MCHN_CH_TP_CD', T10.MCHN_CH_TP_CD) AS MCHN_CH_TP_CD_NM
+            , T10.OJ_CNTR_NO AS MCHN_CH_OJ_CNTR_NO
+            , T10.OJ_CNTR_SN AS MCHN_CH_OJ_CNTR_SN
+            , T5.SELL_EV_CD
+            , T2.CST_STLM_IN_MTH_CD
+            , T14.RENTAL_TN AS RENTAL_TN
+            , T1.STPL_PTRM
+            , T5.FRISU_BFSVC_PTRM_N
+            , T5.FRISU_AS_PTRM_N
+            , T3.URGT_OJ_YN
+            , '' AS FRISU_YN
+            , T1.ALNCMP_CD
+            , F_CMZ_CD_NM(#{session.tenantId}, 'ALNCMP_CD', T1.ALNCMP_CD) AS ALNCMP_NM
+            , CASE WHEN T1.SELL_TP_CD IN ('1','2') THEN (SELECT CASE WHEN MAX(APY_ENDDT) >= TO_CHAR(SYSDATE, 'YYYYMMDD') THEN '1'
+                                                                     WHEN MAX(APY_ENDDT) <![CDATA[<]]> TO_CHAR(SYSDATE, 'YYYYMMDD') THEN '2'
+                                                                     ELSE ''
+                                                                 END AS ALNC_DV
+                                                           FROM TB_PDBS_PD_ALNCMP_BAS
+                                                          WHERE ALNCMP_CD = T1.ALNCMP_CD
+                                                            AND SELL_TP_CD = T1.SELL_TP_CD
+                                                            AND PD_CD = T1.BASE_PD_CD
+                                                            AND SV_PD_CD = T61.OJ_PD_CD
+                                                            AND RENTAL_DSC_DV_CD = T1.SELL_DSC_DV_CD
+                                                            AND RENTAL_DSC_TP_CD = T1.SELL_DSC_TP_CD)
+                    ELSE ''
+              END AS ALNC_DV1
+            , T15.CNTR_CH_RCP_ID
+            , SUBSTR(T15.CNTR_CH_FSH_DTM,1,8) AS CNTR_CH_FSH_DT
+            , T15.CNTR_CH_TP_CD
+            , F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_CH_TP_CD', T15.CNTR_CH_TP_CD)  AS CNTR_CH_TP_NM
+            , T1.CTT_PSIC_ID
+            , (SELECT PRTNR_KNM FROM TB_OGBS_PRTNR_BAS WHERE PRTNR_NO = T1.CTT_PSIC_ID AND OG_TP_CD LIKE 'W%' AND DTA_DL_YN = 'N' ) AS CTT_PSIC_NM
+            , T1.CTT_RS_CD
+            , F_CMZ_CD_NM(#{session.tenantId}, 'CTT_RS_CD', T1.CTT_RS_CD) AS CTT_RS_CD_NM
+            , T16.CTT_AK_RSON_CD
+            , F_CMZ_CD_NM(#{session.tenantId}, 'CTT_AK_RSON_CD', T16.CTT_AK_RSON_CD) AS CTT_AK_RSON_NM
+            , T16.CTT_MO_CN
+            , T16.CTT_FSH_DTM
+            , T16.CTT_EXP_DV_CD
+            , F_CMZ_CD_NM(#{session.tenantId}, 'CTT_EXP_DV_CD', T16.CTT_EXP_DV_CD) AS CTT_EXP_DV_CD_NM
+            , '' AS FNT_DT          /* selectContractDetailStlm 실행 */
+            , '' AS DP_TP_CD        /* selectContractDetailStlm 실행 */
+            , '' AS FNIT_APR_RS_CD  /* selectContractDetailStlm 실행 */
+            , T2.SELL_PRTNR_NO
+            , T8.PRTNR_KNM AS SELL_PRTNR_NM
+            , T2.SELL_OG_TP_CD
+            , T8.OG_CD AS SELL_OG_CD
+            , T8.OG_NM AS SELL_OG_NM
+            , '' AS CLCTAM_PRTNR_NO /* selectContractDetailClctam 실행 */
+            , '' AS CLCTAM_PRTNR_NM	/* selectContractDetailClctam 실행 */
+            , NVL2(T7.PRTNR_NO, 'Y', 'N') AS PRTNR_CNTR_YN
+            , T1.TXINV_PBL_OJ_YN
+            , T1.SELL_DSC_TP_CD
+            , CASE WHEN T1.SELL_TP_CD = '2' THEN F_CMZ_CD_NM(#{session.tenantId}, 'RENTAL_DSC_TP_CD', T1.SELL_DSC_TP_CD)
+                   WHEN T1.SELL_TP_CD = '3' THEN F_CMZ_CD_NM(#{session.tenantId}, 'MSH_DSC_TP_CD', T1.SELL_DSC_TP_CD)
+                   ELSE ''
+                   END AS SELL_DSC_TP_NM
+            , T1.SELL_DSC_DV_CD
+            , CASE WHEN T1.SELL_TP_CD = '1' THEN F_CMZ_CD_NM(#{session.tenantId}, 'SPAY_DSC_DV_CD', T1.SELL_DSC_DV_CD)
+                   WHEN T1.SELL_TP_CD = '2' THEN F_CMZ_CD_NM(#{session.tenantId}, 'RENTAL_DSC_DV_CD', T1.SELL_DSC_DV_CD)
+                   WHEN T1.SELL_TP_CD = '3' THEN F_CMZ_CD_NM(#{session.tenantId}, 'MSH_DSC_DV_CD', T1.SELL_DSC_DV_CD)
+                   ELSE ''
+                   END AS SELL_DSC_DV_NM
+            , T1.SELL_DSCR_CD
+            , T1.SELL_DSC_CTR_AMT
+            , ( SELECT DECODE(DTA_DL_YN, 'N', 'N', 'Y')
+                  FROM TB_SSCT_CNTR_REL
+                 WHERE BASE_DTL_CNTR_NO = T1.CNTR_NO
+                   AND BASE_DTL_CNTR_SN = T1.CNTR_SN
+                   AND CNTR_REL_DTL_CD = '215'	/* 1+1연계 */
+                   AND VL_END_DTM = '99991231235959'
+                   AND DTA_DL_YN = 'N'
+              ) AS ONE_PLUS_ONE_DL_YN
+            , NVL2(T17.CNTR_NO, 1, 0) AS RENTAL_ADN_SV_CT
+            , T17.REQD_DT AS RENTAL_ADN_SV_REQD_DT
+            , NVL2(T101.CNTR_NO, 'Y', 'N') AS STPL_YN
+            , SUBSTR(T101.STPL_CAN_DTM,1,8) AS STPL_CAN_DT
+            , T101.STPL_ENDDT
+            , (SELECT NVL2(MAX(BASE_DTL_CNTR_NO), 'Y', 'N')
+                 FROM TB_SSCT_CNTR_REL
+                WHERE OJ_DTL_CNTR_NO = T1.CNTR_NO
+                  AND OJ_DTL_CNTR_SN = T1.CNTR_SN
+                  AND CNTR_REL_DTL_CD = '216'	/* 모종결합 */
+                  AND DTA_DL_YN = 'N'
+                ) AS SDING_COMBI_YN
+            , T1.SV_PRD
+            , T6.SV_PD_TP_CD AS SV_TP_CD
+            , T5.SCON_CN
+            , T5.SRCWT_TP_CD
+            , T5.WTQLTY_TST_YN
+            , T5.IST_PLC_TP_CD
+            , T5.WRFR_IST_MTH_CD
+            , T19.PD_PRP_VAL02 AS IST_BZS_CD
+            , T19.PD_PRP_VAL01 AS SV_IST_PCSV_DV_CD
+            , T5.FRISU_RCVRY_TP_CD
+            , (SELECT PD_PRP_VAL02
+                 FROM TB_PDBS_PD_ECOM_PRP_DTL
+                WHERE PD_CD = T1.BASE_PD_CD
+                  AND PD_EXTS_PRP_GRP_CD = 'ETC'
+                  AND DTA_DL_YN = 'N') AS FILT_ENDDT
+            , (SELECT PD_PRP_VAL02
+                 FROM TB_PDBS_PD_ECOM_PRP_DTL
+                WHERE PD_CD = T1.BASE_PD_CD
+                  AND PD_EXTS_PRP_GRP_CD = 'SCHD'
+                  AND DTA_DL_YN = 'N') AS SV_VST_PRD_CD
+            , (SELECT PD_PRP_VAL03
+                 FROM TB_PDBS_PD_ECOM_PRP_DTL
+                WHERE PD_CD = T1.BASE_PD_CD
+                  AND PD_EXTS_PRP_GRP_CD = 'SCHD'
+                  AND DTA_DL_YN = 'N') AS PCSV_PRD_CD
+            , T1.ISTM_MCN
+            , T5.BFSVC_BZS_DV_CD
+            , T7.SFK_VAL AS CNTR_SFK_VAL
+            , T19.PD_PRP_VAL09 AS PRTNR_BZS_CD
+            , F_CMZ_CD_NM(#{session.tenantId}, 'CO_CD', T19.PD_PRP_VAL09)  AS PRTNR_BZS_NM
+            , F_CMZ_CD_NM(#{session.tenantId}, 'BZS_INF_ACD', T19.PD_PRP_VAL09) AS PRTNR_BZS_CTPLC
+            , '' AS OJ_CNTR_NO      /* selectContractDetailMembership 실행 */
+            , '' AS OJ_CNTR_SN      /* selectContractDetailMembership 실행 */
+            , '' AS OJ_SELL_TP_CD   /* selectContractDetailMembership 실행 */
+            , '' AS OJ_SELL_TP_NM   /* selectContractDetailMembership 실행 */
+            , '' AS OJ_IST_DT       /* selectContractDetailMembership 실행 */
+            , T1.STLM_TP_CD
+            , (SELECT PD_PRP_VAL01
+                 FROM TB_PDBS_PD_ECOM_PRP_DTL
+                WHERE PD_CD = T1.BASE_PD_CD
+                  AND PD_EXTS_PRP_GRP_CD = 'ETC'
+                  AND DTA_DL_YN = 'N') AS HCR_MSH_DV_CD
+            , CASE WHEN T1.CNTR_DTL_STAT_CD IN ('301','302') THEN T1.CNTR_PD_ENDDT
+                   ELSE ''
+                   END AS CLTN_DT
+            , (SELECT MAX(HIST_STRT_DTM)
+                 FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST
+                WHERE CNTR_NO = T1.CNTR_NO
+                  AND CNTR_SN = T1.CNTR_SN
+                  AND CNTR_DTL_STAT_CD = '203'
+                  AND DTA_DL_YN = 'N'
+                ) AS CLTN_ASK_DT
+            , '' AS RGLR_SPP_PRC_DV_CD /* selectContractDetailRglrSpp 실행 */
+            , (SELECT ISLND_YN
+                 FROM TB_GBCO_ZIP_BAS
+                WHERE NEW_ADR_ZIP = T91.NEW_ADR_ZIP
+                  AND DTA_DL_YN = 'N'
+              ) AS ISLND_YN
+            , T5.CO_IST_MNGT_DV_CD
+            , T5.CO_IST_USWY_CD
+            , T5.IST_AK_ARTC_MO_CN
+            , T1.FST_RGST_DTM
+            , T1.FST_RGST_USR_ID
+            , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FST_RGST_USR_ID AND DEL_YN='N') AS FST_RGST_USR_NM
+            , T1.FNL_MDFC_DTM
+            , T1.FNL_MDFC_USR_ID
+            , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.FNL_MDFC_USR_ID AND DEL_YN='N') AS FNL_MDFC_USR_NM
+          FROM TB_SSCT_CNTR_DTL T1
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADR_REL T3
+            ON T3.DTL_CNTR_NO = T1.CNTR_NO
+           AND T3.DTL_CNTR_SN = T1.CNTR_SN
+           AND T3.ADRPC_TP_CD = '3'
+           AND T3.VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND T3.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T4
+            ON T4.CNTR_ADRPC_ID = T3.CNTR_ADRPC_ID
+           AND T4.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL T5
+            ON T5.CNTR_NO = T1.CNTR_NO
+           AND T5.CNTR_SN = T1.CNTR_SN
+           AND T5.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS T6
+            ON T6.PD_CD = T1.BASE_PD_CD
+           AND T6.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN LATERAL (SELECT *
+                                     FROM (SELECT CNTR_NO
+                                                , CNTR_SN
+                                                , OJ_PD_CD
+                                             FROM TB_SSCT_CNTR_PD_REL
+                                            WHERE CNTR_NO = T1.CNTR_NO
+                                              AND CNTR_SN = T1.CNTR_SN
+                                              AND VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                                              AND VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                                              AND BASE_PD_CD = T1.BASE_PD_CD
+                                              AND PD_REL_TP_CD = '03'
+                                              AND DTA_DL_YN = 'N'
+                                           )
+                                     WHERE ROWNUM = 1
+                                  ) T61
+            ON T61.CNTR_NO = T1.CNTR_NO
+           AND T61.CNTR_SN = T1.CNTR_SN
+         INNER JOIN TB_CUBS_CST_BAS T7
+            ON T7.CST_NO = T2.CNTR_CST_NO
+           AND T7.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ T8
+            ON T8.BASE_YM = SUBSTR(T2.CNTR_CNFM_DTM,1,6)
+           AND T8.PRTNR_NO = T2.SELL_PRTNR_NO
+           AND T8.OG_TP_CD = T2.SELL_OG_TP_CD
+           AND T8.DTA_DL_YN = 'N'
+         INNER JOIN TB_GBCO_ADR_BAS T9
+            ON T9.ADR_ID = T7.ADR_ID
+           AND T9.DTA_DL_YN = 'N'
+         INNER JOIN TB_GBCO_ADR_BAS T91
+            ON T91.ADR_ID = T4.ADR_ID
+           AND T91.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ T10
+            ON T10.BASE_CNTR_NO = T1.CNTR_NO
+           AND T10.BASE_CNTR_SN = T1.CNTR_SN
+           AND T10.MCHN_CH_SN = 1
+           AND T10.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN LATERAL (SELECT CNTR_NO
+                                        , CNTR_SN
+                                        , STPL_ENDDT
+                                        , STPL_CAN_DTM
+                                     FROM TB_SSCT_RENTAL_RSTL_IZ
+                                    WHERE CNTR_NO = T1.CNTR_NO
+                                      AND CNTR_SN = T1.CNTR_SN
+                                      AND STPL_TN = (SELECT MAX(STPL_TN) FROM TB_SSCT_RENTAL_RSTL_IZ WHERE CNTR_NO = T1.CNTR_NO AND CNTR_SN = T1.CNTR_SN)
+                                      AND DTA_DL_YN = 'N'
+                                  ) T101
+            ON T101.CNTR_NO = T1.CNTR_NO
+           AND T101.CNTR_SN = T1.CNTR_SN
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T11
+            ON T11.CNTR_NO = T1.CNTR_NO
+           AND T11.CNTR_SN = T1.CNTR_SN
+           AND T11.HIST_END_DTM = '99991231235959'
+           AND T11.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN LATERAL (SELECT *
+                                     FROM (SELECT LOCARA_TNO
+                                                , EXNO_ENCR
+                                                , IDV_TNO
+                                                , CST_CTPLC_OJ_REFK_VAL
+                                                , ROW_NUMBER() OVER(ORDER BY FST_RGST_DTM DESC) AS RN
+                                             FROM TB_CUBS_CST_CTPLC_BAS A /* 계약기본 연락처,주소 정보 */
+                                            WHERE CST_CTPLC_OJ_REFK_VAL = T7.CST_NO
+                                             AND CTPLC_TP_CD = DECODE(T7.COPN_DV_CD, '1', '04', '2', '05')
+                                             AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN HIST_STRT_DTM AND HIST_END_DTM
+                                             AND DTA_DL_YN = 'N'
+                                           )
+                                     WHERE RN = 1
+                                  ) T12
+            ON T12.CST_CTPLC_OJ_REFK_VAL = T7.CST_NO
+          LEFT OUTER JOIN LATERAL (SELECT CNTR_NO
+                                        , CNTR_SN
+                                        , SUM(CASE WHEN DP_DV_CD = '1' THEN RVE_AMT ELSE 0 END) AS DP_TOT_AMT
+                                        , SUM(CASE WHEN DP_DV_CD = '4' THEN RVE_AMT ELSE 0 END) AS BLTF_AMT
+                                        , SUM(CASE WHEN DP_DV_CD = '2' THEN RVE_AMT ELSE 0 END) AS RFND_AMT
+                                     FROM TB_RVDW_RVE_DTL A /* 수납상세 */
+                                    WHERE CNTR_NO = T1.CNTR_NO
+                                      AND CNTR_SN = T1.CNTR_SN
+                                      AND RVE_PROCS_YN = 'Y'
+                                      AND DTA_DL_YN = 'N'
+                                    GROUP BY CNTR_NO, CNTR_SN
+                                   ) T13
+            ON T13.CNTR_NO = T1.CNTR_NO
+           AND T13.CNTR_SN = T1.CNTR_SN
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T14
+            ON T14.SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1),'YYYYMM')
+           AND T14.CNTR_NO = T1.CNTR_NO
+           AND T14.CNTR_SN = T1.CNTR_SN
+           AND T14.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN LATERAL (SELECT *
+                                     FROM (SELECT B.CNTR_CH_RCP_ID
+                                               , A.DTL_CNTR_NO AS CNTR_NO
+                                               , A.DTL_CNTR_SN AS CNTR_SN
+                                               , B.CNTR_CH_FSH_DTM
+                                               , B.CNTR_CH_TP_CD
+                                               , ROW_NUMBER() OVER(ORDER BY B.CNTR_CH_FSH_DTM DESC) AS RN
+                                          FROM TB_SSCT_CNTR_CH_RCP_DTL A 		/* 계약변경접수상세 */
+                                         INNER JOIN TB_SSCT_CNTR_CH_RCP_BAS B 	/* 계약변경접수기본 */
+                                            ON B.CNTR_CH_RCP_ID = A.CNTR_CH_RCP_ID
+                                           AND B.DTA_DL_YN = 'N'
+                                         WHERE A.DTL_CNTR_NO = T1.CNTR_NO
+                                           AND A.DTL_CNTR_SN = T1.CNTR_SN
+                                           AND A.DTA_DL_YN = 'N'
+                                          )
+                                    WHERE RN = 1
+                                  ) T15
+            ON T15.CNTR_NO = T1.CNTR_NO
+           AND T15.CNTR_SN = T1.CNTR_SN
+          LEFT OUTER JOIN TB_SSOP_CTT_BAS T16
+            ON T16.CTT_OJ_ID = T1.CTT_OJ_ID
+           AND T16.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN LATERAL (SELECT CNTR_NO
+                                        , CNTR_SN
+                                        , REQD_DT
+                                     FROM TB_SSCT_RENTAL_ADN_SV_IZ T17 /* 렌탈부가서비스내역 */
+                                    WHERE CNTR_NO = T1.CNTR_NO
+                                      AND CNTR_SN = T1.CNTR_SN
+                                      AND ADN_SV_DV_CD = '01'
+                                      AND ADN_SV_SN = (SELECT MAX(ADN_SV_SN)
+                                                         FROM TB_SSCT_RENTAL_ADN_SV_IZ
+                                                        WHERE CNTR_NO = T1.CNTR_NO
+                                                          AND CNTR_SN = T1.CNTR_SN
+                                                          AND ADN_SV_DV_CD = '01'
+                                                          AND DTA_DL_YN = 'N')
+                                  ) T17
+            ON T17.CNTR_NO = T1.CNTR_NO
+           AND T17.CNTR_SN = T1.CNTR_SN
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS T18
+            ON T18.CNTR_NO = T1.CNTR_NO
+           AND T18.CNTR_SN = T1.CNTR_SN
+           AND T18.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+           AND T18.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T19
+            ON T19.PD_CD = T1.BASE_PD_CD
+           AND T19.PD_EXTS_PRP_GRP_CD = 'SPP'
+           AND T19.DTA_DL_YN = 'N'
+         WHERE T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectContractDetailStlm" resultType="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractDetailInfoDto$FindStlmRes">
+        SELECT T2.MPY_BSDT AS FNT_DT
+             , T1.DP_TP_CD
+             , T2.FNIT_APR_RS_CD
+             , T2.CNTR_STLM_ID
+          FROM TB_SSCT_CNTR_STLM_BAS T2
+         INNER JOIN (SELECT CNTR_STLM_ID, DP_TP_CD
+                       FROM (SELECT CNTR_STLM_ID
+                                  , DP_TP_CD
+                                  , ROW_NUMBER() OVER(ORDER BY VL_STRT_DTM DESC, CNTR_STLM_REL_ID DESC ) AS RN
+                               FROM TB_SSCT_CNTR_STLM_REL
+                              WHERE DTL_CNTR_NO = #{cntrNo}
+                                AND DTL_CNTR_SN = #{cntrSn}
+                                AND RVE_DV_CD = '03' /* 할부금, 렌탈료 */
+                                AND VL_END_DTM = '99991231235959'
+                                AND DTA_DL_YN = 'N'
+                             )
+                       WHERE RN = 1
+                      ) T1
+           ON T1.CNTR_STLM_ID = T2.CNTR_STLM_ID
+        WHERE T2.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectContractDetailClctam" resultType="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractDetailInfoDto$FindClctamRes">
+        SELECT T1.CLCTAM_PRTNR_NO
+             , T2.PRTNR_KNM AS CLCTAM_PRTNR_NM
+          FROM TB_CBBO_BND_CNTR_BAS T1
+         INNER JOIN TB_CBBO_CLCTAM_PRTNR_DTL T2
+            ON T2.PRTNR_NO = T1.CLCTAM_PRTNR_NO
+           AND T2.OG_TP_CD LIKE 'W%'
+           AND T2.DTA_DL_YN = 'N'
+         WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectContractDetailMembership" resultType="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractDetailInfoDto$FindMembershipRes">
+        SELECT T1.OJ_DTL_CNTR_NO AS OJ_CNTR_NO
+             , T1.OJ_DTL_CNTR_SN AS OJ_CNTR_SN
+             , T2.SELL_TP_CD AS OJ_SELL_TP_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T2.SELL_TP_CD) AS OJ_SELL_TP_NM
+             , T2.CNTR_PD_STRTDT AS OJ_IST_DT
+          FROM TB_SSCT_CNTR_REL T1
+         INNER JOIN TB_SSCT_CNTR_DTL T2
+            ON T2.CNTR_NO = T1.OJ_DTL_CNTR_NO
+           AND T2.CNTR_SN = T1.OJ_DTL_CNTR_SN
+           AND T2.DTA_DL_YN = 'N'
+         WHERE T1.BASE_DTL_CNTR_NO = #{cntrNo}
+           AND T1.BASE_DTL_CNTR_SN = #{cntrSn}
+           AND T1.CNTR_REL_DTL_CD = '212'
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND T1.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+    </select>
+    <select id="selectContractDetailRglrSpp" resultType="String">
+        SELECT T2.PD_PRC_CNDT_CHRC_VAL15 AS RGLR_SPP_PRC_DV_CD
+          FROM TB_SSCT_CNTR_PRC_CMPT_IZ T1
+         INNER JOIN TB_PDBS_PD_PRC_FNL_DTL T2
+            ON T2.PD_PRC_FNL_DTL_ID = T1.PD_PRC_FNL_DTL_ID
+           AND T2.VER_SN = T1.VER_SN
+           AND T2.DTA_DL_YN = 'N'
+         WHERE T1.CNTR_NO = #{cntrNo}
+           AND T1.CNTR_SN = #{cntrSn}
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+</mapper>

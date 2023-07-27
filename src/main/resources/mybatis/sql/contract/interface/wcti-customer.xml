@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiCustomerMapper">
+
+    <select id="selectCustomers" resultType="com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiCustomerDvo">
+        SELECT '1' AS CST_DV
+             , CST_NO
+             , MAX(ITG_CST_NO) AS ITG_CST_NO
+             , MAX(CST_KNM) AS CST_KNM
+             , MAX(CRAL_LOCARA_TNO) AS CRAL_LOCARA_TNO
+             , MAX(MEXNO_ENCR) AS MEXNO
+             , MAX(CRAL_IDV_TNO) AS CRAL_IDV_TNO
+             , MAX(LOCARA_TNO) AS LOCARA_TNO
+             , MAX(EXNO_ENCR) AS EXNO
+             , MAX(IDV_TNO) AS IDV_TNO
+             , MAX(EMADR) AS EMADR
+             , MAX(BRYY_MMDD) AS BRYY_MMDD
+             , MAX(SEX_DV_CD) AS SEX_DV_CD
+          FROM (<choose>
+                <when test="@MybatisUtils@isEmpty(cstNo) and @MybatisUtils@isEmpty(cstNm) and @MybatisUtils@isEmpty(cralLocaraTno) and @MybatisUtils@isEmpty(mexno) and @MybatisUtils@isEmpty(cralIdvTno)">
+                    <!-- 계약자 정보 검색 안함 -->
+                </when>
+                <otherwise>
+                SELECT CST_NO, CST_KNM, ITG_CST_NO, EMADR, BRYY_MMDD, SEX_DV_CD
+                     , CRAL_LOCARA_TNO, MEXNO_ENCR, CRAL_IDV_TNO
+                     , '' AS LOCARA_TNO, '' AS EXNO_ENCR, '' AS IDV_TNO
+                  FROM TB_CUBS_CST_BAS
+                 WHERE DTA_DL_YN = 'N'
+                   <if test="@MybatisUtils@isNotEmpty(cstNo)">AND CST_NO = #{cstNo}</if>
+                   <if test="@MybatisUtils@isNotEmpty(cstNm)">AND CST_KNM = #{cstNm}</if>
+                   <if test="@MybatisUtils@isNotEmpty(cralLocaraTno) || @MybatisUtils@isNotEmpty(mexno) || @MybatisUtils@isNotEmpty(cralIdvTno)">
+                       AND ( 1=1
+                       <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">AND CRAL_LOCARA_TNO = #{cralLocaraTno}</if>
+                       <if test="@MybatisUtils@isNotEmpty(mexno)">AND MEXNO_ENCR = #{mexno}</if>
+                       <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">AND CRAL_IDV_TNO = #{cralIdvTno}</if>
+                       )
+                   </if>
+                 UNION ALL
+                </otherwise>
+            </choose>
+                SELECT AB.CNTR_CST_NO AS CST_NO, CB.CST_KNM, CB.ITG_CST_NO, CB.EMADR, CB.BRYY_MMDD, CB.SEX_DV_CD
+                     , '' AS CRAL_LOCARA_TNO, '' AS MEXNO_ENCR, '' AS CRAL_IDV_TNO
+                     , AB.LOCARA_TNO, AB.EXNO_ENCR, AB.IDV_TNO
+                  FROM TB_SSCT_CNTR_ADRPC_BAS AB
+                 INNER JOIN TB_CUBS_CST_BAS CB
+                    ON CB.CST_NO = AB.CNTR_CST_NO
+                   AND CB.DTA_DL_YN = 'N'
+                 WHERE AB.CNTR_ADRPC_ID IN (SELECT CNTR_ADRPC_ID
+                                              FROM TB_SSCT_CNTR_ADR_REL
+                                             WHERE ADRPC_TP_CD = '3'
+                                               AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                                               AND DTA_DL_YN = 'N')
+                   AND AB.DTA_DL_YN = 'N'
+                   <if test="@MybatisUtils@isNotEmpty(cstNo)">AND AB.CNTR_CST_NO = #{cstNo}</if>
+                   <if test="@MybatisUtils@isNotEmpty(cstNm)">AND AB.RCGVP_KNM = #{cstNm}</if>
+                   <if test="@MybatisUtils@isNotEmpty(cralLocaraTno) || @MybatisUtils@isNotEmpty(mexno) || @MybatisUtils@isNotEmpty(cralIdvTno)">
+                       AND ( 1=1
+                       <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">AND AB.CRAL_LOCARA_TNO = #{cralLocaraTno}</if>
+                       <if test="@MybatisUtils@isNotEmpty(mexno)">AND AB.MEXNO_ENCR = #{mexno}</if>
+                       <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">AND AB.CRAL_IDV_TNO = #{cralIdvTno}</if>
+                       )
+                   </if>
+                   <if test="@MybatisUtils@isNotEmpty(locaraTno) || @MybatisUtils@isNotEmpty(exno) || @MybatisUtils@isNotEmpty(idvTno)">
+                       AND ( 1=1
+                       <if test="@MybatisUtils@isNotEmpty(locaraTno)">AND AB.LOCARA_TNO = #{locaraTno}</if>
+                       <if test="@MybatisUtils@isNotEmpty(exno)">AND AB.EXNO_ENCR = #{exno}</if>
+                       <if test="@MybatisUtils@isNotEmpty(idvTno)">AND AB.IDV_TNO = #{idvTno}</if>
+                       )
+                   </if>
+          ) GROUP BY CST_NO
+    </select>
+
+    <select id="selectProspactCustomers" resultType="com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiCustomerDvo">
+        SELECT CASE WHEN (SELECT COUNT(FRE_EXPN_ID)
+                            FROM TB_SSOP_FRE_EXPN_BAS
+                           WHERE PSPC_CST_ID = PS.PSPC_CST_ID
+                             AND DTA_DL_YN = 'N') > 0 THEN '3'
+                    ELSE '2'
+               END AS CST_DV
+             , PS.CST_NO
+             , (SELECT ITG_CST_NO
+                  FROM TB_CUBS_CST_BAS
+                 WHERE CST_NO = PS.CST_NO
+                   AND DTA_DL_YN = 'N') AS ITG_CST_NO
+             , PS.PSPC_CST_KNM AS CST_KNM
+             , PS.CRAL_LOCARA_TNO
+             , PS.MEXNO_ENCR AS MEXNO
+             , PS.CRAL_IDV_TNO
+             , PS.LOCARA_TNO
+             , PS.EXNO_ENCR AS EXNO
+             , PS.IDV_TNO
+             , PS.EMADR
+             , PS.BRYY_MMDD
+             , PS.SEX_DV_CD
+          FROM TB_SSOP_PSPC_CST_BAS PS
+         WHERE PS.DTA_DL_YN = 'N'
+        <if test="@MybatisUtils@isNotEmpty(cstNo)">AND PS.CST_NO = #{cstNo}</if>
+        <if test="@MybatisUtils@isNotEmpty(cstNm)">AND PS.PSPC_CST_KNM = #{cstNm}</if>
+        <if test="@MybatisUtils@isNotEmpty(cralLocaraTno) || @MybatisUtils@isNotEmpty(mexno) || @MybatisUtils@isNotEmpty(cralIdvTno)">
+           AND ( 1=1
+           <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">AND PS.CRAL_LOCARA_TNO = #{cralLocaraTno}</if>
+           <if test="@MybatisUtils@isNotEmpty(mexno)">AND PS.MEXNO_ENCR = #{mexno}</if>
+           <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">AND PS.CRAL_IDV_TNO = #{cralIdvTno}</if>
+           )
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(locaraTno) || @MybatisUtils@isNotEmpty(exno) || @MybatisUtils@isNotEmpty(idvTno)">
+           AND ( 1=1
+           <if test="@MybatisUtils@isNotEmpty(locaraTno)">AND PS.LOCARA_TNO = #{locaraTno}</if>
+           <if test="@MybatisUtils@isNotEmpty(exno)">AND PS.EXNO_ENCR = #{exno}</if>
+           <if test="@MybatisUtils@isNotEmpty(idvTno)">AND PS.IDV_TNO = #{idvTno}</if>
+           )
+        </if>
+    </select>
+</mapper>

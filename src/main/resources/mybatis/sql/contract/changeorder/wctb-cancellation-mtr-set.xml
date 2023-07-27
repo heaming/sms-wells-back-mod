@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbCancellationMtrSetMapper">
+    <select id="selectContractBase" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancellationMtrSetDto$SearchRes">
+        SELECT A.CNTR_CH_RCP_ID /* 계약변경접수기본.계약변경접수ID */
+             , B.CNTR_CH_SN /* 계약변경접수상세.계약변경일련번호 */
+             , B.CNTR_UNIT_TP_CD /* 계약변경접수상세.계약단위유형코드(010 : 계약, 020 : 계약상세)[CODE GROUP ID : CNTR_UNIT_TP_CD]*/
+             , B.PROCS_DUEDT /* 계약변경접수상세.처리예정일자 */
+             , B.PROCS_FSH_DTM /* 계약변경접수상세.처리완료일시 */
+             , A.CNTR_CH_PRGS_STAT_CD /* 계약변경접수기본.계약변경진행상태코드[CODE GROUP ID : CNTR_CH_PRGS_STAT_CD] */
+             , A.CNTR_CH_RCP_DTM /* 계약변경접수기본.계약변경접수일시 */
+             , A.CNTR_CH_FSH_DTM /* 계약변경접수기본.계약변경완료일시 */
+             /* 계약기본.계약취소일시 또는 계약변경접수기본.계약변경완료일시가 있는지 확인  */
+             , D.CNTR_NO /* 계약기본.계약번호 */
+             , C.CNTR_SN /* 계약상세.계약일련번호 */
+             , D.CNTR_CAN_DTM /* 계약기본.계약취소일시*/
+             , CASE WHEN TRIM(D.CNTR_CAN_DTM) IS NULL
+                         THEN 1
+                    ELSE 0
+               END AS CNTR_CAN_DTM_NCHK /* 계약기본.계약취소일시 NULL 체크 값 */
+             , CASE WHEN TRIM(A.CNTR_CH_FSH_DTM) IS NULL
+                         THEN 1
+                    ELSE 0
+               END AS CNTR_CH_FSH_DTM_NCHK /* 계약변경접수기본.계약변경완료일시 NULL 체크 값 */
+          FROM WSMDBS.TB_SSCT_CNTR_CH_RCP_BAS A /* 계약변경접수기본 */
+         INNER JOIN WSMDBS.TB_SSCT_CNTR_CH_RCP_DTL B /* 계약변경접수상세 */
+            ON B.CNTR_CH_RCP_ID = A.CNTR_CH_RCP_ID /* 계약변경접수기본.계약변경접수ID = 계약변경접수상세.계약변경접수ID */
+           AND A.DTA_DL_YN = 'N' /* 계약변경접수기본.데이터삭제여부가 'N'인 건 */
+           AND B.DTA_DL_YN = 'N' /* 계약변경접수상세.데이터삭제여부가 'N'인 건 */
+         INNER JOIN WSMDBS.TB_SSCT_CNTR_DTL C /* 계약상세 */
+            ON C.CNTR_NO = B.DTL_CNTR_NO /* 계약상세.상세계약번호 = 계약변경상세.상세계약번호*/
+           AND C.CNTR_SN = B.DTL_CNTR_SN /* 계약상세.계약일련번호 = 계약변경상세.상세계약일련번호*/
+           AND C.DTA_DL_YN = 'N' /* 계약상세.데이터삭제여부가 'N'인 건 */
+           AND C.SELL_TP_CD IN ('2','3','6') /* 계약상세.판매유형코드(2:렌탈/리스, 3:멤버십, 6:정기배송 건을 대상으로 함) [CODE GROUP ID : SELL_TP_CD]*/
+         INNER JOIN TB_SSCT_CNTR_BAS D /* 계약기본 */
+ 	        ON D.CNTR_NO = B.DTL_CNTR_NO /* 계약기본.계약번호 = 계약변경상세.계약번호 */
+           AND D.DTA_DL_YN = 'N' /* 계약기본.데이터삭제여부가 'N'인 건 */
+         WHERE A.CNTR_CH_TP_CD IN ('401', '402') /* 계약변경접수기본.계약변경유형코드 401:계약해약신청, 402:계약취소신청  */
+           AND (TRIM(A.CNTR_CH_FSH_DTM) IS NULL OR TRIM(D.CNTR_CAN_DTM) IS NULL) /* 계약기본.계약취소일시 또는 계약변경접수기본.계약변경완료일시의 값이 없는 건 */
+           AND SUBSTR(B.PROCS_DUEDT, 1, 6) = #{performanceYm} /* 실적년월에 대응되는 컬럼이 없으므로 계약변경접수상세.처리예정일자를 기준으로 함 */
+           /* 입력파라미터-업무유형이 9(전체)인 경우 계약상세.판매유형코드 조건 없이 대상 조회 */
+        <if test='@MybatisUtils@equals(businessType, "2")'>
+           AND C.SELL_TP_CD = '2' /* 입력파라미터-업무유형이 2(렌탈)인 경우 계약상세.판매유형코드가 '2'(렌탈/리스)인 건 */
+        </if>
+        <if test='@MybatisUtils@equals(businessType, "3")'>
+           AND C.SELL_TP_CD = '3' /* 입력파라미터-업무유형이 3(멤버십)인 경우 계약상세.판매유형코드가 '3'(멤버십)인 건 */
+        </if>
+        <if test='@MybatisUtils@equals(businessType, "6")'>
+           AND C.SELL_TP_CD = '6' /* 입력파라미터-업무유형이 6(정기배송)인 경우 계약상세.판매유형코드가 '6'(정기배송)인 건 */
+        </if>
+        <if test='@MybatisUtils@equals(businessType, "9")'>
+           AND C.SELL_TP_CD IN ('2', '3', '6') /* 입력파라미터-업무유형이 9(정기배송)인 경우 계약상세.판매유형코드가  2, 3, 6 건 */
+        </if>
+    </select>
+    <select id="selectAcmpalCntrIzs" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancellationMtrSetDto$SearchAcmpalCntrIzRes">
+        SELECT ACMPAL_CNTR_ID
+             , OJ_CNTR_NO
+          FROM TB_SSCT_ACMPAL_CNTR_IZ
+         WHERE 1=1
+           AND DTA_DL_YN = 'N'
+           AND BASE_CNTR_NO = #{cntrNo}
+           AND BASE_CNTR_SN = #{cntrSn}
+    </select>
+    <update id="updateContractBas">
+        UPDATE TB_SSCT_CNTR_BAS /* 계약기본 */
+           SET CNTR_CAN_DTM    = #{cntrCanDtm}      /* 계약취소일시 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO             = #{cntrNo}             /* 계약번호 */
+    </update>
+    <update id="updateCntrChRcpBas">
+        UPDATE TB_SSCT_CNTR_CH_RCP_BAS /* 계약변경접수기본 */
+           SET CNTR_CH_FSH_DTM    = #{cntrChFshDtm}      /* 계약변경완료일시 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_CH_RCP_ID             = #{cntrChRcpId}             /* 계약변경접수ID */
+    </update>
+    <update id="updateAcmpalCntrIz">
+        UPDATE TB_SSCT_ACMPAL_CNTR_IZ /* 관계사제휴계약내역 */
+           SET ALNC_CAN_DT    = #{canDtm}      /* 계약취소일시 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND OJ_CNTR_NO             = #{cntrNo}             /* 계약번호 */
+    </update>
+    <update id="updateAcmpalCntrChHist">
+        UPDATE TB_SSCT_ACMPAL_CNTR_CH_HIST /* 관계사제휴계약변경이력 */
+           SET HIST_END_DTM     = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')       /* 이력종료일시 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND ACMPAL_CNTR_ID   = #{acmpalCntrId}      /* 관계사제휴계약ID */
+           AND HIST_END_DTM    = '99991231235959'      /* 이력종료일시 */
+    </update>
+    <insert id="insertAcmpalCntrChHist">
+        INSERT INTO TB_SSCT_ACMPAL_CNTR_CH_HIST (  /* 관계사제휴계약변경이력 */
+              ACMPAL_CNTR_ID   /* 관계사제휴계약ID */
+            , HIST_STRT_DTM    /* 이력시작일시 */
+            , HIST_END_DTM     /* 이력종료일시 */
+            , BASE_CNTR_NO     /* 기준계약번호 */
+            , BASE_CNTR_SN     /* 기준계약일련번호 */
+            , OJ_CNTR_NO       /* 대상계약번호 */
+            , OJ_CNTR_SN       /* 대상계약일련번호 */
+            , OJ_ORD_NO        /* 대상주문번호 */
+            , SELL_TP_CD       /* 판매유형코드 */
+            , ALNCMP_CD        /* 제휴사코드 */
+            , ALNC_STAT_TP_CD  /* 제휴상태유형코드 */
+            , ALNC_CNTR_DT     /* 제휴계약일자 */
+            , ALNC_CAN_DT      /* 제휴취소일자 */
+            , ALNC_CAN_RSON_CD /* 제휴취소사유코드 */
+            , ALNC_J_AC_N      /* 제휴가입계좌수 */
+            , DTA_DL_YN        /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+       SELECT ACMPAL_CNTR_ID   /* 관계사제휴계약ID */
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') /* 이력시작일시 */
+            , '99991231235959' /* 이력종료일시 */
+            , BASE_CNTR_NO     /* 기준계약번호 */
+            , BASE_CNTR_SN     /* 기준계약일련번호 */
+            , OJ_CNTR_NO       /* 대상계약번호 */
+            , OJ_CNTR_SN       /* 대상계약일련번호 */
+            , OJ_ORD_NO        /* 대상주문번호 */
+            , SELL_TP_CD       /* 판매유형코드 */
+            , ALNCMP_CD        /* 제휴사코드 */
+            , ALNC_STAT_TP_CD  /* 제휴상태유형코드 */
+            , ALNC_CNTR_DT     /* 제휴계약일자 */
+            , ALNC_CAN_DT      /* 제휴취소일자 */
+            , ALNC_CAN_RSON_CD /* 제휴취소사유코드 */
+            , ALNC_J_AC_N      /* 제휴가입계좌수 */
+            , DTA_DL_YN        /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemFieldValue" />
+         FROM TB_SSCT_ACMPAL_CNTR_IZ /* 관계사제휴계약내역 */
+        WHERE 1 = 1
+          AND ACMPAL_CNTR_ID   = #{acmpalCntrId}     /* 관계사제휴계약ID */
+    </insert>
+</mapper>

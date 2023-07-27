@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiFreeGiftMapper">
+
+    <!--
+    EAI INTERFACE 통신 시 data key는 snake case를 사용함.
+    resultMap을 사용하여 response dto에 매핑함.
+    -->
+    <resultMap id="giftInfo" type="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiFreeGiftDto$SearchRes">
+        <constructor>
+            <arg name="FGPT_PD_CD" javaType="java.lang.String" column="FGPT_PD_CD"/>
+            <arg name="FGPT_PD_NM" javaType="java.lang.String" column="FGPT_PD_NM"/>
+            <arg name="FGPT_QTY" javaType="java.lang.Integer" column="FGPT_QTY"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectFreeGift" resultMap="giftInfo">
+		SELECT RI.FGPT_PD_CD
+             , PB.PD_NM AS FGPT_PD_NM
+             , RI.FGPT_QTY
+          FROM TB_SSCT_FGPT_RCP_IZ RI
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON RI.FGPT_PD_CD = PB.PD_CD
+           AND PB.DTA_DL_YN = 'N'
+           AND PB.TEMP_SAVE_YN = 'N'
+         WHERE RI.DTL_CNTR_NO = #{CNTR_NO}
+           AND RI.DTL_CNTR_SN = #{CNTR_SN}
+           AND RI.CNTR_UNIT_TP_CD = '020'
+           AND RI.DTA_DL_YN = 'N'
+    </select>
+
+</mapper>

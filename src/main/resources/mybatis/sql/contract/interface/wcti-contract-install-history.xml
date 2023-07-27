@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiContractInstallHistoryMapper">
+
+    <select id="selectIstlcChHist" resultType="com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractInstallHistoryDvo">
+        SELECT AR.DTL_CNTR_NO AS CNTR_NO
+             , AR.DTL_CNTR_SN AS CNTR_SN
+             , AH.CRAL_LOCARA_TNO
+             , AH.MEXNO_ENCR AS MEXNO
+             , AH.CRAL_IDV_TNO
+             , AH.LOCARA_TNO
+             , AH.EXNO_ENCR AS EXNO
+             , AH.IDV_TNO
+             , AH.ADR_ID AS ADDR_ID
+             , NVL(AD.RNADR, AD.LTN_ADR) AS ADDR
+             , NVL(AD.RDADR, AD.LTN_DTL_ADR) AS DTL_ADDR
+             , AH.HIST_STRT_DTM AS CH_DTM
+             , AH.FNL_MDFC_USR_ID AS FNL_MDFC_USR_ID
+             , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID=AH.FNL_MDFC_USR_ID AND DEL_YN = 'N') AS FNL_MDFC_USR_NM
+          FROM TB_SSCT_CNTR_ADR_REL AR
+         INNER JOIN TB_SSCT_CNTR_ADR_CH_HIST AH
+            ON AR.CNTR_ADRPC_ID = AH.CNTR_ADRPC_ID
+           AND AH.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS AD
+            ON AD.ADR_ID = AH.ADR_ID
+           AND AD.DTA_DL_YN = 'N'
+         WHERE AR.DTL_CNTR_NO = #{cntrNo}
+           AND AR.DTL_CNTR_SN = #{cntrSn}
+           AND AR.CNTR_UNIT_TP_CD = '020'
+           AND AR.ADRPC_TP_CD = '3'
+           AND AR.DTA_DL_YN = 'N'
+         ORDER BY AH.HIST_STRT_DTM
+    </select>
+
+</mapper>

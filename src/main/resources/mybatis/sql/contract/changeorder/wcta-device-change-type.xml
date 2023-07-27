@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctaDeviceChangeCancelTypeMapper">
+    <select id="selectDeivceChangeCancelType" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctaDeviceChangeCancelTypeDto$SearchRes">
+        SELECT T3.*
+             , CASE WHEN EXISTS (SELECT 1 FROM TB_SSCT_MCHN_CH_IZ X WHERE X.BASE_CNTR_NO = T3.BASE_CNTR_NO AND X.BASE_CNTR_SN =
+                      T3.BASE_CNTR_SN) THEN 'Y' ELSE 'N' END AS MCHN_CH_YN
+          FROM (
+                SELECT T0.BASE_CNTR_NO
+                     , T0.BASE_CNTR_SN
+                     , T2.SELL_INFLW_CHNL_DTL_CD
+                     , T1.SELL_TP_CD
+                     , T0.MCHN_CH_TP_CD
+                     , T0.MCHN_CPS_APYR
+                     , T0.BASE_CNTR_RCPDT
+                     , T0.BASE_CNTR_SL_DT
+                  FROM TB_SSCT_MCHN_CH_IZ T0
+                 INNER JOIN TB_SSCT_CNTR_DTL T1
+                    ON T1.CNTR_NO = T0.BASE_CNTR_NO
+                   AND T1.CNTR_SN = T0.BASE_CNTR_SN
+                 INNER JOIN TB_SSCT_CNTR_BAS T2
+                    ON T2.CNTR_NO = T1.CNTR_NO
+                  WHERE 1 = 1
+                    AND T0.OJ_CNTR_NO = #{ojCntrNo}
+                    AND T0.OJ_CNTR_SN = #{ojCntrSn}
+                    AND T0.BASE_CNTR_SL_DT IS NOT NULL
+                    AND T0.MCHN_CH_SN  = (SELECT MAX(MCHN_CH_SN)
+                                            FROM TB_SSCT_MCHN_CH_IZ T11
+                                           WHERE T11.OJ_CNTR_NO = #{ojCntrNo}
+                                             AND T11.OJ_CNTR_SN = #{ojCntrSn})
+                ) T3
+    </select>
+</mapper>

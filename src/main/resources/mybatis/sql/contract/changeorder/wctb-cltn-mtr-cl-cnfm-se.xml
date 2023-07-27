@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbCltnMtrClCnfmSeMapper">
+    <select id="selectCltnMtrClCnfmSe" resultType="java.lang.String">
+        SELECT CNTR_NO
+          FROM TB_SSCT_CNTR_DTL
+         WHERE CNTR_NO IN (
+               SELECT CNTR_NO
+                 FROM TB_SSCT_CNTR_BAS
+                WHERE CNTR_CAN_DTM = #{perfYm})
+           AND CNTR_DTL_STAT_CD = '303'
+           AND SELL_TP_CD = #{workType}
+    </select>
+    <update id="updateCltnMtrClCnfmSe">
+        UPDATE TB_SSCT_CNTR_DTL
+           SET CNTR_DTL_STAT_CD = '301'
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_DTL_STAT_CD = '303'
+    </update>
+    <select id="selectBaseCntrNo" resultType="java.lang.String">
+        SELECT BASE_CNTR_NO
+          FROM TB_SSCT_CNTR_REL
+         WHERE OJ_CNTR_NO = #{cntrNo}
+    </select>
+    <select id="selectOjCntrNo" resultType="java.lang.String">
+        SELECT OJ_CNTR_NO
+          FROM TB_SSCT_CNTR_REL
+         WHERE BASE_CNTR_NO = #{cntrNo}
+    </select>
+    <insert id="insertCntrDtlStatChHist">
+    INSERT INTO TB_SSCT_CNTR_DTL_STAT_CH_HIST (  /* 계약상세상태변경이력 */
+          CNTR_NO                  /* 계약번호 */
+        , CNTR_SN                  /* 계약일련번호 */
+        , HIST_STRT_DTM            /* 이력시작일시 */
+        , HIST_END_DTM             /* 이력종료일시 */
+        , CNTR_DTL_STAT_CD         /* 계약상세상태코드 */
+        , CNTR_DTL_STAT_CH_RSON_CD /* 계약상세상태변경사유코드 */
+        , CNTR_DTL_STAT_CH_MO_CN   /* 계약상세상태변경메모내용 */
+        , DTA_DL_YN                /* 데이터삭제여부 */
+        <include refid="COMMON.insertSystemField" />)
+          SELECT  CNTR_NO
+                , CNTR_SN
+                , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+                , '99991231235959'
+                , CNTR_DTL_STAT_CD
+                , CNTR_CH_DTL_RSON_CD
+                , CNTR_CH_DTL_AK_CN
+                , 'N'
+        <include refid="COMMON.insertSystemFieldValue" />
+             FROM TB_SSCT_CNTR_DTL
+            WHERE CNTR_NO = #{cntrNo}
+</insert>
+</mapper>

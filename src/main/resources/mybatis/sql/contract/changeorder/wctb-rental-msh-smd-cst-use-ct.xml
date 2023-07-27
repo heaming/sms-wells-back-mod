@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbRentalMshSmdCstUseCtMapper">
+    <select id="selectRentalMshSmdCstUseCt" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbRentalMshSmdCstUseCtDvo">
+        SELECT B1.CNTR_CST_NO /* 계약기본.계약고객번호 */
+             , A1.PD_HCLSF_ID /* 계약상세.상품대분류ID */
+             , COUNT(A1.PD_HCLSF_ID) AS PD_HCLSF_CNT /* 상품대분류 건 수 */
+             , A1.PD_MCLSF_ID /* 계약상세.상품중분류ID */
+             , COUNT(A1.PD_MCLSF_ID) AS PD_MCLSF_CNT /* 상품중분류 건 수 */
+             , SUM(A1.PD_QTY) AS TOT_PD_QTY /* 계약상세.상품수량 */
+          FROM TB_SSCT_CNTR_DTL A1 /* 계약상세 */
+         INNER JOIN TB_SSCT_CNTR_BAS B1 /* 계약기본 */
+            ON A1.CNTR_NO = B1.CNTR_NO
+          LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS C1 /* 상품분류기본 */
+            ON C1.PD_CLSF_ID = A1.PD_MCLSF_ID /* 상품분류기본.상품분류ID = 계약상세.상품중분류ID */
+           AND C1.PD_CLSF_LEVL_DV_CD = '02' /* 상품분류기본.상품분류레벨구분코드 = '02'(중분류) ※분류코드가 1씩 밀린것 같음(01→02가 중분류) */
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ D1 /* WELLS매출월마감내역 - 230303 데이터 없음*/
+            ON D1.CNTR_NO = A1.CNTR_NO /* WELLS매출월마감내역.계약번호 = 계약상세.계약번호 */
+           AND D1.CNTR_SN = A1.CNTR_SN /* WELLS매출월마감내역.계약일련번호 = 계약상세.계약일련번호 */
+           AND D1.DTA_DL_YN = 'N' /* WELLS매출월마감내역.데이터삭제여부 = 'N' */
+           AND D1.SL_CL_YM = TO_CHAR(SYSDATE,'YYYYMM') /* WELLS매출월마감내역.매출마감년월 - 현재월기준 */
+         WHERE A1.SELL_TP_CD IN ('1','2','6') /* 판매 유형코드 할부(일시불포함), 렌탈, 정기배송 - to-be CodeId : SELL_TP_CD */
+           AND A1.CNTR_DTL_STAT_CD = '101' /* 계약상세.계약상세상태코드 = 101(정상)인 건 */
+           AND A1.DTA_DL_YN = 'N' /* 계약상세.데이터삭제여부가 'N'인 건 */
+           AND B1.CNTR_CST_NO = (
+               SELECT MAX(B1.CNTR_CST_NO)
+                 FROM TB_SSCT_CNTR_DTL A1 /* 계약상세 */
+                INNER JOIN TB_SSCT_CNTR_BAS B1 /* 계약기본 */
+                   ON A1.CNTR_NO = B1.CNTR_NO
+                  AND A1.DTA_DL_YN = 'N'
+                  AND B1.DTA_DL_YN = 'N'
+                  AND A1.CNTR_NO = #{cntrNo}
+                  AND A1.CNTR_SN = #{cntrSn}
+            )
+           AND NOT EXISTS (
+               SELECT A2.CNTR_NO
+                 FROM TB_SSCT_CNTR_DTL A2 /* 계약상세 */
+                WHERE A2.CNTR_NO = A1.CNTR_NO
+                  AND A2.CNTR_SN = A1.CNTR_SN
+                  AND A2.DTA_DL_YN = 'N'
+                  AND A2.CNTR_NO = #{cntrNo}
+                  AND A2.CNTR_SN = #{cntrSn}
+            ) /* 지정계약번호, 계약일련번호 제외 */
+           AND SUBSTR(B1.CNTR_CNFM_DTM, 1, 8) <![CDATA[ <= ]]> #{endDt} /* 계약기본.계약확정일시 계약일이 종료일보다 크면 제외 */
+           --AND D1.SL_DT IS NOT NULL /* WELLS매출월마감내역.매출일자 - 매출일이 없으면 제외 WELLS매출월마감내역 테이블에 데이터가 없어서 주석 처리 추후에 주석 제거 */
+           AND ( /* 계약취소일이 있으면 계약 취소일로 계약취소일이 없으면 계약상품 종료일자로 */
+          CASE WHEN B1.CNTR_CAN_DTM IS NOT NULL
+          THEN SUBSTR(B1.CNTR_CAN_DTM, 1, 8)
+          ELSE SUBSTR(A1.CNTR_PD_ENDDT, 1, 8)
+           END
+             ) <![CDATA[ <= ]]> #{endDt} /* 취소정보존재시 종료일 이내인 경우 포함 */
+           AND SUBSTR(A1.CNTR_PD_ENDDT, 1, 8) <![CDATA[ <= ]]> #{endDt} /* 계약상세.계약상품종료일자 - 탈퇴정보 존재시 종료일 이내인경우 포함  */
+           AND SUBSTR(A1.CNTR_PD_STRTDT, 1, 8) <![CDATA[ >= ]]> #{strtDt} /* 계약상세.계약상품시작일자 - 시작일자보다 만료일이 같거나 이후일때만 만족 */
+         GROUP BY B1.CNTR_CST_NO /* 계약기본.계약고객번호 */
+             , A1.PD_HCLSF_ID /* 계약상세.상품대분류ID */
+             , A1.PD_MCLSF_ID /* 계약상세.상품중분류ID */
+    </select>
+</mapper>

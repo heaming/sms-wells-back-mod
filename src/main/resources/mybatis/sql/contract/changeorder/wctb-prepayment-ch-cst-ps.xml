@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbPrepaymentChCstPsMapper">
+
+    <select id="selectPrepaymentChCstPsPages" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbPrepaymentChCstPsDvo">
+        SELECT OG_CD            /*조직코드*/
+             , CNTR_NO          /*계약번호*/
+             , CNTR_SN          /*계약일련번호*/
+             , CNTR_DTL_NO      /*계약상세번호*/
+             , CST_KNM          /*고객명 LCCNAM*/
+             , CRAL_LOCARA_TNO  /*휴대지역전화번호*/
+             , MEXNO_ENCR       /*휴대전화국번호암호화*/
+             , CRAL_IDV_TNO     /*휴대개별전화번호*/
+			 , PD_CLSF_NM       /*상품분류*/
+			 , PD_CD            /*상품코드*/
+			 , PD_NM         	/*상품명*/
+             , PRM_PTRM         /*선납기간1*/
+             , PRM_MCN          /*선납개월1*/
+             , PRM_DSCR         /*선납할인(율)1*/
+             , PRM_PTRM_THM     /*선납기간2*/
+             , PRM_MCN_THM      /*선납개월2*/
+             , PRM_DSCR_THM     /*선납할인(율)2*/
+          FROM
+          (
+                SELECT
+                       CASE WHEN D101.OG_CD IS NOT NULL
+                            THEN D101.OG_CD
+                            ELSE D201.OG_CD
+                            END
+                                                            AS OG_CD            /*조직코드 AKDDPT*/
+                     , A101.CNTR_NO                     	AS CNTR_NO          /*계약번호 LCYEAR LCCODE*/
+                     , A101.CNTR_SN                     	AS CNTR_SN          /*계약일련번호 LCYEAR LCCODE*/
+                     , A101.CNTR_NO ||'-'|| A101.CNTR_SN  	AS CNTR_DTL_NO      /*계약상세번호 LCCODE02*/
+                     , A202.CST_KNM							AS CST_KNM			/*계약고객명 LCCNAM*/
+                     , A202.CRAL_LOCARA_TNO                 AS CRAL_LOCARA_TNO  /*휴대지역전화번호*/
+                     , A202.MEXNO_ENCR                      AS MEXNO_ENCR       /*휴대전화국번호암호화*/
+                     , A202.CRAL_IDV_TNO                    AS CRAL_IDV_TNO     /*휴대개별전화번호*/
+                     , B201.PD_CLSF_NM /*상품대분류*/ || '>' ||
+                       B202.PD_CLSF_NM /*상품중분류*/
+                     										AS PD_CLSF_NM		/*상품분류*/
+                     , A101.BASE_PD_CD						AS PD_CD			/*상품코드*/
+                     , B101.PD_NM							AS PD_NM			/*상품명*/
+                     , H101.PRM_STRT_Y
+                     , CASE WHEN H101.PRM_STRT_Y IS NOT NULL /*선납시작년*/
+                            THEN H101.PRM_STRT_Y || '.' || LPAD(H101.PRM_STRT_MM , 2 , '0')  || '~'  || H101.PRM_END_Y || '.' ||  LPAD(H101.PRM_END_MM , 2 , '0' )
+                            ELSE ''
+                            END	                            AS PRM_PTRM         /*선납기간 LCPSED*/
+                     , H101.PRM_MCN                         AS PRM_MCN          /*선납개월 LCPMON*/
+                     , H101.PRM_DSCR                        AS PRM_DSCR         /*선납할인(율) LCPRAT*/
+                     , CASE WHEN H201.PRM_STRT_Y IS NOT NULL /*선납시작년*/
+                            THEN H201.PRM_STRT_Y || '.' || LPAD(H201.PRM_STRT_MM , 2 , '0')  || '~'  || H201.PRM_END_Y || '.' ||  LPAD(H201.PRM_END_MM , 2 , '0' )
+                            ELSE ''
+                            END	                            AS PRM_PTRM_THM     /*선납기간 LCPSED02*/
+                     , H201.PRM_MCN                         AS PRM_MCN_THM      /*선납개월 LCPMON02*/
+                     , H201.PRM_DSCR                        AS PRM_DSCR_THM     /*선납할인(율) LCPRAT02*/
+                  FROM TB_SSCT_CNTR_DTL A101 /*계약상세*/
+                 INNER JOIN TB_SSCT_CNTR_BAS A201 /*계약기본*/
+                    ON A101.CNTR_NO = A201.CNTR_NO
+                   AND A201.DTA_DL_YN = 'N'
+                  LEFT OUTER JOIN TB_CUBS_CST_BAS A202 /*고객기본*/
+                    ON A201.CNTR_CST_NO = A202.CST_NO
+                   AND A202.DTA_DL_YN = 'N'
+                  LEFT OUTER JOIN TB_PDBS_PD_BAS B101 /*상품기본*/
+                    ON A101.BASE_PD_CD = B101.PD_CD
+                   AND B101.DTA_DL_YN = 'N'
+                  LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS B201 /*상품분류기본*/
+                    ON B101.PD_HCLSF_ID = B201.PD_CLSF_ID
+                   AND B201.DTA_DL_YN = 'N'
+                  LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS B202 /*상품분류기본*/
+                    ON B101.PD_MCLSF_ID = B202.PD_CLSF_ID
+                   AND B202.DTA_DL_YN = 'N'
+                  LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ H101 /*WELLS매출월마감내역*/
+                    ON A101.CNTR_NO = H101.CNTR_NO
+                   AND A101.CNTR_SN = H101.CNTR_SN
+                   AND H101.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm}||'01','YYYYMMDD'), -1),'YYYYMM') /*전월실적*/
+                  LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ H201 /*WELLS매출월마감내역*/
+                    ON A101.CNTR_NO = H201.CNTR_NO
+                   AND A101.CNTR_SN = H201.CNTR_SN
+                   AND H201.SL_CL_YM = #{slClYm} /*당월실적*/
+                  LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ D101 /*월파트너내역*/
+                    ON A201.SELL_OG_TP_CD = D101.OG_TP_CD
+                   AND A201.SELL_PRTNR_NO = D101.PRTNR_NO
+                   AND D101.DTA_DL_YN = 'N'
+                   AND D101.BASE_YM = #{slClYm}
+                  LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ D201 /*월파트너내역*/
+                    ON A201.SELL_OG_TP_CD = D201.OG_TP_CD
+                   AND A201.SELL_PRTNR_NO = D201.PRTNR_NO
+                   AND D201.DTA_DL_YN = 'N'
+                   AND D201.BASE_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{slClYm}||'01','YYYYMMDD'), -1),'YYYYMM') /*전월기준*/
+                 WHERE 1 = 1
+                   AND A101.SELL_TP_CD = '2' /*렌탈/리스*/
+                   AND A101.DTA_DL_YN = 'N'
+                   AND ( H101.PRM_MCN != 0 OR H201.PRM_MCN != 0 )
+                   AND ( H101.PRM_MCN != H201.PRM_MCN
+                      OR H101.PRM_DSCR != H201.PRM_DSCR
+                      OR H101.PRM_STRT_Y != H201.PRM_STRT_Y
+                      OR H101.PRM_STRT_MM != H201.PRM_STRT_MM
+                   )
+                /* 상품대분류 */
+                <if test="@MybatisUtils@isNotEmpty(pdHclsfId)">
+                   AND B101.PD_HCLSF_ID = #{pdHclsfId}
+                </if>
+                 /* 상품중분류 */
+                <if test="@MybatisUtils@isNotEmpty(pdMclsfId)">
+                   AND B101.PD_MCLSF_ID = #{pdMclsfId}
+                </if>
+                 /* 상품코드 */
+                <if test="@MybatisUtils@isNotEmpty(pdCd)">
+                   AND B101.PD_CD = #{pdCd}
+                </if>
+                /* 상품명 */
+                <if test="@MybatisUtils@isNotEmpty(pdNm)" >
+                   AND B101.PD_NM LIKE '%'||#{pdNm}||'%'
+                </if>
+          )
+           WHERE 1=1
+            /* 조직코드 */
+            <if test="@MybatisUtils@isNotEmpty(ogCd)" >
+               AND OG_CD = #{ogCd} /* 조직코드 */
+            </if>
+            ORDER BY CNTR_DTL_NO
+    </select>
+</mapper>

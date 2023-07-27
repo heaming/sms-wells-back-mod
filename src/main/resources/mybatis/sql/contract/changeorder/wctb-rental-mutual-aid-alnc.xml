@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbRentalMutualAidAlncMapper">
+    <select id="selectRentalMutuAlncCheck" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbRentalMutualAidAlncDvo">
+          SELECT T1.ALNCMP_CD
+               , T1.SELL_TP_CD
+               , T1.PD_CD
+               , T2.SV_PD_TP_CD
+               , T3.PD_PRP_VAL02 AS VST_PRD
+               , T1.RENTAL_DSC_DV_CD
+               , T1.RENTAL_DSC_TP_CD
+            FROM TB_PDBS_PD_ALNCMP_BAS T1
+           INNER JOIN TB_PDBS_PD_BAS T2
+              ON T2.PD_CD = T1.SV_PD_CD
+             AND T2.DTA_DL_YN = 'N'
+             AND T2.TEMP_SAVE_YN = 'N'
+           INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T3
+              ON T3.PD_CD = T2.PD_CD
+             AND T3.PD_EXTS_PRP_GRP_CD = 'SCHD'
+             AND T3.DTA_DL_YN = 'N'
+             AND T3.TEMP_SAVE_YN = 'N'
+         WHERE 1=1
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.ALNCMP_CD = #{alncmpCd}
+           AND T1.SELL_TP_CD = '2'
+           AND T2.SV_PD_TP_CD = #{svPdTpCd}
+           AND T3.PD_PRP_VAL02 = #{vstPrd}
+           AND T1.RENTAL_DSC_DV_CD = #{rentalDscDvCd}
+           AND T1.RENTAL_DSC_TP_CD = #{rentalDscTpCd}
+    </select>
+</mapper>

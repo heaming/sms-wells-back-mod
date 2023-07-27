@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiShippingProductHistoryMapper">
+
+    <select id="selectShippingProductHistories" resultType="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiShippingProductHistoryDto$SearchRes">
+        SELECT CD.CNTR_NO
+             , CD.CNTR_SN
+             , CD.SELL_TP_CD
+             , SUBSTR(CD.CNTR_PD_STRTDT, 1, 6) AS SL_YM
+             , PR.CNTR_PD_REL_ID
+             , RD.BFCH_CN  AS BFCH_PDCT_PD_CD
+             , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = RD.BFCH_CN AND DTA_DL_YN = 'N' AND TEMP_SAVE_YN = 'N') AS BFCH_PDCT_PD_NM
+             , PR.OJ_PD_CD AS AFCH_PDCT_PD_CD
+             , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = PR.OJ_PD_CD AND DTA_DL_YN = 'N' AND TEMP_SAVE_YN = 'N') AS AFCH_PDCT_PD_NM
+             , PR.FNL_MDFC_DTM
+             , PR.FNL_MDFC_USR_ID
+             , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = PR.FNL_MDFC_USR_ID AND DEL_YN = 'N') AS FNL_MDFC_USR_NM
+          FROM TB_SSCT_CNTR_DTL CD
+         INNER JOIN TB_SSCT_CNTR_PD_REL PR
+            ON PR.CNTR_NO  = CD.CNTR_NO
+           AND PR.CNTR_SN = CD.CNTR_SN
+           AND PR.BASE_PD_CD  = CD.BASE_PD_CD
+           AND PR.PD_REL_TP_CD = '05'
+           AND PR.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_CH_RCP_DTL RD
+            ON RD.DTL_CNTR_NO = PR.CNTR_NO
+           AND RD.DTL_CNTR_SN = PR.CNTR_SN
+           AND RD.CH_PD_CD = PR.OJ_PD_CD
+           AND RD.DTA_DL_YN = 'N'
+         WHERE CD.CNTR_NO = #{cntrNo}
+           AND CD.CNTR_SN = #{cntrSn}
+           AND CD.DTA_DL_YN = 'N'
+         ORDER BY PR.VL_END_DTM DESC, PR.VL_STRT_DTM DESC
+    </select>
+</mapper>

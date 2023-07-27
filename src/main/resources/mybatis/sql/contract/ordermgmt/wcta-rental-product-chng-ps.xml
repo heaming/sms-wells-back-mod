@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaRentalProductChngPsMapper">
+
+    <select id="selectRentalProductChngPss"
+            resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaRentalProductChngPsDto$SearchRes">
+        /* ASIS 에 이전행의 여부에 따라 IST_SAP_ASSET_NO 를 조회하는 방식이 다르기에 union 으로 처리된 듯 하다. 스칼라로 뺄 수 있을 듯 함.*/
+        SELECT *
+          FROM (SELECT T_CNTR_DTL.SELL_TP_DTL_CD
+                     , T_CNTR_BAS.SELL_OG_TP_CD
+                     , T_RTIST_PDCT_CH_IZ.CNTR_NO
+                     , T_RTIST_PDCT_CH_IZ.CNTR_SN
+                     , T_RTIST_PDCT_CH_IZ.CH_SN
+                     , T_CST_BAS.CST_KNM
+                     , T_RTIST_PDCT_CH_IZ.PDCT_IST_DT
+                     , T_REQD_PD_PD_BAS.SAP_MAT_CD      AS REQD_SAP_MAT_CD /*철거SAP품목코드*/
+                     , T_REQD_PD_PD_BAS.PD_CD           AS REQD_PCDT_PD_CD /*(철거)수불코드 -> 제품코드*/
+                     , T_REQD_BASE_PD_BAS.PD_CD         AS REQD_PD_CD /*상품코드*/
+                     , T_REQD_BASE_PD_BAS.PD_NM         AS REQD_PD_NM
+                     , T_REQD_RTAS_STAT_IZ.SAP_ASSET_NO AS REQD_SAP_ASSET_NO
+                     , T_PD_PD_BAS.SAP_MAT_CD           AS IST_SAP_MAT_CD /*설치SAP품목코드*/
+                     , T_PD_PD_BAS.PD_CD                AS IST_PCDT_PD_CD /*(설치)수불코드 -> 제품코드*/
+                     , T_BASE_PD_BAS.PD_CD              AS IST_PD_CD /*상품코드*/
+                     , T_BASE_PD_BAS.PD_NM              AS IST_PD_NM
+                     , T_RTAS_STAT_IZ.SAP_ASSET_NO      AS IST_SAP_ASSET_NO
+                     , T_CNTR_BAS.SELL_PRTNR_NO
+                     , T_PRTNR_BAS.PRTNR_KNM            AS PRTNR_NM
+                  FROM TB_SSCT_RTIST_PDCT_CH_IZ             T_RTIST_PDCT_CH_IZ
+                       INNER JOIN TB_SSCT_RTIST_PDCT_CH_IZ  T_REQD_RTIST_PDCT_CH_IZ
+                       ON T_REQD_RTIST_PDCT_CH_IZ.DTA_DL_YN = 'N'
+                               AND T_REQD_RTIST_PDCT_CH_IZ.CNTR_NO = T_RTIST_PDCT_CH_IZ.CNTR_NO
+                               AND T_REQD_RTIST_PDCT_CH_IZ.CNTR_SN = T_RTIST_PDCT_CH_IZ.CNTR_SN
+                               AND T_REQD_RTIST_PDCT_CH_IZ.CH_SN = T_RTIST_PDCT_CH_IZ.CH_SN - 1
+                       INNER JOIN TB_SSCT_CNTR_DTL          T_CNTR_DTL
+                       ON T_CNTR_DTL.DTA_DL_YN = 'N'
+                               AND T_CNTR_DTL.CNTR_NO = T_RTIST_PDCT_CH_IZ.CNTR_NO
+                               AND T_CNTR_DTL.CNTR_SN = T_RTIST_PDCT_CH_IZ.CNTR_SN
+                               AND T_CNTR_DTL.SELL_TP_CD = '2' /* 2 (렌탈/리스) */
+                       INNER JOIN TB_SSCT_CNTR_BAS          T_CNTR_BAS
+                       ON T_CNTR_BAS.DTA_DL_YN = 'N'
+                               AND T_CNTR_BAS.CNTR_NO = T_CNTR_DTL.CNTR_NO
+                       INNER JOIN TB_CUBS_CST_BAS           T_CST_BAS
+                       ON T_CST_BAS.DTA_DL_YN = 'N'
+                               AND T_CST_BAS.CST_NO = T_CNTR_BAS.CNTR_CST_NO
+                       INNER JOIN TB_SSCT_CNTR_WELLS_DTL    T_CNTR_WELLS_DTL
+                       ON T_CNTR_WELLS_DTL.DTA_DL_YN = 'N'
+                               AND T_CNTR_WELLS_DTL.CNTR_NO = T_CNTR_DTL.CNTR_NO
+                               AND T_CNTR_WELLS_DTL.CNTR_SN = T_CNTR_DTL.CNTR_SN
+                       LEFT OUTER JOIN TB_OGBS_PRTNR_BAS    T_PRTNR_BAS
+                       ON T_PRTNR_BAS.DTA_DL_YN = 'N'
+                               AND T_PRTNR_BAS.PRTNR_NO = T_CNTR_BAS.SELL_PRTNR_NO
+                               AND T_PRTNR_BAS.OG_TP_CD = T_CNTR_BAS.SELL_OG_TP_CD
+                       INNER JOIN TB_PDBS_PD_BAS            T_REQD_BASE_PD_BAS /*  이하 이전 변경 일련번호 행 관련 */
+                       ON T_REQD_BASE_PD_BAS.DTA_DL_YN = 'N'
+                               AND T_REQD_BASE_PD_BAS.PD_CD = T_REQD_RTIST_PDCT_CH_IZ.AFCH_RLTG_PD_CD
+                       INNER JOIN TB_PDBS_PD_REL            T_REQD_BASE_TO_PD_REL
+                       ON T_REQD_BASE_TO_PD_REL.DTA_DL_YN = 'N'
+                               AND T_REQD_BASE_TO_PD_REL.BASE_PD_CD = T_REQD_BASE_PD_BAS.PD_CD
+                               AND T_REQD_BASE_TO_PD_REL.PD_REL_TP_CD = '05' /* 상품관계유형코드 05 (기준-제품)*/
+                       INNER JOIN TB_PDBS_PD_BAS            T_REQD_PD_PD_BAS
+                       ON T_REQD_PD_PD_BAS.DTA_DL_YN = 'N'
+                               AND T_REQD_PD_PD_BAS.PD_CD = T_REQD_BASE_TO_PD_REL.OJ_PD_CD
+                       LEFT OUTER JOIN TB_SSCT_RTAS_STAT_IZ T_REQD_RTAS_STAT_IZ
+                       ON T_REQD_RTAS_STAT_IZ.DTA_DL_YN = 'N'
+                               AND T_REQD_RTAS_STAT_IZ.CNTR_NO = T_REQD_RTIST_PDCT_CH_IZ.CNTR_NO
+                               AND T_REQD_RTAS_STAT_IZ.CNTR_SN = T_REQD_RTIST_PDCT_CH_IZ.CNTR_SN
+                               AND T_REQD_RTAS_STAT_IZ.CH_SN = T_REQD_RTIST_PDCT_CH_IZ.CH_SN
+                       INNER JOIN TB_PDBS_PD_BAS            T_BASE_PD_BAS /*  이하 기준 행 관련 */
+                       ON T_BASE_PD_BAS.DTA_DL_YN = 'N'
+                               AND T_BASE_PD_BAS.PD_CD = T_RTIST_PDCT_CH_IZ.AFCH_RLTG_PD_CD
+                       INNER JOIN TB_PDBS_PD_REL            T_BASE_TO_PD_REL
+                       ON T_BASE_TO_PD_REL.DTA_DL_YN = 'N'
+                               AND T_BASE_TO_PD_REL.BASE_PD_CD = T_BASE_PD_BAS.PD_CD
+                               AND T_BASE_TO_PD_REL.PD_REL_TP_CD = '05'
+                       INNER JOIN TB_PDBS_PD_BAS            T_PD_PD_BAS
+                       ON T_PD_PD_BAS.DTA_DL_YN = 'N'
+                               AND T_PD_PD_BAS.PD_CD = T_BASE_TO_PD_REL.OJ_PD_CD
+                       LEFT OUTER JOIN TB_SSCT_RTAS_STAT_IZ T_RTAS_STAT_IZ
+                       ON T_RTAS_STAT_IZ.DTA_DL_YN = 'N'
+                               AND T_RTAS_STAT_IZ.CNTR_NO = T_RTIST_PDCT_CH_IZ.CNTR_NO
+                               AND T_RTAS_STAT_IZ.CNTR_SN = T_RTIST_PDCT_CH_IZ.CNTR_SN
+                               AND T_RTAS_STAT_IZ.CH_SN = T_RTIST_PDCT_CH_IZ.CH_SN
+                 WHERE T_RTIST_PDCT_CH_IZ.DTA_DL_YN = 'N' /* 매출인식 전이거나 렌탈만료건은 제외 */
+                   AND (T_CNTR_DTL.CNTR_PD_STRTDT IS NULL
+                         OR T_RTIST_PDCT_CH_IZ.PDCT_IST_DT <![CDATA[<=]]> TO_CHAR(ADD_MONTHS(TO_DATE(T_CNTR_DTL.CNTR_PD_STRTDT),
+                                                                                    T_CNTR_DTL.CNTR_PTRM
+                                                                                            - T_CNTR_WELLS_DTL.FRISU_BFSVC_PTRM_N),
+                                                                         'YYYYMMDD'))
+                   <include refid="dynamicCondition"/>
+                 UNION
+                SELECT T_CNTR_DTL.SELL_TP_DTL_CD
+                     , T_CNTR_BAS.SELL_OG_TP_CD
+                     , T_RTIST_PDCT_CH_IZ.CNTR_NO
+                     , T_RTIST_PDCT_CH_IZ.CNTR_SN
+                     , T_RTIST_PDCT_CH_IZ.CH_SN
+                     , T_CST_BAS.CST_KNM
+                     , T_RTIST_PDCT_CH_IZ.PDCT_IST_DT
+                     , T_REQD_PD_PD_BAS.SAP_MAT_CD      AS REQD_SAP_MAT_CD
+                     , T_REQD_PD_PD_BAS.PD_CD           AS REQD_PCDT_PD_CD
+                     , T_REQD_BASE_PD_BAS.PD_CD         AS REQD_PD_CD
+                     , T_REQD_BASE_PD_BAS.PD_NM         AS REQD_PD_NM
+                     , T_REQD_RTAS_STAT_IZ.SAP_ASSET_NO AS REQD_SAP_ASSET_NO
+                     , T_ROOT_PD_PD_BAS.SAP_MAT_CD      AS IST_SAP_MAT_CD
+                     , T_ROOT_PD_PD_BAS.PD_CD           AS IST_PCDT_PD_CD
+                     , T_BASE_PD_BAS.PD_CD              AS IST_PD_CD
+                     , T_BASE_PD_BAS.PD_NM              AS IST_PD_NM
+                     , T_ROOT_RTAS_STAT_IZ.SAP_ASSET_NO AS IST_SAP_ASSET_NO /*NOTICE DIFFERENCE!!*/
+                     , T_CNTR_BAS.SELL_PRTNR_NO
+                     , T_PRTNR_BAS.PRTNR_KNM            AS PRTNR_NM
+                  FROM TB_SSCT_RTIST_PDCT_CH_IZ                 T_RTIST_PDCT_CH_IZ
+                       LEFT OUTER JOIN TB_SSCT_RTIST_PDCT_CH_IZ T_REQD_RTIST_PDCT_CH_IZ
+                       ON T_REQD_RTIST_PDCT_CH_IZ.DTA_DL_YN = 'N'
+                               AND T_REQD_RTIST_PDCT_CH_IZ.CNTR_NO = T_RTIST_PDCT_CH_IZ.CNTR_NO
+                               AND T_REQD_RTIST_PDCT_CH_IZ.CNTR_SN = T_RTIST_PDCT_CH_IZ.CNTR_SN
+                               AND T_REQD_RTIST_PDCT_CH_IZ.CH_SN = T_RTIST_PDCT_CH_IZ.CH_SN - 1
+                       INNER JOIN TB_SSCT_CNTR_DTL              T_CNTR_DTL
+                       ON T_CNTR_DTL.DTA_DL_YN = 'N'
+                               AND T_CNTR_DTL.CNTR_NO = T_RTIST_PDCT_CH_IZ.CNTR_NO
+                               AND T_CNTR_DTL.CNTR_SN = T_RTIST_PDCT_CH_IZ.CNTR_SN
+                               AND T_CNTR_DTL.SELL_TP_CD = '2'
+                       INNER JOIN TB_SSCT_CNTR_BAS              T_CNTR_BAS
+                       ON T_CNTR_BAS.DTA_DL_YN = 'N'
+                               AND T_CNTR_BAS.CNTR_NO = T_CNTR_DTL.CNTR_NO
+                       INNER JOIN TB_SSCT_CNTR_WELLS_DTL        T_CNTR_WELLS_DTL
+                       ON T_CNTR_WELLS_DTL.DTA_DL_YN = 'N'
+                               AND T_CNTR_WELLS_DTL.CNTR_NO = T_CNTR_DTL.CNTR_NO
+                               AND T_CNTR_WELLS_DTL.CNTR_SN = T_CNTR_DTL.CNTR_SN
+                       INNER JOIN TB_CUBS_CST_BAS               T_CST_BAS
+                       ON T_CST_BAS.DTA_DL_YN = 'N'
+                               AND T_CST_BAS.CST_NO = T_CNTR_BAS.CNTR_CST_NO
+                       LEFT OUTER JOIN TB_OGBS_PRTNR_BAS        T_PRTNR_BAS
+                       ON T_PRTNR_BAS.DTA_DL_YN = 'N'
+                               AND T_PRTNR_BAS.PRTNR_NO = T_CNTR_BAS.SELL_PRTNR_NO
+                               AND T_PRTNR_BAS.OG_TP_CD = T_CNTR_BAS.SELL_OG_TP_CD
+                       LEFT OUTER JOIN TB_PDBS_PD_BAS           T_REQD_BASE_PD_BAS
+                       ON T_REQD_BASE_PD_BAS.DTA_DL_YN = 'N'
+                               AND T_REQD_BASE_PD_BAS.PD_CD = T_REQD_RTIST_PDCT_CH_IZ.AFCH_RLTG_PD_CD
+                       LEFT OUTER JOIN TB_PDBS_PD_REL           T_REQD_BASE_TO_PD_REL
+                       ON T_REQD_BASE_TO_PD_REL.DTA_DL_YN = 'N'
+                               AND T_REQD_BASE_TO_PD_REL.BASE_PD_CD = T_REQD_BASE_PD_BAS.PD_CD
+                               AND T_REQD_BASE_TO_PD_REL.PD_REL_TP_CD = '05'
+                       LEFT OUTER JOIN TB_PDBS_PD_BAS           T_REQD_PD_PD_BAS
+                       ON T_REQD_PD_PD_BAS.DTA_DL_YN = 'N'
+                               AND T_REQD_PD_PD_BAS.PD_CD = T_REQD_BASE_TO_PD_REL.OJ_PD_CD
+                       LEFT OUTER JOIN TB_SSCT_RTAS_STAT_IZ     T_REQD_RTAS_STAT_IZ
+                       ON T_REQD_RTAS_STAT_IZ.DTA_DL_YN = 'N'
+                               AND T_REQD_RTAS_STAT_IZ.CNTR_NO = T_REQD_RTIST_PDCT_CH_IZ.CNTR_NO
+                               AND T_REQD_RTAS_STAT_IZ.CNTR_SN = T_REQD_RTIST_PDCT_CH_IZ.CNTR_SN
+                               AND T_REQD_RTAS_STAT_IZ.CH_SN = T_REQD_RTIST_PDCT_CH_IZ.CH_SN
+                       INNER JOIN TB_PDBS_PD_BAS                T_BASE_PD_BAS
+                       ON T_BASE_PD_BAS.DTA_DL_YN = 'N'
+                               AND T_BASE_PD_BAS.PD_CD = T_RTIST_PDCT_CH_IZ.AFCH_RLTG_PD_CD
+                       INNER JOIN TB_PDBS_PD_REL                T_BASE_TO_PD_REL
+                       ON T_BASE_TO_PD_REL.DTA_DL_YN = 'N'
+                               AND T_BASE_TO_PD_REL.BASE_PD_CD = T_BASE_PD_BAS.PD_CD
+                               AND T_BASE_TO_PD_REL.PD_REL_TP_CD = '05'
+                               AND T_BASE_TO_PD_REL.DTA_DL_YN = 'N'
+                       INNER JOIN TB_PDBS_PD_BAS                T_ROOT_PD_PD_BAS
+                       ON T_ROOT_PD_PD_BAS.DTA_DL_YN = 'N'
+                               AND T_ROOT_PD_PD_BAS.PD_CD = T_BASE_TO_PD_REL.OJ_PD_CD
+                       LEFT OUTER JOIN TB_SSCT_RTAS_STAT_IZ     T_ROOT_RTAS_STAT_IZ
+                       ON T_ROOT_RTAS_STAT_IZ.DTA_DL_YN = 'N'
+                               AND T_ROOT_RTAS_STAT_IZ.CNTR_NO = T_RTIST_PDCT_CH_IZ.CNTR_NO
+                               AND T_ROOT_RTAS_STAT_IZ.CNTR_SN = T_RTIST_PDCT_CH_IZ.CNTR_SN
+                               AND T_ROOT_RTAS_STAT_IZ.CH_SN = 1
+                 WHERE T_RTIST_PDCT_CH_IZ.DTA_DL_YN = 'N'
+                   AND T_REQD_RTIST_PDCT_CH_IZ.CNTR_NO IS NULL /* 매출인식 전이거나 렌탈만료건은 제외 */
+                   AND (T_CNTR_DTL.CNTR_PD_STRTDT IS NULL
+                         OR T_RTIST_PDCT_CH_IZ.PDCT_IST_DT <![CDATA[<=]]> TO_CHAR(ADD_MONTHS(TO_DATE(T_CNTR_DTL.CNTR_PD_STRTDT),
+                                                                                    T_CNTR_DTL.CNTR_PTRM
+                                                                                            - T_CNTR_WELLS_DTL.FRISU_BFSVC_PTRM_N),
+                                                                         'YYYYMMDD'))
+                   <include refid="dynamicCondition"/>
+                 ) T
+         ORDER BY T.PDCT_IST_DT DESC
+    </select>
+
+    <sql id="dynamicCondition">
+        <if test="@MybatisUtils@isNotEmpty(strtdt) and @MybatisUtils@isNotEmpty(enddt)"><trim>
+            AND T_RTIST_PDCT_CH_IZ.PDCT_IST_DT BETWEEN #{strtdt} AND #{enddt}
+        </trim></if>
+        <if test="@MybatisUtils@isNotEmpty(basePdCd)"><trim>
+            AND T_CNTR_DTL.BASE_PD_CD = #{basePdCd}
+        </trim></if>
+        <if test="@MybatisUtils@equals(jobCd,'rental')"><trim>
+            AND T_CNTR_DTL.SELL_TP_DTL_CD NOT IN ('22', '24')
+        </trim></if>
+        <if test="@MybatisUtils@equals(jobCd,'lease')"><trim>
+            AND T_CNTR_DTL.SELL_TP_DTL_CD IN ('22', '24')
+        </trim></if>
+        <if test="@MybatisUtils@isNotEmpty(sellOgTpCd)"><trim>
+            AND T_CNTR_BAS.SELL_OG_TP_CD = #{sellOgTpCd}
+        </trim></if>
+        <if test="@MybatisUtils@isNotEmpty(sellPrtnrNo)"><trim>
+            AND T_CNTR_BAS.SELL_PRTNR_NO = #{sellPrtnrNo}
+        </trim></if>
+    </sql>
+</mapper>

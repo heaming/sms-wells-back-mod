@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.common.mapper.WctzContractNumberMapper">
+    <select id="selectNewContractNumber" resultType="com.kyowon.sms.wells.web.contract.common.dto.WctzContractNumberDto$SearchRes">
+        SELECT 'W' || TO_CHAR(SYSDATE, 'YYYY') || LPAD(WSMDBS.SQ_SSCT_CNTR_BAS$CNTR_NO.NEXTVAL, 7, 0) AS CNTR_NO
+             , '1' AS CNTR_SN
+             , 'Y' AS RSLT_YN
+          FROM DUAL
+    </select>
+
+    <select id="selectNewContractSn" resultType="com.kyowon.sms.wells.web.contract.common.dto.WctzContractNumberDto$SearchRes">
+       SELECT CASE WHEN COUNT(*) > 0 THEN #{cntrNo} ELSE '' END CNTR_NO
+            , MAX(CNTR_SN) + 1 AS CNTR_SN
+            , CASE WHEN COUNT(*) > 0 THEN 'Y' ELSE 'N' END RSLT_YN
+         FROM WSMDBS.TB_SSCT_CNTR_DTL
+        WHERE 1 = 1
+          AND CNTR_NO = #{cntrNo}
+    </select>
+</mapper>

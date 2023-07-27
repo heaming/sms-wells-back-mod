@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbRentalMshSpayUseMapper">
+    <select id="selectPdMclsfCnt" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbRentalMshSpayUseDvo">
+        SELECT NVL(SUM(CASE WHEN REF_PD_CLSF_VAL IN ('01001003', '01001003001', '01002002001', '01003001002') THEN 1 ELSE 0 END),0) AS RS_CT1
+             , NVL(SUM(CASE WHEN REF_PD_CLSF_VAL IN ('03001001001') THEN 1 ELSE 0 END),0) AS RS_CT2
+             , NVL(SUM(CASE WHEN REF_PD_CLSF_VAL IN ('02001001002') THEN 1 ELSE 0 END),0) AS RS_CT3
+             , NVL(SUM(CASE WHEN REF_PD_CLSF_VAL IN ('03002002001') THEN 1 ELSE 0 END),0) AS RS_CT4
+             , NVL(SUM(CASE WHEN REF_PD_CLSF_VAL IN ('05007002') THEN 1 ELSE 0 END),0) AS RS_CT5
+             , NVL(SUM(CASE WHEN REF_PD_CLSF_VAL IN ('05003001001') THEN 1 ELSE 0 END),0) AS RS_CT6
+             , NVL(SUM(CASE WHEN REF_PD_CLSF_VAL IN ('05002002001') THEN 1 ELSE 0 END),0) AS RS_CT7
+             , NVL(SUM(CASE WHEN REF_PD_CLSF_VAL IN ('05001003002', '05001003001', '05001003003') THEN 1 ELSE 0 END),0) AS RS_CT8
+             , NVL(SUM(CASE WHEN REF_PD_CLSF_VAL IN ('03003003', '03003002001') THEN 1 ELSE 0 END),0) AS RS_CT9
+             , NVL(SUM(CASE WHEN REF_PD_CLSF_VAL IN ('04005002') THEN 1 ELSE 0 END),0) AS RS_CT10
+             , NVL(SUM(CASE WHEN REF_PD_CLSF_VAL IN ('04004001') THEN 1 ELSE 0 END),0) AS RS_CT11
+             , 0 AS RS_CT12
+             , 0 AS RS_CT13
+             , 0 AS RS_CT14
+             , 0 AS RS_CT15
+        FROM
+		(/*렌탈접수건수*/
+        SELECT D.REF_PD_CLSF_VAL
+             , 1 AS CNT1
+          FROM TB_SSCT_CNTR_BAS A /*계약기본*/
+         INNER JOIN TB_SSCT_CNTR_DTL B /*계약상세*/
+            ON A.CNTR_NO=B.CNTR_NO
+           AND B.SELL_TP_CD='2' /*판매유형코드*/
+           AND B.DTA_DL_YN='N' /*데이터삭제여부*/
+           AND B.SELL_TP_DTL_CD = '13'
+         INNER JOIN TB_PDBS_PD_BAS C /*상품기본*/
+            ON B.BASE_PD_CD = C.PD_CD
+           AND C.DTA_DL_YN='N'
+         INNER JOIN TB_PDBS_PD_CLSF_BAS D /* 상품분류기본*/
+            ON C.PD_CLSF_ID = D.PD_CLSF_ID
+           AND D.DTA_DL_YN='N'
+         WHERE 1=1
+           AND A.CNTR_NO != #{paramCntrNo}
+           AND A.CNTR_CST_NO=#{paramCstNo} /*계약고객번호*/
+           AND SUBSTR(A.CNTR_CNFM_DTM,1,8) /*계약확정일시*/ BETWEEN #{paramStrtDt} AND #{paramEndDt}
+           AND A.FST_RGST_DTM <![CDATA[ < ]]> #{paramRgstDt}||#{paramRgstHh} /*최초등록일시*/
+           AND (
+                    ( D.REF_PD_CLSF_VAL IN ('03003003', '03003002001')
+                  AND B.STPL_PTRM = '48')
+               OR   ( D.REF_PD_CLSF_VAL NOT IN ('03003003', '03003002001')
+                  AND B.STPL_PTRM = '36')
+               )
+         UNION ALL
+        /*일시불접수건수*/
+        SELECT D.REF_PD_CLSF_VAL
+             , 1 AS CNT1
+          FROM TB_SSCT_CNTR_BAS A /*계약기본*/
+         INNER JOIN TB_SSCT_CNTR_DTL B /*계약상세*/
+           ON A.CNTR_NO=B.CNTR_NO
+          AND B.SELL_TP_CD='1' /*판매유형코드*/
+          AND B.DTA_DL_YN='N' /*데이터삭제여부*/
+          AND B.SELL_TP_DTL_CD = '13'
+        INNER JOIN TB_PDBS_PD_BAS C /*상품기본*/
+            ON B.BASE_PD_CD = C.PD_CD
+           AND C.DTA_DL_YN='N'
+         INNER JOIN TB_PDBS_PD_CLSF_BAS D /* 상품분류기본*/
+            ON C.PD_CLSF_ID = D.PD_CLSF_ID
+           AND D.DTA_DL_YN='N'
+           AND D.REF_PD_CLSF_VAL IN ('05002002001', '03003003', '03003002001')
+         WHERE 1=1
+           AND A.CNTR_NO != #{paramCntrNo}
+           AND A.CNTR_CST_NO=#{paramCstNo} /*계약고객번호*/
+           AND SUBSTR(A.CNTR_CNFM_DTM,1,8) /*계약확정일시*/ BETWEEN #{paramStrtDt} AND #{paramEndDt}
+           AND A.FST_RGST_DTM <![CDATA[ < ]]> #{paramRgstDt}||#{paramRgstHh} /*최초등록일시*/)
+    </select>
+    <select id="selectCstGdCdCheck" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbRentalMshSpayUseDvo">
+        SELECT CASE WHEN A.CST_GD_CD>1 /*고객등급코드*/
+                    THEN 'Y'
+                    ELSE 'N'
+               END RS_CHECK_YN
+          FROM TB_SSCT_CST_GD_ESTM_IZ A /*고객등급산정내역*/
+         WHERE 1=1
+           AND A.CST_NO=#{paramCstNo} /*고객번호*/
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN SUBSTR(A.VL_STRT_DTM,1,8) /*유효시작일시*/ AND SUBSTR(A.VL_END_DTM,1,8) /*유효종료일시*/
+         FETCH FIRST ROWS ONLY
+    </select>
+    <select id="selectEmplPmotCheck" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbRentalMshSpayUseDvo">
+        SELECT CASE WHEN COUNT(*)=0 THEN 'Y' ELSE 'N' END RS_CHECK_YN
+          FROM TB_SSCT_CNTR_BAS A /*계약기본*/
+         INNER JOIN TB_SSCT_CNTR_DTL B /*계약상세*/
+            ON A.CNTR_NO=B.CNTR_NO AND B.SELL_TP_CD='2' /*판매유형코드*/
+          LEFT OUTER JOIN TB_SSCT_CNTR_PMOT_IZ C /* 계약프로모션내역 */
+            ON B.CNTR_NO = C.DTL_CNTR_NO
+           AND B.CNTR_SN = C.DTL_CNTR_SN
+           AND C.PMOT_CD='20' /*프로모션코드*/
+         WHERE 1=1
+           AND B.BASE_PD_CD IN ('WP05120040', 'WP05120045')
+           AND A.CNTR_NO!=#{paramCntrNo} /*계약번호*/
+           AND SUBSTR(A.CNTR_CNFM_DTM,1,6)=SUBSTR(#{paramRgstDt},1,6) /*계약확정일시*/
+           AND A.SELL_PRTNR_NO= #{paramSellerCd} /*판매파트너번호*/
+    </select>
+    <select id="selectRcmdPmotCheck" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbRentalMshSpayUseDvo">
+        SELECT CASE WHEN COUNT(*)=0 THEN 'Y' ELSE 'N' END RS_CHECK_YN
+          FROM TB_SSCT_CNTR_BAS A /*계약기본*/
+         INNER JOIN TB_SSCT_CNTR_DTL B /*계약상세*/
+            ON A.CNTR_NO=B.CNTR_NO AND B.SELL_TP_CD='2' /*판매유형코드*/
+          LEFT OUTER JOIN TB_SSCT_CNTR_PMOT_IZ C /* 계약프로모션내역 */
+            ON B.CNTR_NO = C.DTL_CNTR_NO
+           AND B.CNTR_SN = C.DTL_CNTR_SN
+           --AND LCCK06="3"  /* TODO : 선물선택 컬럼 - 매핑된 컬럼이 없음 */
+         WHERE 1=1
+           AND B.BASE_PD_CD IN ('WP05120040', 'WP05120045')
+           AND A.CNTR_NO!=#{paramCntrNo} /*계약번호*/
+           AND SUBSTR(A.CNTR_CNFM_DTM,1,6)=SUBSTR(#{paramRgstDt},1,6) /*계약확정일시*/
+           AND A.SELL_PRTNR_NO= #{paramSellerCd} /*판매파트너번호*/
+    </select>
+    <select id="selectReentryPmotCheck" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbRentalMshSpayUseDvo">
+        SELECT CASE WHEN COUNT(*)>0 THEN 'Y' ELSE 'N' END RS_CHECK_YN
+          FROM TB_SSCT_CNTR_BAS A /*계약기본*/
+         INNER JOIN TB_SSCT_CNTR_DTL B /*계약상세*/
+            ON A.CNTR_NO=B.CNTR_NO
+           AND B.SELL_TP_CD='2' /*판매유형코드*/
+           AND B.CNTR_PD_STRTDT > 0 /*매출일*/
+           AND B.CNTR_PD_ENDDT > 0 /*계약상품종료일자*/
+         WHERE A.CNTR_CST_NO=#{paramCstNo} /*계약고객번호*/
+           AND SUBSTR(A.CNTR_CNFM_DTM,1,6) <![CDATA[ <= ]]> 201806 /*계약확정일시*/
+           AND B.BASE_PD_CD IN ('WP05120040', 'WP05120041', 'WP05120045')
+    </select>
+    <select id="selectNewPmotCheck" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbRentalMshSpayUseDvo">
+        SELECT CASE WHEN COUNT(*)=0 THEN 'Y' ELSE 'N' END RS_CHECK_YN
+           FROM TB_SSCT_CNTR_BAS A /*계약기본*/
+          INNER JOIN TB_SSCT_CNTR_DTL B /*계약상세*/
+             ON A.CNTR_NO=B.CNTR_NO
+            AND B.SELL_TP_CD IN ('2', '3')
+            AND A.DTA_DL_YN='N'
+            AND B.DTA_DL_YN='N'
+            AND B.FST_RGST_DTM <![CDATA[ < ]]> #{paramRgstDt}||#{paramRgstHh}
+            AND B.SELL_TP_DTL_CD = '13'
+
+          WHERE A.CNTR_NO != #{paramCntrNo}
+            AND A.CNTR_CST_NO=#{paramCstNo}
+    </select>
+</mapper>

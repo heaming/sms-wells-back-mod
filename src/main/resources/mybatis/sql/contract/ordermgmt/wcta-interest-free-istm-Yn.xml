@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaInterestFreeIstmYnMapper">
+
+    <select id="selectSellTypeCode" resultType="String" >
+        SELECT SELL_TP_CD
+          FROM TB_PDBS_PD_BAS
+         WHERE 1=1
+           AND PD_CD = #{pdCd}
+           AND DTA_DL_YN = 'N'
+           AND TEMP_SAVE_YN = 'N'
+    </select>
+</mapper>

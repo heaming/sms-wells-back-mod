@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.orderstatus.mapper.WctdConfirmMshPsInqrMapper">
+    <select id="selectConfirmMshPsInqrPages" resultType="com.kyowon.sms.wells.web.contract.orderstatus.dto.WctdConfirmMshPsInqrDto$SearchRes">
+        SELECT CONCAT(CONCAT(T1.CNTR_NO, '-'), T1.CNTR_SN) AS CNTR_DTL_NO
+             , T3.CST_KNM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'OG_TP_CD', T2.SELL_OG_TP_CD) AS SELL_OG_TP_NM
+             , T4.PD_CLSF_NM AS PD_HCLSF_NM
+             , T5.PD_CLSF_NM AS PD_MCLSF_NM
+             , T1.BASE_PD_CD
+             , T8.PD_NM
+             , CASE WHEN T10.SELL_TP_CD = '1' THEN T11.FRISU_BFSVC_PTRM_N
+                    ELSE 0
+                    END AS FRISU_BFSVC_PTRM_N
+             , CASE WHEN T10.SELL_TP_CD = '1' THEN T11.FRISU_MSH_CRT_YN
+                    ELSE ''
+                    END AS FRISU_MSH_CRT_YN
+             , CASE WHEN T11.SELL_EV_CD = 'F' THEN 'Y'
+                    ELSE ''
+                    END AS NATION_SPT_YN /*국고보조금여부*/
+             , CASE WHEN T10.SELL_TP_CD <![CDATA[<>]]> '1' THEN ''
+                   WHEN T10.SELL_TP_CD = '1' AND T1.CNTR_SN > 1 AND T11.SELL_EV_CD = 'F' THEN 'Y'
+                   ELSE 'N'
+                   END AS FEE_YN
+             , CASE WHEN T11.PRM_PTRM_MCN > 0 THEN 'Y'
+                    ELSE ''
+                    END AS PRM_YN
+             , T7.OG_CD
+             , T2.SELL_PRTNR_NO
+             , T7.PRTNR_KNM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'RSB_DV_CD', T7.RSB_DV_CD) AS RSB_DV_NM
+             , SUBSTR(T2.CNTR_RCP_FSH_DTM,1,8) AS CNTR_RCP_FSH_DT
+             , CASE WHEN T2.CNTR_CNFM_DTM IS NOT NULL THEN 'Y'
+                    ELSE 'N'
+                    END AS CNTR_CNFM_YN
+             , SUBSTR(T2.CNTR_CNFM_DTM,1,8) AS CNTR_CNFM_DT
+             , T1.CNTR_PD_STRTDT AS CNTR_PD_STRTDT
+             , CASE WHEN T1.CNTR_DTL_STAT_CD = '401' THEN T1.CNTR_PD_ENDDT
+                    ELSE ''
+                     END AS CNTR_PD_ENDDT
+             , CASE WHEN T1.CNTR_DTL_STAT_CD = '303' THEN SUBSTR(T12.HIST_STRT_DTM,1,8)
+                    ELSE ''
+                    END AS CNTR_CAN_DT
+          FROM TB_SSCT_CNTR_DTL T1
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON T1.CNTR_NO = T2.CNTR_NO
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS T3
+            ON T2.CNTR_CST_NO = T3.CST_NO
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS T8
+            ON T1.BASE_PD_CD = T8.PD_CD
+           AND T8.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_CLSF_BAS T4      /* 대분류명 */
+            ON T8.PD_HCLSF_ID = T4.PD_CLSF_ID
+           AND T4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS T5      /* 중분류명 */
+            ON T8.PD_MCLSF_ID = T5.PD_CLSF_ID
+           AND T5.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ T7
+            ON T7.BASE_YM = SUBSTR(T2.CNTR_CNFM_DTM,1,6)
+           AND T7.OG_TP_CD = T2.SELL_OG_TP_CD
+           AND T7.PRTNR_NO = T2.SELL_PRTNR_NO
+           AND T7.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_REL T9
+            ON T9.BASE_DTL_CNTR_NO = T1.CNTR_NO
+           AND T9.BASE_DTL_CNTR_SN = T1.CNTR_SN
+           AND T9.CNTR_REL_DTL_CD = '212'   /* 멤버십 - 원주문 : 기준이 멤버십임 */
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T9.VL_STRT_DTM AND T9.VL_END_DTM
+           AND T9.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_DTL T10
+            ON T10.CNTR_NO = T9.OJ_DTL_CNTR_NO
+           AND T10.CNTR_SN = T9.OJ_DTL_CNTR_SN
+           AND T10.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T11
+            ON T11.CNTR_NO = T1.CNTR_NO
+           AND T11.CNTR_SN = T1.CNTR_SN
+           AND T11.DTA_DL_YN = 'N'
+        <if test='@MybatisUtils@equals(frisuMshCrtYn, "N")'>
+           AND T11.FRISU_MSH_CRT_YN = 'Y'  /* 자동생성제외가 N인 경우 */
+        </if>
+        <if test='@MybatisUtils@equals(frisuMshCrtYn, "Y")'>
+           AND T11.FRISU_MSH_CRT_YN <![CDATA[ <> ]]> 'Y'
+        </if>
+         LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T12
+            ON T12.CNTR_NO = T11.CNTR_NO
+           AND T12.CNTR_SN = T11.CNTR_SN
+           AND T12.HIST_END_DTM = '99991231235959'
+           AND T12.DTA_DL_YN = 'N'
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.SELL_TP_CD = '3'
+           AND T2.CNTR_RCP_FSH_DTM BETWEEN #{rcpStrtDt}||'000000' AND #{rcpEndDt}||'235959'
+           AND T2.CNTR_CNFM_DTM BETWEEN #{cnfmStrtDt}||'000000' AND #{cnfmEndDt}||'235959'
+        <if test='@MybatisUtils@isNotEmpty(pdHclsfId)'>
+           /* 상품대분류 조건이 존재하는 경우 */
+           AND T8.PD_HCLSF_ID = #{pdHclsfId}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(pdMclsfId)'>
+           /* 상품중분류 조건이 존재하는 경우 */
+           AND T8.PD_MCLSF_ID = #{pdMclsfId}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(basePdCd)'>
+           /* 상품코드 조건이 존재하는 경우 */
+           AND T1.BASE_PD_CD = #{basePdCd}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(pdNm)'>
+           /* 상품명 조건이 존재하는 경우 */
+           AND T8.PD_NM LIKE '%'|| #{pdNm} ||'%'
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(prtnrNo)'>
+           /* 파트너코드 조건이 존재하는 경우 */
+           AND T2.SELL_PRTNR_NO  = #{prtnrNo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(sellOgTpCd)'>
+           /* 판매구분코드 조건이 존재하는 경우 */
+           AND T2.SELL_OG_TP_CD  = #{sellOgTpCd}
+        </if>
+    </select>
+</mapper>

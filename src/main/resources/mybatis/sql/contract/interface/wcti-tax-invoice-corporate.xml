@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiTaxInvoiceCorporateMapper">
+
+    <!--
+    EAI INTERFACE 통신 시 data key는 snake case를 사용함.
+    resultMap을 사용하여 response dto에 매핑함.
+    -->
+    <resultMap id="corporateInfo" type="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoiceCorporateDto$SearchRes">
+        <constructor>
+            <arg name="DLPNR_CD" javaType="java.lang.String" column="DLPNR_CD"/>
+            <arg name="DLPNR_NM" javaType="java.lang.String" column="DLPNR_NM"/>
+            <arg name="BZRNO" javaType="java.lang.String" column="BZRNO"/>
+            <arg name="DLGPS_NM" javaType="java.lang.String" column="DLGPS_NM"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectTaxInvoiceCorporates" resultMap="corporateInfo">
+       SELECT DLPNR_CD
+            , DLPNR_NM
+            , BZRNO
+            , DLGPS_NM
+         FROM TB_GBCO_DLPNR_BAS
+        WHERE DLPNR_NM LIKE '%'||#{DLPNR_NM}||'%'
+          AND DTA_DL_YN = 'N'
+    </select>
+</mapper>

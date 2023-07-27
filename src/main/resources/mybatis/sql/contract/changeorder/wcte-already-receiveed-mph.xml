@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WcteAlreadyReceivedMphMapper">
+    <select id="selectAlreadyReceivedMph" resultType="String">
+        SELECT T0.CRAL_LOCARA_TNO || '-' || XX1.DEC_VARCHAR2_SEL(T0.MEXNO_ENCR,10,'AES256') || '-' || T0.IDV_TNO AS CRAL_LOCARA_MEXNO_IDV_TNO
+          FROM TB_SSCT_CNTR_ADRPC_BAS T0
+         INNER JOIN TB_SSCT_CNTR_ADR_REL T1
+            ON T1.CNTR_ADRPC_ID = T0.CNTR_ADRPC_ID
+           AND T1.CNTR_NO = T0.CNTR_NO
+         WHERE 1 = 1
+           AND T0.CNTR_NO  = #{cntrNo}
+           AND T0.CNTR_CST_NO = #{cntCstNo}
+           AND T1.ADRPC_TP_CD = '1'
+           AND T0.DTA_DL_YN = 'N'
+    </select>
+</mapper>

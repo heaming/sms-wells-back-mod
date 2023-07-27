@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.common.mapper.WctzPartnerMapper">
+    <select id="selectEntrepreneurBases" resultType="com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto$SearchEntrepreneurBaseRes">
+        SELECT *  /* 가장최근 사업자정보  */
+          FROM (SELECT T1.BZRNO              /* 사업자번호 */
+                     , T1.DLPNR_NM             /* 거래처명 */
+                     , T1.DLGPS_NM             /* 대표자명*/
+                     , T1.BRYY_MMDD            /* 생년월일 */
+                     , ROW_NUMBER () OVER(ORDER BY T1.FNL_MDFC_PRG_ID DESC) AS RN /* 최종 한건만*/
+                  FROM TB_GBCO_DLPNR_BAS T1    /* 거래처 기본*/
+                 WHERE 1=1
+                   AND T1.DTA_DL_YN = 'N'
+                   AND T1.BZRNO_VD_YN = 'Y'     /* 사업자등록번호검증여부 */
+                   AND T1.SOCBZ_DV_CD IS NULL   /* 휴폐업구분코드 빈값*/
+                   AND T1.BZRNO = #{bzrno}   /*사업자번호*/
+             )
+        WHERE RN = 1
+    </select>
+    <select id="selectGeneralDivisions" resultType="com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto$SearchGeneralDivisionsRes">
+        SELECT NVL(MAX(D.DGR1_LEVL_OG_CD),'') AS DGR1_LEVL_OG_CD /* 월조직내역.1차레벨조직코드 - 총괄단 */
+            , NVL(MAX(D.DGR1_LEVL_OG_NM),'') AS DGR1_LEVL_OG_NM /* 월조직내역.1차레벨조직명 - 총괄단 */
+            , NVL(MAX(D.DGR1_LEVL_DG_PRTNR_NO),'') AS DGR1_LEVL_DG_PRTNR_NO /* 월조직내역.1차레벨대표파트너번호 - 총괄단 */
+            , NVL(D.DGR1_LEVL_OG_ID,'') AS DGR1_LEVL_OG_ID /* 1차레벨조직ID - 총괄단 */
+            , NVL(MAX(D.OG_TP_CD), '') AS OG_TP_CD /* 조직유형코드 */
+        FROM (
+            SELECT
+                A.DGR1_LEVL_OG_CD /* 월조직내역.1차레벨조직코드 - 총괄단 */
+                , A.DGR1_LEVL_OG_NM /* 월조직내역.1차레벨조직명 - 총괄단 */
+                , A.DGR1_LEVL_DG_PRTNR_NO /* 월조직내역.1차레벨대표파트너번호 - 총괄단 */
+                , (
+                    SELECT MAX(C.OG_ID)
+                     FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                    WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                      AND C.OG_CD = A.DGR1_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.1차레벨조직코드 */
+                      AND C.OG_TP_CD = A.OG_TP_CD
+                ) AS DGR1_LEVL_OG_ID /* 1차레벨조직ID */
+                , A.DGR2_LEVL_OG_CD /* 월조직내역.2차레벨조직코드 - 지역단 */
+                , A.DGR2_LEVL_OG_NM /* 월조직내역.2차레벨조직명 - 지역단 */
+                , A.DGR2_LEVL_DG_PRTNR_NO /* 월조직내역.2차레벨대표파트너번호 - 지역단 */
+                , (
+                    SELECT MAX(C.OG_ID)
+                      FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                     WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                       AND C.OG_CD = A.DGR2_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.2차레벨조직코드 */
+                       AND C.OG_TP_CD = A.OG_TP_CD
+                ) AS DGR2_LEVL_OG_ID /* 2차레벨조직ID */
+                , A.DGR3_LEVL_OG_CD /* 월조직내역.3차레벨조직코드 - 지점 */
+                , A.DGR3_LEVL_OG_NM /* 월조직내역.3차레벨조직명 - 지점 */
+                , A.DGR3_LEVL_DG_PRTNR_NO /* 월조직내역.3차레벨대표파트너번호 - 지점 */
+                , (
+                    SELECT MAX(C.OG_ID)
+                      FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                     WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                       AND C.OG_CD = A.DGR3_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.3차레벨조직코드 */
+                       AND C.OG_TP_CD = A.OG_TP_CD
+                ) AS DGR3_LEVL_OG_ID /* 3차레벨조직ID */
+                , A.DGR4_LEVL_OG_CD /* 월조직내역.4차레벨조직코드 */
+                , A.DGR4_LEVL_OG_NM /* 월조직내역.4차레벨조직명 */
+                , A.DGR4_LEVL_DG_PRTNR_NO /* 월조직내역.4차레벨대표파트너번호 */
+                , (
+                    SELECT MAX(C.OG_ID)
+                      FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                     WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                       AND C.OG_CD = A.DGR4_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.4차레벨조직코드 */
+                       AND C.OG_TP_CD = A.OG_TP_CD
+                ) AS DGR4_LEVL_OG_ID /* 4차레벨조직ID */
+                , A.DGR5_LEVL_OG_CD /* 월조직내역.5차레벨조직코드 */
+                , A.DGR5_LEVL_OG_NM /* 월조직내역.5차레벨조직명 */
+                , A.DGR5_LEVL_DG_PRTNR_NO /* 월조직내역.5차레벨대표파트너번호 */
+                , (
+                    SELECT MAX(C.OG_ID)
+                      FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                     WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                       AND C.OG_CD = A.DGR5_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.5차레벨조직코드 */
+                       AND C.OG_TP_CD = A.OG_TP_CD
+                ) AS DGR5_LEVL_OG_ID /* 5차레벨조직ID */
+                , A.BIZ_SPPT_PRTNR_NO /* 월조직내역.업무지원파트너번호 */
+                , A.OG_UPBRNG_PRTNR_NO /* 월조직내역.영업지원파트너번호 */
+                , A.OG_CD /* 월조직내역.조직코드 */
+                , A.OG_ID /* 월조직내역.조직ID */
+                , A.OG_NM /* 월조직내역.조직명 */
+                , A.BASE_YM /* 월조직내역.기준년월 */
+                , A.OG_TP_CD /* 조직유형코드 */
+            FROM WSMDBS.TB_OGBS_MM_OG_IZ A /* 월조직내역 - 월조직내역 TABLE의 1~5차 상위 조직ID가 없으므로 별도로 조회 */
+            WHERE 1=1
+                AND A.BASE_YM = SUBSTR(#{baseYm}, 1, 6) /* 월조직내역.기준년월 (default:현재월) */
+                AND A.OG_LEVL_DV_CD = '1'
+                AND A.DTA_DL_YN = 'N' /* 월조직내역.데이터삭제여부가 'N'인 건 */
+                AND A.OG_TP_CD IN ('W01', 'W02')
+            ) D
+        GROUP BY D.DGR1_LEVL_OG_ID /* 조직ID가 유일한 키(1차레벨조직ID) */
+        ORDER BY DGR1_LEVL_OG_CD
+    </select>
+    <select id="selectRegionalDivisions" resultType="com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto$SearchRegionalDivisionsRes">
+        SELECT NVL(MAX(D.DGR2_LEVL_OG_CD),'') AS DGR2_LEVL_OG_CD       /* 월조직내역.2차레벨조직코드 - 지역단 */
+            , NVL(MAX(D.DGR2_LEVL_OG_NM),'') AS DGR2_LEVL_OG_NM       /* 월조직내역.2차레벨조직명 - 지역단 */
+            , NVL(MAX(D.DGR2_LEVL_DG_PRTNR_NO),'') AS DGR2_LEVL_DG_PRTNR_NO /* 월조직내역.2차레벨대표파트너번호 - 지역단 */
+            , NVL(D.DGR2_LEVL_OG_ID,'') AS  DGR2_LEVL_OG_ID                               /* 2차레벨조직ID - 지역단 */
+            , NVL(MAX(D.OG_TP_CD), '') AS OG_TP_CD /* 조직유형코드 */
+            , NVL(MAX(D.DGR1_LEVL_OG_CD),'') AS DGR1_LEVL_OG_CD       /* 월조직내역.1차레벨조직코드 - 총괄단 */
+        FROM (
+            SELECT
+                A.DGR1_LEVL_OG_CD /* 월조직내역.1차레벨조직코드 - 총괄단 */
+                , A.DGR1_LEVL_OG_NM /* 월조직내역.1차레벨조직명 - 총괄단 */
+                , A.DGR1_LEVL_DG_PRTNR_NO /* 월조직내역.1차레벨대표파트너번호 - 총괄단 */
+                , (
+                    SELECT MAX(C.OG_ID)
+                      FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                     WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                       AND C.OG_CD = A.DGR1_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.1차레벨조직코드 */
+                       AND C.OG_TP_CD = A.OG_TP_CD
+                ) AS DGR1_LEVL_OG_ID /* 1차레벨조직ID */
+                , A.DGR2_LEVL_OG_CD /* 월조직내역.2차레벨조직코드 - 지역단 */
+                , A.DGR2_LEVL_OG_NM /* 월조직내역.2차레벨조직명 - 지역단 */
+                , A.DGR2_LEVL_DG_PRTNR_NO /* 월조직내역.2차레벨대표파트너번호 - 지역단 */
+                , (
+                    SELECT MAX(C.OG_ID)
+                      FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                     WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                       AND C.OG_CD = A.DGR2_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.2차레벨조직코드 */
+                       AND C.OG_TP_CD = A.OG_TP_CD
+                ) AS DGR2_LEVL_OG_ID /* 2차레벨조직ID */
+                , A.DGR3_LEVL_OG_CD /* 월조직내역.3차레벨조직코드 - 지점 */
+                , A.DGR3_LEVL_OG_NM /* 월조직내역.3차레벨조직명 - 지점 */
+                , A.DGR3_LEVL_DG_PRTNR_NO /* 월조직내역.3차레벨대표파트너번호 - 지점 */
+                , (
+                    SELECT MAX(C.OG_ID)
+                      FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                     WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                       AND C.OG_CD = A.DGR3_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.3차레벨조직코드 */
+                       AND C.OG_TP_CD = A.OG_TP_CD
+                ) AS DGR3_LEVL_OG_ID /* 3차레벨조직ID */
+                , A.DGR4_LEVL_OG_CD /* 월조직내역.4차레벨조직코드 */
+                , A.DGR4_LEVL_OG_NM /* 월조직내역.4차레벨조직명 */
+                , A.DGR4_LEVL_DG_PRTNR_NO /* 월조직내역.4차레벨대표파트너번호 */
+                , ( SELECT MAX(C.OG_ID)
+                      FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                     WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                       AND C.OG_CD = A.DGR4_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.4차레벨조직코드 */
+                       AND C.OG_TP_CD = A.OG_TP_CD
+                ) AS DGR4_LEVL_OG_ID /* 4차레벨조직ID */
+                , A.DGR5_LEVL_OG_CD /* 월조직내역.5차레벨조직코드 */
+                , A.DGR5_LEVL_OG_NM /* 월조직내역.5차레벨조직명 */
+                , A.DGR5_LEVL_DG_PRTNR_NO /* 월조직내역.5차레벨대표파트너번호 */
+                , (
+                    SELECT MAX(C.OG_ID)
+                      FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                     WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                       AND C.OG_CD = A.DGR5_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.5차레벨조직코드 */
+                       AND C.OG_TP_CD = A.OG_TP_CD
+                ) AS DGR5_LEVL_OG_ID /* 5차레벨조직ID */
+                , A.BIZ_SPPT_PRTNR_NO /* 월조직내역.업무지원파트너번호 */
+                , A.OG_UPBRNG_PRTNR_NO /* 월조직내역.영업지원파트너번호 */
+                , A.OG_CD /* 월조직내역.조직코드 */
+                , A.OG_ID /* 월조직내역.조직ID */
+                , A.OG_NM /* 월조직내역.조직명 */
+                , A.BASE_YM /* 월조직내역.기준년월 */
+                , A.OG_TP_CD /* 조직유형코드 */
+            FROM WSMDBS.TB_OGBS_MM_OG_IZ A /* 월조직내역 - 월조직내역 TABLE의 1~5차 상위 조직ID가 없으므로 별도로 조회 */
+            WHERE 1=1
+                AND A.BASE_YM = SUBSTR(#{baseYm}, 1, 6) /* 월조직내역.기준년월 (default:현재월) */
+                AND A.OG_LEVL_DV_CD = '2'
+                AND A.DTA_DL_YN = 'N' /* 월조직내역.데이터삭제여부가 'N'인 건 */
+                AND A.OG_TP_CD IN ('W01', 'W02')
+            ) D
+        GROUP BY DGR2_LEVL_OG_ID /* 조직ID가 유일한 키(2차레벨조직ID)*/
+        ORDER BY DGR2_LEVL_OG_CD
+    </select>
+
+    <select id="selectBranchDivisions" resultType="com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto$SearchBranchDivisionsRes">
+        SELECT NVL(MAX(D.DGR3_LEVL_OG_CD),'') AS DGR3_LEVL_OG_CD /* 월조직내역.3차레벨조직코드 - 지점 */
+            , NVL(MAX(D.DGR3_LEVL_OG_NM),'') AS DGR3_LEVL_OG_NM /* 월조직내역.3차레벨조직명 - 지점 */
+            , NVL(MAX(D.DGR3_LEVL_DG_PRTNR_NO),'') AS DGR3_LEVL_DG_PRTNR_NO /* 월조직내역.3차레벨대표파트너번호 - 지점 */
+            , NVL(D.DGR3_LEVL_OG_ID,'') AS  DGR3_LEVL_OG_ID /* 3차레벨조직ID - 지점 */
+            , NVL(MAX(D.OG_TP_CD), '') AS OG_TP_CD /* 조직유형코드 */
+            , NVL(MAX(D.DGR1_LEVL_OG_CD),'') AS DGR1_LEVL_OG_CD /* 월조직내역.1차레벨조직코드 - 총괄단 */
+            , NVL(MAX(D.DGR2_LEVL_OG_CD),'') AS DGR2_LEVL_OG_CD /* 월조직내역.2차레벨조직코드 - 지역단 */
+        FROM (
+            SELECT
+                A.DGR1_LEVL_OG_CD /* 월조직내역.1차레벨조직코드 - 총괄단 */
+                , A.DGR1_LEVL_OG_NM /* 월조직내역.1차레벨조직명 - 총괄단 */
+                , A.DGR1_LEVL_DG_PRTNR_NO /* 월조직내역.1차레벨대표파트너번호 - 총괄단 */
+                , (
+                    SELECT MAX(C.OG_ID)
+                      FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                     WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                       AND C.OG_CD = A.DGR1_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.1차레벨조직코드 */
+                       AND C.OG_TP_CD = A.OG_TP_CD
+                ) AS DGR1_LEVL_OG_ID /* 1차레벨조직ID */
+                , A.DGR2_LEVL_OG_CD /* 월조직내역.2차레벨조직코드 - 지역단 */
+                , A.DGR2_LEVL_OG_NM /* 월조직내역.2차레벨조직명 - 지역단 */
+                , A.DGR2_LEVL_DG_PRTNR_NO /* 월조직내역.2차레벨대표파트너번호 - 지역단 */
+                , (
+                    SELECT MAX(C.OG_ID)
+                      FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                     WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                       AND C.OG_CD = A.DGR2_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.2차레벨조직코드 */
+                       AND C.OG_TP_CD = A.OG_TP_CD
+                ) AS DGR2_LEVL_OG_ID /* 2차레벨조직ID */
+                , A.DGR3_LEVL_OG_CD /* 월조직내역.3차레벨조직코드 - 지점 */
+                , A.DGR3_LEVL_OG_NM /* 월조직내역.3차레벨조직명 - 지점 */
+                , A.DGR3_LEVL_DG_PRTNR_NO /* 월조직내역.3차레벨대표파트너번호 - 지점 */
+                , (
+                    SELECT MAX(C.OG_ID)
+                      FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                     WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                       AND C.OG_CD = A.DGR3_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.3차레벨조직코드 */
+                       AND C.OG_TP_CD = A.OG_TP_CD
+                ) AS DGR3_LEVL_OG_ID /* 3차레벨조직ID */
+                , A.DGR4_LEVL_OG_CD /* 월조직내역.4차레벨조직코드 */
+                , A.DGR4_LEVL_OG_NM /* 월조직내역.4차레벨조직명 */
+                , A.DGR4_LEVL_DG_PRTNR_NO /* 월조직내역.4차레벨대표파트너번호 */
+                , (
+                    SELECT MAX(C.OG_ID)
+                      FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                     WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                       AND C.OG_CD = A.DGR4_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.4차레벨조직코드 */
+                       AND C.OG_TP_CD = A.OG_TP_CD
+                ) AS DGR4_LEVL_OG_ID /* 4차레벨조직ID */
+                , A.DGR5_LEVL_OG_CD /* 월조직내역.5차레벨조직코드 */
+                , A.DGR5_LEVL_OG_NM /* 월조직내역.5차레벨조직명 */
+                , A.DGR5_LEVL_DG_PRTNR_NO /* 월조직내역.5차레벨대표파트너번호 */
+                , (
+                    SELECT MAX(C.OG_ID)
+                      FROM WSMDBS.TB_OGBS_OG_BAS C /* 조직기본 */
+                     WHERE C.DTA_DL_YN != 'Y' /* 조직기본.데이터삭제여부가 'Y'가 아닌 건*/
+                       AND C.OG_CD = A.DGR5_LEVL_OG_CD /* 조직기본.조직ID = 월조직내역.5차레벨조직코드 */
+                       AND C.OG_TP_CD = A.OG_TP_CD
+                ) AS DGR5_LEVL_OG_ID /* 5차레벨조직ID */
+                , A.BIZ_SPPT_PRTNR_NO /* 월조직내역.업무지원파트너번호 */
+                , A.OG_UPBRNG_PRTNR_NO /* 월조직내역.영업지원파트너번호 */
+                , A.OG_CD /* 월조직내역.조직코드 */
+                , A.OG_ID /* 월조직내역.조직ID */
+                , A.OG_NM /* 월조직내역.조직명 */
+                , A.BASE_YM /* 월조직내역.기준년월 */
+                , A.OG_TP_CD /* 조직유형코드 */
+            FROM WSMDBS.TB_OGBS_MM_OG_IZ A /* 월조직내역 - 월조직내역 TABLE의 1~5차 상위 조직ID가 없으므로 별도로 조회 */
+            WHERE 1=1
+                AND A.BASE_YM = SUBSTR(#{baseYm}, 1, 6) /* 월조직내역.기준년월 (default:현재월) */
+                AND A.OG_LEVL_DV_CD = '3'
+                AND A.DTA_DL_YN = 'N' /* 월조직내역.데이터삭제여부가 'N'인 건 */
+                AND A.OG_TP_CD IN ('W01', 'W02')
+            ) D
+        GROUP BY DGR3_LEVL_OG_ID /* 조직ID가 유일한 키(3차레벨조직ID) */
+        ORDER BY DGR3_LEVL_OG_CD
+    </select>
+
+    <select id="isPartnerStpa" resultType="boolean">
+        SELECT COUNT(1)
+          FROM TB_OGBS_MM_PRTNR_IZ T1
+         WHERE T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T1.PRTNR_NO = #{prtnrNo}
+           AND T1.OG_TP_CD = #{ogTpCd}
+           AND T1.BZ_STAT_CD = '3'
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectPrtnrInfo" resultType = "com.kyowon.sms.wells.web.contract.common.dto.WctzPartnerDto$FindPrtnrRes">
+        SELECT T1.BASE_YM                  /* 기준년월 */
+             , T1.OG_TP_CD                 /* 조직유형코드 */
+             , T1.PRTNR_NO                 /* 파트너번호 */
+             , T1.SELL_INFLW_CHNL_DTL_CD   /* 판매유입채널상세코드 */
+             , T1.PRTNR_CLSF_CD            /* 파트너분류코드 */
+             , T1.CIK_VAL                  /* CI키값 */
+             , T1.SFK_VAL                  /* 세이프키값 */
+             , T1.COPN_DV_CD               /* 법인격구분코드 */
+             , T1.LNF_DV_CD                /* 내외국인구분코드 */
+             , T1.PRTNR_KNM                /* 파트너한글명 */
+             , T1.PRTNR_ENGL_LNM           /* 파트너영문성 */
+             , T1.PRTNR_ENM                /* 파트너영문명 */
+             , T1.PRTNR_ENGL_FNM           /* 파트너영문성명 */
+             , T1.OG_ID                    /* 조직ID */
+             , T1.OG_CD                    /* 조직코드 */
+             , T1.OG_NM                    /* 조직명 */
+             , T1.HMNRSC_DEPT_CD           /* 인사부서코드 */
+             , T1.HMNRSC_EMPNO             /* 인사사원번호 */
+             , T1.SAP_DLPNR_CD             /* SAP거래처코드 */
+             , T1.SAP_DLPNR_DTL_IZ_RFLT_DT /* SAP거래처상세내역반영일자 */
+             , T1.WK_GRP_CD                /* 작업그룹코드 */
+             , T1.WK_GRP_NM                /* 작업그룹명 */
+             , T1.WKCR_CD                  /* 작업조번호 */
+             , T1.RCRT_WRTE_DT             /* 리쿠르팅작성일자 */
+             , T1.FST_CNTR_DT              /* 최초계약일자 */
+             , T1.FNL_CLTN_DT              /* 최종해약일자 */
+             , T1.RCNTR_DT                 /* 재계약일자 */
+             , T1.CLTN_DT                  /* 해약일자 */
+             , T1.CNTR_DT                  /* 계약일자 */
+             , T1.BZ_STAT_CD               /* 사업상태코드 */
+             , T1.PRFMT_DMTN_DV_CD         /* 승진강등구분코드 */
+             , T1.PRFMT_DT                 /* 승진일자 */
+             , T1.DMTN_DT                  /* 강등일자 */
+             , T1.CCPS_YN                  /* 겸직여부 */
+             , T1.CLTN_CHO_YN              /* 해약선택여부 */
+             , T1.SELL_PSB_PRTNR_YN        /* 판매가능파트너여부 */
+             , T1.PRR_BIZ_RGST_YN          /* 사전업무등록여부 */
+             , T1.PSTN_DV_CD               /* 직급구분코드 */
+             , T1.RSB_DV_CD                /* 직책구분코드 */
+             , T1.ROL_DV_CD                /* 직무구분코드 */
+             , T1.PRTNR_GD_CD              /* 파트너등급코드 */
+             , T1.QLF_DV_CD                /* 자격구분코드 */
+             , T1.PERF_EXCD_OJ_YN          /* 실적제외대상여부 */
+             , T1.RDS_DSB_EXCD_OJ_YN       /* RDS지급제외대상여부 */
+             , T1.DTA_DL_YN                /* 데이터삭제여부 */
+             , T1.FST_RGST_DTM             /* 최초등록일시 */
+             , T1.FST_RGST_USR_ID          /* 최초등록사용자ID */
+             , T1.FST_RGST_PRG_ID          /* 최초등록프로그램ID */
+             , T1.FST_RGST_DEPT_ID         /* 최초등록부서ID */
+             , T1.FNL_MDFC_DTM             /* 최종수정일시 */
+             , T1.FNL_MDFC_USR_ID          /* 최종수정사용자ID */
+             , T1.FNL_MDFC_PRG_ID          /* 최종수정프로그램ID */
+             , T1.FNL_MDFC_DEPT_ID         /* 최종수정부서ID */
+             , T2.DGR1_LEVL_OG_CD
+             , T2.DGR1_LEVL_OG_NM
+             , T2.DGR2_LEVL_OG_CD
+             , T2.DGR2_LEVL_OG_NM
+             , T2.DGR3_LEVL_OG_CD
+             , T2.DGR3_LEVL_OG_NM
+             , T2.DGR4_LEVL_OG_CD
+             , T2.DGR4_LEVL_OG_NM
+             , T2.DGR5_LEVL_OG_CD
+             , T2.DGR5_LEVL_OG_NM
+             , T2.DGR4_LEVL_DG_PRTNR_NO
+             , T2.DGR4_LEVL_DG_PRTNR_NM
+          FROM TB_OGBS_MM_PRTNR_IZ T1 /* 월파트너내역 */
+          LEFT OUTER JOIN TB_OGBS_MM_OG_IZ T2
+            ON T2.OG_ID = T1.OG_ID
+           AND T2.OG_TP_CD = T1.OG_TP_CD
+           AND T2.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T2.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND T1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')                 /* 기준년월 */
+           AND T1.PRTNR_NO = #{prtnrNo}                /* 파트너번호 */
+           AND T1.OG_TP_CD = #{ogTpCd}                 /* 조직유형코드 */
+           AND T1.DTA_DL_YN = 'N'
+    </select>
+</mapper>

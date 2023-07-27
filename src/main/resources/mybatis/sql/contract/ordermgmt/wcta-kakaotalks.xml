@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaKakaotalksMapper">
+    <select id="selectKakaotalkFwIzs" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaKakaotalksDto$SearchRes">
+        SELECT
+               T0.RECIPIENT_NUM                                                          /*수신번호*/
+             , TO_CHAR(T0.DATE_CLIENT_REQ,'YYYY.MM.DD HH24:MI:SS') AS DATE_CLIENT_REQ    /*전송(예약)시간*/
+             , TO_CHAR(T0.DATE_RSLT,'YYYY.MM.DD HH24:MI:SS') AS DATE_RSLT                /*결과시간:단말기 도착 시간(결과 발생 시간(성공일 경우 폰 수신 시각))*/
+             , '(' || T0.RESULT || ')' || T3.RESL_CD_CNTN AS RESL_CD_CNTN
+             , CASE WHEN T1.SUCC_COUNT > 0 THEN 'SMS'
+                    WHEN T2.SUCC_COUNT > 0 THEN 'LMS'
+                    ELSE '-'
+               END AS RPLC_SEND
+             , T0.MSG
+             , T0.USER_ID
+          FROM ATA_MMT_LOG T0
+          LEFT OUTER JOIN SDK_SMS_REPORT T1       /* T.SMS */
+            ON TO_CHAR(T0.MT_PR) = T1.RESERVED6
+          LEFT OUTER JOIN SDK_MMS_REPORT T2       /* T.LMS */
+            ON TO_CHAR(T0.MT_PR) = T2.RESERVED6
+          LEFT OUTER JOIN TB_BIZTALK_RESULT_CD T3 /* T.결과 코드 메시지 */
+            ON T0.RESULT = T3.RESL_CD
+         WHERE 1=1
+           AND T0.RESERVED2 = #{cntrNo}
+           AND T0.RESERVED3 = #{cntrSn}
+           AND T0.TEMPLATE_CODE IN (
+        <foreach collection="tempCodeList" item="code" separator=",">
+               #{code}
+        </foreach>
+               )
+    </select>
+</mapper>

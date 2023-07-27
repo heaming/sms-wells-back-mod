@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbRentalMchnChCstCanMapper">
+    <select id="selectCntrDtlMembership" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbRentalMchnChCstCanDvo">
+        SELECT CNTR_NO /* 계약번호 */
+             , CNTR_SN /* 계약일련번호 */
+          FROM TB_SSCT_CNTR_DTL /* 계약상세 */
+         WHERE 1=1
+           AND CNTR_NO = #{cntrNo} /* 계약번호 */
+           AND SELL_TP_CD = '3' /* 판매유형코드 = 멤버십 */
+           AND DTA_DL_YN = 'N'
+    </select>
+
+    <update id="updateCntrBas">
+        UPDATE TB_SSCT_CNTR_BAS /* 계약기본 */
+           SET CNTR_CAN_DTM = #{cntrCanDtm}      /* 계약취소일시 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO = #{cntrNo} /* 계약번호 */
+           AND CNTR_CAN_DTM IS NULL /* 계약취소일시 : 기처리 자료 제외(보상일자가 있는 건 제외) */
+           AND DTA_DL_YN = 'N'
+    </update>
+    <update id="updateCntrBasRental">
+        UPDATE TB_SSCT_CNTR_BAS /* 계약기본 */
+           SET CNTR_CAN_DTM = #{cntrCanDtm}      /* 계약취소일시 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO = #{cntrNo} /* 계약번호 */
+           AND CNTR_CAN_DTM IS NULL /* 계약취소일시 : 기처리 자료 제외(보상일자가 있는 건 제외) */
+           AND (
+               SELECT RENTAL_TN
+                 FROM TB_CBCL_WELLS_SL_MM_CL_IZ
+                WHERE 1=1
+                  AND SL_CL_YM = (
+                      SELECT MAX(SL_CL_YM)
+                        FROM TB_CBCL_WELLS_SL_MM_CL_IZ
+                       WHERE CNTR_NO = #{cntrNo}
+                         AND CNTR_SN = #{cntrSn})
+                  AND CNTR_NO = #{cntrNo}
+                  AND CNTR_SN = #{cntrSn}
+               ) > 60 /* 렌탈 개월 수를 확인하여 60개월 초과시 종료일 수정 */
+           AND DTA_DL_YN = 'N'
+    </update>
+    <update id="updateCntrDtl">
+        UPDATE TB_SSCT_CNTR_DTL /* 계약상세 */
+           SET CNTR_DTL_STAT_CD = '303' /* 계약상세상태코드 = 계약취소 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE 1=1
+           AND CNTR_NO = #{cntrNo} /* 계약번호 = 입력받은 계약번호 */
+           AND CNTR_SN = #{cntrSn} /* 계약일련번호 = 입력받은 계약일련번호 */
+           AND DTA_DL_YN = 'N'
+    </update>
+    <update id="updateCntrDchHist">
+        UPDATE TB_SSCT_CNTR_DCH_HIST
+           SET HIST_END_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') /* 이력종료일시 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CNTR_NO = #{cntrNo} /* 계약번호 = 입력받은 계약번호 */
+           AND CNTR_SN = #{cntrSn} /* 계약일련번호 = 입력받은 계약일련번호 */
+           AND HIST_END_DTM = '99991231235959'
+    </update>
+    <insert id="insertCntrDchHist">
+        INSERT INTO TB_SSCT_CNTR_DCH_HIST /* 계약상세변경이력 */
+             ( CNTR_NO /* 계약번호 */
+             , HIST_STRT_DTM /* 이력시작일시 */
+             , CNTR_SN /* 계약일련번호 */
+             , HIST_END_DTM /* 이력종료일시 */
+             , BASE_PD_CD /* 기준상품코드 */
+             , HGR_PD_CD /* 상위상품코드 */
+             , PD_QTY /* 상품수량 */
+             , STPL_PTRM_UNIT_CD /* 약정기간단위코드 */
+             , STPL_PTRM /* 약정기간 */
+             , ISTM_MCN /* 할부개월수 */
+             , CNTR_PD_STRTDT /* 계약상품시작일자 */
+             , CNTR_PD_ENDDT /* 계약상품종료일자 */
+             , CNTR_DTL_STAT_CD /* 계약상세상태코드 */
+             , CNTR_PTRM_UNIT_CD /* 계약기간단위코드 */
+             , CNTR_PTRM /* 계약기간 */
+             , CNTR_TAM /* 계약총액 */
+             , CTT_RS_CD /* 컨택결과코드 */
+             , CTT_PSIC_ID /* 컨택담당자ID */
+             , SELL_TP_CD /* 판매유형코드 */
+             , SELL_TP_DTL_CD /* 판매유형상세코드 */
+             , SV_PTRM_UNIT_CD /* 서비스기간단위코드 */
+             , SV_PRD /* 서비스주기 */
+             , CNTRW_TP_CD /* 계약서유형코드 */
+             , BLG_CRP_CD /* 소속법인코드 */
+             , RVE_CRP_CD /* 수납법인코드 */
+             , CO_CD /* 회사코드 */
+             , BOO_SELL_TP_CD /* 예약판매유형코드 */
+             , PD_GD_CD /* 상품등급코드 */
+             , PD_HCLSF_ID /* 상품대분류ID */
+             , PD_MCLSF_ID /* 상품중분류ID */
+             , PD_LCLSF_ID /* 상품소분류ID */
+             , PD_DCLSF_ID /* 상품세분류ID */
+             , SELL_DSC_DV_CD /* 판매할인구분코드 */
+             , SELL_DSCR_CD /* 판매할인율코드 */
+             , SELL_DSC_CTR_AMT /* 판매할인조정금액 */
+             , SELL_DSC_TP_CD /* 판매할인유형코드 */
+             , STLM_TP_CD /* 결제유형코드 */
+             , CRNCY_DV_CD /* 통화구분코드 */
+             , APY_EXCR /* 적용환율 */
+             , PD_BASE_AMT /* 상품기준금액 */
+             , FNL_AMT /* 최종금액 */
+             , VAT /* 부가가치세 */
+             , SELL_AMT /* 판매금액 */
+             , CNTR_AMT /* 계약금액 */
+             , DSC_AMT /* 할인금액 */
+             , CNTRAM_DSC_AMT /* 계약금할인금액 */
+             , ISTM_PCAM_AMT /* 할부원금금액 */
+             , ISTM_INT_AMT /* 할부이자금액 */
+             , MM_ISTM_AMT /* 월할부금액 */
+             , CRP_UC_AMT /* 법인미수금액 */
+             , SELL_FEE /* 판매수수료 */
+             , ACKMT_PERF_RT /* 인정실적율 */
+             , ACKMT_PERF_AMT /* 인정실적금액 */
+             , CVT_PERF_AMT /* 환산실적금액 */
+             , FEE_ACKMT_CT /* 수수료인정건수 */
+             , FEE_ACKMT_BASE_AMT /* 수수료인정기준금액 */
+             , FEE_FXAM_YN /* 수수료정액여부 */
+             , SPP_DUEDT /* 배송예정일자 */
+             , RESUB_YN /* 재구독여부 */
+             , RSTL_YN /* 재약정여부 */
+             , FRISU_YN /* 무상여부 */
+             , FRISU_DSB_TP_CD /* 무상지급유형코드 */
+             , TXINV_PBL_OJ_YN /* 세금계산서발행대상여부 */
+             , SMTPL_ID /* 스마트플랜ID */
+             , SMTPL_SN /* 스마트플랜일련번호 */
+             , BF_ORD_NO /* 이전주문번호 */
+             , CNTR_CH_RCP_ID /* 계약변경접수ID */
+             , CNTR_CH_SN /* 계약변경일련번호 */
+             , CNTR_CH_DTL_AK_CN /* 계약변경상세요청내용 */
+             , DTA_DL_YN /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField"/>
+             )
+        SELECT CNTR_NO /* 계약번호 */
+             , FNL_MDFC_DTM /* 이력시작일시 = 최종수정일시 */
+             , CNTR_SN /* 계약일련번호 */
+             , '99991231235959' /* 이력종료일시 */
+             , BASE_PD_CD /* 기준상품코드 */
+             , HGR_PD_CD /* 상위상품코드 */
+             , PD_QTY /* 상품수량 */
+             , STPL_PTRM_UNIT_CD /* 약정기간단위코드 */
+             , STPL_PTRM /* 약정기간 */
+             , ISTM_MCN /* 할부개월수 */
+             , CNTR_PD_STRTDT /* 계약상품시작일자 */
+             , CNTR_PD_ENDDT /* 계약상품종료일자 */
+             , CNTR_DTL_STAT_CD /* 계약상세상태코드 */
+             , CNTR_PTRM_UNIT_CD /* 계약기간단위코드 */
+             , CNTR_PTRM /* 계약기간 */
+             , CNTR_TAM /* 계약총액 */
+             , CTT_RS_CD /* 컨택결과코드 */
+             , CTT_PSIC_ID /* 컨택담당자ID */
+             , SELL_TP_CD /* 판매유형코드 */
+             , SELL_TP_DTL_CD /* 판매유형상세코드 */
+             , SV_PTRM_UNIT_CD /* 서비스기간단위코드 */
+             , SV_PRD /* 서비스주기 */
+             , CNTRW_TP_CD /* 계약서유형코드 */
+             , BLG_CRP_CD /* 소속법인코드 */
+             , RVE_CRP_CD /* 수납법인코드 */
+             , CO_CD /* 회사코드 */
+             , BOO_SELL_TP_CD /* 예약판매유형코드 */
+             , PD_GD_CD /* 상품등급코드 */
+             , PD_HCLSF_ID /* 상품대분류ID */
+             , PD_MCLSF_ID /* 상품중분류ID */
+             , PD_LCLSF_ID /* 상품소분류ID */
+             , PD_DCLSF_ID /* 상품세분류ID */
+             , SELL_DSC_DV_CD /* 판매할인구분코드 */
+             , SELL_DSCR_CD /* 판매할인율코드 */
+             , SELL_DSC_CTR_AMT /* 판매할인조정금액 */
+             , SELL_DSC_TP_CD /* 판매할인유형코드 */
+             , STLM_TP_CD /* 결제유형코드 */
+             , CRNCY_DV_CD /* 통화구분코드 */
+             , APY_EXCR /* 적용환율 */
+             , PD_BASE_AMT /* 상품기준금액 */
+             , FNL_AMT /* 최종금액 */
+             , VAT /* 부가가치세 */
+             , SELL_AMT /* 판매금액 */
+             , CNTR_AMT /* 계약금액 */
+             , DSC_AMT /* 할인금액 */
+             , CNTRAM_DSC_AMT /* 계약금할인금액 */
+             , ISTM_PCAM_AMT /* 할부원금금액 */
+             , ISTM_INT_AMT /* 할부이자금액 */
+             , MM_ISTM_AMT /* 월할부금액 */
+             , CRP_UC_AMT /* 법인미수금액 */
+             , SELL_FEE /* 판매수수료 */
+             , ACKMT_PERF_RT /* 인정실적율 */
+             , ACKMT_PERF_AMT /* 인정실적금액 */
+             , CVT_PERF_AMT /* 환산실적금액 */
+             , FEE_ACKMT_CT /* 수수료인정건수 */
+             , FEE_ACKMT_BASE_AMT /* 수수료인정기준금액 */
+             , FEE_FXAM_YN /* 수수료정액여부 */
+             , SPP_DUEDT /* 배송예정일자 */
+             , RESUB_YN /* 재구독여부 */
+             , RSTL_YN /* 재약정여부 */
+             , FRISU_YN /* 무상여부 */
+             , FRISU_DSB_TP_CD /* 무상지급유형코드 */
+             , TXINV_PBL_OJ_YN /* 세금계산서발행대상여부 */
+             , SMTPL_ID /* 스마트플랜ID */
+             , SMTPL_SN /* 스마트플랜일련번호 */
+             , BF_ORD_NO /* 이전주문번호 */
+             , CNTR_CH_RCP_ID /* 계약변경접수ID */
+             , CNTR_CH_SN /* 계약변경일련번호 */
+             , CNTR_CH_DTL_AK_CN /* 계약변경상세요청내용 */
+             , DTA_DL_YN /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField"/>
+          FROM TB_SSCT_CNTR_DTL /* 계약상세 */
+         WHERE 1 = 1
+           AND CNTR_NO = #{cntrNo} /* 계약번호 = 입력받은 계약번호 */
+           AND CNTR_SN = #{cntrSn} /* 계약일련번호 = 입력받은 계약일련번호 */
+           AND DTA_DL_YN = 'N'
+    </insert>
+</mapper>

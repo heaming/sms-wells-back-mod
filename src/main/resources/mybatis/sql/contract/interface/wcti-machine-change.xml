@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiMachineChangeMapper">
+
+    <select id="selectMachineChanges" resultType="com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiMachineChangeDvo">
+        SELECT CD1.SELL_TP_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', CD1.SELL_TP_CD) AS SELL_TP_NM
+             , MC.OJ_CNTR_NO
+             , MC.OJ_CNTR_SN
+             , CD2.SELL_TP_CD AS OJ_SELL_TP_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', CD2.SELL_TP_CD) AS OJ_SELL_TP_NM
+             , MC.MCHN_CH_TP_CD
+             , MC.MCHN_CPS_APYR
+             , MC.OJ_CNTR_MM_BASE_DV_CD
+             , MC.FST_RGST_DTM
+             , MC.FNL_MDFC_DTM
+             , MC.FST_RGST_USR_ID
+             , MC.FNL_MDFC_USR_ID
+             , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = MC.FST_RGST_USR_ID AND DEL_YN = 'N') AS FST_RGST_USR_NM
+             , (SELECT USR_NM FROM T_CMP_USR_ACO_M WHERE USR_ID = MC.FNL_MDFC_USR_ID AND DEL_YN = 'N') AS FNL_MDFC_USR_NM
+             , AB.RCGVP_KNM     AS OJ_ISTLL_KNM
+             , CD2.STPL_PTRM    AS OJ_RECAP_DUTY_PTRM_N
+             , CD2.CNTR_PD_STRTDT AS OJ_SL_DT
+             , PB.PD_NM         AS OJ_PD_NM
+             , AB.CRAL_LOCARA_TNO AS OJ_CRAL_LOCARA_TNO
+             , AB.MEXNO_ENCR    AS OJ_MEXNO
+             , AB.CRAL_IDV_TNO  AS OJ_CRAL_IDV_TNO
+             , AB.LOCARA_TNO    AS OJ_LOCARA_TNO
+             , AB.EXNO_ENCR     AS OJ_EXNO
+             , AB.IDV_TNO       AS OJ_IDV_TNO
+             , AB.ADR_ID        AS OJ_ADR_ID
+             , NVL(GB.RNADR, GB.LTN_ADR) AS OJ_ADR
+             , NVL(GB.RDADR, GB.LTN_DTL_ADR) AS OJ_DTL_ADR
+             , NVL(GB.NEW_ADR_ZIP, GB.OLD_ADR_ZIP) AS OJ_ADR_ZIP
+             , CASE WHEN CD2.CNTR_DTL_STAT_CD IN ('304','305') THEN CD2.CNTR_PD_ENDDT
+                    ELSE ''
+                END             AS OJ_CAN_DT
+             , CASE WHEN CD2.CNTR_DTL_STAT_CD IN ('301','302','303') THEN CD2.CNTR_PD_ENDDT
+                    ELSE ''
+                END             AS OJ_WDWAL_DT
+             , WD.REQD_DT       AS OJ_REQD_DT
+             , WD.CPS_DT        AS OJ_CPS_DT
+             , CB.COPN_DV_CD    AS OJ_COPN_DV_CD
+             , (SELECT CNTR_REL_DTL_CN
+                  FROM TB_SSCT_CNTR_REL
+                 WHERE BASE_DTL_CNTR_NO = CD2.CNTR_NO
+                   AND BASE_DTL_CNTR_SN = CD2.CNTR_SN
+                   AND TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                   AND DTA_DL_YN = 'N'
+               ) AS DSC_TP_NM
+             , SUBSTR(RR.STPL_RCP_DTM,1,8) AS RSTL_RCT_DT
+             , SUBSTR(RR.STPL_CAN_DTM ,1,8) AS RSTL_CAN_DT
+             , SUBSTR(RR.STPL_CNFM_DTM,1,8) AS RSTL_CNFMDT
+             , RR.STPL_DSC_AMT AS RSTL_DSC_AMT
+          FROM TB_SSCT_MCHN_CH_IZ MC
+         INNER JOIN TB_SSCT_CNTR_DTL CD1
+            ON CD1.CNTR_NO = MC.BASE_CNTR_NO
+           AND CD1.CNTR_SN = MC.BASE_CNTR_SN
+           AND CD1.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_DTL CD2
+            ON CD2.CNTR_NO = MC.OJ_CNTR_NO
+           AND CD2.CNTR_SN = MC.OJ_CNTR_SN
+           AND CD2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS CB
+            ON CB.CNTR_NO = CD2.CNTR_NO
+           AND CB.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON PB.PD_CD = CD2.BASE_PD_CD
+           AND PB.DTA_DL_YN = 'N'
+           AND PB.TEMP_SAVE_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADR_REL AR
+            ON AR.DTL_CNTR_NO = MC.OJ_CNTR_NO
+           AND AR.DTL_CNTR_SN = MC.OJ_CNTR_SN
+           AND AR.ADRPC_TP_CD = '1'
+           AND TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') BETWEEN AR.VL_STRT_DTM AND AR.VL_END_DTM
+           AND AR.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_ADRPC_BAS AB
+            ON AB.CNTR_ADRPC_ID  = AR.CNTR_ADRPC_ID
+           AND AB.DTA_DL_YN = 'N'
+         INNER JOIN TB_GBCO_ADR_BAS GB
+            ON GB.ADR_ID = AB.ADR_ID
+           AND GB.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL WD
+            ON WD.CNTR_NO = MC.OJ_CNTR_NO
+           AND WD.CNTR_SN = MC.OJ_CNTR_SN
+           AND WD.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_RENTAL_RSTL_IZ RR
+            ON RR.CNTR_NO = MC.OJ_CNTR_NO
+           AND RR.CNTR_SN = MC.OJ_CNTR_SN
+           AND RR.STPL_TN = (SELECT MAX(STPL_TN)
+                               FROM TB_SSCT_RENTAL_RSTL_IZ
+                              WHERE CNTR_NO = RR.CNTR_NO
+                                AND CNTR_SN = RR.CNTR_SN
+                                AND DTA_DL_YN = 'N')
+           AND RR.DTA_DL_YN = 'N'
+         WHERE MC.BASE_CNTR_NO = #{cntrNo}
+           AND MC.BASE_CNTR_SN = #{cntrSn}
+           AND MC.DTA_DL_YN = 'N'
+    </select>
+
+</mapper>

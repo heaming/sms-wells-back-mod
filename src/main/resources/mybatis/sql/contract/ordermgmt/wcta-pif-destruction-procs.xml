@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaPifDestructionProcsMapper">
+    <select id="selectCntrAdrpcBas" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaPifDestructionProcsDvo">
+        SELECT RCGVP_KNM /* 수령자한글명 */
+             , RCGVP_ENM /* 수령자영문명 */
+             , ADR_ID /* 주소ID */
+             , CRAL_LOCARA_TNO /* 휴대지역전화번호 */
+             , MEXNO_ENCR /* 휴대전화국번호암호화 */
+             , CRAL_IDV_TNO /* 휴대개별전화번호 */
+             , LOCARA_TNO /* 지역전화번호 */
+             , EXNO_ENCR /* 전화국번호암호화 */
+             , IDV_TNO /* 개별전화번호 */
+             , EMADR /* 이메일주소 */
+   	      FROM TB_SSCT_CNTR_ADRPC_BAS /* 계약주소지기본 */
+   	     WHERE 1=1
+   	       AND CNTR_NO = #{cntrNo}
+           AND DTA_DL_YN = 'N'
+    </select>
+    <select id="selectCntrAdrChHist" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaPifDestructionProcsDvo">
+        SELECT RCGVP_KNM /* 수령자한글명 */
+             , RCGVP_ENM /* 수령자영문명 */
+             , ADR_ID /* 주소ID */
+             , CRAL_LOCARA_TNO /* 휴대지역전화번호 */
+             , MEXNO_ENCR /* 휴대전화국번호암호화 */
+             , CRAL_IDV_TNO /* 휴대개별전화번호 */
+             , LOCARA_TNO /* 지역전화번호 */
+             , EXNO_ENCR /* 전화국번호암호화 */
+             , IDV_TNO /* 개별전화번호 */
+             , EMADR /* 이메일주소 */
+   	      FROM TB_SSCT_CNTR_ADR_CH_HIST /* 계약주소변경이력 */
+   	     WHERE 1=1
+   	       AND CNTR_NO = #{cntrNo}
+           AND DTA_DL_YN = 'N'
+    </select>
+    <select id="selectCntrStlmBas" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaPifDestructionProcsDvo">
+        SELECT OWR_KNM /* 소유자한글명 */
+             , OWR_ENM /* 소유자영문명 */
+             , ACNO_ENCR /* 계좌번호암호화 */
+             , CRCDNO_ENCR /* 신용카드번호암호화 */
+   	      FROM TB_SSCT_CNTR_STLM_BAS /* 계약결제기본 */
+   	     WHERE 1=1
+   	       AND CNTR_NO = #{cntrNo}
+           AND DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectCntrStlmChHist" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaPifDestructionProcsDvo">
+        SELECT OWR_KNM /* 소유자한글명 */
+             , OWR_ENM /* 소유자영문명 */
+             , ACNO_ENCR /* 계좌번호암호화 */
+             , CRCDNO_ENCR /* 신용카드번호암호화 */
+   	      FROM TB_SSCT_CNTR_STLM_CH_HIST /* 계약결제변경이력 */
+   	     WHERE 1=1
+   	       AND CNTR_NO = #{cntrNo}
+           AND DTA_DL_YN = 'N'
+    </select>
+    <select id="selectMvsDestructionRcvryCol" resultType="java.lang.Integer">
+        SELECT COUNT(*) AS CNT
+              FROM TB_BCBC_MVS_DSTC_RCVRY_COL_BAS /* 소산파기복구컬럼기본 */
+   	     WHERE 1=1
+   	       AND TBL_ID = #{tblId}
+   	       AND COL_ID = #{colId}
+           AND DTA_DL_YN = 'N'
+    </select>
+    <select id="selectMvsDestructionRcvryTbl" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+   	      FROM TB_BCBC_MVS_DSTC_RCVRY_TBL_BAS /* 소산파기복구테이블기본 */
+   	     WHERE 1=1
+   	       AND TBL_ID = #{tblId}
+           AND DTA_DL_YN = 'N'
+    </select>
+
+
+    <update id="updateCntrAdrpcBas">
+        UPDATE TB_SSCT_CNTR_ADRPC_BAS /* 계약주소지기본 */
+           SET RCGVP_KNM = ' ' /* 수령자한글명 */
+             , RCGVP_ENM = ' ' /* 수령자영문명 */
+             , ADR_ID = ' ' /* 주소ID */
+             , CRAL_LOCARA_TNO = ' ' /* 휴대지역전화번호 */
+             , MEXNO_ENCR = #{space} /* 휴대전화국번호암호화 */
+             , CRAL_IDV_TNO = ' ' /* 휴대개별전화번호 */
+             , LOCARA_TNO = ' ' /* 지역전화번호 */
+             , EXNO_ENCR = #{space} /* 전화국번호암호화 */
+             , IDV_TNO = ' ' /* 개별전화번호 */
+             , EMADR = ' ' /* 이메일주소 */
+             , MVS_DSTC_RCVRY_BASE_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') /* 소산파기복구기준일시 */
+             , MVS_DSTC_RCVRY_DV_CD = '02' /* 소산파기복구구분코드 */
+         WHERE 1=1
+           AND CNTR_NO = #{cntrNo}
+           AND DTA_DL_YN = 'N'
+    </update>
+    <update id="updateCntrAdrChHists">
+        UPDATE TB_SSCT_CNTR_ADR_CH_HIST /* 계약주소변경이력 */
+           SET RCGVP_KNM = ' ' /* 수령자한글명 */
+             , RCGVP_ENM = ' ' /* 수령자영문명 */
+             , ADR_ID = ' ' /* 주소ID */
+             , CRAL_LOCARA_TNO = ' ' /* 휴대지역전화번호 */
+             , MEXNO_ENCR = #{space} /* 휴대전화국번호암호화 */
+             , CRAL_IDV_TNO = ' ' /* 휴대개별전화번호 */
+             , LOCARA_TNO = ' ' /* 지역전화번호 */
+             , EXNO_ENCR = #{space} /* 전화국번호암호화 */
+             , IDV_TNO = ' ' /* 개별전화번호 */
+             , EMADR = ' ' /* 이메일주소 */
+             , MVS_DSTC_RCVRY_BASE_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') /* 소산파기복구기준일시 */
+             , MVS_DSTC_RCVRY_DV_CD = '02' /* 소산파기복구구분코드 */
+         WHERE 1=1
+           AND CNTR_NO = #{cntrNo}
+           AND DTA_DL_YN = 'N'
+    </update>
+    <update id="updateCntrStlmBas">
+        UPDATE TB_SSCT_CNTR_STLM_BAS /* 계약결제기본 */
+           SET OWR_KNM = ' ' /* 소유자한글명 */
+             , OWR_ENM = ' ' /* 소유자영문명 */
+             , ACNO_ENCR = #{space} /* 계좌번호암호화 */
+             , CRCDNO_ENCR = #{space} /* 신용카드번호암호화 */
+             , MVS_DSTC_RCVRY_BASE_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') /* 소산파기복구기준일시 */
+             , MVS_DSTC_RCVRY_DV_CD = '02' /* 소산파기복구구분코드 */
+         WHERE 1=1
+           AND CNTR_NO = #{cntrNo}
+           AND DTA_DL_YN = 'N'
+    </update>
+    <update id="updateCntrStlmChHists">
+        UPDATE TB_SSCT_CNTR_STLM_CH_HIST /* 계약결제변경이력 */
+           SET OWR_KNM = ' ' /* 소유자한글명 */
+             , OWR_ENM = ' ' /* 소유자영문명 */
+             , ACNO_ENCR = #{space} /* 계좌번호암호화 */
+             , CRCDNO_ENCR = #{space} /* 신용카드번호암호화 */
+             , MVS_DSTC_RCVRY_BASE_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') /* 소산파기복구기준일시 */
+             , MVS_DSTC_RCVRY_DV_CD = '02' /* 소산파기복구구분코드 */
+         WHERE 1=1
+           AND CNTR_NO = #{cntrNo}
+           AND DTA_DL_YN = 'N'
+    </update>
+
+    <insert id="insertMvsDestructionRcvryTbl">
+        INSERT INTO TB_BCBC_MVS_DSTC_RCVRY_TBL_BAS ( /* 소산파기복구테이블기본 */
+               TBL_ID
+             , ITG_CST_INF_YN
+             , CST_INF_YN
+             , PSPC_CST_INF_YN
+             , PRTNR_INF_YN
+             , MVS_OJ_YN
+             , DSTC_OJ_YN
+             , RCVRY_OJ_YN
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>
+        ) VALUES(
+                #{tblId}
+              , 'N'
+              , 'N'
+              , 'N'
+              , 'N'
+              , 'N'
+              , 'Y'
+              , 'N'
+              , 'N'
+              <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+    <insert id="insertMvsDestructionRcvryCol">
+        INSERT INTO TB_BCBC_MVS_DSTC_RCVRY_COL_BAS ( /* 소산파기복구컬럼기본 */
+   	     	   TBL_ID
+   	         , COL_ID
+   	         , MVS_OJ_YN
+   	         , DSTC_OJ_YN
+   	         , RCVRY_OJ_YN
+   	         , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>
+            ) VALUES (
+                   #{tblId}
+                 , #{colId}
+                 , 'N'
+                 , 'Y'
+                 , 'N'
+                 , 'N'
+                 <include refid="COMMON.insertSystemFieldValue"/>
+            )
+    </insert>
+    <insert id="insertMvsDestructionRcvryBas">
+        <selectKey keyProperty="item.mvsDstcRcvryId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(MVS_DSTC_RCVRY_ID))+1,1),15,0) AS MVS_DSTC_RCVRY_ID
+              FROM TB_BCBC_MVS_DSTC_RCVRY_BAS
+        </selectKey>
+   	     INSERT INTO TB_BCBC_MVS_DSTC_RCVRY_BAS ( /* 소산파기복구기본 */
+                 MVS_DSTC_RCVRY_ID
+               , MVS_DSTC_RCVRY_DV_CD
+               , MVS_DSTC_RCVRY_DTM /* 소산파기복구일시 */
+               , MVS_DSTC_RCVRY_OJ_REFK_VAL /* 소산파기복구대상참조키값 */
+               , CNTR_HV_YN
+               , DTA_DL_YN
+               <include refid="COMMON.insertSystemField"/>
+   	     ) VALUES (
+                #{item.mvsDstcRcvryId}
+              , '02'
+              , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MMSS')
+              , #{mvsDstcRcvryOjRefkVal}
+              , 'Y'
+              , 'N'
+              <include refid="COMMON.insertSystemFieldValue"/>
+   	     )
+    </insert>
+    <insert id="insertMvsDestructionRcvryTblDtl">
+        INSERT INTO TB_BCBC_MVS_DSTC_RCVRY_TBL_DTL ( /* 소산파기복구테이블상세 */
+               MVS_DSTC_RCVRY_ID
+             , TBL_ID
+             , MVS_DSTC_RCVRY_DTM
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField"/>
+   	     ) VALUES (
+                #{mvsDstcRcvryId}
+              , #{tblId}
+   	          , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MMSS')
+   	          , 'N'
+              <include refid="COMMON.insertSystemFieldValue"/>
+   	     )
+    </insert>
+    <insert id="insertMvsDestructionRcvryColDtl">
+   	     INSERT INTO TB_BCBC_MVS_DSTC_RCVRY_COL_DTL ( /* 소산파기복구컬럼상세 */
+   	     	    MVS_DSTC_RCVRY_ID
+              , TBL_ID
+   	          , COL_ID
+   	          , MVS_DSTC_RCVRY_DTM
+   	          , DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+   	     ) VALUES (
+                 #{mvsDstcRcvryId}
+   	           , #{tblId}
+   	           , #{colId}
+   	           , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MMSS')
+   	           , 'N'
+               <include refid="COMMON.insertSystemFieldValue"/>
+   	     )
+    </insert>
+</mapper>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaPartnerInfInqrPywdMapper">
+    <select id="selectPartnerInfInqrPywd" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaPartnerInfInqrPywdDvo">
+        SELECT T2.SELL_INFLW_CHNL_DTL_CD   /* 계약기본.계약번호 [계약접수채널유형코드] */
+            , T1.PRTNR_NO   /* 월파트너내역.파트너번호 [판매자사번] */
+            , T1.PRTNR_KNM  /* 월파트너내역.파트너한글명 [판매자명] */
+            , T1.OG_CD      /* 월파트너내역.조직코드 [조직코드] */
+            , T1.OG_NM      /* 월파트너내역.조직명 [조직명] */
+        FROM TB_OGBS_MM_PRTNR_IZ T1     /* 월파트너내역 */
+        INNER JOIN TB_SSCT_CNTR_BAS T2  /* 계약기본 */
+            ON T1.PRTNR_NO = T2.SELL_PRTNR_NO /* 월파트너내역.파트너번호 = 계약기본.판매파트너번호 */
+        INNER JOIN TB_SSCT_CNTR_PRTNR_REL T3 /* 계약파트너관계 */
+            ON T2.CNTR_NO = T3.CNTR_NO /* 계약기본.계약번호 = 계약파트너관계.계약번호 */
+            AND T1.BASE_YM = SUBSTR(T3.VL_STRT_DTM,'1','6')
+            AND T1.PRTNR_NO = T3.PRTNR_NO /* 월파트너내역.파트너번호 = 계약파트너관계.파트너번호 */
+        WHERE 1=1
+            AND T3.CNTR_PRTNR_TP_CD = '010' /* 계약파트너관계.계약파트너유형코드 = 판매자 */
+            AND T2.CNTR_NO = #{cntrNo}
+    </select>
+</mapper>

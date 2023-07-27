@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiCustomerAgreeMapper">
+    <select id="selectCustomerAgree" resultType="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiCustomerAgreeDto$SearchRes">
+        SELECT T1.AG_DRM_REFK_VAL AS CNTR_NO /* 고객동의내역.동의식별참조키값 */
+             , T3.CNTR_CST_NO /* 계약기본.계약고객번호 */
+             , (SELECT CST_KNM FROM TB_CUBS_CST_BAS WHERE CST_NO = T3.CNTR_CST_NO AND DTA_DL_YN = 'N') AS CNTR_CST_NM /* 계약기본.계약고객명 */
+             , T3.SELL_PRTNR_NO /* 계약기본.판매파트너번호 */
+             , T1.AG_PROCS_DTM /* 고객동의내역.동의처리일시 */
+             , T2.AG_ATC_DV_CD /* 고객동의내역상세.동의항목구분코드 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'AG_ATC_DV_CD', T2.AG_ATC_DV_CD ) AS AG_ATC_DV_NM /* 고객동의내역상세.동의항목구분명 */
+             , T2.AG_STAT_CD /* 고객동의내역상세.동의상태코드 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'AG_STAT_CD', T2.AG_STAT_CD ) AS AG_STAT_NM /* 고객동의내역상세.동의상태명 */
+             , T2.PRV_DOC_ID /* 고객동의내역상세.약관문서ID */
+          FROM TB_CUBS_CST_AG_IZ T1 /* 고객동의내역 */
+         INNER JOIN TB_CUBS_CST_AG_IZ_DTL T2 /* 고객동의내역상세 */
+            ON T2.CST_AG_ID = T1.CST_AG_ID /* 고객동의내역상세.고객동의ID */
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_BAS T3 /* 계약기본 */
+            ON T3.CNTR_NO = T1.AG_DRM_REFK_VAL
+           AND T3.DTA_DL_YN = 'N'
+         WHERE T1.DTA_DL_YN = 'N'
+        <if test='@MybatisUtils@isNotEmpty(cstNo)'>
+            /* 고객번호 조건일 경우 */
+           AND T3.CNTR_CST_NO = #{cstNo} /* 조회조건 계약기본.계약고객번호 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+            /* 계약번호 조건일 경우 */
+           AND T3.CNTR_NO = #{cntrNo} /* 조회조건 계약기본.계약번호 */
+        </if>
+    </select>
+    <select id="selectCstAgIdBas" resultType="java.lang.String">
+        SELECT T1.CST_AG_ID
+          FROM TB_CUBS_CST_AG_IZ T1
+         INNER JOIN TB_CUBS_CST_AG_IZ_DTL T2
+            ON T2.CST_AG_ID = T1.CST_AG_ID
+           AND T2.DTA_DL_YN = 'N'
+         WHERE T1.DTA_DL_YN = 'N'
+           AND T1.AG_DRM_REFK_VAL = #{cntrNo}
+           AND T1.AG_DRM_DV_CD = '03' /* 계약 */
+           AND T2.AG_ATC_DV_CD = #{agAtcDvCd}
+    </select>
+    <select id="selectCstAgId" resultType="java.lang.String">
+        SELECT CST_AG_ID
+          FROM TB_CUBS_CST_AG_IZ
+         WHERE AG_DRM_REFK_VAL = #{cntrNo}
+           AND AG_DRM_DV_CD = '03'
+    </select>
+    <insert id="insertCubsCstAgIz">
+        <selectKey keyProperty="item.cstAgId" resultType="java.lang.String" order="BEFORE">
+            SELECT 'CUA' || LPAD(SQ_CUBS_CST_AG_IZ$CST_AG_ID.NEXTVAL, 12, 0)
+              FROM DUAL
+        </selectKey>
+        INSERT INTO TB_CUBS_CST_AG_IZ (  /* 고객동의내역 */
+              CST_AG_ID            /* 고객동의ID */
+            , AG_DRM_DV_CD         /* 동의식별구분코드 */
+            , AG_DRM_REFK_VAL      /* 동의식별참조키값 */
+            , CST_AG_CHNL_DV_CD    /* 고객동의채널구분코드 */
+            , CNTC_PRTNR_NO        /* 접촉파트너번호 */
+            , CNSL_NO              /* 상담번호 */
+            , AG_PROCS_DTM         /* 동의처리일시 */
+            , AG_EXN_PRCSDT        /* 동의만료처리일자 */
+            , AG_EXN_PROCS_RSON_CD /* 동의만료처리사유코드 */
+            , MO_CN                /* 메모내용 */
+            , DTA_DL_YN            /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{item.cstAgId}
+            , '03'
+            , #{item.cntrNo}
+            , ''
+            , (SELECT SELL_PRTNR_NO FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = #{item.cntrNo} AND DTA_DL_YN = 'N')
+            , ''
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , ''
+            , ''
+            , ''
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+    <insert id="insertCubsCstAgIzDtl">
+        INSERT INTO TB_CUBS_CST_AG_IZ_DTL (  /* 고객동의내역상세 */
+              CST_AG_ID            /* 고객동의ID */
+            , AG_ATC_DV_CD         /* 동의항목구분코드 */
+            , PD_CD                /* 상품코드 */
+            , PRV_DOC_ID           /* 약관문서ID */
+            , AG_STAT_CD           /* 동의상태코드 */
+            , AG_STRTDT            /* 동의시작일자 */
+            , AG_EXN_DUEDT         /* 동의만료예정일자 */
+            , AG_EXN_PRCSDT        /* 동의만료처리일자 */
+            , AG_EXN_PROCS_RSON_CD /* 동의만료처리사유코드 */
+            , DTA_DL_YN            /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{cstAgId}
+            , #{agAtcDvCd}
+            , ''
+            , ''
+            , NVL(#{agStatCd},'01')
+            , TO_CHAR(SYSDATE, 'YYYYMMDD')
+            , ''
+            , ''
+            , ''
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+    <update id="updateCubsCstAgIz">
+        UPDATE TB_CUBS_CST_AG_IZ /* 고객동의내역 */
+           SET AG_DRM_REFK_VAL    = #{cntrNo}       /* 동의식별참조키값 */
+             , CNTC_PRTNR_NO        = (SELECT SELL_PRTNR_NO FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO = #{cntrNo} AND DTA_DL_YN = 'N')        /* 접촉파트너번호 */
+             , AG_PROCS_DTM         = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')          /* 동의처리일시 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CST_AG_ID            = #{cstAgId}             /* 고객동의ID */
+    </update>
+    <update id="updateCubsCstAgIzDtl">
+        UPDATE TB_CUBS_CST_AG_IZ_DTL /* 고객동의내역상세 */
+           SET AG_STAT_CD           = NVL(#{agStatCd},'01')            /* 동의상태코드 */
+             , AG_STRTDT            = TO_CHAR(SYSDATE, 'YYYYMMDD')            /* 동의시작일자 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND CST_AG_ID            = #{cstAgId}             /* 고객동의ID */
+           AND AG_ATC_DV_CD         = #{agAtcDvCd}           /* 동의항목구분코드 */
+    </update>
+</mapper>

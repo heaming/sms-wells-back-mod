@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaOrderDetailVirtualAcSmsMapper">
+    <select id="selectVirtualAcCustomer" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailVirtualAcSmsDvo">
+        SELECT T1.CNTR_CST_NO as CST_NO
+             , T2.CNTR_NO
+             , T2.CNTR_SN
+             , T3.CST_KNM as CST_NM
+             , T4.VAC_NO
+             , F_CMZ_CD_NM('TNT_WELLS', 'BNK_CD', T4.VAC_BNK_CD) AS VAC_BNK_NM
+          FROM TB_SSCT_CNTR_BAS T1                  /* T.계약기본 */
+         INNER JOIN TB_SSCT_CNTR_DTL T2             /* T.계약상세 */
+            ON T2.CNTR_NO = T1.CNTR_NO              /*계약번호  */
+           AND T2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CUBS_CST_BAS T3            /* T.고객기본 */
+            ON T3.CST_NO = T1.CNTR_CST_NO
+          LEFT OUTER JOIN (SELECT T10.CNTR_NO
+                                , T10.CNTR_SN
+                                , T10.CST_NO
+                                , T10.VAC_IS_ID    /* 가상계좌발급ID */
+                                , T20.VAC_BNK_CD   /* 가상계좌은행코드 */
+                                , T20.VAC_NO       /* 가상계좌번호 */
+                               FROM TB_RVDW_VAC_IS_DTL T10               /* T.가상계좌발급상세 */
+                              INNER JOIN TB_RVDW_VAC_IS_IZ T20           /* T.가상계좌발급내역 */
+                                 ON T20.KW_GRP_CO_CD = T10.KW_GRP_CO_CD   /* 교원그룹회사코드  */
+                                AND T20.VAC_IS_ID = T10.VAC_IS_ID         /* 가상계좌발급ID  */
+                                AND T20.DTA_DL_YN = 'N'
+                              WHERE 1=1
+                                AND T10.CNTR_NO = #{cntrNo}
+                                AND T10.CNTR_SN = #{cntrSn}
+                                AND T10.DTA_DL_YN = 'N' /* 데이터삭제여부 */
+            ) T4
+            ON T2.CNTR_NO = T4.CNTR_NO      /* 계약번호 */
+           AND T2.CNTR_SN = T4.CNTR_SN
+           AND T1.CNTR_CST_NO  = T4.CST_NO   /* 계약고객번호 */
+         WHERE 1=1
+           AND T2.CNTR_NO = #{cntrNo}
+           AND T2.CNTR_SN = #{cntrSn}
+    </select>
+</mapper>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaEstimateCcamMapper">
+    <select id="selectEstimateCcam" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaEstimateCcamDto$SearchRes">
+        SELECT
+               T1.PRM_TN AS PRM_TN				                    /* 선납회차 */
+             , T1.PRM_MCN AS PRM_MCN				                /* 선납개월수 */
+             , T1.PRM_DSCR AS PRM_DSCR				                /* 선납할인율 */
+             , T1.RENTAL_AMT AS RENTAL_AMT			                /* 렌탈금액 */
+             , T1.RENTAL_DSC_AMT AS RENTAL_DSC_AMT		            /* 렌탈할인금액 */
+             , T1.PRM_STRT_Y||T1.PRM_STRT_MM AS PRM_STRT_YYMM	    /* 선납시작년월 */
+             , T1.PRM_END_Y||T1.PRM_END_MM AS PRM_END_YYMM	        /* 선납종료년월 */
+             , T1.PRM_DSC_AMT AS PRM_DSC_AMT				        /* 할인 총 금액(선납기간기준) */
+             , T1.TOT_PRM_AMT AS TOT_PRM_AMT			            /* 선납예상총금액 */
+             , T1.RENTAL_TN AS RENTAL_TN				            /* 렌탈회차 */
+             , T1.NOM_SL_AMT AS NOM_SL_AMT			                /* 정상매출금액 */
+             , T1.RENTAL_DC AS RENTAL_DC				            /* 렌탈일수 */
+             , T1.SL_DC	AS SL_DC				                    /* 매출일수 */
+             , '' AS RPLM_DT			                            /* 교체일자 */
+             , T1.SPMT_SL_AMT AS SPMT_SL_AMT			            /* 추가매출금액 */
+             , T1.NOM_DSC_AMT AS NOM_DSC_AMT			            /* 정상할인금액 */
+             , T1.SPMT_DSC_AMT AS SPMT_DSC_AMT			            /* 추가할인금액 */
+             , T1.SL_CTR_AMT AS SL_CTR_AMT			                /* 매출조정금액 */
+             , T1.THM_SL_SUM_AMT AS THM_SL_SUM_AMT		            /* 당월매출합계금액 */
+             , T1.SL_SUM_VAT AS SL_SUM_VAT			                /* 매출합계부가가치세 */
+             , T1.SL_AGG_AMT AS SL_AGG_AMT			                /* 매출누계금액 */
+             , T1.DSC_AGG_AMT AS DSC_AGG_AMT			            /* 할인누계금액 */
+             , T1.CTR_AGG_AMT AS CTR_AGG_AMT			            /* 조정누계금액 */
+             , T1.THM_UC_BLAM AS THM_UC_BLAM			            /* 당월미수잔액 */
+             , T3.BTD_DLQ_ADD_AMT AS BTD_DLQ_ADD_AMT		        /* 기초연체가산금액 */
+             , T3.THM_DLQ_ADD_DP_SUM_AMT AS THM_DLQ_ADD_DP_SUM_AMT		/* 당월연체가산입금합계금액 */
+             , T3.THM_DLQ_ADD_RFND_SUM_AMT AS THM_DLQ_ADD_RFND_SUM_AMT	/* 당월연체가산환불합계금액 */
+             , T3.THM_CTR_DLQ_ADD_AMT AS THM_CTR_DLQ_ADD_AMT	    /* 당월조정연체가산금액 */
+             , T3.EOT_DLQ_ADD_AMT AS EOT_DLQ_ADD_AMT	 	        /* 기말연체가산금액 */
+         FROM TB_CBCL_WELLS_SL_MM_CL_IZ T1	/* T.WELLS매출월마감내역 */
+        -- LEFT OUTER JOIN TB_SSCT_RENTAL_ADN_SV_IZ T2	/* T.렌탈부가서비스내역 */
+        --   ON T2.CNTR_NO = T1.CNTR_NO
+        --  AND T2.CNTR_SN = T1.CNTR_SN
+        --  AND T2.ADN_SV_DV_CD = '01'
+        --  AND T2.ADN_SV_SN  = '1'
+        --  AND T2.DTA_DL_YN = 'N'
+         LEFT OUTER JOIN TB_CBCL_DLQ_BAS T3
+           ON T3.PERF_YM = T1.SL_CL_YM
+          AND T3.CNTR_NO = T1.CNTR_NO
+          AND T3.CNTR_SN = T1.CNTR_SN
+        WHERE 1=1
+          AND T1.SL_CL_YM = #{slClYm}
+          AND T1.CNTR_NO = #{cntrNo}
+          AND T1.CNTR_SN = #{cntrSn}
+          AND T1.DTA_DL_YN = 'N'
+    </select>
+</mapper>

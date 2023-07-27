@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.risk.mapper.WctcUserSellLimitMgtMapper">
+    <select id="selectSellLimitLists" resultType = "com.kyowon.sms.wells.web.contract.risk.dto.WctcUserSellLimitMgtDto$SearchRes">
+         WITH W1 AS (
+            SELECT A.SELL_BASE_ID
+                 , A.SELL_BASE_TP_CD /* [판매구분] */
+                 , MAX(A.SELL_BASE_CHNL) AS SELL_BASE_CHNL/* [채널] */
+                 , MAX(A.DEPT_CD) AS DEPT_CD/* [조직] */
+                 , MAX(A.SELL_BASE_USR) AS SELL_BASE_USR /* [사용자] */
+                 , MAX(A.COPN_DV_CD) AS COPN_DV_CD /* [개인/법인] */
+                 , MAX(A.ZIP) AS ZIP /* [우편번호1] */
+                 , MAX(A.PD_CD) AS PD_CD /* [상품코드] */
+                 , MAX(A.PD_MCLSF_NM) AS PD_MCLSF_NM /* [상품분류] */
+                 , MAX(A.PD_LCLSF_NM) AS PD_LCLSF_NM /* [상품유형] */
+                 , MAX(A.SELL_BASE_PRD) AS SELL_BASE_PRD /* [주기] */
+                 , MAX(A.SELL_BASE_SELL_TP) AS SELL_BASE_SELL_TP /* [판매유형] */
+                 , A.SELL_PRMIT_DV_CD /* [판매제한] */
+                 , A.VL_STRT_DTM /* [시작일자] */
+                 , A.VL_END_DTM /* [종료일자] */
+                 , A.SELL_BASE_APY_CN
+                 , A.FST_RGST_DTM
+                 , A.FST_RGST_USR_ID
+                 , A.FNL_MDFC_DTM
+                 , A.FNL_MDFC_USR_ID
+            FROM (
+            SELECT T2.SELL_BASE_ID
+                 , T1.SELL_BASE_TP_CD
+                 , CASE WHEN T2.SELL_BASE_CD = 11 THEN T2.SELL_BASE_CHVAL ELSE '' END AS SELL_BASE_CHNL
+                 , CASE WHEN T2.SELL_BASE_CD = 12 THEN T2.SELL_BASE_CHVAL ELSE '' END AS DEPT_CD
+                 , CASE WHEN T2.SELL_BASE_CD = 13 THEN T2.SELL_BASE_CHVAL ELSE '' END AS SELL_BASE_USR
+                 , CASE WHEN T2.SELL_BASE_CD = 31 THEN T2.SELL_BASE_CHVAL ELSE '' END AS COPN_DV_CD
+                 , CASE WHEN T2.SELL_BASE_CD = 32 THEN T2.SELL_BASE_CHVAL ELSE '' END AS ZIP
+                 , CASE WHEN T2.SELL_BASE_CD = 25 THEN T2.SELL_BASE_CHVAL ELSE '' END AS PD_CD
+                 , CASE WHEN T2.SELL_BASE_CD = 22 THEN T2.SELL_BASE_CHVAL ELSE '' END AS PD_MCLSF_NM
+                 , CASE WHEN T2.SELL_BASE_CD = 23 THEN T2.SELL_BASE_CHVAL ELSE '' END AS PD_LCLSF_NM
+                 , CASE WHEN T2.SELL_BASE_CD = 27 THEN T2.SELL_BASE_CHVAL ELSE '' END AS SELL_BASE_PRD
+                 , CASE WHEN T2.SELL_BASE_CD = 28 THEN T2.SELL_BASE_CHVAL ELSE '' END AS SELL_BASE_SELL_TP
+                 , T1.SELL_PRMIT_DV_CD
+                 , T1.VL_STRT_DTM
+                 , T1.VL_END_DTM
+                 , T1.SELL_BASE_APY_CN
+                 , SUBSTR(T1.FST_RGST_DTM,'1','8') AS FST_RGST_DTM     /* [등록일] - 판매기준기본.최초등록일시 */
+                 , T1.FST_RGST_USR_ID   /* [등록자] - 판매기준기본.최초등록사용자ID */
+                 , SUBSTR(T1.FNL_MDFC_DTM,'1','8') AS FNL_MDFC_DTM     /* [수정일] - 판매기준기본.최종수정일시*/
+                 , T1.FNL_MDFC_USR_ID    /* [수정자] - 판매기준기본.최종수정사용자ID */
+              FROM TB_SSCT_SELL_BASE_BAS T1
+             INNER JOIN TB_SSCT_SELL_BASE_DTL T2
+                ON T1.SELL_BASE_ID = T2.SELL_BASE_ID
+            WHERE 1=1
+              AND T1.DTA_DL_YN = 'N'   /* 데이터삭제여부 */
+              AND T2.DTA_DL_YN = 'N'   /* 데이터삭제여부 */) A
+            GROUP BY A.SELL_BASE_ID, A.SELL_BASE_TP_CD, A.SELL_PRMIT_DV_CD, A.VL_STRT_DTM, A.VL_END_DTM,
+                A.SELL_BASE_APY_CN, A.FST_RGST_DTM, A.FST_RGST_USR_ID, A.FNL_MDFC_DTM, A.FNL_MDFC_USR_ID)
+            SELECT W1.SELL_BASE_ID
+                 , W1.SELL_BASE_TP_CD
+                 , W1.SELL_BASE_CHNL
+                 , W1.DEPT_CD
+                 , W1.SELL_BASE_USR
+                 , W1.COPN_DV_CD
+                 , W1.ZIP
+                 , W1.PD_CD
+                 , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE TB1.PD_MCLSF_ID  = PD_CLSF_ID ) AS PD_MCLSF_NM
+                 , (SELECT PD_CLSF_NM FROM TB_PDBS_PD_CLSF_BAS WHERE TB1.PD_LCLSF_ID  = PD_CLSF_ID ) AS PD_LCLSF_NM
+                 --, W1.PD_MCLSF_NM
+                 --, W1.PD_LCLSF_NM
+                 , TB1.PD_NM
+                 , W1.SELL_BASE_PRD
+                 , W1.SELL_BASE_SELL_TP
+                 , W1.SELL_PRMIT_DV_CD
+                 , W1.VL_STRT_DTM
+                 , W1.VL_END_DTM
+                 , W1.SELL_BASE_APY_CN
+                 , W1.FST_RGST_DTM
+                 , W1.FST_RGST_USR_ID
+                 , W1.FNL_MDFC_DTM
+                 , W1.FNL_MDFC_USR_ID
+            FROM W1
+            LEFT OUTER JOIN TB_PDBS_PD_BAS TB1
+                ON W1.PD_CD = TB1.PD_CD
+               AND TB1.DTA_DL_YN = 'N'
+             WHERE 1 = 1
+               <if test='@MybatisUtils@isNotEmpty(sell)'>
+               AND W1.SELL_BASE_TP_CD = #{sell}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(channel)'>
+               AND W1.SELL_BASE_CHNL = #{channel}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(deptCd)'>
+               AND W1.DEPT_CD = #{deptCd}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(user)'>
+               AND W1.SELL_BASE_USR = #{user}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(productName)'>
+               AND TB1.PD_NM LIKE '%'||NVL(#{productName}, '')||'%'
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(sellType)'>
+               AND W1.SELL_BASE_SELL_TP = #{sellType}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(sellLimit)'>
+               AND W1.SELL_PRMIT_DV_CD = #{sellLimit}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(startDate)'>
+               AND #{startDate} BETWEEN W1.VL_STRT_DTM AND W1.VL_END_DTM
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(endDate)'>
+               AND W1.VL_END_DTM <![CDATA[ >= ]]>  #{endDate}
+               </if>
+        ORDER BY W1.VL_STRT_DTM DESC, CASE WHEN W1.SELL_BASE_TP_CD = 'A' THEN 0 END, W1.SELL_BASE_TP_CD, W1.DEPT_CD NULLS FIRST, W1.SELL_BASE_USR, W1.PD_CD
+    </select>
+
+   <select id="selecBaseCdCheck" resultType = "java.lang.String">
+        WITH W1 AS (
+            SELECT A.SELL_BASE_ID
+                 , A.SELL_BASE_TP_CD /* [판매구분] */
+                 , MAX(A.SELL_BASE_CHNL) AS SELL_BASE_CHNL/* [채널] */
+                 , MAX(A.DEPT_CD) AS DEPT_CD/* [조직] */
+                 , MAX(A.SELL_BASE_USR) AS SELL_BASE_USR /* [사용자] */
+                 , MAX(A.COPN_DV_CD) AS COPN_DV_CD /* [개인/법인] */
+                 , MAX(A.ZIP) AS ZIP /* [우편번호1] */
+                 , MAX(A.PD_CD) AS PD_CD /* [상품코드] */
+                 , MAX(A.PD_MCLSF_NM) AS PD_MCLSF_NM /* [상품분류] */
+                 , MAX(A.PD_LCLSF_NM) AS PD_LCLSF_NM /* [상품유형] */
+                 , MAX(A.SELL_BASE_PRD) AS SELL_BASE_PRD /* [주기] */
+                 , MAX(A.SELL_BASE_SELL_TP) AS SELL_BASE_SELL_TP /* [판매유형] */
+                 , A.SELL_PRMIT_DV_CD /* [판매제한] */
+                 , A.VL_STRT_DTM /* [시작일자] */
+                 , A.VL_END_DTM /* [종료일자] */
+                 , A.SELL_BASE_APY_CN
+                 , A.FST_RGST_DTM
+                 , A.FST_RGST_USR_ID
+                 , A.FNL_MDFC_DTM
+                 , A.FNL_MDFC_USR_ID
+            FROM (
+            SELECT T2.SELL_BASE_ID
+                 , T1.SELL_BASE_TP_CD
+                 , CASE WHEN T2.SELL_BASE_CD = 11 THEN T2.SELL_BASE_CHVAL ELSE '' END AS SELL_BASE_CHNL
+                 , CASE WHEN T2.SELL_BASE_CD = 12 THEN T2.SELL_BASE_CHVAL ELSE '' END AS DEPT_CD
+                 , CASE WHEN T2.SELL_BASE_CD = 13 THEN T2.SELL_BASE_CHVAL ELSE '' END AS SELL_BASE_USR
+                 , CASE WHEN T2.SELL_BASE_CD = 31 THEN T2.SELL_BASE_CHVAL ELSE '' END AS COPN_DV_CD
+                 , CASE WHEN T2.SELL_BASE_CD = 32 THEN T2.SELL_BASE_CHVAL ELSE '' END AS ZIP
+                 , CASE WHEN T2.SELL_BASE_CD = 25 THEN T2.SELL_BASE_CHVAL ELSE '' END AS PD_CD
+                 , CASE WHEN T2.SELL_BASE_CD = 22 THEN T2.SELL_BASE_CHVAL ELSE '' END AS PD_MCLSF_NM
+                 , CASE WHEN T2.SELL_BASE_CD = 23 THEN T2.SELL_BASE_CHVAL ELSE '' END AS PD_LCLSF_NM
+                 , CASE WHEN T2.SELL_BASE_CD = 27 THEN T2.SELL_BASE_CHVAL ELSE '' END AS SELL_BASE_PRD
+                 , CASE WHEN T2.SELL_BASE_CD = 28 THEN T2.SELL_BASE_CHVAL ELSE '' END AS SELL_BASE_SELL_TP
+                 , T1.SELL_PRMIT_DV_CD
+                 , T1.VL_STRT_DTM
+                 , T1.VL_END_DTM
+                 , T1.SELL_BASE_APY_CN
+                 , T1.FST_RGST_DTM      /* [등록일] - 판매기준기본.최초등록일시 */
+                 , T1.FST_RGST_USR_ID   /* [등록자] - 판매기준기본.최초등록사용자ID */
+                 , T1.FNL_MDFC_DTM      /* [수정일] - 판매기준기본.최종수정일시*/
+                 , T1.FNL_MDFC_USR_ID    /* [수정자] - 판매기준기본.최종수정사용자ID */
+            FROM TB_SSCT_SELL_BASE_BAS T1
+            INNER JOIN TB_SSCT_SELL_BASE_DTL T2
+                ON T1.SELL_BASE_ID = T2.SELL_BASE_ID
+            WHERE 1=1
+                AND T1.DTA_DL_YN != 'Y'   /* 데이터삭제여부 */
+                AND T2.DTA_DL_YN != 'Y'   /* 데이터삭제여부 */) A
+            GROUP  BY A.SELL_BASE_ID, A.SELL_BASE_TP_CD, A.SELL_PRMIT_DV_CD, A.VL_STRT_DTM, A.VL_END_DTM,
+                A.SELL_BASE_APY_CN, A.FST_RGST_DTM, A.FST_RGST_USR_ID, A.FNL_MDFC_DTM, A.FNL_MDFC_USR_ID)
+            SELECT COUNT(*)
+            FROM W1
+            LEFT OUTER JOIN TB_PDBS_PD_BAS TB1
+                ON W1.PD_CD = TB1.PD_CD
+               AND TB1.DTA_DL_YN = 'N'
+             WHERE 1 = 1
+               <if test='@MybatisUtils@isNotEmpty(sellBaseTpCd)'>
+               AND W1.SELL_BASE_TP_CD = #{sellBaseTpCd}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(sellBaseChnl)'>
+               AND W1.SELL_BASE_CHNL = #{sellBaseChnl}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(deptCd)'>
+               AND W1.DEPT_CD = #{deptCd}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(sellBaseUsr)'>
+               AND W1.SELL_BASE_USR = #{sellBaseUsr}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(copnDvCd)'>
+               AND W1.COPN_DV_CD = #{copnDvCd}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(zip)'>
+               AND W1.ZIP = #{zip}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(pdCd)'>
+               AND W1.SELL_PRMIT_DV_CD = #{pdCd}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(pdMclsfId)'>
+               AND W1.PD_MCLSF_NM = #{pdMclsfNm}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(pdNm)'>
+               AND TB1.PD_NM = #{pdNm}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(sellBasePrd)'>
+               AND W1.SELL_BASE_PRD = #{sellBasePrd}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(sellBaseSellTp)'>
+               AND W1.SELL_BASE_SELL_TP = #{sellBaseSellTp}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(sellPrmitDvCd)'>
+               AND W1.SELL_PRMIT_DV_CD = #{sellPrmitDvCd}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(vlStrtDtm)'>
+               AND W1.VL_STRT_DTM = #{vlStrtDtm}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(vlEndDtm)'>
+               AND W1.VL_END_DTM = #{vlEndDtm}
+               </if>
+               <if test='@MybatisUtils@isNotEmpty(sellBaseApyCn)'>
+               AND W1.SELL_BASE_APY_CN = #{sellBaseApyCn}
+               </if>
+   </select>
+    <select id="selecSellBaseSn" resultType = "java.lang.String">
+        SELECT SELL_BASE_SN
+          FROM TB_SSCT_SELL_BASE_DTL
+         WHERE 1=1
+           AND DTA_DL_YN = 'N'
+           AND SELL_BASE_ID = #{sellBaseId}        /* 판매기준ID */
+           AND SELL_BASE_CD = #{sellBaseCd}
+    </select>
+
+    <insert id="insertSellBaseBas" parameterType="com.kyowon.sms.wells.web.contract.risk.dvo.WctcUserSellLimitDvo">
+        <selectKey keyProperty="item.sellBaseId" resultType="java.lang.String" order="BEFORE">
+            SELECT #{session.userId}||TO_CHAR(SYSDATE, 'YYYYMMDD')||(COUNT(*)+1)
+              FROM TB_SSCT_SELL_BASE_BAS
+            WHERE 1=1
+              AND SELL_BASE_ID  LIKE #{session.userId}||TO_CHAR(SYSDATE, 'YYYYMMDD')||'%'
+        </selectKey>
+        INSERT INTO TB_SSCT_SELL_BASE_BAS (  /* 판매기준기본 */
+              SELL_BASE_ID      /* 판매기준ID */
+            , VL_STRT_DTM       /* 유효시작일시 */
+            , VL_END_DTM        /* 유효종료일시 */
+            , SELL_BASE_PSIC_ID /* 판매기준담당자ID */
+            , SELL_BASE_TP_CD   /* 판매기준유형코드 */
+            , SELL_PRMIT_DV_CD  /* 판매허용구분코드 */
+            , SELL_BASE_APY_CN  /* 판매기준적용내용 */
+            , DTA_DL_YN         /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{item.sellBaseId}
+            , #{item.vlStrtDtm}
+            , #{item.vlEndDtm}
+            , #{session.userId}
+            , #{item.sellBaseTpCd}
+            , #{item.sellPrmitDvCd}
+            , #{item.sellBaseApyCn}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertSellBaseDtl">
+        INSERT INTO TB_SSCT_SELL_BASE_DTL (  /* 판매기준상세 */
+              SELL_BASE_ID     /* 판매기준ID */
+            , SELL_BASE_SN     /* 판매기준일련번호 */
+            , VL_STRT_DTM      /* 유효시작일시 */
+            , VL_END_DTM       /* 유효종료일시 */
+            , SELL_BASE_CD     /* 판매기준코드 */
+            , SELL_BASE_CHVAL  /* 판매기준문자값 */
+            , SELL_BASE_NUVAL  /* 판매기준숫자값 */
+            , DTA_DL_YN        /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{sellBaseId}
+            , (SELECT COUNT(SELL_BASE_SN)+1 FROM TB_SSCT_SELL_BASE_DTL WHERE SELL_BASE_ID = #{sellBaseId})
+            , #{vlStrtDtm}
+            , #{vlEndDtm}
+            , #{sellBaseCd}
+            , #{sellBaseChval}
+            , #{sellBaseNuval}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updateSellBaseBas">
+        UPDATE TB_SSCT_SELL_BASE_BAS /* 판매기준기본 */
+           SET VL_STRT_DTM       = #{vlStrtDtm}         /* 유효시작일시 */
+             , VL_END_DTM        = #{vlEndDtm}          /* 유효종료일시 */
+             , SELL_BASE_TP_CD   = #{sellBaseTpCd}      /* 판매기준유형코드 */
+             , SELL_PRMIT_DV_CD  = #{sellPrmitDvCd}     /* 판매허용구분코드 */
+             , SELL_BASE_APY_CN  = #{sellBaseApyCn}     /* 판매기준적용내용 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND SELL_BASE_ID      = #{sellBaseId}        /* 판매기준ID */
+    </update>
+
+    <update id="updateSellBaseDtl">
+        UPDATE TB_SSCT_SELL_BASE_DTL /* 판매기준상세 */
+           SET VL_STRT_DTM      = #{vlStrtDtm}        /* 유효시작일시 */
+             , VL_END_DTM       = #{vlEndDtm}         /* 유효종료일시 */
+             , SELL_BASE_CD     = #{sellBaseCd}       /* 판매기준코드 */
+             , SELL_BASE_CHVAL  = #{sellBaseChval}    /* 판매기준문자값 */
+             , SELL_BASE_NUVAL  = #{sellBaseNuval}    /* 판매기준숫자값 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND SELL_BASE_ID     = #{sellBaseId}       /* 판매기준ID */
+           AND SELL_BASE_SN     = #{sellBaseSn}       /* 판매기준일련번호 */
+    </update>
+
+    <update id="removeSellBaseBas">
+        UPDATE TB_SSCT_SELL_BASE_BAS /* 판매기준기본 */
+           SET DTA_DL_YN         = 'Y'           /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND SELL_BASE_ID      = #{sellBaseId}        /* 판매기준ID */
+    </update>
+
+    <update id="removeSellBaseDtl">
+        UPDATE TB_SSCT_SELL_BASE_DTL /* 판매기준상세 */
+           SET DTA_DL_YN        = 'Y'          /* 데이터삭제여부 */
+            <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND SELL_BASE_ID     = #{sellBaseId}       /* 판매기준ID */
+    </update>
+</mapper>

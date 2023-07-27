@@ -1,0 +1,523 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.risk.mapper.WctcDangerArbitMapper">
+    <select id="selectDangerArbitManagerial" resultType="com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto$SearchRes">
+        SELECT G.DANG_OJ_PRTNR_NO /* 행위자사번 - 행위자사번 */
+             , G.DANG_OC_STRTMM /* 행위자사번 - 발생년월 */
+             , G.OG_CD AS DANG_OJ_OG_ID /* 행위자사번 - 소속 */
+             , G.DANG_OJ_PRTNR_NM /* 행위자사번 - 성명 */
+             , G.DANG_OJ_PSTN_DV_CD /* 행위자사번 - 직급 */
+             , G.DGR1_LEVL_DG_PRTNR_NO /* 소속 - 총괄단 */
+             , G.DGR1_LEVL_DG_PRTNR_NM /* 소속 - 총괄단명 */
+             , G.DGR2_LEVL_DG_PRTNR_NO /* 소속 - 지역단 */
+             , G.DGR2_LEVL_DG_PRTNR_NM /* 소속 - 지역단 */
+             , G.BZNS_SPPT_PRTNR_NO /* 소속 - BM */
+             , G.BZNS_SPPT_PRTNR_NM /* 소속 - BM */
+             , G.DGR3_LEVL_DG_PRTNR_NO  /* 소속 - 지점 */
+             , G.DGR3_LEVL_DG_PRTNR_NM  /* 소속 - 지점 */
+             , G.DANG_CHK_NM /* 벌점 - 부과내역 */
+             , G.DANG_ARBIT_CD /* 벌점 - 조치항목 */
+             , G.DANG_UNCVR_CT /* 벌점 - 부과대상건수 */
+             , G.DANG_ARBIT_LVY_PC  /* 벌점 - 조치결과부과점수 */
+             , G.DANG_ARBIT_OG_ID /* 벌점 - 조치부서 */
+             , G.FST_RGST_USR_ID /* 등록자 */
+             , G.FST_RGST_DT /* 등록일자 */
+            FROM (
+            WITH TB_OGBS_MM AS (
+                SELECT D.PSTN_DV_CD /*월파트너내역.직급구분코드*/
+                     , D.PRTNR_NO /* 월파트너내역.파트너번호 */
+                     , D.PRTNR_KNM /* 월파트너내역.파트너한글명 */
+                     , D.OG_TP_CD /* 월파트너내역.조직유형코드 */
+                     , AFMDBS.F_CMZ_CD_NM(#{session.tenantId}, 'PSTN_DV_CD', D.PSTN_DV_CD) AS PSTN_DV_NM /* 직급구분명 */
+                     , C.DGR1_LEVL_OG_CD /* 월조직내역.1차레벨조직코드 - 총괄단 */
+                     , C.DGR1_LEVL_OG_NM /* 월조직내역.1차레벨조직명 - 총괄단 */
+                     , C.DGR1_LEVL_DG_PRTNR_NO /* 월조직내역.1차레벨대표파트너번호 - 총괄단 */
+                     , C.DGR1_LEVL_DG_PRTNR_NM /* 월조직내역.1차레벨대표파트너명 - 총괄단 */
+                     , C.DGR1_LEVL_OG_ID AS DGR1_LEVL_OG_ID /* 1차레벨조직ID */
+                     , C.DGR2_LEVL_OG_CD /* 월조직내역.2차레벨조직코드 - 지역단 */
+                     , C.DGR2_LEVL_OG_NM /* 월조직내역.2차레벨조직명 - 지역단 */
+                     , C.DGR2_LEVL_DG_PRTNR_NO /* 월조직내역.2차레벨대표파트너번호 - 지역단 */
+                     , C.DGR2_LEVL_DG_PRTNR_NM /* 월조직내역.2차레벨대표파트너명 - 지역단 */
+                     , C.DGR2_LEVL_OG_ID AS DGR2_LEVL_OG_ID /* 2차레벨조직ID */
+                     , C.DGR3_LEVL_OG_CD /* 월조직내역.3차레벨조직코드 - 지점 */
+                     , C.DGR3_LEVL_OG_NM /* 월조직내역.3차레벨조직명 - 지점 */
+                     , C.DGR3_LEVL_DG_PRTNR_NO /* 월조직내역.3차레벨대표파트너번호 - 지점 */
+                     , C.DGR3_LEVL_DG_PRTNR_NM /* 월조직내역.3차레벨대표파트너명 - 지점 */
+                     , C.DGR3_LEVL_OG_ID AS DGR3_LEVL_OG_ID /* 3차레벨조직ID */
+                     , C.BIZ_SPPT_PRTNR_NO /* 월조직내역.업무지원파트너번호 */
+                     , C.OG_UPBRNG_PRTNR_NO /* 월조직내역.조직육성파트너번호 */
+                     , C.OG_CD /* 월조직내역.조직코드 */
+                     , C.OG_ID /* 월조직내역.조직ID */
+                     , C.OG_NM /* 월조직내역.조직명 */
+                     , C.BASE_YM /* 월조직내역.기준년월 */
+                 FROM TB_OGBS_MM_OG_IZ C/* 월조직내역 - 월조직내역 TABLE의 1~5차 상위 조직ID가 없으므로 별도로 조회 */
+                 LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ D /* 월파트너내역 */
+                   ON D.BASE_YM = C.BASE_YM /* 월파트너내역.기준년월 = 월조직내역.기준년월 */
+                  AND D.OG_ID = C.OG_ID /* 월조직내역.조직ID = 월파트너내역.조직ID */
+                WHERE 1=1
+                  AND C.DTA_DL_YN = 'N' /* 월조직내역.데이터삭제여부가 'N'인 건*/
+                  AND D.DTA_DL_YN = 'N' /* 월파트너내역.데이터삭제여부가 'N'인 건 */
+            )
+            SELECT DISTINCT
+                   A.DANG_OJ_PRTNR_NO /* 위험점검내역.위험대상파트너번호 */
+                 , SUBSTR(A.DANG_OC_STRTDT, 1, 6) AS DANG_OC_STRTMM /* SUBSTR(위험점검내역.위험발생시작일자,1,6) */
+                 , T2.OG_CD  /* 위험점검내역.위험관리조직유형코드 */
+                 , (
+                    SELECT MAX(PRTNR_KNM) /* 월파트너내역.파트너한글명 */
+                      FROM TB_OGBS_MM_PRTNR_IZ T /* 월파트너내역 */
+                     WHERE 1=1
+                      AND T.DTA_DL_YN = 'N'
+                      AND T.PRTNR_NO = A.DANG_OJ_PRTNR_NO /* 월파트너내역.파트너번호 = 위험점검내역.위험관리파트너번호 */
+                      AND T.OG_TP_CD = A.DANG_OJ_OG_TP_CD /* 월파트너내역.조직유형코드 = 위험점검내역.위험대상조직유형코드 */
+                      AND T.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월파트너내역.기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
+                   ) AS DANG_OJ_PRTNR_NM /* 월 조직/파트너 내역(WITH).파트너한글명 */
+                 , A.DANG_OJ_PSTN_DV_CD /* 위험점검내역.위험대상직급구분코드 */
+                 , CASE WHEN A.DANG_OJ_PSTN_DV_CD > 2
+                        THEN T2.DGR1_LEVL_DG_PRTNR_NO
+                        ELSE ''
+                   END AS DGR1_LEVL_DG_PRTNR_NO
+                 , CASE WHEN A.DANG_OJ_PSTN_DV_CD > 2
+                        THEN T2.DGR1_LEVL_DG_PRTNR_NM
+                        ELSE ''
+                   END AS DGR1_LEVL_DG_PRTNR_NM
+                 , CASE WHEN A.DANG_OJ_PSTN_DV_CD > 4
+                        THEN T2.DGR2_LEVL_DG_PRTNR_NO
+                        ELSE ''
+                   END AS DGR2_LEVL_DG_PRTNR_NO
+                 , CASE WHEN A.DANG_OJ_PSTN_DV_CD > 4
+                        THEN T2.DGR2_LEVL_DG_PRTNR_NM
+                        ELSE ''
+                   END AS DGR2_LEVL_DG_PRTNR_NM
+                 , CASE WHEN A.DANG_OJ_PSTN_DV_CD > 4
+                        THEN T2.OG_UPBRNG_PRTNR_NO
+                        ELSE ''
+                   END AS BZNS_SPPT_PRTNR_NO
+                 , CASE WHEN A.DANG_OJ_PSTN_DV_CD > 4
+                        THEN (
+                               SELECT MAX(PRTNR_KNM) /* 월파트너내역.파트너한글명 */
+                                 FROM TB_OGBS_MM_PRTNR_IZ T /* 월파트너내역 */
+                                WHERE T.DTA_DL_YN = 'N'
+                                  AND T.PRTNR_NO = T2.OG_UPBRNG_PRTNR_NO /* 월파트너내역.파트너번호 = 위험점검내역.위험관리파트너번호 */
+                                  AND T.OG_TP_CD = T2.OG_TP_CD /* 월파트너내역.조직유형코드 = 위험점검내역.위험대상조직유형코드 */
+                                  AND T.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6) /* 월파트너내역.기준년월 = SUBSTR(위험점검내역.위험발생시작일자, 1, 6) */
+                              )
+                        ELSE ''
+                   END AS BZNS_SPPT_PRTNR_NM
+                 , CASE WHEN SUBSTR(T2.OG_CD,1,1) = 'P' AND A.DANG_OJ_PSTN_DV_CD > 7
+                        THEN T2.DGR3_LEVL_DG_PRTNR_NO
+                        ELSE ''
+                   END AS DGR3_LEVL_DG_PRTNR_NO
+                 , CASE WHEN SUBSTR(T2.OG_CD,1,1) = 'P' AND A.DANG_OJ_PSTN_DV_CD > 7
+                        THEN T2.DGR3_LEVL_DG_PRTNR_NM
+                        ELSE ''
+                   END AS DGR3_LEVL_DG_PRTNR_NM
+                 , A.DANG_CHK_NM /* 위험점검내역.위험점검명 */
+                 , A.DANG_ARBIT_CD /* [벌점 - 조치항목]  */
+                 , A.DANG_UNCVR_CT /* 위험점검내역.위험적발건수 */
+                 , A.DANG_ARBIT_LVY_PC /* 위험점검내역.위험조치부과점수 */
+                 , A.DANG_ARBIT_OG_ID AS DANG_ARBIT_OG_ID /* [벌점 - 조치부서] - 월조직내역.위험조치조직ID */
+                 , A.FST_RGST_USR_ID /* 위험점검내역.최초등록사용자ID */
+                 , SUBSTR(A.FST_RGST_DTM,0,8) AS FST_RGST_DT /* 위험점검내역.최초등록일시 */
+            FROM TB_SSCT_DANG_CHK_IZ A /* 위험점검내역 */
+            LEFT OUTER JOIN TB_OGBS_MM T2
+            ON T2.OG_ID = A.DANG_OJ_OG_ID
+           AND T2.PRTNR_NO = A.DANG_OJ_PRTNR_NO
+           AND T2.BASE_YM = SUBSTR(A.DANG_OC_STRTDT, 1, 6)
+           AND T2.OG_TP_CD IN ('W01', 'W02', 'W03', 'W04', 'W05', 'ALC')
+             WHERE 1=1
+             AND A.DTA_DL_YN = 'N'
+            /* 조회조건 - 적용기간(등록일자 또는 발생년월) FROM~TO */
+            <if test='@MybatisUtils@equals(srchGbn, "1")'>
+                <if test='@MybatisUtils@isNotEmpty(dangOcStrtdt)'>
+                    AND  SUBSTR(A.FST_RGST_DTM,1,8) <![CDATA[ >= ]]> TRIM(#{dangOcStrtdt}) /* 위험점검내역.최초등록일시 입력한 FROM년월일 */
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(dangOcEnddt)'>
+                    AND SUBSTR(A.FST_RGST_DTM,1,8) <![CDATA[<= ]]> TRIM(#{dangOcEnddt}) /* 위험점검내역.최초등록일시 입력한 TO년월일 */
+                </if>
+            </if>
+                <if test='@MybatisUtils@equals(srchGbn, "2")'>
+                    <if test='@MybatisUtils@isNotEmpty(dangOcStrtMonth)'>
+                        AND  DECODE(LENGTH(A.DANG_OC_STRTDT ), 6, A.DANG_OC_STRTDT ||'01', A.DANG_OC_STRTDT )  <![CDATA[ >= ]]> TRIM(#{dangOcStrtMonth})||'01' /* 위험점검내역.위험발생시작일자 입력한 FROM년월 */
+                    </if>
+                    <if test='@MybatisUtils@isNotEmpty(dangOcEndMonth)'>
+                        AND A.DANG_OC_STRTDT <![CDATA[<= ]]> TO_CHAR(LAST_DAY(TRIM(#{dangOcEndMonth})||'01'),'YYYYMMDD') /* 위험점검내역.최초등록일시 입력한 TO년월 */
+                    </if>
+                </if>
+            <if test='@MybatisUtils@isNotEmpty(gnrdv)'>
+             AND TRIM(T2.DGR1_LEVL_OG_CD) LIKE #{gnrdv}||'%' /* 조회조건 - 총괄단 - 1차레벨조직 */
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(rgrp)'>
+             AND TRIM(T2.DGR2_LEVL_OG_CD) LIKE #{rgrp}||'%' /* 조회조건 - 지역단 - 2차레벨조직 */
+            </if>
+            <if test='@MybatisUtils@isNotEmpty(brch)'>
+             AND TRIM(T2.DGR3_LEVL_OG_CD) LIKE #{brch}||'%' /* 조회조건 - 지점 - 3차레벨조직 */
+            </if>
+                ) G
+            WHERE 1=1
+            <if test='@MybatisUtils@isNotEmpty(dangOjPrtnrNo)'>
+                AND TRIM(G.DANG_OJ_PRTNR_NO) LIKE #{dangOjPrtnrNo}||'%' /* 조회조건 - 사번 - 위험점검내역.위험관리파트너번호 */
+            </if>
+           ORDER BY G.OG_CD, G.DANG_OJ_PRTNR_NM
+    </select>
+    <select id="selectDuplicationCheck" resultType="java.lang.String">
+        SELECT MAX(DANG_CHK_ID)
+          FROM TB_SSCT_DANG_CHK_IZ
+         WHERE 1=1
+           AND DANG_OC_STRTDT = #{dangOcStrtdt}
+           AND DTA_DL_YN = 'N'
+           AND DANG_OJ_PRTNR_NO = #{dangOjPrtnrNo}
+    </select>
+    <select id="selectOrganizationInfInqr" resultType="com.kyowon.sms.wells.web.contract.risk.dto.WctcDangerArbitDto$SearchOrganizationRes">
+        SELECT D.PRTNR_NO /* 월파트너내역.파트너번호 */
+            , D.PRTNR_KNM /* 월파트너내역.파트너한글명 */
+            , D.PSTN_DV_CD /* 월파트너내역.직급구분코드 */
+            , F_CMZ_CD_NM(#{session.tenantId}, 'PSTN_DV_CD', D.PSTN_DV_CD) AS PSTN_DV_NM /* 직급구분명 */
+            , CASE WHEN D.PSTN_DV_CD > 2
+                   THEN C.DGR1_LEVL_OG_CD
+                   ELSE ''
+              END AS DGR1_LEVL_OG_CD/* 월조직내역.1차레벨조직코드 - 총괄단 */
+            , CASE WHEN D.PSTN_DV_CD > 2
+                   THEN C.DGR1_LEVL_OG_NM
+                   ELSE ''
+              END AS DGR1_LEVL_OG_NM /* 월조직내역.1차레벨조직명 - 총괄단 */
+            , CASE WHEN D.PSTN_DV_CD > 2
+                   THEN C.DGR1_LEVL_DG_PRTNR_NO
+                   ELSE ''
+              END AS DGR1_LEVL_DG_PRTNR_NO /* 월조직내역.1차레벨대표파트너번호 - 총괄단 */
+            , CASE WHEN D.PSTN_DV_CD > 2
+                   THEN C.DGR1_LEVL_DG_PRTNR_NM
+                   ELSE ''
+              END AS DGR1_LEVL_DG_PRTNR_NM /* 월조직내역.1차레벨대표파트너명 - 총괄단 */
+            , CASE WHEN D.PSTN_DV_CD > 2
+                   THEN C.DGR1_LEVL_OG_ID
+                   ELSE ''
+              END AS DGR1_LEVL_OG_ID /* 1차레벨조직ID */
+            , CASE WHEN D.PSTN_DV_CD > 2
+                   THEN (SELECT MAX(D2.PSTN_DV_CD)
+                           FROM TB_OGBS_MM_PRTNR_IZ D2
+                          WHERE D2.BASE_YM = D.BASE_YM
+                            AND D2.OG_TP_CD = D.OG_TP_CD
+                            AND D2.DTA_DL_YN = 'N'
+                            AND D2.PRTNR_NO = C.DGR1_LEVL_DG_PRTNR_NO
+                        )
+                   ELSE ''
+              END AS DGR1_LEVL_DG_PSTN_DV_CD
+            , CASE WHEN D.PSTN_DV_CD > 4
+                   THEN C.DGR2_LEVL_OG_CD
+                   ELSE ''
+              END AS DGR2_LEVL_OG_CD /* 월조직내역.2차레벨조직코드 - 지역단 */
+            , CASE WHEN D.PSTN_DV_CD > 4
+                   THEN C.DGR2_LEVL_OG_NM
+                   ELSE ''
+              END AS DGR2_LEVL_OG_NM /* 월조직내역.2차레벨조직명 - 지역단 */
+            , CASE WHEN D.PSTN_DV_CD > 4
+                   THEN C.DGR2_LEVL_DG_PRTNR_NO
+                   ELSE ''
+              END AS DGR2_LEVL_DG_PRTNR_NO /* 월조직내역.2차레벨대표파트너번호 - 지역단 */
+            , CASE WHEN D.PSTN_DV_CD > 4
+                   THEN C.DGR2_LEVL_DG_PRTNR_NM
+                   ELSE ''
+              END AS DGR2_LEVL_DG_PRTNR_NM /* 월조직내역.2차레벨대표파트너명 - 지역단 */
+            , CASE WHEN D.PSTN_DV_CD > 4
+                   THEN C.DGR2_LEVL_OG_ID
+                   ELSE ''
+              END AS DGR2_LEVL_OG_ID /* 2차레벨조직ID */
+            , CASE WHEN D.PSTN_DV_CD > 4
+                   THEN (SELECT MAX(D2.PSTN_DV_CD)
+                           FROM TB_OGBS_MM_PRTNR_IZ D2
+                          WHERE D2.BASE_YM = D.BASE_YM
+                            AND D2.OG_TP_CD = D.OG_TP_CD
+                            AND D2.DTA_DL_YN = 'N'
+                            AND D2.PRTNR_NO = C.DGR2_LEVL_DG_PRTNR_NO
+                        )
+                   ELSE ''
+              END AS DGR2_LEVL_DG_PSTN_DV_CD
+            , CASE WHEN D.PSTN_DV_CD > 7
+                   THEN C.DGR3_LEVL_OG_CD
+                   ELSE ''
+              END AS DGR3_LEVL_OG_CD /* 월조직내역.3차레벨조직코드 - 지점 */
+            , CASE WHEN D.PSTN_DV_CD > 7
+                   THEN C.DGR3_LEVL_OG_NM
+                   ELSE ''
+              END AS DGR3_LEVL_OG_NM /* 월조직내역.3차레벨조직명 - 지점 */
+            , CASE WHEN D.PSTN_DV_CD > 7
+                   THEN C.DGR3_LEVL_DG_PRTNR_NO
+                   ELSE ''
+              END AS DGR3_LEVL_DG_PRTNR_NO /* 월조직내역.3차레벨대표파트너번호 - 지점 */
+            , CASE WHEN D.PSTN_DV_CD > 7
+                   THEN C.DGR3_LEVL_DG_PRTNR_NM
+                   ELSE ''
+              END AS DGR3_LEVL_DG_PRTNR_NM /* 월조직내역.3차레벨대표파트너명 - 지점 */
+            , CASE WHEN D.PSTN_DV_CD > 7
+                   THEN C.DGR3_LEVL_OG_ID
+                   ELSE ''
+              END AS DGR3_LEVL_OG_ID /* 3차레벨조직ID */
+            , CASE WHEN D.PSTN_DV_CD > 7
+                   THEN (SELECT MAX(D2.PSTN_DV_CD)
+                           FROM TB_OGBS_MM_PRTNR_IZ D2
+                          WHERE D2.BASE_YM = D.BASE_YM
+                            AND D2.OG_TP_CD = D.OG_TP_CD
+                            AND D2.DTA_DL_YN = 'N'
+                            AND D2.PRTNR_NO = C.DGR3_LEVL_DG_PRTNR_NO
+                        )
+                   ELSE ''
+              END AS DGR3_LEVL_DG_PSTN_DV_CD
+            , C.DGR4_LEVL_OG_CD /* 월조직내역.4차레벨조직코드 */
+            , C.DGR4_LEVL_OG_NM /* 월조직내역.4차레벨조직명 */
+            , C.DGR4_LEVL_DG_PRTNR_NO /* 월조직내역.4차레벨대표파트너번호 */
+            , C.DGR4_LEVL_DG_PRTNR_NM /* 월조직내역.4차레벨대표파트너명 */
+            , C.DGR4_LEVL_OG_ID /* 4차레벨조직ID */
+            , (SELECT MAX(D2.PSTN_DV_CD)
+            FROM TB_OGBS_MM_PRTNR_IZ D2
+            WHERE D2.BASE_YM = D.BASE_YM
+            AND D2.OG_TP_CD = D.OG_TP_CD
+            AND D2.DTA_DL_YN = 'N'
+            AND D2.PRTNR_NO = C.DGR4_LEVL_DG_PRTNR_NO
+            ) AS DGR4_LEVL_DG_PSTN_DV_CD
+            , C.DGR5_LEVL_OG_CD /* 월조직내역.5차레벨조직코드 */
+            , C.DGR5_LEVL_OG_NM /* 월조직내역.5차레벨조직명 */
+            , C.DGR5_LEVL_DG_PRTNR_NO /* 월조직내역.5차레벨대표파트너번호 */
+            , C.DGR5_LEVL_OG_ID /* 5차레벨조직ID */
+            , CASE WHEN D.PSTN_DV_CD > 4
+                   THEN C.OG_UPBRNG_PRTNR_NO
+                   ELSE ''
+              END AS BIZ_SPPT_PRTNR_NO /* 월조직내역.업무지원파트너번호 */
+            , CASE WHEN D.PSTN_DV_CD > 4
+                   THEN (SELECT PRTNR_KNM
+                           FROM TB_OGBS_PRTNR_BAS T1
+                          WHERE 1=1
+                            AND T1.DTA_DL_YN = 'N'
+                            AND T1.PRTNR_NO = C.OG_UPBRNG_PRTNR_NO
+                            AND T1.OG_TP_CD = C.OG_CD
+                        )
+                   ELSE ''
+              END AS BIZ_SPPT_PRTNR_NM /* 월조직내역.업무지원파트너명 */
+            , C.OG_UPBRNG_PRTNR_NO /* 월조직내역.조직육성파트너번호(영업지원파트너번호)-BM */
+            , C.OG_CD /* 월조직내역.조직코드 */
+            , C.OG_ID /* 월조직내역.조직ID */
+            , C.OG_NM /* 월조직내역.조직명 */
+            , C.BASE_YM /* 월조직내역.기준년월 */
+            , C.OG_TP_CD /* 월조직내역.조직유형코드 */
+        FROM TB_OGBS_MM_OG_IZ C/* 월조직내역 - 월조직내역 TABLE의 1~5차 레벨 조직ID가 없으므로 별도로 조회 */
+        INNER JOIN TB_OGBS_MM_PRTNR_IZ D /* 월파트너내역 */
+            ON D.BASE_YM = C.BASE_YM /* 월파트너내역.기준년월 = 월조직내역.기준년월 */
+            AND D.OG_ID = C.OG_ID /* 월조직내역.조직ID = 월파트너내역.조직ID */
+            AND D.OG_TP_CD = C.OG_TP_CD /* 월조직내역.조직유형코드 = 월파트너내역.조직유형코드 */
+            AND D.DTA_DL_YN = 'N'/* 월파트너내역.데이터삭제여부가 'N'인 건 */
+            AND C.DTA_DL_YN = 'N' /* 월조직내역.데이터삭제여부가 'N'인 건 */
+        WHERE 1=1
+        <if test='!@MybatisUtils@equals(session.ogTpCd, "HR1")'>
+            AND C.OG_TP_CD = #{session.ogTpCd} /* 월조직내역의 조직유형코드 'W'로 시작 하는 건 - ▷임시처리 조직유형코드 적용 확정 이후 수정 필요 */
+        </if>
+            AND D.PRTNR_NO = #{prtnrNo}
+            <if test='@MybatisUtils@isNotEmpty(baseYm)'>
+                AND C.BASE_YM = NVL(TRIM(#{baseYm}), TO_CHAR(SYSDATE, 'YYYYMM'))
+            </if>
+    </select>
+    <update id="updateDangerCheckIzDlYn">
+        UPDATE TB_SSCT_DANG_CHK_IZ
+           SET DTA_DL_YN = 'Y'
+           <include refid="COMMON.updateSystemField"/>
+         WHERE 1 = 1
+           AND DANG_OJ_PRTNR_NO     = #{dangOjPrtnrNo}       /* 위험대상파트너번호 */
+           AND DANG_OC_STRTDT       = #{dangOcStrtdt} /* 위험발생시작일자 */
+           AND DTA_DL_YN = 'N'
+    </update>
+    <update id="updateDangerCheckChHist">
+        UPDATE TB_SSCT_DANG_CHK_CH_HIST
+           SET HIST_END_DTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           <include refid="COMMON.updateSystemField"/>
+         WHERE HIST_END_DTM = '99991231235959'
+           AND DANG_OJ_PRTNR_NO     = #{dangOjPrtnrNo}       /* 위험대상파트너번호 */
+           AND DANG_OC_STRTDT       = #{dangOcStrtdt} /* 위험발생시작일자 */
+           AND DTA_DL_YN = 'N'
+    </update>
+    <insert id="insertDangerCheckChHistN">
+        INSERT INTO TB_SSCT_DANG_CHK_CH_HIST(
+               DANG_CHK_ID
+             , HIST_STRT_DTM
+             , HIST_END_DTM
+             , DANG_OJ_PRTNR_NO
+             , DANG_MNGT_PRTNR_NO
+             , DANG_OJ_OG_ID
+             , DANG_OJ_PSTN_DV_CD
+             , DANG_MNGT_PSTN_DV_CD
+             , DANG_GD_CD
+             , DANG_UNCVR_CT
+             , DANG_CHK_NM
+             , DANG_CHK_DT
+             , DANG_UNCVR_CN
+             , DANG_OC_STRTDT
+             , DANG_OC_ENDDT
+             , DANG_ARBIT_DT
+             , DANG_ARBIT_CD
+             , DANG_ARBIT_LVY_PC
+             , DANG_ARBIT_OG_ID
+             , DANG_ARBIT_CN
+             , DCPLA_RS_CN
+             , DCPLA_RIMB_AMT
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />
+        ) SELECT DANG_CHK_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , '99991231235959'
+             , DANG_OJ_PRTNR_NO
+             , DANG_MNGT_PRTNR_NO
+             , DANG_OJ_OG_ID
+             , DANG_OJ_PSTN_DV_CD
+             , DANG_MNGT_PSTN_DV_CD
+             , DANG_GD_CD
+             , DANG_UNCVR_CT
+             , DANG_CHK_NM
+             , DANG_CHK_DT
+             , DANG_UNCVR_CN
+             , DANG_OC_STRTDT
+             , DANG_OC_ENDDT
+             , DANG_ARBIT_DT
+             , DANG_ARBIT_CD
+             , DANG_ARBIT_LVY_PC
+             , DANG_ARBIT_OG_ID
+             , DANG_ARBIT_CN
+             , DCPLA_RS_CN
+             , DCPLA_RIMB_AMT
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_SSCT_DANG_CHK_IZ
+         WHERE 1=1
+           AND DANG_OJ_PRTNR_NO     = #{dangOjPrtnrNo}       /* 위험대상파트너번호 */
+           AND DANG_OC_STRTDT       = #{dangOcStrtdt} /* 위험발생시작일자 */
+           AND DTA_DL_YN = 'N'
+    </insert>
+    <insert id="insertDangerCheckChHistY">
+        INSERT INTO TB_SSCT_DANG_CHK_CH_HIST(
+              DANG_CHK_ID
+            , HIST_STRT_DTM
+            , HIST_END_DTM
+            , DANG_OJ_PRTNR_NO
+            , DANG_MNGT_PRTNR_NO
+            , DANG_OJ_OG_ID
+            , DANG_OJ_PSTN_DV_CD
+            , DANG_MNGT_PSTN_DV_CD
+            , DANG_GD_CD
+            , DANG_UNCVR_CT
+            , DANG_CHK_NM
+            , DANG_CHK_DT
+            , DANG_UNCVR_CN
+            , DANG_OC_STRTDT
+            , DANG_OC_ENDDT
+            , DANG_ARBIT_DT
+            , DANG_ARBIT_CD
+            , DANG_ARBIT_LVY_PC
+            , DANG_ARBIT_OG_ID
+            , DANG_ARBIT_CN
+            , DCPLA_RS_CN
+            , DCPLA_RIMB_AMT
+            , DTA_DL_YN
+            <include refid="COMMON.insertSystemField" />
+        ) SELECT DANG_CHK_ID
+               , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+               , '99991231235959'
+               , DANG_OJ_PRTNR_NO
+               , DANG_MNGT_PRTNR_NO
+               , DANG_OJ_OG_ID
+               , DANG_OJ_PSTN_DV_CD
+               , DANG_MNGT_PSTN_DV_CD
+               , DANG_GD_CD
+               , DANG_UNCVR_CT
+               , DANG_CHK_NM
+               , DANG_CHK_DT
+               , DANG_UNCVR_CN
+               , DANG_OC_STRTDT
+               , DANG_OC_ENDDT
+               , DANG_ARBIT_DT
+               , DANG_ARBIT_CD
+               , DANG_ARBIT_LVY_PC
+               , DANG_ARBIT_OG_ID
+               , DANG_ARBIT_CN
+               , DCPLA_RS_CN
+               , DCPLA_RIMB_AMT
+               , 'Y'
+            <include refid="COMMON.insertSystemFieldValue" />
+          FROM TB_SSCT_DANG_CHK_IZ
+          WHERE 1=1
+            AND DANG_OJ_PRTNR_NO     = #{dangOjPrtnrNo}       /* 위험대상파트너번호 */
+            AND DANG_OC_STRTDT       = #{dangOcStrtdt}        /* 위험발생시작일자 */
+            AND DTA_DL_YN = 'N'
+    </insert>
+
+    <insert id="insertDangerCheckIz" parameterType="com.kyowon.sms.wells.web.contract.risk.dvo.WctcDangerArbitDvo">
+        <selectKey keyProperty="item.dangChkId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(SQ_SSCT_DANG_CHK_IZ$DANG_CHK_ID.NEXTVAL,15,0)
+              FROM DUAL
+        </selectKey>
+        INSERT INTO TB_SSCT_DANG_CHK_IZ (  /* 위험점검내역 */
+                  DANG_CHK_ID          /* 위험점검ID */
+                , DANG_OJ_OG_TP_CD     /* 위험대상조직유형코드 */
+                , DANG_OJ_PRTNR_NO     /* 위험대상파트너번호 */
+                , DANG_MNGT_OG_TP_CD   /* 위험관리조직유형코드 */
+                , DANG_MNGT_PRTNR_NO   /* 위험관리파트너번호 */
+                , DANG_OJ_OG_ID        /* 위험대상조직ID */
+                , DANG_OJ_PSTN_DV_CD   /* 위험대상직급구분코드 */
+                , DANG_MNGT_PSTN_DV_CD /* 위험관리직급구분코드 */
+                , DANG_GD_CD           /* 위험등급값 */
+                , DANG_UNCVR_CT        /* 위험적발건수 */
+                , DANG_CHK_NM          /* 위험점검명 */
+                , DANG_CHK_DT          /* 위험점검일자 */
+                , DANG_UNCVR_CN        /* 위험적발내용 */
+                , DANG_OC_STRTDT       /* 위험발생시작일자 */
+                , DANG_OC_ENDDT        /* 위험발생종료일자 */
+                , DANG_ARBIT_DT        /* 위험조치일자 */
+                , DANG_ARBIT_CD        /* 위험조치코드 */
+                , DANG_ARBIT_LVY_PC    /* 위험조치부과점수 */
+                , DANG_ARBIT_OG_ID     /* 위험조치조직ID */
+                , DANG_ARBIT_CN        /* 위험조치내용 */
+                , DCPLA_RS_CN          /* 징계결과내용 */
+                , DCPLA_RIMB_AMT       /* 징계변제금액 */
+                , DTA_DL_YN            /* 데이터삭제여부 */
+                <include refid="COMMON.insertSystemField" />)
+            VALUES (
+                  #{item.dangChkId}
+                , #{item.dangOjOgTpCd} /* 위험대상조직유형코드 */
+                , #{item.dangOjPrtnrNo} /* 위험대상파트너번호 */
+                , #{item.dangMngtOgTpCd} /* 위험관리조직유형코드 */
+                , #{item.dangMngtPrtnrNo} /* 위험관리파트너번호 */
+                , (SELECT OG_ID FROM TB_OGBS_PRTNR_BAS WHERE OG_TP_CD = #{item.dangOjOgTpCd} AND PRTNR_NO = #{item.dangOjPrtnrNo}) /* 위험대상조직ID */
+                , #{item.dangOjPstnDvCd} /* 위험대상직급구분코드 */
+                , #{item.dangMngtPstnDvCd} /* 위험관리직급구분코드 */
+                , '' /* 위험등급값 */
+                , #{item.dangUncvrCt} /* 위험적발건수 */
+                , #{item.dangChkNm} /* 위험점검명 */
+                , '' /* 위험점검일자 */
+                , '' /* 위험적발내용 */
+                , #{item.dangOcStrtdt} /* 위험발생시작일자 */
+                , '' /* 위험발생종료일자 */
+                , '' /* 위험조치일자 */
+                , #{item.dangArbitCd} /* 위험조치코드 */
+                , #{item.dangArbitLvyPc} /* 위험조치부과점수 */
+                , #{item.dangArbitOgId} /* 위험조치조직ID */
+                , '' /* 위험조치내용 */
+                , ''
+                , ''
+                , 'N'
+                <include refid="COMMON.insertSystemFieldValue" />
+            )
+    </insert>
+    <update id="updateDangerCheckIz">
+        UPDATE TB_SSCT_DANG_CHK_IZ /* 위험점검내역 */
+       SET DANG_GD_CD           = #{dangGdCd}            /* 위험등급코드 */
+         , DANG_UNCVR_CT        = #{dangUncvrCt}         /* 위험적발건수 */
+         , DANG_CHK_NM          = #{dangChkNm}           /* 위험점검명 */
+         , DANG_CHK_DT          = #{dangChkDt}           /* 위험점검일자 */
+         , DANG_UNCVR_CN        = #{dangUncvrCn}         /* 위험적발내용 */
+         , DANG_ARBIT_CD        = #{dangArbitCd}         /* 위험조치코드 */
+         , DANG_ARBIT_LVY_PC    = #{dangArbitLvyPc}      /* 위험조치부과점수 */
+         , DANG_ARBIT_OG_ID     = #{dangArbitOgId}       /* 위험조치조직ID */
+         , DANG_ARBIT_CN        = #{dangArbitCn}         /* 위험조치내용 */
+        <include refid="COMMON.updateSystemField"/>
+     WHERE 1 = 1
+       AND DANG_OJ_PRTNR_NO     = #{dangOjPrtnrNo}       /* 위험대상파트너번호 */
+       AND DANG_OC_STRTDT       = #{dangOcStrtdt} /* 위험발생시작일자 */
+       AND DTA_DL_YN = 'N'
+    </update>
+</mapper>
+

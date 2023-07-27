@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractDocumentMailMapper">
+    <select id="selectContractCstNm" resultType="String">
+        SELECT T1.CST_KNM
+          FROM TB_CUBS_CST_BAS T1
+         INNER JOIN TB_SSCT_CNTR_BAS T2 /*계약기본*/
+            ON T1.CST_NO = T2.CNTR_CST_NO
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_DTL T3 /*고객기본*/
+            ON T2.CNTR_NO = T3.CNTR_NO
+           AND T3.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND T1.DTA_DL_YN = 'N'
+           AND T3.CNTR_NO = #{cntrNo}
+           AND T3.CNTR_SN = #{cntrSn}
+    </select>
+    <select id="selectCountContract" resultType="int">
+        SELECT COUNT(*)
+          FROM TB_SSCT_CNTR_BAS T1
+         INNER JOIN TB_SSCT_CNTR_DTL T2 /*계약기본*/
+            ON T1.CNTR_NO = T3.CNTR_NO
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS T3
+            ON T1.CNTR_CST_NO = T3.CST_NO
+           AND T3.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND T1.DTA_DL_YN = 'N'
+           AND T2.CNTR_NO = #{cntrNp}
+           AND T2.CNTR_SN = #{cntrSn}
+    </select>
+</mapper>

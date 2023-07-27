@@ -1,0 +1,838 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbCancelBaseMapper">
+
+    <sql id="colsTbSsctCntrRsgProcsIz">
+            CNTR_NO
+            , CNTR_SN
+            , SELL_TP_CD
+            , SELL_TP_DTL_CD
+            , PD_CD
+            , PRGS_NMN_N
+            , CNTR_PASG_DC
+            , SPP_NMN_N
+            , RTNGD_QTY
+            , SL_DC
+            , NOM_SL_AMT
+            , SPMT_SL_AMT
+            , NOM_DSC_AMT
+            , SPMT_DSC_AMT
+            , SL_CTR_AMT
+            , CAN_CTR_AMT
+            , SL_SUM_AMT
+            , SL_SUM_VAT
+            , SL_AGG_AMT
+            , SL_AGG_AMT_VAT
+            , DSC_AGG_AMT
+            , CTR_AGG_AMT
+            , NOM_INT_AMT
+            , INT_CTR_AMT
+            , INT_SUM_AMT
+            , INT_VAT
+            , INT_AGG_AMT
+            , INT_AGG_VAT
+            , INT_DSC_AGG_AMT
+            , THM_PAIAM
+            , THM_SV_AMT
+            , SL_BLAM
+            , ADN_SV_SPMT_SL_AMT
+            , PRM_BTD_AMT
+            , PRPD_BTD_AMT
+            , EOT_ATAM
+            , TOT_PRPD_AMT
+            , SL_DP_AMT
+            , SL_DP_AGG_AMT
+            , UC_AMT
+            , DLQ_AMT
+            , RSG_APLC_DT
+            , RSG_FSH_DT
+            , CNTR_STAT_CH_RSON_CD
+            , CCAM_EXMPT_DV_CD
+            , CSMB_CS_EXMPT_DV_CD
+            , REQD_CS_EXMPT_DV_CD
+            , REQD_AK_RCVRY_DV_CD
+            , REQD_FSH_RCVRY_DV_CD
+            , PD_USE_DC
+            , PD_GD_CD
+            , PRM_RFND_AMT
+            , PRPD_RFND_AMT
+            , DSC_DDCTAM
+            , FILT_DDCTAM
+            , RENTAL_RGST_COST_RFND_AMT
+            , RENTAL_RGST_COST_RFND_AMT_VAT
+            , BOR_AMT
+            , TOT_RFND_AMT
+            , LS_RNTF
+            , MLG_BTD_PRPD_AMT
+            , MLG_SL_AMT
+            , MLG_EOT_PRPD_AMT
+            , ADAMT_BTD_AMT
+            , ADAMT_DP_RPLC_AMT
+            , ADAMT_EOT_AMT
+            , ADAMT_DDCTAM
+            , ADAMT_THM_AMT
+            , CCAM_RES_AMT1
+            , RENTAL_RGST_COST_BOR_AMT1
+            , DSC_CS_BOR_AMT1
+            , CSMB_COST_BOR_AMT1
+            , RSTL_BOR_AMT1
+            , P_BOR_AMT1
+            , REQD_CS_BOR_AMT1
+            , CCAM_RES_AMT2
+            , RENTAL_RGST_COST_BOR_AMT2
+            , DSC_CS_BOR_AMT2
+            , CSMB_COST_BOR_AMT2
+            , RSTL_BOR_AMT2
+            , P_BOR_AMT2
+            , REQD_CS_BOR_AMT2
+            , RSG_CRT_DV_CD
+            , BLK_AUTO_CRT_YN
+            , SL_CTR_RQR_ID
+            , SL_CTR_RMK_CN
+            , CNTR_CH_RCP_ID
+            , ICHR_OG_TP_CD
+            , ICHR_PRTNR_NO
+            , DTA_DL_YN
+    </sql>
+
+    <select id="selectCntrBases" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelBaseDto$SearchRes">
+        SELECT CD.CNTR_NO
+             , CD.CNTR_SN
+             , CD.SELL_TP_CD
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', CD.SELL_TP_CD) AS SELL_TP_NM
+             , CD.SELL_TP_DTL_CD
+             , CD.CNTR_DTL_STAT_CD
+             , CB.CNTR_CST_NO
+             , SB.CST_KNM AS CNTR_CST_KNM
+             , CD.BASE_PD_CD
+             , PB.PD_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'COPN_DV_CD', CB.COPN_DV_CD) AS COPN_DV_NM
+             , 'wells' AS CNTR_GBN
+             , MP.OG_CD             /* 소속 */
+             , MO.HOO_PRTNR_NM      /* 본부장명 */
+             , MO.HOO_PRTNR_NO      /* 본부장사번 */
+             , CASE WHEN CD.HGR_PD_CD IS NOT NULL THEN 'Y' ELSE 'N' END PKG_YN /* 멤버십패키지여부 */
+             , SUBSTR(CB.CNTR_RCP_FSH_DTM,1,8) AS CNTR_RCP_DT   /* (멤버십)계약일 */
+             , SUBSTR(CB.CNTR_CNFM_DTM,1,8) AS CNTR_CNFM_DT	    /* 계약확정일 */
+             , CD.CNTR_PD_STRTDT                                /* 설치일,배송일,가입일, 매출일자 */
+             , DECODE(CD.CNTR_DTL_STAT_CD, '301', CD.CNTR_PD_ENDDT, '') AS CNTR_PD_ENDDT	/* 탈퇴일자 */
+             , SM.RENTAL_TN + 1 AS RENTAL_TN                    /* 렌탈차월, 멤버십가입차월 */
+             , SM.RENTAL_DC                                     /* 가입일수(RENTAL_DC/SL_DC) - 렌탈/멤버십일수 */
+             , SM.SL_DC                                         /* 가입일수(RENTAL_DC/SL_DC) - 매출일수 */
+             , SM.SPP_TN                                        /* 정기배송 : 배송회차 */
+             , CD.STPL_PTRM         /* 의무기간 */
+             , CD.SV_PRD            /* BS 주기(멤버십) */
+             , (SELECT F_CMZ_CD_NM(#{session.tenantId}, 'SV_TP_CD', MAX(T1.SV_PD_TP_CD))
+                  FROM TB_SSCT_CNTR_PD_REL T
+                 INNER JOIN TB_PDBS_PD_BAS T1
+                    ON T1.PD_CD = T.OJ_PD_CD
+                   AND T1.DTA_DL_YN = 'N'
+                 WHERE T.CNTR_NO = CD.CNTR_NO
+                   AND T.CNTR_SN = CD.CNTR_SN
+                   AND T.BASE_PD_CD = CD.BASE_PD_CD
+                   AND T.PD_REL_TP_CD = '03'
+                   AND T.VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                   AND T.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                   AND T.DTA_DL_YN = 'N'
+                 ) AS SV_PD_TP_NM                       /* 용도구분 */
+             , F_CMZ_CD_NM(#{session.tenantId}, 'STLM_TP_CD', CD.STLM_TP_CD) AS STLM_TP_NM	/* 멤버십 가입유형 */
+             , CD.SPP_DUEDT                             /* 예정일자 - 일시불에서 사용 */
+             , NVL(CD.CNTR_AMT, 0) AS CNTR_AMT          /* 계약금액 */
+             , NVL(SM.RENTAL_RGST_COST, 0) AS RENTAL_RGST_COST          /* 렌탈등록비 */
+             , NVL(CD.CNTRAM_DSC_AMT, 0) AS CNTRAM_DSC_AMT   /* 등록비 할인 */
+             , NVL(CD.CNTR_TAM, 0) AS CNTR_TAM          /* 계약총금액 */
+             , NVL(CD.PD_BASE_AMT, 0) AS PD_BASE_AMT    /* 정상렌탈료 */
+             , NVL(CD.CNTR_PTRM, 0) AS CNTR_PTRM        /* 렌탈개월 */
+             , NVL(CD.FNL_AMT, 0) AS FNL_AMT            /* 렌탈금액 */
+             , NVL(CD.DSC_AMT, 0) AS DSC_AMT            /* 렌탈할인금액 */
+             , RR.STPL_PTRM AS RSTL_PTRM                /* 재약정개월 */
+             , NVL(RR.STPL_DSC_AMT, 0) AS STPL_DSC_AMT  /* 재약정할인금액 */
+             , RR.STPL_STRTDT                           /* 재약정기간 FROM */
+             , RR.STPL_ENDDT                            /* 재약정기간 TO */
+             , (SELECT PD_NM FROM TB_PDBS_PD_BAS WHERE PD_CD = CD2.BASE_PD_CD AND DTA_DL_YN = 'N') AS MACHINE_NM
+             , 0 AS ADD_AMT	                            /* 정기배송기기 - 추가 : 알수 없음 */
+             , NVL(CD2.FNL_AMT, 0) AS MACHINE_RENTAL_AMT        /* 정기배송 기기 렌탈료 */
+             , NVL(CD2.FNL_AMT, 0) AS RECOVER_AMT               /* 정기배송기기 원복 : 현재상품가격으로 재조회 해야 함 */
+             , CASE WHEN CD.SELL_TP_DTL_CD IN ('22','24')
+                    THEN NVL(CD.CNTR_TAM,0) - TRUNC(CD.CNTR_TAM/CD.CNTR_PTRM,0)*MONTHS_BETWEEN(TO_DATE(TO_CHAR(SYSDATE,'YYYYMM')||'01', 'YYYYMMDD'), TO_DATE(SUBSTR(CD.CNTR_PD_STRTDT,1,6)||'01','YYYYMMDD'))
+                    ELSE
+                     CASE WHEN MONTHS_BETWEEN(TO_DATE(TO_CHAR(SYSDATE,'YYYYMM')||'01', 'YYYYMMDD'), TO_DATE(SUBSTR(CD.CNTR_PD_STRTDT,1,6)||'01','YYYYMMDD')) >= 54
+                          THEN 0
+                          ELSE GREATEST(LEAST(TRUNC((CD.FNL_AMT+CD.DSC_AMT)*60*0.9,0) - TRUNC((CD.FNL_AMT+CD.DSC_AMT)*MONTHS_BETWEEN(TO_DATE(TO_CHAR(SYSDATE,'YYYYMM')||'01', 'YYYYMMDD'), TO_DATE(SUBSTR(CD.CNTR_PD_STRTDT,1,6)||'01','YYYYMMDD')),0),TRUNC((CD.FNL_AMT+CD.DSC_AMT)*60*0.5,0)),0)
+                          END
+                    END AS LSNT
+             , NVL(SM.EOT_UC_AMT, 0) AS EOT_UC_AMT        /* 미납금 - 연체가산금, 위약금 미포함 */
+             , NVL(CD.SELL_AMT, 0) AS SELL_AMT
+             , DECODE(CD.CNTR_DTL_STAT_CD, '301','취소등록','303','취소등록','-') AS CANCEL_STAT_NM
+             , DECODE(CD.CNTR_DTL_STAT_CD, '301','Y','303','Y','N') AS DISABLE_CHK
+          FROM TB_SSCT_CNTR_DTL CD
+         INNER JOIN TB_SSCT_CNTR_BAS CB
+            ON CB.CNTR_NO = CD.CNTR_NO
+           AND CB.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON PB.PD_CD = CD.BASE_PD_CD
+           AND PB.TEMP_SAVE_YN = 'N'
+           AND PB.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS SB
+            ON SB.CST_NO = CB.CNTR_CST_NO
+           AND SB.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_PRTNR_IZ MP
+            ON MP.BASE_YM = SUBSTR(CB.CNTR_CNFM_DTM,1,6)
+           AND MP.OG_TP_CD = CB.SELL_OG_TP_CD
+           AND MP.PRTNR_NO = CB.SELL_PRTNR_NO
+           AND MP.DTA_DL_YN = 'N'
+         INNER JOIN TB_OGBS_MM_OG_IZ MO
+            ON MO.OG_ID = MP.OG_ID
+           AND MO.BASE_YM = MP.BASE_YM
+           AND MO.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_RENTAL_RSTL_IZ RR
+            ON RR.CNTR_NO = CD.CNTR_NO
+           AND RR.CNTR_SN = CD.CNTR_SN
+           AND RR.STPL_TN = (SELECT MAX(STPL_TN)
+                               FROM TB_SSCT_RENTAL_RSTL_IZ
+                              WHERE CNTR_NO = CD.CNTR_NO
+                                AND CNTR_SN = CD.CNTR_SN
+                                AND DTA_DL_YN = 'N')
+           AND RR.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SM	/* 매출이 생성되지 않은 건은 체크하므로 아예 조건에 포함 */
+            ON SM.CNTR_NO = CD.CNTR_NO
+           AND SM.CNTR_SN = CD.CNTR_SN
+           AND SM.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(#{dm},'YYYYMM'), -1),'YYYYMM')
+           AND SM.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_REL CR
+            ON CR.BASE_DTL_CNTR_NO = CD.CNTR_NO
+           AND CR.BASE_DTL_CNTR_SN = CD.CNTR_SN
+           AND CR.CNTR_REL_DTL_CD IN ('214','216')	/* 정기배송 결합 단독/결합 */
+           AND CR.VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND CR.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND CR.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_DTL CD2
+            ON CD2.CNTR_NO = CR.OJ_DTL_CNTR_NO
+           AND CD2.CNTR_SN = CR.OJ_DTL_CNTR_SN
+           AND CD2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_REL T9
+            ON T9.OJ_DTL_CNTR_NO = CD.CNTR_NO
+           AND T9.OJ_DTL_CNTR_SN = CD.CNTR_SN
+           AND T9.CNTR_REL_DTL_CD = '215'
+           AND T9.VL_END_DTM >= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND T9.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+           AND T9.DTA_DL_YN = 'N'
+         WHERE CD.DTA_DL_YN = 'N'
+           AND CD.SELL_TP_CD IN ('1','2','3','6')	/* 일시불, 렌탈, 멤버십, 정기배송 */
+           AND 1 = CASE WHEN CD.SELL_TP_CD = '2'
+                        THEN CASE WHEN CD.STPL_PTRM > 0 THEN 1			/* 렌탈 - 의무약정기간이 있어야 함 */
+                                  ELSE 2
+                             END
+                        ELSE 1
+                    END
+           AND 1 = CASE WHEN CD.SELL_TP_CD = '1'
+                        THEN CASE WHEN SM.CNTR_NO IS NULL THEN 1		/* 일시불 - 매출발생 전이어야 있어야 함 */
+                                  ELSE 2
+                             END
+                        ELSE CASE WHEN SM.CNTR_NO IS NULL THEN 2		/* 일시불제외 - 매출건이 존재해야 함 */
+                                  ELSE 1
+                             END
+                    END
+           AND 1 = CASE WHEN CD.SELL_TP_CD = '1'
+                        THEN CASE WHEN SUBSTR(#{dm},1,6) = SUBSTR(CB.CNTR_CNFM_DTM,1,6) THEN 1		/* 일시불 - 조회년월 조건이 다름 */
+                                  ELSE 2
+                             END
+                        ELSE 1
+                    END
+           AND T9.OJ_DTL_CNTR_NO IS NULL        /* 1+1 이전코드가 아니어야 함 */
+           AND CD.CNTR_DTL_STAT_CD IN ('101','201','202','301','303')
+           AND CD.CNTR_PD_STRTDT IS NOT NULL
+        <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+            AND CD.CNTR_NO = #{cntrNo}         /* 계약상세번호 조건이 존재하는 경우 */
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+            AND CD.CNTR_SN = #{cntrSn}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cstNo)">
+            AND CB.CNTR_CST_NO = #{cstNo}      /* 계약자 고객번호 조건이 존재하는 경우 */
+        </if>
+    </select>
+
+    <select id="selectCancelBase" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCancelBaseDvo">
+        SELECT CD.ALNCMP_CD         /* 제휴사코드 */
+             , CD.CNTR_PD_STRTDT    /* 상품시작일자 - 매출일자 */
+             , TO_CHAR(ADD_MONTHS(TO_DATE(CNTR_PD_STRTDT, 'YYYYMMDD'), NVL(CNTR_PTRM, 0)), 'YYYYMMDD')  AS EXN_DT
+             , TO_DATE(#{reqDt}, 'YYYYMMDD') - TO_DATE(CNTR_PD_STRTDT, 'YYYYMMDD')  AS USE_DAYS
+             , SM.THM_SL_SUM_AMT    /* 당월매출금액 */
+             , RD.THM_DP_TOT_AMT    /* 당월입금총합 */
+             , RD.THM_RFND_TOT_AMT  /* 당월환불총합 */
+             -- , RR.STPL_DSC_AMT      /* 재약정할인금액 */
+             -- , RR.STPL_STRTDT       /* 재약정시작일자 */
+             -- , RR.STPL_ENDDT        /* 재약정종료일자 */
+             -- , RR.STPL_PTRM AS RE_STPL_PTRM	/* 재약정의무기간 */
+             -- , CD.STPL_PTRM	        /* 의무기간 */
+             -- , (SELECT REF_PD_CLSF_VAL FROM TB_PDBS_PD_CLSF_BAS WHERE PD_CLSF_ID = PB.PD_LCLSF_ID AND TEMP_SAVE_YN = 'N' AND DTA_DL_YN = 'N') AS REF_PD_CLSF_VAL  /* 상품참조분류 - 커피원두 구분용 */
+             -- , CD.SELL_DSC_DV_CD    /* 할인구분코드 */
+          FROM TB_SSCT_CNTR_DTL CD
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON PB.PD_CD = CD.BASE_PD_CD
+           AND PB.TEMP_SAVE_YN = 'N'
+           AND PB.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_RENTAL_RSTL_IZ RR /* 렌탈재약정내역 */
+            ON RR.CNTR_NO = CD.CNTR_NO
+           AND RR.CNTR_SN = CD.CNTR_SN
+           AND RR.STPL_TN = 1
+           AND RR.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ SM /* WELLS매출월마감내역 */
+            ON SM.CNTR_NO = CD.CNTR_NO
+           AND SM.CNTR_SN = CD.CNTR_SN
+           AND SM.SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYYMM')
+          LEFT OUTER JOIN LATERAL (SELECT SUM(DECODE(DP_DV_CD, '1', RVE_AMT,'3', RVE_AMT, 0)) AS THM_DP_TOT_AMT
+                                        , SUM(DECODE(DP_DV_CD, '2', RVE_AMT,'4', RVE_AMT, 0)) AS THM_RFND_TOT_AMT
+                                     FROM TB_RVDW_RVE_DTL
+                                    WHERE RVE_DV_CD = '03'
+                                      AND CNTR_NO = CD.CNTR_NO
+                                      AND CNTR_SN = CD.CNTR_SN
+                                      AND RVE_DT BETWEEN SUBSTR(#{cancelDt}, 1,6)||'01' AND SUBSTR(#{cancelDt}, 1,6)||'31'
+                                      AND RVE_PROCS_YN = 'Y'
+                                  ) RD
+            ON 1=1
+         WHERE CD.DTA_DL_YN = 'N'
+           AND CD.CNTR_NO = #{cntrNo}
+           AND CD.CNTR_SN = #{cntrSn}
+    </select>
+
+    <select id="selectRentalCancelBase" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCancelBaseDvo">
+        SELECT SM.CNTR_NO
+             , SM.CNTR_SN
+             , CD.SELL_TP_CD
+             , CD.SELL_TP_DTL_CD
+             , CD.CNTR_PTRM
+             , CASE WHEN CD.CNTR_PTRM <![CDATA[<]]> SM.RENTAL_TN+1 THEN CD.CNTR_PTRM
+                    ELSE SM.RENTAL_TN+1
+                END RENTAL_TN
+             , NULL AS CNTR_PASG_DC
+             , NULL AS SPP_NMN_N
+             , CD.CNTR_PD_STRTDT
+             , NVL(T6.NOM_SL_AMT,0) AS NOM_SL_AMT
+             , 0 AS SPMT_SL_AMT
+             , 0 AS NOM_DSC_AMT
+             , NVL(T7.SPMT_DSC_AMT,0) AS SPMT_DSC_AMT
+             , 0 AS SL_CTR_AMT
+             -- , NULL AS SL_DC
+             -- , NULL AS RTNGD_QTY /* 화면에서 입력하는 값일 경우, null을 덮어쓰지 않기 위해 주석 처리 */
+             -- , 0 AS CAN_CTR_AMT /* 화면에서 입력하는 값일 경우, 0을 덮어쓰지 않기 위해 주석 처리 */
+             , NVL(T7.SL_SUM_AMT,0) AS SL_SUM_AMT
+             , NVL(T7.SL_SUM_VAT,0) AS SL_SUM_VAT
+             , NVL(SM.SL_AGG_AMT,0) + T7.SL_SUM_AMT AS SL_AGG_AMT
+             , (NVL(SM.SL_AGG_AMT,0) + T7.SL_SUM_AMT) - TRUNC((NVL(SM.SL_AGG_AMT,0) + T7.SL_SUM_AMT)/1.1,0) AS SL_AGG_AMT_VAT
+             , NVL(SM.DSC_AGG_AMT,0) AS DSC_AGG_AMT
+             , NVL(SM.CTR_AGG_AMT,0) AS CTR_AGG_AMT
+             , 0 AS NOM_INT_AMT
+             , 0 AS INT_CTR_AMT
+             , 0 AS INT_SUM_AMT
+             , 0 AS INT_VAT
+             , 0 AS INT_AGG_AMT
+             , 0 AS INT_DSC_AGG_AMT
+             , 0 AS THM_PAIAM       /* 금융리스만 다룸, 다음 STEP에서 다시 계산해야 함 */
+             , 0 AS THM_SV_AMT      /* 금융리스만 다룸, 다음 STEP에서 다시 계산해야 함 */
+             , 0 AS SL_BLAM	        /* TO-BE 매출 테이블에서 다루지 않음, 우선 0 */
+             , NVL(T6.ADN_SV_SL_AMT,0) AS ADN_SV_SPMT_SL_AMT
+             , NVL(SM.PRM_BLAM_EOT_AMT,0) AS PRM_BTD_AMT
+             , NVL(T7.EOT_ATAM_T,0) + NVL(DB.EOT_DLQ_ADD_AMT,0) AS EOT_ATAM
+             --, NVL(T7.EOT_ATAM_T,0) + NVL(DB.EOT_DLQ_ADD_AMT,0) AS TOT_PRPD_AMT
+             , NVL(SM.PRM_BLAM_EOT_AMT,0) + NVL(T7.EOT_ATAM_T,0) + NVL(DB.EOT_DLQ_ADD_AMT,0) AS TOT_PRPD_AMT
+             , NVL(T8.SL_DP_AMT,0) AS SL_DP_AMT
+             , NVL(SM.SL_DP_AGG_AMT,0) + NVL(T8.SL_DP_AMT,0) AS SL_DP_AGG_AMT
+             , NVL(SM.SL_AGG_AMT,0) - (NVL(SL_DP_AGG_AMT,0) + NVL(T8.SL_DP_AMT,0)) + NVL(DB.EOT_DLQ_ADD_AMT,0) AS UC_AMT
+             , NVL(DB.EOT_DLQ_AMT,0) AS DLQ_AMT
+             , 0 AS PRM_RFND_AMT
+             , 0 AS PRPD_RFND_AMT
+             , 0 AS DSC_DDCTAM
+             , 0 AS FILT_DDCTAM
+             , 0 AS RENTAL_RGST_COST_RFND_AMT
+             , 0 AS RENTAL_RGST_COST_RFND_AMT_VAT
+             , NVL(BA.BOR_AMT,0) AS BOR_AMT
+             , NVL(T7.EOT_ATAM_T + DB.EOT_DLQ_ADD_AMT - BA.EOT_BOR_AMT - BA.LS_RNTF - BA.REQD_CS_BOR_AMT - SM.EOT_UC_AMT - SM.MLG_SL_AMT,0) AS TOT_RFND_AMT
+             , NVL(DB.EOT_DLQ_ADD_AMT, 0) AS EOT_DLQ_ADD_AMT        /* 기말연체가산금액 */
+             /* 위약금 정보 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+             , NVL(BA.RES_RTLFE_BOR_AMT, 0) AS RES_RTLFE_BOR_AMT    /* 잔여렌탈료위약금액 */
+             , NVL(BA.RGST_COST_DSC_BOR_AMT, 0) AS RGST_COST_DSC_BOR_AMT /* 등록비할인위약금액 */
+             , NVL(BA.RENTAL_DSC_BOR_AMT, 0) AS RENTAL_DSC_BOR_AMT  /* 렌탈할인위약금액 */
+             , NVL(BA.CSMB_COST_BOR_AMT, 0) AS CSMB_COST_BOR_AMT    /* 소모품비위약금액 */
+             , NVL(BA.P_BOR_AMT, 0) AS PT_BOR_AMT                    /* 포인트위약금액 */
+             , NVL(BA.REQD_CS_BOR_AMT, 0) AS REQD_CS_BOR_AMT        /* 철거비용위약금액 */
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ SM                         /* WELLS매출월마감내역 */
+         INNER JOIN TB_SSCT_CNTR_DTL CD
+            ON CD.CNTR_NO = SM.CNTR_NO
+           AND CD.CNTR_SN = SM.CNTR_SN
+           AND CD.SELL_TP_CD = '2'
+           AND CD.DTA_DL_YN = 'N'
+        --   AND CD.ALNCMP_CD NOT IN ('45','69')
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS DB        /* 연체기본 */
+            ON DB.CNTR_NO = SM.CNTR_NO
+           AND DB.CNTR_SN = SM.CNTR_SN
+           AND DB.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1),'YYYYMM')
+           AND DB.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_RENTAL_RSTL_IZ RR /* 렌탈재약정내역 */
+            ON RR.CNTR_NO = CD.CNTR_NO
+           AND RR.CNTR_SN = CD.CNTR_SN
+           AND RR.STPL_TN = 1
+           AND RR.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_RENTAL_ADN_SV_IZ RA /* 렌탈부가서비스내역 */
+            ON RA.CNTR_NO = SM.CNTR_NO
+           AND RA.CNTR_SN = SM.CNTR_SN
+           AND RA.ADN_SV_DV_CD = '01'
+           AND RA.ADN_SV_SN = 1
+           AND RA.IST_DT IS NOT NULL
+           AND RA.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS BA /* WELLS위약금액기본 */
+            ON BA.CNTR_NO = CD.CNTR_NO
+           AND BA.CNTR_SN = CD.CNTR_SN
+           AND BA.PERF_YM = SUBSTR(#{cancelDt},1,6)
+           AND BA.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN LATERAL (SELECT MAX(SL_CTR_TP_CD) AS SL_CTR_TP_CD
+                                        , MAX(SL_CTR_DV_CD) AS SL_CTR_DV_CD
+                                        , SUM(CASE WHEN SL_CTR_DV_CD='1' THEN SL_CTR_AMT ELSE -SL_CTR_AMT END) AS ADJ_AMT
+                                     FROM TB_RVDW_SL_CTR_BAS   /* 매출조정기본 */
+                                    WHERE CNTR_NO = SM.CNTR_NO
+                                      AND CNTR_SN = SM.CNTR_SN
+                                      AND SL_CTR_SELL_TP_CD = '2'
+                                      AND SUBSTR(#{cancelDt},1,6) BETWEEN SL_CTR_STRT_YM AND SL_CTR_END_YM
+                                      AND DTA_DL_YN = 'N'
+                                  ) SC
+            ON 1=1
+          LEFT OUTER JOIN LATERAL (SELECT SUM(CASE WHEN DP_DV_CD IN ('1','3') THEN RVE_AMT ELSE 0 END) AS DP_AMT
+                                        , SUM(CASE WHEN DP_DV_CD IN ('2','4') THEN RVE_AMT ELSE 0 END) AS RFND_AMT
+                                     FROM TB_RVDW_RVE_DTL       /* 수납상세 */
+                                    WHERE KW_GRP_CO_CD = '2000'
+                                      AND CNTR_NO = SM.CNTR_NO
+                                      AND CNTR_SN = SM.CNTR_SN
+                                      AND RVE_DT LIKE SUBSTR(#{cancelDt},1,6)||'%'
+                                      AND RVE_DV_CD NOT IN ('09','10')  /* 손료,대손 제외 */
+                                      AND DP_MES_CD NOT IN ('06','07')  /* 포인트/마일리지 제외 */
+                                      AND RVE_PROCS_YN = 'Y'
+                                      AND DTA_DL_YN = 'N'
+                                    ) RD
+            ON 1=1
+         INNER JOIN LATERAL (SELECT /* 의무기간경과여부 - 약정기간과 취소일자와 시작(매출)일자와의 차이 */
+                                    CASE WHEN CD.STPL_PTRM <![CDATA[<=]]> MONTHS_BETWEEN(TO_DATE(#{cancelDt}, 'YYYYMMDD'), TO_DATE(CD.CNTR_PD_STRTDT,'YYYYMMDD')) THEN 'Y' ELSE 'N' END DUTY_OVER_YN
+                                    /* 의무기간종료일 */
+                                    , ADD_MONTHS(TO_DATE(CD.CNTR_PD_STRTDT, 'YYYYMMDD'),CD.STPL_PTRM) AS DUTY_END_DT
+                                    /* 의무기간종료월말일 */
+                                    , LAST_DAY(ADD_MONTHS(TO_DATE(CD.CNTR_PD_STRTDT, 'YYYYMMDD'),CD.STPL_PTRM)) AS DUTY_END_LAST_DT
+                                    /* 잔여개월수 */
+                                    , CASE WHEN MONTHS_BETWEEN(TO_DATE(SUBSTR(#{cancelDt},1,6)||'01', 'YYYYMMDD'), TO_DATE(SUBSTR(CD.CNTR_PD_STRTDT,1,6)||'01','YYYYMMDD')) >= CD.STPL_PTRM
+                                            THEN 0
+                                           ELSE CD.STPL_PTRM - MONTHS_BETWEEN(TO_DATE(SUBSTR(#{cancelDt},1,6)||'01', 'YYYYMMDD'), TO_DATE(SUBSTR(CD.CNTR_PD_STRTDT,1,6)||'01','YYYYMMDD'))
+                                            END AS REMAIN_MONTHS
+                                    /* 설치월말일자 */
+                                    , EXTRACT(DAY FROM (LAST_DAY(TO_DATE(CD.CNTR_PD_STRTDT, 'YYYYMMDD')))) AS IST_LAST_DAY
+                                    /* 설치 후 경과월 */
+                                    , MONTHS_BETWEEN(TO_DATE(SUBSTR(#{cancelDt},1,6)||'01', 'YYYYMMDD'), TO_DATE(SUBSTR(CD.CNTR_PD_STRTDT,1,6)||'01','YYYYMMDD')) AS AFT_IST_MONTHS
+                                    /* 설치 경과일 */
+                                    , (TO_DATE(#{cancelDt}, 'YYYYMMDD') - TO_DATE(CD.CNTR_PD_STRTDT,'YYYYMMDD')) AS AFT_IST_DAYS
+                                    /* 취소 월말일자 */
+                                    , EXTRACT(DAY FROM (LAST_DAY(TO_DATE(#{cancelDt}, 'YYYYMMDD')))) AS CAN_LAST_DAY
+                               FROM DUAL ) T5
+            ON 1=1
+         INNER JOIN LATERAL (SELECT /* 매출금액 계산 */
+                                    CASE WHEN T5.DUTY_OVER_YN = 'Y' AND (SUBSTR(#{cancelDt},7,2) >= 30 OR T5.CAN_LAST_DAY = SUBSTR(#{cancelDt},6,2))
+                                            THEN SM.RENTAL_AMT - NVL(SM.RENTAL_DSC_AMT,0)- NVL(RR.STPL_DSC_AMT,0) /* 30일이상 또는 말일이면 전액부과, 재약정할인 추가 */
+                                         WHEN T5.DUTY_OVER_YN = 'Y'
+                                            THEN TRUNC((SM.RENTAL_AMT-SM.RENTAL_DSC_AMT)/30*TO_NUMBER(SUBSTR(#{cancelDt},7,2)), -1)
+                                         WHEN (TO_NUMBER(SUBSTR(#{cancelDt},7,2)) >= 30 OR T5.CAN_LAST_DAY = SUBSTR(#{cancelDt},6,2))
+                                            THEN SM.RENTAL_AMT - NVL(SM.RENTAL_DSC_AMT,0) - NVL(RR.STPL_DSC_AMT,0) /* 의무기간 이내이면 정상차액 포함 */
+                                         ELSE TRUNC((SM.RENTAL_AMT-NVL(SM.RENTAL_DSC_AMT,0)- NVL(RR.STPL_DSC_AMT,0))/30*TO_NUMBER(SUBSTR(#{cancelDt},7,2)), -1)
+                                          END AS NOM_SL_AMT
+                                  , CASE WHEN RA.CNTR_NO IS NULL THEN 0
+                                         WHEN (TO_NUMBER(SUBSTR(#{cancelDt},7,2)) >= 30 OR T5.CAN_LAST_DAY = SUBSTR(#{cancelDt},6,2))
+                                            THEN NVL(RA.ADN_SV_CS_AMT,0) - NVL(RA.DSC_AMT,0)
+                                         ELSE TRUNC((NVL(RA.ADN_SV_CS_AMT,0) - NVL(RA.DSC_AMT,0))/30*TO_NUMBER(SUBSTR(#{cancelDt},7,2)), -1)
+                                          END AS ADN_SV_SL_AMT
+                               FROM DUAL ) T6
+            ON 1=1
+         INNER JOIN LATERAL (SELECT CASE WHEN SC.SL_CTR_DV_CD IS NOT NULL AND SC.SL_CTR_DV_CD ='2' AND SC.SL_CTR_TP_CD ='2' THEN T6.NOM_SL_AMT
+                                         ELSE T6.NOM_SL_AMT - TRUNC(T6.NOM_SL_AMT*0.3,-1) - TRUNC(NVL(SC.ADJ_AMT,0)*0.3,-1)
+                                          END AS SPMT_DSC_AMT
+                                      , (T6.NOM_SL_AMT - CASE WHEN SC.SL_CTR_DV_CD IS NOT NULL AND SC.SL_CTR_DV_CD ='2' AND SC.SL_CTR_TP_CD ='2' THEN T6.NOM_SL_AMT
+                                           ELSE T6.NOM_SL_AMT - TRUNC(T6.NOM_SL_AMT*0.3,-1) - TRUNC(NVL(SC.ADJ_AMT,0)*0.3,-1)
+                                           END ) AS SL_SUM_AMT
+                                      , (T6.NOM_SL_AMT - CASE WHEN SC.SL_CTR_DV_CD IS NOT NULL AND SC.SL_CTR_DV_CD ='2' AND SC.SL_CTR_TP_CD ='2' THEN T6.NOM_SL_AMT
+                                           ELSE T6.NOM_SL_AMT - TRUNC(T6.NOM_SL_AMT*0.3,-1) - TRUNC(NVL(SC.ADJ_AMT,0)*0.3,-1)
+                                           END ) -
+                                        TRUNC((T6.NOM_SL_AMT - CASE WHEN SC.SL_CTR_DV_CD IS NOT NULL AND SC.SL_CTR_DV_CD ='2' AND SC.SL_CTR_TP_CD ='2' THEN T6.NOM_SL_AMT
+                                           ELSE T6.NOM_SL_AMT - TRUNC(T6.NOM_SL_AMT*0.3,-1) - TRUNC(NVL(SC.ADJ_AMT,0)*0.3,-1)
+                                           END )/1.1,0) AS SL_SUM_VAT
+                                      , SM.EOT_ATAM + RD.DP_AMT - RD.RFND_AMT - DB.EOT_DLQ_ADD_AMT AS EOT_ATAM_T
+                               FROM DUAL ) T7
+            ON 1=1
+         INNER JOIN LATERAL (SELECT <![CDATA[CASE WHEN SM.PRM_BLAM_BTD_AMT > T7.SL_SUM_AMT THEN T7.SL_SUM_AMT
+                                         WHEN T7.EOT_ATAM_T > 0 AND SM.PRM_BLAM_BTD_AMT + T7.EOT_ATAM_T - T7.SL_SUM_AMT > 0 THEN T7.SL_SUM_AMT
+                                         WHEN T7.EOT_ATAM_T > 0 AND SM.PRM_BLAM_BTD_AMT + T7.EOT_ATAM_T - T7.SL_SUM_AMT <= 0 THEN SM.PRM_BLAM_BTD_AMT + T7.EOT_ATAM_T
+                                         WHEN T7.EOT_ATAM_T <= 0 THEN SM.PRM_BLAM_BTD_AMT
+                                         ELSE 0
+                                          END AS SL_DP_AMT]]>
+                               FROM DUAL ) T8
+            ON 1=1
+         WHERE SM.DTA_DL_YN = 'N'
+           AND SM.CNTR_NO = #{cntrNo}
+           AND SM.CNTR_SN = #{cntrSn}
+           AND SM.SL_CL_YM = SUBSTR(#{cancelDt},1,6)
+    </select>
+
+    <select id="selectMembershipCancelBase" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCancelBaseDvo">
+        SELECT SM.CNTR_NO
+            , SM.CNTR_SN
+            , CD.SELL_TP_CD
+            , CD.SELL_TP_DTL_CD
+            , CD.CNTR_PTRM
+            , CASE WHEN CD.CNTR_PTRM <![CDATA[<]]> SM.RENTAL_TN+1 THEN CD.CNTR_PTRM
+                   ELSE SM.RENTAL_TN+1
+               END RENTAL_TN
+            , NULL AS CNTR_PASG_DC
+            , NULL AS SPP_NMN_N
+            , CD.CNTR_PD_STRTDT
+            , SM.NOM_SL_AMT
+            , SM.SPMT_SL_AMT
+            , SM.NOM_DSC_AMT
+            , SM.SPMT_DSC_AMT
+            , NVL(#{slCtrAmt}, 0) AS SL_CTR_AMT
+            -- , NULL AS SL_DC
+            -- , NULL AS RTNGD_QTY /* 화면에서 입력하는 값일 경우, null을 덮어쓰지 않기 위해 주석 처리 */
+            -- , 0 AS CAN_CTR_AMT /* 화면에서 입력하는 값일 경우, null을 덮어쓰지 않기 위해 주석 처리 */
+            , T5.SL_SUM_AMT AS SL_SUM_AMT
+            , T5.SL_SUM_AMT - TRUNC(T5.SL_SUM_AMT/1.1,0) AS SL_SUM_VAT
+            , NVL(SM.SL_AGG_AMT,0) + T5.SL_SUM_AMT AS SL_AGG_AMT
+            , (NVL(SM.SL_AGG_AMT,0) + T5.SL_SUM_AMT)
+               - TRUNC((NVL(SM.SL_AGG_AMT,0) + T5.SL_SUM_AMT)/1.1,0) AS SL_AGG_AMT_VAT
+            , SM.DSC_AGG_AMT        /* 할인누계 */
+            , SM.CTR_AGG_AMT        /* 조정누계 */
+            , SM.NOM_INT_AMT        /* 정상이자금액 */
+            , SM.INT_CTR_AMT        /* 이자조정금액 */
+            , SM.INT_SUM_AMT        /* 이자합계금액 */
+            , SM.INT_VAT            /* 이자부가가치세 */
+            , SM.INT_AGG_AMT        /* 이자누계금액 */
+            , SM.INT_DSC_AGG_AMT    /* 이자할인누계금액 */
+            , 0 AS THM_PAIAM        /* 당월원리금 - 금융리스만 다룸, 다음 STEP에서 다시 계산해야 함 */
+            , 0 AS THM_SV_AMT       /* 당월서비스금액 - 금융리스만 다룸, 다음 STEP에서 다시 계산해야 함 */
+            , 0 AS SL_BLAM          /* 매출잔액 = TO-BE 매출 테이블에서 다루지 않음, 우선 0 */
+            , 0 AS ADN_SV_SPMT_SL_AMT               /* 부가서비스추가매출금액 */
+            , SM.PRM_BLAM_EOT_AMT AS PRM_BTD_AMT    /* 선납기초금액 */
+            , SM.EOT_ATAM AS EOT_ATAM               /* 기말선수금 */
+            , SM.PRM_BLAM_EOT_AMT + SM.EOT_ATAM AS TOT_PRPD_AMT /* 총선수금액 */
+            , NVL(T7.SL_DP_AMT, 0) AS SL_DP_AMT     /* 매출입금금액 */
+            , NVL(T7.SL_DP_AGG_AMT, 0) AS SL_DP_AGG_AMT      /* 매출입금누계금액 */
+            , NVL(T7.UC_AMT, 0) AS UC_AMT           /* 미수금액 */
+            , NVL(DB.EOT_DLQ_AMT,0) AS DLQ_AMT
+            , T6.PRM_RFND_AMT AS PRM_RFND_AMT
+            , T6.PRPD_RFND_AMT AS PRPD_RFND_AMT
+            , NVL(#{dscDdctam}, 0) AS DSC_DDCTAM
+            , NVL(#{filtDdctam}, 0) AS FILT_DDCTAM
+            , 0 AS RENTAL_RGST_COST_RFND_AMT
+            , 0 AS RENTAL_RGST_COST_RFND_AMT_VAT
+            , NVL(BA.BOR_AMT, '0') AS BOR_AMT
+            , ((NVL(SM.PRM_BLAM_EOT_AMT,0) + NVL(SM.EOT_ATAM,0)) - NVL(T7.SL_DP_AMT,0)- NVL(T7.UC_AMT,0) - NVL(#{dscDdctam}, 0) - NVL(#{filtDdctam}, 0)  - NVL(DB.THM_DLQ_ADD_DP_SUM_AMT,0)) AS TOT_RFND_AMT
+             , NVL(BA.RES_RTLFE_BOR_AMT, 0) AS RES_RTLFE_BOR_AMT
+             , NVL(BA.RGST_COST_DSC_BOR_AMT, 0) AS RGST_COST_DSC_BOR_AMT /* 등록비할인위약금액 */
+             , NVL(BA.RENTAL_DSC_BOR_AMT, 0) AS RENTAL_DSC_BOR_AMT /* 렌탈할인위약금액 */
+             , NVL(BA.CSMB_COST_BOR_AMT, 0) AS CSMB_COST_BOR_AMT /* 소모품비위약금액 */
+             , NVL(BA.P_BOR_AMT, 0) AS PT_BOR_AMT /* 포인트위약금액 */
+             , NVL(BA.REQD_CS_BOR_AMT, 0) AS REQD_CS_BOR_AMT /* 철거비용위약금액 */
+             , NVL(DB.EOT_DLQ_ADD_AMT, 0) AS EOT_DLQ_ADD_AMT   /* 기말연체가산금액 */
+          FROM TB_CBCL_WELLS_SL_MM_CL_IZ SM
+         INNER JOIN TB_SSCT_CNTR_DTL CD
+            ON CD.CNTR_NO = SM.CNTR_NO
+           AND CD.CNTR_SN = SM.CNTR_SN
+           AND CD.SELL_TP_CD = #{sellTpCd}
+           AND CD.DTA_DL_YN = 'N'
+        --   AND CD.ALNCMP_CD NOT IN ('45','69')
+          LEFT OUTER JOIN TB_CBCL_DLQ_BAS DB
+            ON DB.CNTR_NO = SM.CNTR_NO
+           AND DB.CNTR_SN = SM.CNTR_SN
+           AND DB.PERF_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1),'YYYYMM')
+          LEFT OUTER JOIN TB_CBCL_WELLS_BOR_AMT_BAS BA
+            ON BA.CNTR_NO = CD.CNTR_NO
+           AND BA.CNTR_SN = CD.CNTR_SN
+           AND BA.PERF_YM = SUBSTR(#{cancelDt},1,6)
+         INNER JOIN LATERAL (
+                SELECT
+                    (NVL(SM.NOM_SL_AMT,0) + NVL(SM.SPMT_SL_AMT,0) + NVL(SM.SPMT_DSC_AMT,0) - NVL(#{slCtrAmt}, 0)) AS SL_SUM_AMT
+                  FROM DUAL
+                ) T5
+            ON 1=1
+         INNER JOIN LATERAL (
+                SELECT
+                   CASE WHEN NVL(T5.SL_SUM_AMT,0) > 0
+                        THEN CASE WHEN NVL(SM.PRM_BLAM_EOT_AMT,0) > NVL(T5.SL_SUM_AMT,0) THEN NVL(T5.SL_SUM_AMT,0)
+                                 WHEN NVL(SM.EOT_ATAM,0) > 0
+                                 THEN CASE WHEN NVL(SM.PRM_BLAM_EOT_AMT,0) + NVL(SM.EOT_ATAM,0) - NVL(T5.SL_SUM_AMT,0) - NVL(DB.THM_DLQ_ADD_DP_SUM_AMT,0) > 0 THEN NVL(T5.SL_SUM_AMT,0)
+                                           ELSE NVL(T5.SL_SUM_AMT,0) + (NVL(SM.PRM_BLAM_EOT_AMT,0) + NVL(SM.EOT_ATAM,0) - NVL(T5.SL_SUM_AMT,0) - NVL(DB.THM_DLQ_ADD_DP_SUM_AMT,0))
+                                           END
+                             ELSE SM.PRM_BLAM_EOT_AMT
+                             END
+                   ELSE 0
+                   END AS SL_DP_AMT_1
+                   , CASE WHEN NVL(T5.SL_SUM_AMT,0) > 0
+                         THEN CASE WHEN NVL(SM.PRM_BLAM_EOT_AMT,0) > NVL(T5.SL_SUM_AMT,0) THEN NVL(SM.PRM_BLAM_EOT_AMT,0) - NVL(T5.SL_SUM_AMT,0)
+                                   WHEN NVL(SM.EOT_ATAM,0) > 0 THEN 0
+                                   ELSE 0
+                                   END
+                          ELSE NVL(SM.PRM_BLAM_EOT_AMT,0)
+                          END AS PRM_RFND_AMT
+                   , CASE WHEN T5.SL_SUM_AMT > 0
+                         THEN CASE WHEN SM.PRM_BLAM_EOT_AMT > T5.SL_SUM_AMT THEN SM.EOT_ATAM
+                                   WHEN SM.EOT_ATAM > 0 THEN
+                                                CASE WHEN SM.PRM_BLAM_EOT_AMT + SM.EOT_ATAM - T5.SL_SUM_AMT - DB.THM_DLQ_ADD_DP_SUM_AMT > 0
+                                                     THEN SM.PRM_BLAM_EOT_AMT + SM.EOT_ATAM - T5.SL_SUM_AMT - DB.THM_DLQ_ADD_DP_SUM_AMT
+                                                     ELSE 0
+                                                     END
+                                   ELSE 0
+                                   END
+                          ELSE SM.PRM_BLAM_EOT_AMT
+                          END AS PRPD_RFND_AMT
+                  FROM DUAL
+         ) T6
+            ON 1=1
+        INNER JOIN LATERAL (
+         <![CDATA[
+                SELECT
+                   CASE WHEN NVL(SM.SL_AGG_AMT,0) - NVL(SM.SL_DP_AGG_AMT,0) - T6.SL_DP_AMT_1 + NVL(DB.EOT_DLQ_ADD_AMT,0) < 0
+                        THEN T6.SL_DP_AMT_1 + NVL(SM.SL_AGG_AMT,0) - NVL(SM.SL_DP_AGG_AMT,0) - T6.SL_DP_AMT_1 + NVL(DB.EOT_DLQ_ADD_AMT,0)
+                   ELSE T6.SL_DP_AMT_1
+                   END AS SL_DP_AMT
+                   , CASE WHEN NVL(SM.SL_AGG_AMT,0) - NVL(SM.SL_DP_AGG_AMT,0) - T6.SL_DP_AMT_1 + NVL(DB.EOT_DLQ_ADD_AMT,0) < 0
+                        THEN NVL(SM.SL_DP_AGG_AMT,0) + T6.SL_DP_AMT_1 + NVL(SM.SL_AGG_AMT,0) - NVL(SM.SL_DP_AGG_AMT,0) - T6.SL_DP_AMT_1 + NVL(DB.EOT_DLQ_ADD_AMT,0)
+                   ELSE NVL(SM.SL_DP_AGG_AMT,0) + T6.SL_DP_AMT_1
+                   END AS SL_DP_AGG_AMT
+                   , CASE WHEN NVL(SM.SL_AGG_AMT,0) - NVL(SM.SL_DP_AGG_AMT,0) - T6.SL_DP_AMT_1 + NVL(DB.EOT_DLQ_ADD_AMT,0) < 0
+                        THEN 0
+                   ELSE NVL(SM.SL_AGG_AMT,0) - NVL(SM.SL_DP_AGG_AMT,0) - T6.SL_DP_AMT_1 + NVL(DB.EOT_DLQ_ADD_AMT,0)
+                   END AS UC_AMT
+                  FROM DUAL
+         ]]>
+         ) T7
+            ON 1=1
+         WHERE SM.DTA_DL_YN = 'N'
+           AND SM.CNTR_NO = #{cntrNo}
+           AND SM.CNTR_SN = #{cntrSn}
+           AND SM.SL_CL_YM = TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(#{cancelDt},1,6), 'YYYYMM'), -1),'YYYYMM')
+    </select>
+
+    <insert id="insertContractResign" parameterType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCancelBaseDvo">
+        INSERT INTO TB_SSCT_CNTR_RSG_PROCS_IZ(
+            <include refid="colsTbSsctCntrRsgProcsIz" />
+            <include refid="COMMON.insertSystemField" />
+        )VALUES(
+            #{cntrNo}
+            , #{cntrSn}
+            , #{sellTpCd}
+            , #{sellTpDtlCd}
+            , #{basePdCd}
+            , #{rentalTn}   <!-- TODO : cntrPtrm?rentalTn?  -->
+            , #{cntrPasgDc}
+            , #{sppNmnN}
+            , #{rtngdQty}
+            , #{slDc}
+            , #{nomSlAmt}
+            , #{spmtSlAmt}
+            , #{nomDscAmt}
+            , #{spmtDscAmt}
+            , #{slCtrAmt}
+            , #{canCtrAmt}
+            , #{slSumAmt}
+            , #{slSumVat}
+            , #{slAggAmt}
+            , #{slAggAmtVat}
+            , #{dscAggAmt}
+            , #{ctrAggAmt}
+            , #{nomIntAmt}
+            , #{intCtrAmt}
+            , #{intSumAmt}
+            , #{intVat}
+            , #{intAggAmt}
+            , NULL              /* INT_AGG_VAT */
+            , #{intDscAggAmt}
+            , #{thmPaiam}
+            , #{thmSvAmt}
+            , #{slBlam}
+            , #{adnSvSpmtSlAmt}
+            , #{prmBtdAmt}
+            , NULL              /* PRPD_BTD_AMT */
+            , #{eotAtam}
+            , #{totPrpdAmt}
+            , #{slDpAmt}
+            , #{slDpAggAmt}
+            , #{ucAmt}
+            , #{dlqAmt}
+            , #{rsgAplcDt}
+            , #{rsgFshDt}
+            , #{cntrStatChRsonCd}
+            , #{ccamExmptDvCd}
+            , #{csmbCsExmptDvCd}
+            , #{reqdCsExmptDvCd}
+            , #{reqdAkRcvryDvCd}
+            , NULL              /* REQD_FSH_RCVRY_DV_CD */
+            , #{useDays}
+            , #{grade}
+            , #{prmRfndAmt}
+            , #{prpdRfndAmt}
+            , #{dscDdctam}
+            , #{filtDdctam}
+            , #{rentalRgstCostRfndAmt}
+            , #{rentalRgstCostRfndAmtVat}
+            , #{borAmt}
+            , #{totRfndAmt}
+            , #{lsnt}
+            , NULL              /* MLG_BTD_PRPD_AMT */
+            , NULL              /* MLG_SL_AMT */
+            , NULL              /* MLG_EOT_PRPD_AMT */
+            , NULL              /* ADAMT_BTD_AMT */
+            , NULL              /* ADAMT_DP_RPLC_AMT */
+            , NULL              /* ADAMT_EOT_AMT */
+            , NULL              /* ADAMT_DDCTAM */
+            , NULL              /* ADAMT_THM_AMT */
+            , #{resRtlfeBorAmt}
+            , #{rgstCostDscBorAmt}
+            , #{rentalDscBorAmt}
+            , #{csmbCostBorAmt}
+            , NULL              /* RSTL_BOR_AMT1 */
+            , #{ptBorAmt}
+            , #{reqdCsBorAmt}
+            , NULL              /* CCAM_RES_AMT2 */
+            , NULL              /* RENTAL_RGST_COST_BOR_AMT2 */
+            , NULL              /* DSC_CS_BOR_AMT2 */
+            , #{csmbCostBorAmt2}
+            , NULL              /* RSTL_BOR_AMT2 */
+            , NULL              /* P_BOR_AMT2 */
+            , #{reqdCsBorAmt2}
+            , NULL              /* RSG_CRT_DV_CD */
+            , NULL              /* BLK_AUTO_CRT_YN */
+            , #{slCtrRqrId}
+            , #{slCtrRmkCn}
+            , NULL              /* CNTR_CH_RCP_ID */
+            , #{ichrOgTpCd}
+            , #{ichrPrtnrNo}
+            , 'N'
+            <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+
+    <update id="updateContraceDetail">
+        UPDATE TB_SSCT_CNTR_DTL
+           SET CNTR_DTL_STAT_CD = '301'
+             , CNTR_PD_ENDDT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+             , CTT_RS_CD = '05'
+            <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+
+    <update id="updateContraceWellsDetail">
+        UPDATE TB_SSCT_CNTR_WELLS_DTL
+           SET REQD_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+            <include refid="COMMON.updateSystemField"/>
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+
+    <select id="selectIsUpdateWellsDetail" resultType="String">
+        SELECT CASE WHEN DECODE(PE.PD_PRP_VAL01, '2', 'Y', 'N') = 'Y' OR  /* 택배제품여부 */
+                         DECODE(PE.PD_PRP_VAL02, 'S', 'Y', 'N') = 'Y' THEN 'Y'  /* 삼성제품여부 */
+                     ELSE 'N'
+                END AS IS_UPDATE_WELLS
+          FROM TB_SSCT_CNTR_DTL CD
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON PB.PD_CD = CD.BASE_PD_CD
+           AND PB.TEMP_SAVE_YN = 'N'
+           AND PB.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL PE
+            ON PE.PD_CD = PB.PD_CD
+           AND PE.PD_EXTS_PRP_GRP_CD= 'SPP'
+           AND PE.DTA_DL_YN = 'N'
+         WHERE CD.CNTR_NO = #{cntrNo}
+           AND CD.CNTR_SN = #{cntrSn}
+    </select>
+
+    <insert id="insertContractResignHistory" parameterType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbCancelBaseDvo">
+        INSERT INTO TB_SSCT_CNTR_RSG_PROCS_CH_HIST
+        (CH_SN
+        , <include refid="colsTbSsctCntrRsgProcsIz" />
+          <include refid="COMMON.insertSystemField" />
+        )
+        SELECT (SELECT NVL(MAX(CH_SN), 0) +1 FROM TB_SSCT_CNTR_RSG_PROCS_CH_HIST WHERE CNTR_NO = #{cntrNo} AND CNTR_SN = #{cntrSn})
+              , <include refid="colsTbSsctCntrRsgProcsIz" />
+                <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SSCT_CNTR_RSG_PROCS_IZ
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </insert>
+
+    <select id="selectCancelInfo" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctbCancelBaseDto$FindDetailRes">
+        SELECT RP.PRGS_NMN_N
+            , RP.CNTR_PASG_DC
+            , RP.SPP_NMN_N
+            , RP.RTNGD_QTY
+            , RP.NOM_SL_AMT
+            , RP.SPMT_SL_AMT
+            , RP.NOM_DSC_AMT
+            , RP.SPMT_DSC_AMT
+            , RP.SL_CTR_AMT
+            , RP.CAN_CTR_AMT
+            , RP.SL_SUM_AMT
+            , RP.SL_SUM_VAT
+            , RP.SL_AGG_AMT
+            , RP.SL_AGG_AMT_VAT
+            , RP.DSC_AGG_AMT
+            , RP.CTR_AGG_AMT
+            , RP.NOM_INT_AMT
+            , RP.INT_CTR_AMT
+            , RP.INT_SUM_AMT
+            , RP.INT_VAT
+            , RP.INT_AGG_AMT
+            , RP.INT_AGG_VAT
+            , RP.INT_DSC_AGG_AMT
+            , RP.THM_PAIAM
+            , RP.THM_SV_AMT
+            , RP.SL_BLAM
+            , RP.ADN_SV_SPMT_SL_AMT
+            , RP.PRM_BTD_AMT
+            , RP.PRPD_BTD_AMT
+            , RP.EOT_ATAM
+            , RP.TOT_PRPD_AMT
+            , RP.SL_DP_AMT
+            , RP.SL_DP_AGG_AMT
+            , RP.UC_AMT
+            , RP.DLQ_AMT
+            , RP.RSG_APLC_DT
+            , RP.RSG_FSH_DT
+            , RP.CNTR_STAT_CH_RSON_CD
+            , RP.CCAM_EXMPT_DV_CD
+            , RP.CSMB_CS_EXMPT_DV_CD
+            , RP.REQD_CS_EXMPT_DV_CD
+            , RP.REQD_AK_RCVRY_DV_CD
+            , RP.PD_USE_DC AS USE_DAYS
+            , RP.PD_GD_CD AS GRADE
+            , RP.PRM_RFND_AMT
+            , RP.PRPD_RFND_AMT
+            , RP.DSC_DDCTAM
+            , RP.FILT_DDCTAM
+            , RP.RENTAL_RGST_COST_RFND_AMT
+            , RP.RENTAL_RGST_COST_RFND_AMT_VAT
+            , RP.BOR_AMT
+            , RP.TOT_RFND_AMT
+            , RP.LS_RNTF                    AS LSNT
+            , RP.CCAM_RES_AMT1              AS RES_RTLFE_BOR_AMT
+            , RP.RENTAL_RGST_COST_BOR_AMT1  AS RGST_COST_DSC_BOR_AMT
+            , RP.DSC_CS_BOR_AMT1            AS RENTAL_DSC_BOR_AMT
+            , RP.CSMB_COST_BOR_AMT1         AS CSMB_COST_BOR_AMT
+            , RP.P_BOR_AMT1                 AS P_BOR_AMT
+            , RP.REQD_CS_BOR_AMT1           AS REQD_CS_BOR_AMT
+            , RP.CSMB_COST_BOR_AMT2
+            , RP.REQD_CS_BOR_AMT2
+            , RP.SL_CTR_RQR_ID
+            , RP.SL_CTR_RMK_CN
+            , RP.ICHR_OG_TP_CD
+            , RP.ICHR_PRTNR_NO
+            , (SELECT SELL_PRTNR_NO FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO=RP.CNTR_NO) AS SELL_PRTNR_NO /* 철거접수 호출 시 사용 */
+          FROM TB_SSCT_CNTR_RSG_PROCS_IZ RP
+         WHERE RP.CNTR_NO = #{cntrNo}
+           AND RP.CNTR_SN = #{cntrSn}
+           AND RP.DTA_DL_YN = 'N'
+    </select>
+</mapper>

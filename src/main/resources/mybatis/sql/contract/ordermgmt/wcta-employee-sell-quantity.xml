@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaEmployeeSellQuantityMapper">
+    <select id="selectEmployeeSellQuantity" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaEmployeeSellQuantityDvo">
+        SELECT SUM(NVL(F.PD_QTY,0)) AS PD_QTY /* 총구입수량 */
+            , SUM(NVL(F.DSN_CNTR_QTY,0)) AS DSN_CNTR_QTY /* 지정월구입수량 */
+            , MAX(F.IST_DT) AS IST_DT /* 설치일자 */
+            , MAX(F.SL_DT) AS SL_DT /* 매출일자 */
+        FROM (
+            SELECT
+                NVL(A.PD_QTY, 0) AS PD_QTY /* 계약상세.상품수량 - 총구입수량 */
+                , CASE WHEN SUBSTR(TRIM(B.CNTR_CNFM_DTM),1,6) = '입력파라미터-접수월' THEN NVL(A.PD_QTY,0) ELSE 0 END AS DSN_CNTR_QTY /* 지정월 구입수량 */
+                , E.IST_DT /* 계약WELLS상세.설치일자 */
+                , ''  AS SL_DT /* 매출일자 - 계약실적월마감 테이블이 완성되면 작성*/
+            FROM WSMDBS.TB_SSCT_CNTR_DTL A /* 계약상세 */
+            INNER JOIN WSMDBS.TB_SSCT_CNTR_BAS B /* 계약기본 */
+                ON A.CNTR_NO = B.CNTR_NO /* 계약상세.계약번호 = 계약기본.계약번호 */
+                AND B.CNTR_TP_CD = '03' /* 계약기본.계약유형코드 = '03'(임직원) */
+                AND B.DTA_DL_YN = 'N' /* 계약기본.데이터삭제여부가 'N'인 건 */
+                AND TRIM(B.CNTR_CAN_DTM) IS NULL /* 계약기본.계약취소일시가 NULL인 건 - 취소 제외 */
+            INNER JOIN WSMDBS.TB_SSCT_CNTR_CST_REL C /* 계약고객관계 */
+                ON C.CNTR_NO = A.CNTR_NO /* 계약고객관계.계약번호 = 계약상세.계약번호 */
+                AND C.DTL_CNTR_SN = A.CNTR_SN /* 계약고객관계.상세계약일련번호 = 계약상세.계약일련번호 */
+                AND C.CNTR_UNIT_TP_CD = '010' /* 계약고객관계.계약단위유형코드 = '020'(계약상세)  - 계약단위유형은 계약단위(010)가 기본이나, 법인계약의 경우 계약상세단위(020) 허용 → 확인필요  - to-be CodeId : CNTR_UNIT_TP_CD */
+                AND C.INSI_CST_TP_CD = '010' /* 계약고객관계.내부고객유형코드 = '010'(임직원) - to-be CodeId : INSI_CST_TP_CD */
+            INNER JOIN WSMDBS.TB_CUBS_CST_BAS D /* 고객기본 */
+                ON D.CST_NO = B.CNTR_CST_NO /* 고객기본.고객번호 = 계약기본.계약고객번호 */
+                AND D.DTA_DL_YN = 'N' /* 고객기본.데이터삭제여부가 'N'인 건 */
+                AND D.TEMP_SAVE_YN = 'N' /* 고객기본.임시저장여부가 'N'인 건 */
+                AND TRIM(D.NUSD_RSON_CD) IS NULL /* 고객기본.미사용사유코드가 NULL인 건 */
+                AND NVL(D.PRTNR_NO,' ') != NVL(B.SELL_PRTNR_NO,' ') /* 고객기본.파트너번호가 판매파트너번호와 다른건 - 조회대상 본인은 제외 */
+            LEFT OUTER JOIN WSMDBS.TB_SSCT_CNTR_WELLS_DTL E /* 계약WELLS상세 */
+                ON E.CNTR_NO = A.CNTR_NO /* 계약WELLS상세.계약번호 = 계약상세.계약번호*/
+                AND E.CNTR_SN = A.CNTR_SN /* 계약WELLS상세.계약일련번호 = 계약상세.계약일련번호 */
+                AND E.DTA_DL_YN = 'N' /* 계약WELLS상세.데이터삭제여부가 'N'가 아닌 건 */
+                AND TRIM(E.REQD_DT) IS NULL /* 계약WELLS상세.철거일 - 철거일자 있는건 제외 */
+            WHERE 1=1
+                <if test='@MybatisUtils@isNotEmpty(rcpMm)'>
+                AND SUBSTR(B.CNTR_RCP_FSH_DTM, 1, 6) = #{rcpMm} /* 계약기본.계약접수완료일시 */
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(contractFromYm) and @MybatisUtils@isNotEmpty(contractToYm)'>
+                AND SUBSTR(B.CNTR_CNFM_DTM, 1, 6) BETWEEN #{contractFromYm} AND #{contractToYm} /* 계약기본.계약확정일시 */
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(sellPartnerNo)'>
+                AND B.SELL_PRTNR_NO = #{sellPartnerNo} /* 계약기본.판매파트너번호 */
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(contractCustomerNo)'>
+                AND B.CNTR_CST_NO = #{contractCustomerNo} /* 계약기본.계약고객번호 */
+                </if>
+                <if test='@MybatisUtils@isNotEmpty(baseProductCd)'>
+                AND A.BASE_PD_CD = #{baseProductCd} /* 계약상세.기준상품코드 */
+                </if>
+            ) F
+    </select>
+</mapper>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiMembershipContactMapper">
+    <select id="selectMembershipContracts" resultType="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiMembershipContactDto$SearchRes">
+      SELECT T1.CNTR_NO
+           , T1.CNTR_SN
+           , SUBSTR(T2.CNTR_CNFM_DTM,1,8) AS CNTR_CNFM_DT
+           , T1.CNTR_PD_STRTDT AS SL_DT /* 추후 변동여지 있음 */
+           , T1.BASE_PD_CD
+           , T3.PD_NM
+           , T1.CTT_RS_CD
+           , F_CMZ_CD_NM(#{session.tenantId}, 'CTT_RS_CD', T1.CTT_RS_CD) AS CTT_RS_NM
+           , T1.CTT_PSIC_ID
+           , (SELECT MAX(USR_NM) FROM T_CMP_USR_ACO_M WHERE USR_ID = T1.CTT_PSIC_ID AND DEL_YN='N') AS CTT_PSIC_NM
+           , T1.SELL_TP_CD
+           , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_NM
+           , T4.CRAL_LOCARA_TNO AS CNTR_CRAL_LOCARA_TNO
+           , T4.MEXNO_ENCR AS CNTR_MEXNO
+           , T4.CRAL_IDV_TNO AS CNTR_CRAL_IDV_TNO
+           , T10.LOCARA_TNO AS CNTR_LOCARA_TNO
+           , T10.EXNO_ENCR AS CNTR_EXNO
+           , T10.IDV_TNO AS CNTR_IDV_TNO
+           , T4.ADR_ID AS CNTR_ADRPC_ID
+           , NVL(T8.RNADR, T8.LTN_ADR) AS CNTR_ADR
+           , NVL(T8.RDADR, T8.LTN_DTL_ADR) AS CNTR_DTL_ADR
+           , T6.CRAL_LOCARA_TNO
+           , T6.MEXNO_ENCR AS MEXNO
+           , T6.CRAL_IDV_TNO
+           , T6.LOCARA_TNO
+           , T6.EXNO_ENCR AS EXNO
+           , T6.IDV_TNO
+           , T6.ADR_ID AS ADRPC_ID
+           , NVL(T9.RNADR, T9.LTN_ADR) AS ADR
+           , NVL(T9.RDADR, T9.LTN_DTL_ADR) AS DTL_ADR
+           , CASE WHEN T1.SELL_TP_CD = '1' THEN  F_CMZ_CD_NM(#{session.tenantId}, 'SPAY_DSC_DV_CD', T1.SELL_DSC_DV_CD)
+                  WHEN T1.SELL_TP_CD = '2' THEN  F_CMZ_CD_NM(#{session.tenantId}, 'RENTAL_DSC_DV_CD', T1.SELL_DSC_DV_CD)
+                  WHEN T1.SELL_TP_CD = '3' THEN  F_CMZ_CD_NM(#{session.tenantId}, 'MSH_DSC_DV_CD', T1.SELL_DSC_DV_CD)
+                  ELSE ''
+                  END AS DSC_DV_NM
+        FROM TB_SSCT_CNTR_DTL T1
+       INNER JOIN TB_SSCT_CNTR_BAS T2
+          ON T2.CNTR_NO = T1.CNTR_NO
+         AND T1.DTA_DL_YN = 'N'
+         AND T2.DTA_DL_YN = 'N'
+       INNER JOIN TB_PDBS_PD_BAS T3
+          ON T3.PD_CD = T1.BASE_PD_CD
+         AND T3.DTA_DL_YN = 'N'
+       INNER JOIN TB_CUBS_CST_BAS T4
+          ON T4.CST_NO = T2.CNTR_CST_NO
+         AND T4.DTA_DL_YN = 'N'
+       INNER JOIN TB_SSCT_CNTR_ADR_REL T5
+          ON T5.DTL_CNTR_NO = T1.CNTR_NO
+         AND T5.DTL_CNTR_SN = T1.CNTR_SN
+         AND TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') BETWEEN T5.VL_STRT_DTM AND T5.VL_END_DTM
+         AND T5.DTA_DL_YN = 'N'
+       INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T6
+          ON T6.CNTR_ADRPC_ID = T5.CNTR_ADRPC_ID
+         AND T6.DTA_DL_YN = 'N'
+       INNER JOIN TB_GBCO_ADR_BAS T8
+          ON T8.ADR_ID = T4.ADR_ID
+         AND T8.DTA_DL_YN = 'N'
+       INNER JOIN TB_GBCO_ADR_BAS T9
+          ON T9.ADR_ID = T6.ADR_ID
+         AND T9.DTA_DL_YN = 'N'
+       INNER JOIN LATERAL (
+             SELECT A.LOCARA_TNO
+                  , A.EXNO_ENCR
+                  , A.IDV_TNO
+               FROM TB_CUBS_CST_CTPLC_BAS A /* 계약기본 연락처,주소 정보 */
+              WHERE A.CST_CTPLC_OJ_REFK_VAL = T4.CST_NO
+                AND A.CTPLC_TP_CD = DECODE(T4.COPN_DV_CD, '1', '04', '2', '05')
+                AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN A.HIST_STRT_DTM AND A.HIST_END_DTM
+                AND A.DTA_DL_YN = 'N'
+                AND A.FST_RGST_DTM = (
+                    SELECT MAX(FST_RGST_DTM)
+                      FROM TB_CUBS_CST_CTPLC_BAS
+                     WHERE CST_CTPLC_OJ_REFK_VAL = T4.CST_NO
+                       AND CTPLC_TP_CD = DECODE(T4.COPN_DV_CD, '1', '04', '2', '05')
+                       AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN HIST_STRT_DTM AND HIST_END_DTM
+                       AND DTA_DL_YN = 'N'
+                    )
+                 ) T10
+             ON 1=1
+          WHERE T1.SELL_TP_CD = '3' /* 멤버십 */
+        <if test='@MybatisUtils@isNotEmpty(cntrCnfmDtFr) and @MybatisUtils@isNotEmpty(cntrCnfmDtTo)'>
+        /* 계약확정일자 FROM, TO 조건이 존재하는 경우 */
+            AND T2.CNTR_CNFM_DTM BETWEEN #{cntrCnfmDtFr}||'000000' AND #{cntrCnfmDtTo}||'235959'
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(slDtFr) and @MybatisUtils@isNotEmpty(slDtTo)'>
+        /* 매출일자 FROM, TO 조건이 존재하는 경우 */
+         AND T1.CNTR_PD_STRTDT BETWEEN #{slDtFr}||'000000' AND #{slDtTo}||'235959'
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cttPsicId)'>
+        /* 컨택담당자 조건이 존재하는 경우 */
+         AND T1.CTT_PSIC_ID = #{cttPsicId}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cttRsCd)'>
+       /* 컨택결과코드 조건이 존재하는 경우 */
+         AND T1.CTT_RS_CD = #{cttRsCd}
+        </if>
+    </select>
+</mapper>

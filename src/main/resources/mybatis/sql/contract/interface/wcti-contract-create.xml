@@ -1,0 +1,831 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiContractCreateMapper">
+
+    <select id="selectExistCustomerYn" resultType="java.lang.String">
+        SELECT CASE WHEN COUNT(*) > 0 THEN 'Y' ELSE 'N' END EXIST_YN
+          FROM TB_CUBS_CST_BAS B1
+         WHERE B1.CST_NO = #{cstNo}
+    </select>
+
+ <select id="selectCustomerAggrementKey" resultType="java.lang.String">
+        SELECT LPAD(WSMDBS.SQ_CUBS_CST_AG_IZ$CST_AG_ID.NEXTVAL,15,0)
+          FROM DUAL
+    </select>
+
+    <insert id="insertCustomerAgreement">
+        INSERT INTO TB_CUBS_CST_AG_IZ (
+               CST_AG_ID /* 고객동의ID */
+             , AG_DRM_DV_CD /* 동의식별구분코드 */
+             , AG_DRM_REFK_VAL /* 동의식별참조키값 */
+             , CST_AG_CHNL_DV_CD /* 고객동의채널구분코드 */
+             , CNTC_PRTNR_NO /* 접촉파트너번호 */
+             , CNSL_NO /* 상담번호 */
+             , AG_PROCS_DTM /* 동의처리일시 */
+             , AG_EXN_PRCSDT /* 동의만료처리일자 */
+             , AG_EXN_PROCS_RSON_CD /* 동의만료처리사유코드 */
+             , MO_CN /* 메모내용 */
+             , DTA_DL_YN /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />
+        ) VALUES (
+               #{cstAgId}
+             , '03'
+             , #{agDrmRefkVal}
+             , #{cstAgChnlDvCd}
+             , '' -- CNTC_PRTNR_NO
+             , '' -- CNSL_NO
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , '' -- AG_EXN_PRCSDT
+             , '' -- AG_EXN_PROCS_RSON_CD
+             , '' -- MO_CN
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+
+    <insert id="insertCustomerAgreementDetail">
+        INSERT INTO TB_CUBS_CST_AG_IZ_DTL (
+               CST_AG_ID /* 고객동의ID */
+             , AG_ATC_DV_CD /* 동의항목구분코드 */
+             , PD_CD /* 상품코드 */
+             , PRV_DOC_ID /* 약관문서ID */
+             , AG_STAT_CD /* 동의상태코드 */
+             , AG_STRTDT /* 동의시작일자 */
+             , AG_EXN_DUEDT /* 동의만료예정일자 */
+             , AG_EXN_PRCSDT /* 동의만료처리일자 */
+             , AG_EXN_PROCS_RSON_CD /* 동의만료처리사유코드 */
+             , DTA_DL_YN /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />
+        ) VALUES (
+               #{cstAgId}
+             , #{agAtcDvCd}
+             , #{pdCd}
+             , '' -- PRV_DOC_ID
+             , #{agStatCd}
+             , #{agStrtdt}
+             , '' -- AG_EXN_DUEDT
+             , '' -- AG_EXN_PRCSDT
+             , '' -- AG_EXN_PROCS_RSON_CD
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+
+
+    <insert id="insertContractBase">
+        INSERT INTO TB_SSCT_CNTR_BAS (
+            CNTR_NO
+            , CNTR_CST_NO
+            , COPN_DV_CD
+            , SELL_INFLW_CHNL_DTL_CD
+            , SELL_OG_TP_CD
+            , SELL_PRTNR_NO
+            , CNTR_TP_CD
+            , CNTR_NAT_CD
+            , CNTR_PRGS_STAT_CD
+            , CST_STLM_IN_MTH_CD
+            , PRR_RCP_CNTR_YN
+            , CNTR_TEMP_SAVE_DTM
+            , CNTR_RCP_FSH_DTM
+            , CNTR_STLM_FSH_DTM
+            , CNTR_CNFM_APR_AK_DTM
+            , CNTR_CNFM_APR_DTM
+            , CNTR_CNFM_DTM
+            , CNTR_CAN_DTM
+            , CNTR_CAN_RSON_CD
+            , CNTR_PRGS_STAT_MO_CN
+            , DSB_GUR_TP_CD
+            , CNTR_INFLW_PH_DV_CD
+            , PSPC_CST_ID
+            , CNTR_CH_RCP_ID
+            , DCEVDN_DOC_ID
+            <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+            #{cntrNo}
+            , #{cntrCstNo}
+            , #{copnDvCd}
+            , #{sellInflwChnlDtlCd}
+            , #{sellOgTpCd}
+            , #{sellPrtnrNo}
+            , #{cntrTpCd}
+            , #{cntrNatCd}
+            , #{cntrPrgsStatCd}
+            , #{cstStlmInMthCd}
+            , #{prrRcpCntrYn}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') -- CNTR_TEMP_SAVE_DTM
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') -- CNTR_RCP_FSH_DTM
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') -- CNTR_STLM_FSH_DTM
+            , '' -- CNTR_CNFM_APR_AK_DTM
+            , '' -- CNTR_CNFM_APR_DTM
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') -- CNTR_CNFM_DTM
+            , '' -- CNTR_CAN_DTM
+            , '' -- CNTR_CAN_RSON_CD
+            , '' -- CNTR_PRGS_STAT_MO_CN
+            , '' -- DSB_GUR_TP_CD
+            , '' -- CNTR_INFLW_PH_DV_CD
+            , '' -- PSPC_CST_ID
+            , '' -- CNTR_CH_RCP_ID
+            , '' -- DCEVDN_DOC_ID
+            <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+
+    <insert id="insertContractDetail">
+        INSERT INTO TB_SSCT_CNTR_DTL (
+            CNTR_NO
+            , CNTR_SN
+            , BASE_PD_CD
+            , HGR_PD_CD
+            , PD_QTY
+            , SELL_TP_CD
+            , SELL_TP_DTL_CD
+            , CNTR_DTL_STAT_CD
+            , CNTR_PTRM_UNIT_CD
+            , CNTR_PTRM
+            , CNTR_PD_STRTDT
+            , CNTR_PD_ENDDT
+            , STPL_PTRM_UNIT_CD
+            , STPL_PTRM
+            , SV_PTRM_UNIT_CD
+            , SV_PRD
+            , CNTRW_TP_CD
+            , BLG_CRP_CD
+            , RVE_CRP_CD
+            , CO_CD
+            , BOO_SELL_TP_CD
+            , PD_GD_CD
+            , PD_HCLSF_ID
+            , PD_MCLSF_ID
+            , PD_LCLSF_ID
+            , PD_DCLSF_ID
+            , SELL_DSC_DV_CD
+            , SELL_DSCR_CD
+            , SELL_DSC_CTR_AMT
+            , SELL_DSC_TP_CD
+            , STLM_TP_CD
+            , CRNCY_DV_CD
+            , APY_EXCR
+            , PD_BASE_AMT
+            , SELL_AMT
+            , DSC_AMT
+            , FNL_AMT
+            , VAT
+            , CNTR_AMT
+            , CNTRAM_DSC_AMT
+            , ISTM_MCN
+            , ISTM_PCAM_AMT
+            , ISTM_INT_AMT
+            , MM_ISTM_AMT
+            , CRP_UC_AMT
+            , SELL_FEE
+            , CNTR_TAM
+            , RENTAL_PTRM2
+            , RENTAL_AMT2
+            , RENTAL_DSC_AMT2
+            , SV_AMT
+            , ACKMT_PERF_RT
+            , ACKMT_PERF_AMT
+            , CVT_PERF_AMT
+            , FEE_ACKMT_CT
+            , FEE_ACKMT_BASE_AMT
+            , FEE_FXAM_YN
+            , SPP_DUEDT
+            , RESUB_YN
+            , RSTL_YN
+            , FRISU_YN
+            , FRISU_DSB_TP_CD
+            , TXINV_PBL_OJ_YN
+            , ALNCMP_CD
+            , ALNCMP_CNTR_DRM_VAL
+            , SMTPL_ID
+            , SMTPL_SN
+            , CTT_OJ_ID
+            , CTT_RS_CD
+            , CTT_PSIC_ID
+            , BF_ORD_NO
+            , CNTR_CH_RCP_ID
+            , CNTR_CH_SN
+            , CNTR_CH_DTL_AK_CN
+            <include refid="COMMON.insertSystemField" />
+        ) VALUES (
+            #{contract.cntrNo}
+            , #{contract.cntrSn}
+            , #{contract.basePdCd}
+            , '' -- HGR_PD_CD
+            , #{contract.pdQty}
+            , #{product.sellTpCd}
+            , #{product.sellTpDtlCd}
+            , #{contract.cntrDtlStatCd}
+            , '' -- CNTR_PTRM_UNIT_CD
+            , '' -- CNTR_PTRM
+            , '' -- CNTR_PD_STRTDT
+            , '' -- CNTR_PD_ENDDT
+            , '' -- STPL_PTRM_UNIT_CD
+            , '' -- STPL_PTRM
+            , '' -- SV_PTRM_UNIT_CD
+            , #{contract.svPrd} -- SV_PRD
+            , #{contract.cntrwTpCd}
+            , '' -- BLG_CRP_CD
+            , '' -- RVE_CRP_CD
+            , #{contract.coCd}
+            , '' -- BOO_SELL_TP_CD
+            , '' -- PD_GD_CD
+            , #{product.pdHclsfId}
+            , #{product.pdMclsfId}
+            , #{product.pdLclsfId}
+            , #{product.pdDclsfId}
+            , #{contract.sellDscDvCd}
+            , '' -- SELL_DSCR_CD
+            , '' -- SELL_DSC_CTR_AMT
+            , #{contract.sellDscTpCd}
+            , '' -- STLM_TP_CD
+            , #{contract.crncyDvCd}
+            , '' -- APY_EXCR
+            , #{product.pdBaseAmt} -- PD_BASE_AMT
+            , #{pdBaseAmt} -- SELL_AMT
+            , '' -- DSC_AMT
+            , #{contract.fnlAmt}
+            , #{product.vat}
+            , #{contract.cntrTam} -- CNTR_AMT
+            , '' -- CNTRAM_DSC_AMT
+            , #{contract.istmMcn}
+            , '' -- ISTM_PCAM_AMT
+            , '' -- ISTM_INT_AMT
+            , '' -- MM_ISTM_AMT
+            , '' -- CRP_UC_AMT
+            , #{product.sellFee}
+            , #{contract.cntrTam} -- CNTR_TAM
+            , '' -- RENTAL_PTRM2
+            , '' -- RENTAL_AMT2
+            , '' -- RENTAL_DSC_AMT2
+            , '' -- SV_AMT
+            , #{product.ackmtPerfRt}
+            , #{product.ackmtPerfAmt}
+            , #{product.cvtPerfAmt}
+            , '' -- FEE_ACKMT_CT
+            , '' -- FEE_ACKMT_BASE_AMT
+            , '' -- FEE_FXAM_YN
+            , '' -- SPP_DUEDT
+            , '' -- RESUB_YN
+            , '' -- RSTL_YN
+            , 'N' -- FRISU_YN
+            , '' -- FRISU_DSB_TP_CD
+            , '' -- TXINV_PBL_OJ_YN
+            , '' -- ALNCMP_CD
+            , '' -- ALNCMP_CNTR_DRM_VAL
+            , '' -- SMTPL_ID
+            , '' -- SMTPL_SN
+            , '' -- CTT_OJ_ID
+            , '' -- CTT_RS_CD
+            , '' -- CTT_PSIC_ID
+            , '' -- BF_ORD_NO
+            , '' -- CNTR_CH_RCP_ID
+            , '' -- CNTR_CH_SN
+            , '' -- CNTR_CH_DTL_AK_CN
+            <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+
+    <select id="selectContractProduct" resultType="com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractProductDvo">
+        SELECT P2.BAS_VAL AS PD_BASE_AMT
+                 , P3.PD_CD
+                 , P3.PD_HCLSF_ID
+                 , P3.PD_MCLSF_ID
+                 , P3.PD_LCLSF_ID
+                 , P3.PD_DCLSF_ID
+                 , P3.SELL_TP_CD
+                 , P3.SELL_TP_DTL_CD
+                 , P1.FNL_VAL
+                 , P1.VAT
+                 , P1.SELL_FEE
+                 , P1.ACKMT_AMT AS ACKMT_PERF_AMT
+                 , P1.PD_PRC_FNL_PRP_VAL01 AS ACKMT_PERF_RT
+                 , P1.PD_PRC_FNL_PRP_VAL02 AS CVT_PERF_AMT
+                 , P1.PD_PRC_FNL_DTL_ID
+                 , P1.VER_SN
+                 , P1.CTR_VAL
+                 , P1.FXAM_FXRT_DV_CD
+                 , P1.PD_PRC_ID
+              FROM TB_PDBS_PD_PRC_FNL_DTL P1
+        INNER JOIN TB_PDBS_PD_PRC_DTL P2
+                ON P1.PD_PRC_DTL_ID = P2.PD_PRC_DTL_ID
+               AND P1.VER_SN = P2.VER_SN
+        INNER JOIN TB_PDBS_PD_BAS P3
+                ON P1.PD_CD = P3.PD_CD
+             WHERE 1 = 1
+               AND P1.PD_CD = #{basePdCd}
+               AND P1.SELL_CHNL_CD = #{sellInflwChnlDtlCd}
+               AND P1.HIST_END_DTM  = '99991231235959'
+               AND P1.DTA_DL_YN = 'N'
+               AND P1.PD_PRC_FNL_DTL_ID = (SELECT MAX(X1.PD_PRC_FNL_DTL_ID)
+                                             FROM TB_PDBS_PD_PRC_FNL_DTL X1
+                                            WHERE P1.PD_CD = X1.PD_CD
+                                              AND P1.HIST_END_DTM = X1.HIST_END_DTM
+                                              AND P1.DTA_DL_YN = X1.DTA_DL_YN
+                                              AND P1.SELL_CHNL_CD = X1.SELL_CHNL_CD)
+    </select>
+
+<insert id="insertContractCustomerRelation" useGeneratedKeys="false">
+        <selectKey keyProperty="item.cntrCstRelId" resultType="java.lang.String" order="BEFORE" >
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_CST_REL_ID)) + 1, 1) , 15, '0')
+          FROM TB_SSCT_CNTR_CST_REL
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_CST_REL (  /* 계약고객관계 */
+            CNTR_CST_REL_ID    /* 계약고객관계ID */
+            , VL_STRT_DTM        /* 유효시작일시 */
+            , VL_END_DTM         /* 유효종료일시 */
+            , CNTR_UNIT_TP_CD    /* 계약단위유형코드 */
+            , CNTR_NO            /* 계약번호 */
+            , DTL_CNTR_NO        /* 상세계약번호 */
+            , DTL_CNTR_SN        /* 상세계약일련번호 */
+            , COPN_DV_CD         /* 법인격구분코드 */
+            , CST_NO             /* 고객번호 */
+            , CNTR_CST_REL_TP_CD /* 계약고객관계유형코드 */
+            , CNTRT_REL_CD       /* 계약자관계코드 */
+            , INSI_CST_TP_CD     /* 내부고객유형코드 */
+            , LRNN_GRY_CD        /* 학습학년코드 */
+            , CNTR_CH_RCP_ID     /* 계약변경접수ID */
+            <include refid="COMMON.insertSystemField" />)
+        VALUES (
+              #{item.cntrCstRelId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , '99991231235959'
+            , '020'
+            , #{item.cntrNo}
+            , #{item.cntrNo}
+            , #{item.cntrSn}
+            , #{item.copnDvCd}
+            , #{cstNo}
+            , #{cntrCstRelTpCd}
+            , '' -- CNTRT_REL_CD
+            , '' -- INSI_CST_TP_CD
+            , '' -- LRNN_GRY_CD
+            , '' -- CNTR_CH_RCP_ID
+            <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <insert id="insertContractAddressForContract">
+        <selectKey keyProperty="cntrAdrpcId" resultType="java.lang.String" order="BEFORE">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_ADRPC_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_ADRPC_BAS
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_ADRPC_BAS (  /* 계약주소지기본 */
+               CNTR_ADRPC_ID           /* 계약주소지ID */
+             , CNTR_NO                 /* 계약번호 */
+             , CNTR_CST_NO             /* 계약고객번호 */
+             , CNTRT_REL_CD            /* 계약자관계코드 */
+             , RCGVP_KNM               /* 수령자한글명 */
+             , RCGVP_ENM               /* 수령자영문명 */
+             , COPN_DV_CD              /* 법인격구분코드 */
+             , CRP_SPMT_DRM_NM         /* 법인추가식별명 */
+             , NAT_CD                  /* 국가코드 */
+             , ADR_DV_CD               /* 주소구분코드 */
+             , ADR_ID                  /* 주소ID */
+             , CRAL_LOCARA_TNO         /* 휴대지역전화번호 */
+             , MEXNO_ENCR              /* 휴대전화국번호암호화 */
+             , CRAL_IDV_TNO            /* 휴대개별전화번호 */
+             , LOCARA_TNO              /* 지역전화번호 */
+             , EXNO_ENCR               /* 전화국번호암호화 */
+             , IDV_TNO                 /* 개별전화번호 */
+             , EMADR                   /* 이메일주소 */
+             , CNR_SPP_YN              /* 센터배송여부 */
+             , OG_TP_CD                /* 조직유형코드 */
+             , BLD_CD                  /* 빌딩코드 */
+             , MVS_DSTC_RCVRY_BASE_DTM /* 소산파기복구기준일시 */
+             , MVS_DSTC_RCVRY_DV_CD    /* 소산파기복구구분코드 */
+             , MVS_DSTC_RCVRY_DTM      /* 소산파기복구일시 */
+             <include refid="COMMON.insertSystemField" />)
+         VALUES (
+               #{cntrAdrpcId}
+             , #{cntrNo}
+             , #{cntrCstNo}
+             , #{cntrtRelCd}
+             , #{cntrCstKnm}
+             , '' -- RCGVP_ENM
+             , #{copnDvCd}
+             , '' -- CRP_SPMT_DRM_NM
+             , #{cntrNatCd}
+             , #{cntrtAdrDvCd}
+             , #{cntrtAdrId}
+             , #{cntrtCralLocaraTno}
+             , #{cntrtMexnoEncr}
+             , #{cntrtCralIdvTno}
+             , #{cntrtLocaraTno}
+             , #{cntrtExnoEncr}
+             , #{cntrtIdvTno}
+             , #{cntrtEmadr} -- EMADR
+             , '' -- CNR_SPP_YN
+             , '' -- OG_TP_CD
+             , '' -- BLD_CD
+             , '' -- MVS_DSTC_RCVRY_BASE_DTM
+             , '' -- MVS_DSTC_RCVRY_DV_CD
+             , '' -- MVS_DSTC_RCVRY_DTM
+             <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+
+
+    <insert id="insertContractAddressForInstall">
+        <selectKey keyProperty="cntrAdrpcId" resultType="java.lang.String" order="BEFORE">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_ADRPC_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_ADRPC_BAS
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_ADRPC_BAS (  /* 계약주소지기본 */
+               CNTR_ADRPC_ID           /* 계약주소지ID */
+             , CNTR_NO                 /* 계약번호 */
+             , CNTR_CST_NO             /* 계약고객번호 */
+             , CNTRT_REL_CD            /* 계약자관계코드 */
+             , RCGVP_KNM               /* 수령자한글명 */
+             , RCGVP_ENM               /* 수령자영문명 */
+             , COPN_DV_CD              /* 법인격구분코드 */
+             , CRP_SPMT_DRM_NM         /* 법인추가식별명 */
+             , NAT_CD                  /* 국가코드 */
+             , ADR_DV_CD               /* 주소구분코드 */
+             , ADR_ID                  /* 주소ID */
+             , CRAL_LOCARA_TNO         /* 휴대지역전화번호 */
+             , MEXNO_ENCR              /* 휴대전화국번호암호화 */
+             , CRAL_IDV_TNO            /* 휴대개별전화번호 */
+             , LOCARA_TNO              /* 지역전화번호 */
+             , EXNO_ENCR               /* 전화국번호암호화 */
+             , IDV_TNO                 /* 개별전화번호 */
+             , EMADR                   /* 이메일주소 */
+             , CNR_SPP_YN              /* 센터배송여부 */
+             , OG_TP_CD                /* 조직유형코드 */
+             , BLD_CD                  /* 빌딩코드 */
+             , MVS_DSTC_RCVRY_BASE_DTM /* 소산파기복구기준일시 */
+             , MVS_DSTC_RCVRY_DV_CD    /* 소산파기복구구분코드 */
+             , MVS_DSTC_RCVRY_DTM      /* 소산파기복구일시 */
+             <include refid="COMMON.insertSystemField" />)
+         VALUES (
+               #{cntrAdrpcId}
+             , #{cntrNo}
+             , #{cntrCstNo}
+             , #{cntrtRelCd}
+             , #{istllKnm}
+             , '' -- RCGVP_ENM
+             , #{copnDvCd}
+             , '' -- CRP_SPMT_DRM_NM
+             , #{cntrNatCd}
+             , #{istAdrDvCd}
+             , #{istAdrId}
+             , #{istCralLocaraTno}
+             , #{istMexnoEncr}
+             , #{istCralIdvTno}
+             , #{istLocaraTno}
+             , #{istExnoEncr}
+             , #{istIdvTno}
+             , '' -- EMADR
+             , '' -- CNR_SPP_YN
+             , '' -- OG_TP_CD
+             , '' -- BLD_CD
+             , '' -- MVS_DSTC_RCVRY_BASE_DTM
+             , '' -- MVS_DSTC_RCVRY_DV_CD
+             , '' -- MVS_DSTC_RCVRY_DTM
+             <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+
+
+    <insert id="insertContractPrice">
+        <selectKey keyProperty="contract.cntrPrcCmptId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_PRC_CMPT_ID)) + 1, 1), 15, 0)
+            FROM TB_SSCT_CNTR_PRC_CMPT_IZ
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_PRC_CMPT_IZ ( /* 계약가격산출내역 */
+            CNTR_PRC_CMPT_ID /* 계약가격산출ID */
+            , CNTR_NO /* 계약번호 */
+            , CNTR_SN /* 계약일련번호 */
+            , PD_CD /* 상품코드 */
+            , PD_PRC_FNL_DTL_ID /* 상품가격최종상세ID */
+            , VER_SN /* 버전일련번호 */
+            , APY_STRT_TN /* 적용시작회차 */
+            , APY_END_TN /* 적용종료회차 */
+            , FXAM_FXRT_DV_CD /* 정액정률구분코드 */
+            , CTR_VAL /* 조정값 */
+            , FNL_VAL /* 최종값 */
+            , PD_PRC_ID /* 상품가격ID */
+            <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+            #{contract.cntrPrcCmptId}
+            , #{contract.cntrNo}
+            , #{contract.cntrSn}
+            , #{product.pdCd}
+            , #{product.pdPrcFnlDtlId}
+            , #{product.verSn}
+            , ''
+            , ''
+            , #{product.fxamFxrtDvCd}
+            , #{product.ctrVal}
+            , #{contract.fnlAmt}
+            , #{product.pdPrcId}
+            <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+
+
+    <insert id="insertContractSettlement">
+        <selectKey keyProperty="cntrStlmId" resultType="String" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_STLM_ID)) + 1, 1), 15, '0')
+              FROM TB_SSCT_CNTR_STLM_BAS
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_STLM_BAS (
+            CNTR_STLM_ID
+            , CST_NO
+            , CNTR_NO
+            , CNTRT_REL_CD
+            , OWR_KNM
+            , OWR_ENM
+            , BRYY_MMDD
+            , BZRNO
+            , DP_TP_CD
+            , BNK_CD
+            , CDCO_CD
+            , ACNO_ENCR
+            , CRCDNO_ENCR
+            , CARD_EXPDT_YM
+            , MLG_TP_CD
+            , MLG_DRM_VAL
+            , MPY_BSDT
+            , HS_CTF_YN
+            , DCEVDN_DOC_ID
+            , PYER_NO
+            , VNCO_DV_CD
+            , FNIT_APR_RS_CD
+            , FNIT_APR_FSH_DTM
+            , FNIT_RSG_FSH_DTM
+            , AC_FNT_IMPS_CD
+            , CARD_FNT_IMPS_CD
+            , AC_CH_AK_DV_CD
+            , RVE_CRP_CD
+            , FNT_EVID_DRM_VAL
+            , REUSE_OJ_YN
+            , SIGN_FILE_ID
+            , MVS_DSTC_RCVRY_BASE_DTM
+            , MVS_DSTC_RCVRY_DV_CD
+            , MVS_DSTC_RCVRY_DTM
+            <include refid="COMMON.insertSystemField" />
+        ) VALUES (
+            #{cntrStlmId}
+            , #{cntrCstNo}
+            , #{cntrNo}
+            , '01' /* 01 본인, 02 자녀, 03 부(아버지), ... ,10 제휴판매고객 */
+            , NVL(#{owrKnm}, #{crcdOwrKnm})
+            , '' -- OWR_ENM
+            , #{cntrtBryyMmdd}
+            , #{bzrNo}
+            , #{dpTpCd} -- DP_TP_CD : 신용카드
+            , #{bnkCd} -- BNK_CD
+            , #{cdcoCd}
+            , #{acno} -- ACNO_ENCR
+            , #{crcdNo}
+            , #{cardExpdtYm} -- CARD_EXPDT_YM
+            , '' -- MLG_TP_CD
+            , '' -- MLG_DRM_VAL
+            , '' -- MPY_BSDT
+            , 'Y' -- HS_CTF_YN
+            , '' -- DCEVDN_DOC_ID
+            , #{cntrStlmId} || #{cntrSn} -- PYER_NO
+            , '002' -- VNCO_DV_CD ('002':새틀뱅크)
+            , '' -- FNIT_APR_RS_CD
+            , '' -- FNIT_APR_FSH_DTM
+            , '' -- FNIT_RSG_FSH_DTM
+            , '' -- AC_FNT_IMPS_CD
+            , '' -- CARD_FNT_IMPS_CD
+            , '' -- AC_CH_AK_DV_CD
+            , '' -- RVE_CRP_CD
+            , '' -- FNT_EVID_DRM_VAL
+            , 'N' -- REUSE_OJ_YN
+            , '' -- SIGN_FILE_ID
+            , '' -- MVS_DSTC_RCVRY_BASE_DTM
+            , '' -- MVS_DSTC_RCVRY_DV_CD
+            , '' -- MVS_DSTC_RCVRY_DTM
+            <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+
+    <insert id="insertContractSettlementRelation">
+        <selectKey keyProperty="cntrStlmRelId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_STLM_REL_ID)) + 1, 1), 15, 0)
+            FROM TB_SSCT_CNTR_STLM_REL
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_STLM_REL ( /* 계약결제관계 */
+            CNTR_STLM_REL_ID /* 계약결제관계ID */
+            , VL_STRT_DTM /* 유효시작일시 */
+            , VL_END_DTM /* 유효종료일시 */
+            , CNTR_UNIT_TP_CD /* 계약단위유형코드 */
+            , CNTR_STLM_ID /* 계약결제ID */
+            , CNTR_NO /* 계약번호 */
+            , DTL_CNTR_NO /* 상세계약번호 */
+            , DTL_CNTR_SN /* 상세계약일련번호 */
+            , DP_TP_CD /* 입금유형코드 */
+            , RVE_DV_CD /* 수납구분코드 */
+            , ISLND_INCMDC_TP_CD /* 도서지역소득공제유형코드 */
+            , STLM_AMT /* 결제금액 */
+            <include refid="COMMON.insertSystemField"/>
+        ) VALUES (
+            #{cntrStlmRelId}
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , '99991231235959'
+            , #{cntrUnitTpCd}
+            , #{cntrStlmId}
+            , #{cntrNo}
+            , #{cntrNo}
+            , #{cntrSn}
+            , #{dpTpCd}
+            , #{rveDvCd}
+            , '' -- ISLND_INCMDC_TP_CD
+            , #{stlmAmt}
+            <include refid="COMMON.insertSystemFieldValue"/>
+        )
+    </insert>
+
+
+<insert id="insertContractProductRelation">
+        <selectKey keyProperty="cntrPdRelId" resultType="java.lang.String" order="BEFORE">
+            SELECT NVL(MAX(TO_NUMBER(CNTR_PD_REL_ID)), 0) AS CNTR_PD_REL_ID
+              FROM TB_SSCT_CNTR_PD_REL
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_PD_REL (
+            CNTR_PD_REL_ID
+            , VL_STRT_DTM
+            , VL_END_DTM
+            , CNTR_NO
+            , CNTR_SN
+            , PD_REL_ID
+            , BASE_PD_CD
+            , OJ_PD_CD
+            , PD_REL_TP_CD
+            , RLTG_SPP_OJ_YN
+            , PD_QTY
+            , CNTR_CH_RCP_ID
+            <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT LPAD(#{cntrPdRelId} + ROWNUM, 15, '0')
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , '99991231235959'
+             , #{cntrNo}
+             , #{cntrSn}
+             , PD_REL_ID
+             , BASE_PD_CD
+             , OJ_PD_CD
+             , PD_REL_TP_CD
+             , 'N' -- RLTG_SPP_OJ_YN
+             , #{pdQty}
+             , '' -- CNTR_CH_RCP_ID
+             <include refid="COMMON.insertSystemFieldValue"/>
+          FROM (
+                SELECT P1.PD_REL_ID
+                     , P1.BASE_PD_CD
+                     , P1.OJ_PD_CD
+                     , P1.PD_REL_TP_CD
+                  FROM TB_PDBS_PD_REL P1
+                 WHERE P1.PD_REL_TP_CD = '05' -- 기준-제품
+                   AND P1.DTA_DL_YN = 'N'
+                   AND P1.TEMP_SAVE_YN = 'N'
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN P1.VL_STRT_DTM AND P1.VL_END_DTM
+                   AND P1.BASE_PD_CD = #{basePdCd}
+                UNION ALL
+                SELECT P1.PD_REL_ID
+                     , P1.BASE_PD_CD
+                     , P1.OJ_PD_CD
+                     , P1.PD_REL_TP_CD
+                  FROM TB_PDBS_PD_REL P1
+            INNER JOIN TB_PDBS_PD_BAS P2
+                    ON P1.OJ_PD_CD = P2.PD_CD
+            INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P3
+                    ON P2.PD_CD = P3.PD_CD
+                   AND P3.PD_EXTS_PRP_GRP_CD = 'SCHD'
+                 WHERE P1.PD_REL_TP_CD = '03' -- 기준-서비스상품
+                   AND P1.DTA_DL_YN = 'N'
+                   AND P1.TEMP_SAVE_YN = 'N'
+                   AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN P1.VL_STRT_DTM AND P1.VL_END_DTM
+                   AND P1.BASE_PD_CD = #{basePdCd}
+                   AND P2.SV_PD_TP_CD = #{svPdTpCd}
+                   AND P3.PD_PRP_VAL02 = #{svPrd} -- 방문주기(AS-IS LICMON, LCVMON)
+                )
+    </insert>
+
+    <insert id="insertContractPartnerRelation">
+        <selectKey keyProperty="cntrPrtnrRelId" resultType="java.lang.String" order="BEFORE">
+            SELECT NVL(MAX(TO_NUMBER(CNTR_PRTNR_REL_ID)), 0) AS CNTR_PRTNR_REL_ID
+              FROM TB_SSCT_CNTR_PRTNR_REL /* 계약파트너관계ID */
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_PRTNR_REL (
+            CNTR_PRTNR_REL_ID
+            , VL_STRT_DTM
+            , VL_END_DTM
+            , CNTR_NO
+            , OG_TP_CD
+            , PRTNR_NO
+            , CNTR_PRTNR_TP_CD
+            , CNTR_PRTNR_TP_DRM_VAL
+            , OG_ID
+            , RCP_AOFFCE_CD
+            , PRR_BIZ_RGR_YN
+            , ALNC_PRTNR_DRM_VAL
+            , ALNC_PRTNR_IDNR_NM
+            , ALNC_PRTNR_DRM_DV_CD
+            <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT LPAD(#{cntrPrtnrRelId} + ROWNUM, 15, '0')
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , '99991231235959'
+             , #{cntrNo}
+             , O1.OG_TP_CD
+             , O1.PRTNR_NO
+             , '010' -- CNTR_PRTNR_TP_CD(판매자(010))
+             , '' -- CNTR_PRTNR_TP_DRM_VAL
+             , O1.OG_ID
+             , '' -- RCP_AOFFCE_CD
+             , O1.PRR_BIZ_RGST_YN -- PRR_BIZ_RGR_YN
+             , '' ALNC_PRTNR_DRM_VAL
+             , '' ALNC_PRTNR_IDNR_NM
+             , '' ALNC_PRTNR_DRM_DV_CD
+             <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_OGBS_MM_PRTNR_IZ O1
+         WHERE O1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND O1.PRTNR_NO = #{sellPrtnrNo}
+    </insert>
+
+    <insert id="insertContractWellsDetail">
+        INSERT INTO TB_SSCT_CNTR_WELLS_DTL (  /* 계약WELLS상세 */
+            CNTR_NO                  /* 계약번호 */
+            , CNTR_SN                  /* 계약일련번호 */
+            , FRISU_BFSVC_PTRM_UNIT_CD /* 무상BS기간단위코드 */
+            , FRISU_BFSVC_PTRM_N       /* 무상BS기간수 */
+            , FRISU_AS_PTRM_UNIT_CD    /* 무상AS기간단위코드 */
+            , FRISU_AS_PTRM_N          /* 무상AS기간수 */
+            , IST_DT                   /* 설치일자 */
+            , REQD_DT                  /* 철거일자 */
+            , CPS_DT                   /* 보상일자 */
+            , PRM_APY_DV_CD            /* 선납적용구분코드 */
+            , PRM_PTRM_MCN             /* 선납기간개월수 */
+            , SELL_EV_CD               /* 판매행사코드 */
+            , BFSVC_BZS_DV_CD          /* BS업체구분코드 */
+            , SPLY_BZS_DV_CD           /* 조달업체구분코드 */
+            , OCO_CPS_BZS_DV_CD        /* 타사보상업체구분코드 */
+            , HCR_DV_CD                /* 홈케어구분코드 */
+            , FMMB_N                   /* 가구원수 */
+            , FRISU_RCVRY_TP_CD        /* 무상복구유형코드 */
+            , IST_PLC_TP_CD            /* 설치장소유형코드 */
+            , WRFR_IST_MTH_CD          /* 정수기설치방법코드 */
+            , WTQLTY_TST_YN            /* 수질검사여부 */
+            , SRCWT_TP_CD              /* 상수원유형코드 */
+            , WPRS_ITST_TP_CD          /* 수압강도유형코드 */
+            , USE_ELECT_TP_CD          /* 사용전력유형코드 */
+            , TBHS_EYN                 /* 튜빙호수유무 */
+            , STVLV_EYN                /* 지수전유무 */
+            , KUMON_ITRDT_DV_CD        /* 구몬소개구분코드 */
+            , KUMON_CST_IDK_VAL        /* 구몬고객식별키값 */
+            , KUMON_RCOMR_IDK_VAL      /* 구몬소개자식별키값 */
+            , OTSD_LK_DRM_VAL          /* 외부연계식별값 */
+            , FRISU_MSH_CRT_YN         /* 무상멤버십생성여부 */
+            , IST_MM_BIL_MTHD_TP_CD    /* 설치월청구방식유형코드 */
+            , CO_IST_DV_CD             /* 회사설치구분코드 */
+            , CO_IST_MNGT_DV_CD        /* 회사설치관리구분코드 */
+            , CO_IST_USWY_CD           /* 회사설치용도코드 */
+            , IST_AK_ARTC_MO_CN        /* 설치요청사항메모내용 */
+            , SCON_CN                  /* 특약내용 */
+            <include refid="COMMON.insertSystemField" />
+        ) VALUES (
+            #{cntrNo} -- CNTR_NO
+            , #{cntrSn} -- CNTR_SN
+            , '20' -- FRISU_BFSVC_PTRM_UNIT_CD
+            , #{frisuBfsvcPtrmN} -- FRISU_BFSVC_PTRM_N
+            , '' -- FRISU_AS_PTRM_UNIT_CD
+            , '' -- FRISU_AS_PTRM_N
+            , '' -- IST_DT
+            , '' -- REQD_DT
+            , '' -- CPS_DT
+            , '' -- PRM_APY_DV_CD
+            , '' -- PRM_PTRM_MCN
+            , #{sellEvCd} -- SELL_EV_CD
+            , '' -- BFSVC_BZS_DV_CD
+            , '' -- SPLY_BZS_DV_CD
+            , '' -- OCO_CPS_BZS_DV_CD
+            , '' -- HCR_DV_CD
+            , '' -- FMMB_N
+            , '' -- FRISU_RCVRY_TP_CD
+            , '' -- IST_PLC_TP_CD
+            , '' -- WRFR_IST_MTH_CD
+            , '' -- WTQLTY_TST_YN
+            , '' -- SRCWT_TP_CD
+            , '' -- WPRS_ITST_TP_CD
+            , '' -- USE_ELECT_TP_CD
+            , '' -- TBHS_EYN
+            , '' -- STVLV_EYN
+            , '' -- KUMON_ITRDT_DV_CD
+            , '' -- KUMON_CST_IDK_VAL
+            , '' -- KUMON_RCOMR_IDK_VAL
+            , '' -- OTSD_LK_DRM_VAL
+            , '' -- FRISU_MSH_CRT_YN
+            , '' -- IST_MM_BIL_MTHD_TP_CD
+            , '' -- CO_IST_DV_CD
+            , '' -- CO_IST_MNGT_DV_CD
+            , '' -- CO_IST_USWY_CD
+            , #{istAkArtcMoCn} -- IST_AK_ARTC_MO_CN
+            , '' -- SCON_CN
+            <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+</mapper>

@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.risk.mapper.WctcSalesLimitsMapper">
+    <sql id="blacklistSelectClause">
+               T2.CNTR_NO
+             , T2.CNTR_SN
+             , T2.SELL_TP_CD
+             , T3.CNTR_CST_NO
+             , T4.CST_KNM
+             , T3.COPN_DV_CD
+             , T4.BRYY_MMDD
+             , T4.BZRNO
+             , I1.CRAL_LOCARA_TNO AS CNTR_CRAL_LOCARA_TNO
+             , I1.MEXNO_ENCR AS CNTR_MEXNO_ENCR
+             , I1.CRAL_IDV_TNO AS CNTR_CRAL_IDV_TNO
+             , '' AS CNTR_MPNO
+             , I2.LOCARA_TNO AS CNTR_LOCARA_TNO
+             , I2.EXNO_ENCR AS CNTR_EXNO_ENCR
+             , I2.IDV_TNO AS CNTR_IDV_TNO
+             , '' AS CNTR_TNO
+             , CASE WHEN I3.RNADR IS NOT NULL THEN I3.NEW_ADR_ZIP
+                    WHEN I3.LTN_ADR IS NOT NULL THEN I3.OLD_ADR_ZIP
+                    ELSE ''
+                    END AS CNTR_ZIP
+             , CASE WHEN I3.RNADR IS NOT NULL THEN I3.RNADR || ' ' || I3.RDADR
+                    WHEN I3.LTN_ADR IS NOT NULL THEN I3.LTN_ADR || ' ' || I3.LTN_DTL_ADR
+                    ELSE ''
+                    END AS CNTR_ADR
+             , I4.RCGVP_KNM AS ISTLL_KNM
+             , I4.CRAL_LOCARA_TNO AS ISTLL_CRAL_LOCARA_TNO
+             , I4.MEXNO_ENCR AS ISTLL_MEXNO_ENCR
+             , I4.CRAL_IDV_TNO AS ISTLL_CRAL_IDV_TNO
+             , '' AS ISTLL_MPNO
+             , I4.LOCARA_TNO AS ISTLL_LOCARA_TNO
+             , I4.EXNO_ENCR AS ISTLL_EXNO_ENCR
+             , I4.IDV_TNO AS ISTLL_IDV_TNO
+             , '' AS ISTLL_TNO
+             , CASE WHEN I5.RNADR IS NOT NULL THEN I5.NEW_ADR_ZIP
+                    WHEN I5.LTN_ADR IS NOT NULL THEN I5.OLD_ADR_ZIP
+                    ELSE ''
+                    END AS ISTLL_ZIP
+             , CASE WHEN I5.RNADR IS NOT NULL THEN I5.RNADR || ' ' || I5.RDADR
+                    WHEN I5.LTN_ADR IS NOT NULL THEN I5.LTN_ADR || ' ' || I5.LTN_DTL_ADR
+                    ELSE ''
+                    END AS ISTLL_ADR
+             , T5.OG_NM
+             , T5.PRTNR_KNM
+             , T3.SELL_PRTNR_NO AS PRTNR_NO
+             , I6.CRAL_LOCARA_TNO AS PRTNR_CRAL_LOCARA_TNO
+             , I6.MEXNO_ENCR AS PRTNR_MEXNO_ENCR
+             , I6.CRAL_IDV_TNO AS PRTNR_CRAL_IDV_TNO
+             , '' AS PRTNR_MPNO
+    </sql>
+    <sql id="blacklistJoinClause">
+         INNER JOIN TB_SSCT_CNTR_BAS T3
+            ON T3.CNTR_NO = T2.CNTR_NO
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS T4
+            ON T4.CST_NO = T3.CNTR_CST_NO
+           AND T4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T5
+            ON T5.PRTNR_NO = T3.SELL_PRTNR_NO
+           AND T5.OG_TP_CD = T3.SELL_OG_TP_CD
+           AND T5.BASE_YM = SUBSTR(T3.CNTR_CNFM_DTM, 0, 6)
+           AND T5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL T6
+            ON T6.DTL_CNTR_NO = T2.CNTR_NO
+           AND T6.DTL_CNTR_SN = T2.CNTR_SN
+           AND T6.CNTR_UNIT_TP_CD = '020'
+           AND T6.ADRPC_TP_CD = '3'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T6.VL_STRT_DTM AND T6.VL_END_DTM
+           AND T6.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CUBS_CST_BAS I1
+            ON I1.CST_NO = T3.CNTR_CST_NO
+           AND I1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN (
+                          SELECT *
+                            FROM (
+                                 SELECT CTPLC.*, RANK() OVER (PARTITION BY CST_CTPLC_OJ_DV_CD, CST_CTPLC_OJ_REFK_VAL ORDER BY HIST_STRT_DTM DESC) AS RNK
+                                   FROM TB_CUBS_CST_CTPLC_BAS CTPLC
+                                  WHERE 1=1
+                                    AND CST_CTPLC_OJ_DV_CD = '01' /* 고객 */
+                                    AND CTPLC_TP_CD = '03' /* 휴대전화번호 */
+                                    AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN HIST_STRT_DTM AND HIST_END_DTM
+                                 )
+                           WHERE RNK = 1
+                          ) I2
+            ON I2.CST_CTPLC_OJ_REFK_VAL = T3.CNTR_CST_NO
+           AND I2.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS I3
+            ON I3.ADR_ID = T4.ADR_ID
+           AND I3.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS I4
+            ON I4.CNTR_ADRPC_ID = T6.CNTR_ADRPC_ID
+           AND I4.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS I5
+            ON I5.ADR_ID= I4.ADR_ID
+           AND I5.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_OGBS_PRTNR_BAS I6
+            ON I6.OG_TP_CD = T5.OG_TP_CD
+           AND I6.PRTNR_NO = T5.PRTNR_NO
+           AND I6.DTA_DL_YN = 'N'
+    </sql>
+
+    <select id="selectBlacklistInfos" resultType="com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto$FindBlacklistRes">
+        SELECT <include refid="blacklistSelectClause" />
+          FROM TB_SSCT_CNTR_DTL T2
+               <include refid="blacklistJoinClause" />
+         WHERE 1 = 1
+           AND T2.CNTR_NO = #{cntrNo}
+           AND T2.CNTR_SN = #{cntrSn}
+           AND T2.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectBlacklistPages" resultType="com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto$SearchBlacklistRes">
+        SELECT * FROM (
+        SELECT <include refid="blacklistSelectClause" />
+             , T1.SELL_LM_ID
+             , T1.DTA_DL_YN
+             , T1.DTA_DL_YN AS ORGL_DTA_DL_YN
+             , T1.SELL_LM_RSON_CN
+             , T1.SELL_LM_CNTR_NO
+             , T1.SELL_LM_CNTR_SN
+             , T1.FST_RGST_DTM
+             , (
+               SELECT USR_NM
+                 FROM T_CMP_USR_ACO_M
+                WHERE DEL_YN = 'N'
+                  AND USR_ID = T1.FNL_MDFC_USR_ID
+               ) AS FST_RGST_USR_NM
+             , T1.FNL_MDFC_DTM
+             , (
+               SELECT USR_NM
+                 FROM T_CMP_USR_ACO_M
+                WHERE DEL_YN = 'N'
+                  AND USR_ID = T1.FNL_MDFC_USR_ID
+               ) AS FNL_MDFC_USR_NM
+          FROM TB_SSCT_SELL_LM_OJ_IZ T1
+         INNER JOIN TB_SSCT_CNTR_DTL T2
+            ON T2.CNTR_NO = T1.SELL_LM_CNTR_NO
+           AND T2.CNTR_SN = T1.SELL_LM_CNTR_SN
+           AND T2.DTA_DL_YN = 'N'
+               <include refid="blacklistJoinClause" />
+         WHERE 1 = 1
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.SELL_LM_OJ_DRM_CD = '2'
+        <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND T1.SELL_LM_CNTR_NO = #{cntrNo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cntrCstNo)'>
+           AND T3.CNTR_CST_NO = #{cntrCstNo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cstKnm)'>
+           AND T4.CST_KNM = #{cstKnm}
+        </if>
+           )
+         WHERE 1 = 1
+        <if test='@MybatisUtils@isNotEmpty(adrCl)'>
+            <choose>
+                <when test='@MybatisUtils@equals(adrCl, "1")'>
+               AND CNTR_ADR LIKE '%' || #{adr} || '%'
+                </when>
+                <otherwise>
+               AND CNTR_ZIP LIKE '%' || #{adr} || '%'
+                </otherwise>
+            </choose>
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cralLocaraTno) or @MybatisUtils@isNotEmpty(mexnoEncr) or @MybatisUtils@isNotEmpty(cralIdvTno)'>
+            AND (
+            CNTR_CRAL_LOCARA_TNO = #{cralLocaraTno}
+            AND CNTR_MEXNO_ENCR = #{mexnoEncr}
+            AND CNTR_CRAL_IDV_TNO = #{cralIdvTno}
+            ) OR (
+            CNTR_LOCARA_TNO = #{cralLocaraTno}
+            AND CNTR_EXNO_ENCR = #{mexnoEncr}
+            AND CNTR_IDV_TNO = #{cralIdvTno}
+            )
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(prtnrInfo)'>
+           AND (PRTNR_KNM LIKE '%' || #{prtnrInfo} || '%'
+                    OR PRTNR_NO LIKE '%' || #{prtnrInfo} || '%')
+        </if>
+    </select>
+
+    <insert id="insertBlacklist">
+        <selectKey keyProperty="item.sellLmId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(MAX(TO_NUMBER(SELL_LM_ID)) + 1,15,0)
+              FROM TB_SSCT_SELL_LM_OJ_IZ
+        </selectKey>
+        INSERT INTO TB_SSCT_SELL_LM_OJ_IZ (
+               SELL_LM_ID
+             , VL_STRT_DTM
+             , VL_END_DTM
+             , SELL_LM_PROCS_TP_CD
+             , SELL_LM_OJ_DRM_CD
+             , SELL_LM_CNTR_NO
+             , SELL_LM_CNTR_SN
+             , SELL_LM_RSON_CN
+             , SELL_LM_OC_DT
+             , SELL_LM_RLS_DT
+             , DTA_DL_YN
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{item.sellLmId}
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+             , '99991231235959'
+             , 'E'
+             , '2'
+             , #{item.sellLmCntrNo}
+             , #{item.sellLmCntrSn}
+             , #{item.sellLmRsonCn}
+             , CASE WHEN #{item.dtaDlYn} = 'Y'
+                    THEN TO_CHAR(SYSDATE, 'YYYYMMDD')
+                    ELSE ''
+                     END
+             , CASE WHEN #{item.dtaDlYn} = 'N'
+                    THEN TO_CHAR(SYSDATE, 'YYYYMMDD')
+                    ELSE ''
+                     END
+             , #{item.dtaDlYn}
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updateBlacklist">
+        UPDATE TB_SSCT_SELL_LM_OJ_IZ
+           SET SELL_LM_CNTR_NO = #{sellLmCntrNo}
+             , SELL_LM_CNTR_SN = #{sellLmCntrSn}
+             , SELL_LM_RSON_CN = #{sellLmRsonCn}
+        <if test='dtaDlYn != orglDtaDlYn'>
+            <choose>
+                <when test='dtaDlYn == "Y"'>
+             , SELL_LM_OC_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                </when>
+                <otherwise>
+             , SELL_LM_RLS_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                </otherwise>
+            </choose>
+        </if>
+              <include refid="COMMON.updateSystemField"/>
+         WHERE SELL_LM_ID = #{sellLmId}
+    </update>
+
+    <delete id="deleteBlacklist">
+        DELETE
+          FROM TB_SSCT_SELL_LM_OJ_IZ
+         WHERE SELL_LM_ID = #{sellLmId}
+    </delete>
+    <select id="selectEntrepreneurJoinLmOjss" resultType="com.kyowon.sms.wells.web.contract.risk.dto.WctcSalesLimitsDto$SearchEntrpJLmOjRes">
+        SELECT NVL2(T1.SELL_LM_RLS_DT, '4', '3') AS SELL_LM_DV /* 제한 등록/해제 구분  3:등록, 4: 해제*/
+             , T1.SELL_LM_ID
+             , T1.SELL_LM_BZRNO        /* 사업자번호 */
+             , T2.DLPNR_NM             /* 거래처명 */
+             , T2.DLGPS_NM             /* 대표자명*/
+             , T2.BRYY_MMDD            /* 생년월일 */
+             , T1.SELL_LM_RSON_CD      /* 불량코드 */
+             , SUBSTR(T1.SELL_LM_OC_DT, 0, 8) AS SELL_LM_OC_DTM      /* 발생일자 */
+             , SUBSTR(T1.SELL_LM_RLS_DT, 0, 8) AS  SELL_LM_RLS_DTM  /* 해제일자 */
+             , NVL2(T1.SELL_LM_RLS_DT, T1.SELL_LM_RLS_CN, T1.SELL_LM_RSON_CN) AS SELL_LM_RSON    /*발생사유*/
+             , T1.FST_RGST_USR_ID                               AS SELL_LM_PSIC                /* 제한 등록 담당자 ID */
+             , NVL2(T1.SELL_LM_RLS_DT, T1.FNL_MDFC_USR_ID, '') AS SELL_LM_RLS_PSIC            /* 제한 해제 담당자 ID */
+             , T3.USR_NM                                        AS SELL_LM_PSIC_NM             /* 제한 등록 담당자 NM */
+             , NVL2(T1.SELL_LM_RLS_DT, T4.USR_NM, '')           AS SELL_LM_RLS_PSIC_NM         /* 제한 등록 담당자 NM */
+        FROM TB_SSCT_SELL_LM_OJ_IZ T1         /* T1.판매제한대상내역 */
+        LEFT OUTER JOIN LATERAL (SELECT *  /* 가장최근 사업자정보  */
+                                   FROM (SELECT T20.BZRNO              /* 사업자번호 */
+                                              , T20.DLPNR_NM             /* 거래처명 */
+                                              , T20.DLGPS_NM             /* 대표자명*/
+                                              , T20.BRYY_MMDD            /* 생년월일 */
+                                              , ROW_NUMBER () OVER(ORDER BY T20.FNL_MDFC_DTM DESC) AS RN /* 최종 한건만*/
+                                  FROM TB_GBCO_DLPNR_BAS T20    /* 거래처 기본*/
+                                 WHERE 1=1
+                                   AND T20.DTA_DL_YN = 'N'
+                                   AND T20.BZRNO = T1.SELL_LM_BZRNO
+                             )
+                            WHERE RN = 1
+                          ) T2
+           ON T2.BZRNO = T1.SELL_LM_BZRNO   /*사업자번호*/
+         LEFT OUTER JOIN T_CMP_USR_ACO_M  T3
+           ON T3.USR_ID = T1.FST_RGST_USR_ID
+          AND T3.DEL_YN != 'Y'
+          LEFT OUTER JOIN T_CMP_USR_ACO_M T4
+            ON T4.USR_ID = T1.FNL_MDFC_USR_ID
+           AND T4.DEL_YN != 'Y'
+         WHERE T1.VL_END_DTM = '99991231235959'  /* 최신 OR 99991231235959 */
+           AND T1.DTA_DL_YN = 'N'
+           AND T1.SELL_LM_OJ_DRM_CD = '7'        /* 판매제한대상식별코드 : 사업자등록번호 */
+        <if test='@MybatisUtils@isNotEmpty(sellLmBzrno)'>
+           AND T1.SELL_LM_BZRNO = #{sellLmBzrno}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(dlpnrNm)'>
+           AND T2.DLPNR_NM LIKE '%'||#{dlpnrNm}||'%'
+        </if>
+         <if test='@MybatisUtils@isNotEmpty(sellLmOcStm) and @MybatisUtils@isNotEmpty(sellLmOcDtm)'>
+           AND T1.SELL_LM_OC_DT BETWEEN #{sellLmOcStm} AND #{sellLmOcDtm}
+         </if>
+    </select>
+
+    <select id="selectEntrepreneurJoinLmOjssCheck" resultType="java.lang.String">
+        SELECT SELL_LM_BZRNO        /* 사업자번호 */
+        FROM TB_SSCT_SELL_LM_OJ_IZ         /* T1.판매제한대상내역 */
+         WHERE 1=1
+           AND DTA_DL_YN = 'N'
+           AND SELL_LM_ID = #{sellLmId}        /* 판매제한ID */
+    </select>
+
+    <insert id="insertEntrepreneurJoinLmOjss">
+        <selectKey keyProperty="item.sellLmId" resultType="java.lang.String" order="BEFORE">
+            SELECT (MAX(TO_NUMBER(SELL_LM_ID)) + 1)
+              FROM TB_SSCT_SELL_LM_OJ_IZ
+        </selectKey>
+        INSERT INTO TB_SSCT_SELL_LM_OJ_IZ (
+              SELL_LM_ID   /* 판매계약ID */
+            , SELL_LM_BZRNO  /* 사업자번호 */
+            , SELL_LM_RSON_CD /* 불량코드 */
+            , SELL_LM_OC_DT /* 발생일자 */
+        <choose>
+            <when test="@MybatisUtils@equals(sellLmDv, '3')">
+                , SELL_LM_RSON_CN /* 판매제한사유내용 */
+            </when>
+            <otherwise>
+                , SELL_LM_RLS_CN /* 판매제한해제내용 */
+            </otherwise>
+        </choose>
+            , SELL_LM_RLS_DT /* 판매제한해제일시 */
+            , SELL_LM_CNTR_SN /* 판매제한계약일련번호 */
+            , SELL_LM_OJ_DRM_CD  /* 판매제한대상식별코드 : 사업자등록번호 */
+            , VL_STRT_DTM /* 유효시작일시 */
+            , VL_END_DTM /* 유효종료일시 */
+            , DTA_DL_YN /* 삭제여부 */
+            <include refid="COMMON.insertSystemField" />
+        ) VALUES (
+             #{item.sellLmId}
+            , #{sellLmBzrno}
+            , #{sellLmRsonCd}
+            , #{sellLmOcDtm}
+            , #{sellLmRson}
+            , #{sellLmRlsDtm}
+            , #{sellLmCntrSn}
+            , '7'
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24mmSS')
+            , '99991231235959'
+            , NVL(#{dtaDlYn}, 'N')
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
+    <update id="updateEntrepreneurJoinLmOjss">
+        UPDATE TB_SSCT_SELL_LM_OJ_IZ
+           SET SELL_LM_BZRNO =  #{sellLmBzrno}                                          /* 사업자번호 */
+             , SELL_LM_RSON_CD = #{sellLmRsonCd}                                        /* 불량코드 */
+             , SELL_LM_OC_DT = NVL2(#{sellLmOcDtm},#{sellLmOcDtm},'')        /* 발생일자 */
+            <choose>
+                <when test="@MybatisUtils@equals(sellLmDv, '3')">
+                    , SELL_LM_RSON_CN = #{sellLmRson} /* 판매제한사유내용 */
+                </when>
+                <otherwise>
+                    , SELL_LM_RLS_CN = #{sellLmRson}  /* 판매제한해제내용 */
+                </otherwise>
+            </choose>
+             , SELL_LM_RLS_DT =  NVL2(#{sellLmRlsDtm},#{sellLmRlsDtm},'')    /* 판매제한해제일시 */
+             , SELL_LM_CNTR_SN = #{sellLmCntrSn}                                        /* 판매제한계약일련번호 */
+        <include refid="COMMON.updateSystemField"/>
+         WHERE SELL_LM_ID = #{sellLmId}
+    </update>
+
+    <update id="deleteEntrepreneurJoinLmOjss">
+        UPDATE TB_SSCT_SELL_LM_OJ_IZ
+           SET DTA_DL_YN = 'Y'
+              <include refid="COMMON.updateSystemField"/>
+         WHERE SELL_LM_ID = #{sellLmId}
+    </update>
+</mapper>

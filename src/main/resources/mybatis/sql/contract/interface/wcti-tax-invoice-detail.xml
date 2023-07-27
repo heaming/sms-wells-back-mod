@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiTaxInvoiceDetailMapper">
+
+    <!--
+    EAI INTERFACE 통신 시 data key는 snake case를 사용함.
+    resultMap을 사용하여 response dto에 매핑함.
+    -->
+    <resultMap id="detailInfo" type="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoiceDetailDto$SearchRes">
+        <constructor>
+            <arg name="TRD_DT" javaType="java.lang.String" column="TRD_DT"/>
+            <arg name="TXINV_PD_DV_NM" javaType="java.lang.String" column="TXINV_PD_DV_NM"/>
+            <arg name="CNTR_NO" javaType="java.lang.String" column="CNTR_NO"/>
+            <arg name="CNTR_SN" javaType="java.lang.Integer" column="CNTR_SN"/>
+            <arg name="CNTRT_NM" javaType="java.lang.String" column="CNTRT_NM"/>
+            <arg name="PD_QTY" javaType="java.lang.Integer" column="PD_QTY"/>
+            <arg name="SPL_AMT" javaType="java.lang.Integer" column="SPL_AMT"/>
+            <arg name="VAT_AMT" javaType="java.lang.Integer" column="VAT_AMT"/>
+            <arg name="SUM_AMT" javaType="java.lang.Integer" column="SUM_AMT"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectTaxInvoiceDetails" resultMap="detailInfo">
+        SELECT TRD_DT
+             , AFMDBS.F_CMZ_CD_NM(#{session.tenantId}, 'TXINV_PD_DV_CD', TXINV_PD_DV_CD) AS TXINV_PD_DV_NM
+             , CNTR_NO
+             , CNTR_SN
+             , CST_KNM AS CNTRT_NM
+             , PD_QTY
+             , SPL_AMT
+             , VAT AS VAT_AMT
+             , (NVL(SPL_AMT,0) + NVL(VAT,0)) AS SUM_AMT
+          FROM TB_SSCT_TXINV_APLC_DTL
+         WHERE TXINV_ID = #{TXINV_ID}
+           AND DTA_DL_YN = 'N'
+    </select>
+</mapper>

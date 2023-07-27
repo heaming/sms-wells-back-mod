@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiTaxInvoicePersonMapper">
+
+    <!--
+    EAI INTERFACE 통신 시 data key는 snake case를 사용함.
+    resultMap을 사용하여 response dto에 매핑함.
+    -->
+    <resultMap id="personInfo" type="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiTaxInvoicePersonDto$SearchRes">
+        <constructor>
+            <arg name="PSIC_ID" javaType="java.lang.String" column="PSIC_ID"/>
+            <arg name="PSIC_NM" javaType="java.lang.String" column="PSIC_NM"/>
+            <arg name="DEPT_NM" javaType="java.lang.String" column="DEPT_NM"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectTaxInvoicePersons" resultMap="personInfo">
+       SELECT PRTNR_NO AS PSIC_ID
+             , NVL(PRTNR_KNM, PRTNR_ENM) AS PSIC_NM
+             , OG_NM AS DEPT_NM
+          FROM TB_OGBS_MM_PRTNR_IZ
+         WHERE BASE_YM = TO_CHAR(SYSDATE, 'yyyyMM')
+           AND (PRTNR_KNM LIKE '%'||#{PSIC_NM}||'%'
+                OR PRTNR_ENM LIKE '%'||#{PSIC_NM}||'%'
+               )
+           AND DTA_DL_YN = 'N'
+           <!-- TODO
+           // 파트너분류코드 = 업무지원매니저에 해당하는 코드(설계서 작성 당시 해당 코드 정의되지 않은 상태, 추후 확인)
+           AND PRTNR_CLSF_CD = ''
+           -->
+    </select>
+</mapper>

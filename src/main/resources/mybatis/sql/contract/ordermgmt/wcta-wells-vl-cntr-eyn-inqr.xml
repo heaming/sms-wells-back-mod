@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaWellsVlCntrEynInqrMapper">
+    <select id="selectRentalCsts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaWellsVlCntrEynInqrDvo">
+        SELECT
+               B1.CNTR_NO                   AS CNTR_NO              /*계약번호*/
+             , B1.CNTR_SN                   AS CNTR_SN              /*계약일련번호*/
+             , A1.COPN_DV_CD                AS COPN_DV_CD           /*법인격구분코드*/
+             , B1.ISTM_MCN                  AS ISTM_MCN             /*할부개월수*/
+             , C1.FRISU_BFSVC_PTRM_N        AS FRISU_BFSVC_PTRM_N   /*무상BS기간수*/
+             , C1.IST_DT                    AS IST_DT               /*설치일자*/
+             , NVL(H1.CAN_DT,'00000000')    AS CAN_DT               /*취소일자*/
+             , D1.BRYY_MMDD                 AS BRYY_MMDD            /*생년월일*/
+             , D1.SEX_DV_CD                 AS SEX_DV_CD            /*성별구분코드*/
+             , E1.OG_ID                     AS OG_ID                /*조직ID*/
+             , G1.SL_DT                     AS SL_DT                /*매출일자*/
+          FROM TB_SSCT_CNTR_BAS A1 /*계약기본*/
+         INNER JOIN TB_SSCT_CNTR_DTL B1 /*계약상세*/
+            ON A1.CNTR_NO = B1.CNTR_NO
+           AND B1.SELL_TP_CD = '2' /*판매유형코드(2:웰스)*/
+           AND B1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL C1 /*계약WELLS상세*/
+            ON B1.CNTR_NO = C1.CNTR_NO
+           AND B1.CNTR_SN = C1.CNTR_SN
+           AND C1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CUBS_CST_BAS D1 /*고객기본*/
+            ON A1.CNTR_CST_NO = D1.CST_NO
+           AND D1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_PRTNR_REL E1 /*계약파트너관계*/
+            ON A1.CNTR_NO = E1.CNTR_NO
+           AND E1.DTA_DL_YN = 'N'
+           AND TO_CHAR(SYSDATE,'YYYYMMDD')
+               BETWEEN SUBSTR(E1.VL_STRT_DTM,1,8) AND SUBSTR(E1.VL_END_DTM,1,8)
+         INNER JOIN TB_OGBS_OG_BAS F1 /*조직기본*/
+            ON E1.OG_ID = F1.OG_ID
+           AND F1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G1 /*WELLS매출월마감내역*/
+            ON B1.CNTR_NO = G1.CNTR_NO
+           AND B1.CNTR_SN = G1.CNTR_SN
+           AND TO_CHAR(SYSDATE, 'YYYYMM') = G1.SL_CL_YM
+          LEFT OUTER JOIN (
+               SELECT CNTR_NO
+                    , CNTR_SN
+                    , CAN_DT
+                 FROM (
+                         SELECT CNTR_NO
+                              , CNTR_SN
+                              , SUBSTR(HIST_STRT_DTM,1,8) AS CAN_DT
+                              , ROW_NUMBER () OVER(PARTITION BY CNTR_NO, CNTR_SN ORDER BY HIST_STRT_DTM DESC) AS RN
+                           FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST /*계약상세상태변경이력*/
+                          WHERE 1 = 1
+                            AND DTA_DL_YN='N'
+                            AND CNTR_DTL_STAT_CD IN ('301','302','303')
+                      )
+                WHERE RN = 1
+          ) H1
+            ON B1.CNTR_NO = H1.CNTR_NO
+           AND B1.CNTR_SN = H1.CNTR_SN
+         WHERE A1.CNTR_CST_NO = #{cstNo} /*계약고객번호*/
+           AND A1.COPN_DV_CD != '2' /*법인고객제외*/
+           AND A1.DTA_DL_YN = 'N'
+           AND C1.IST_DT > '00000000' /*렌탈은 설치건을 유효고객으로 포함*/
+           AND D1.BRYY_MMDD = #{bryyMmdd}
+           AND D1.SEX_DV_CD = #{cntrtSexDv}
+           AND F1.OG_CD = 'X930110' /*영업부/홈페이지 조직만 유효 체크대상, 기존 영업부 주문건도 홈페이지 주문 가능2021.03.15*/
+    </select>
+
+    <select id="selectMshCsts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaWellsVlCntrEynInqrDvo">
+        SELECT
+               B1.CNTR_NO                   AS CNTR_NO          /*계약번호*/
+             , B1.CNTR_SN                   AS CNTR_SN          /*계약일련번호*/
+             , A1.COPN_DV_CD                AS COPN_DV_CD       /*법인격구분코드*/
+             , A1.CNTR_CNFM_DTM             AS CNTR_CNFM_DTM    /*계약확정일시*/
+             , B1.CNTR_PD_ENDDT             AS CNTR_PD_ENDDT    /*탈퇴일자*/
+             , D1.BRYY_MMDD                 AS BRYY_MMDD        /*생년월일*/
+             , D1.SEX_DV_CD                 AS SEX_DV_CD        /*성별구분코드*/
+             , E1.OG_ID                     AS OG_ID            /*조직ID*/
+             , A1.CNTR_CAN_DTM              AS CNTR_CAN_DTM     /*계약취소일시*/
+             , NVL(H1.CAN_DT,'00000000')    AS CAN_DT           /*취소일자*/
+             , G1.SL_DT                     AS SL_DT            /*매출일자*/
+          FROM TB_SSCT_CNTR_BAS A1 /*계약기본*/
+         INNER JOIN TB_SSCT_CNTR_DTL B1 /*계약상세*/
+            ON A1.CNTR_NO = B1.CNTR_NO
+           AND B1.SELL_TP_CD = '3' /*판매유형코드-3:멤버십*/
+           AND B1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL C1 /*계약WELLS상세*/
+            ON B1.CNTR_NO = C1.CNTR_NO
+           AND B1.CNTR_SN = C1.CNTR_SN
+           AND C1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CUBS_CST_BAS D1 /*고객기본*/
+            ON A1.CNTR_CST_NO = D1.CST_NO
+           AND D1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_PRTNR_REL E1 /*계약파트너관계*/
+            ON A1.CNTR_NO = E1.CNTR_NO
+           AND E1.DTA_DL_YN = 'N'
+           AND TO_CHAR(SYSDATE,'YYYYMMDD')
+               BETWEEN SUBSTR(E1.VL_STRT_DTM,1,8) AND SUBSTR(E1.VL_END_DTM,1,8)
+         INNER JOIN TB_OGBS_OG_BAS F1 /*조직기본*/
+            ON E1.OG_ID = F1.OG_ID
+           AND F1.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ G1 /*WELLS매출월마감내역*/
+            ON B1.CNTR_NO = G1.CNTR_NO
+           AND B1.CNTR_SN = G1.CNTR_SN
+           AND TO_CHAR(SYSDATE, 'YYYYMM') = G1.SL_CL_YM
+          LEFT OUTER JOIN (
+               SELECT CNTR_NO
+                    , CNTR_SN
+                    , CAN_DT
+                 FROM (
+                         SELECT CNTR_NO
+                              , CNTR_SN
+                              , SUBSTR(HIST_STRT_DTM,1,8) AS CAN_DT
+                              , ROW_NUMBER () OVER(PARTITION BY CNTR_NO, CNTR_SN ORDER BY HIST_STRT_DTM DESC) AS RN
+                           FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST /*계약상세상태변경이력*/
+                          WHERE 1 = 1
+                            AND DTA_DL_YN = 'N'
+                            AND CNTR_DTL_STAT_CD IN ('301','302','303')
+                      )
+                WHERE RN = 1
+          ) H1
+            ON B1.CNTR_NO = H1.CNTR_NO
+           AND B1.CNTR_SN = H1.CNTR_SN
+         WHERE A1.CNTR_CST_NO = #{cstNo} /*계약고객번호*/
+           AND A1.COPN_DV_CD != '2' /*법인고객제외*/
+           AND A1.CNTR_CNFM_DTM > '0' /*멤버십 가입건만 유효고객으로 포함*/
+           AND D1.BRYY_MMDD = #{bryyMmdd} /*생년월일*/
+           AND D1.SEX_DV_CD = #{cntrtSexDv} /*성별구부코드*/
+           AND F1.OG_CD = 'X930110' /*영업부/홈페이지 조직만 유효 체크대상, 기존 영업부 주문건도 홈페이지 주문 가능2021.03.15*/
+    </select>
+</mapper>

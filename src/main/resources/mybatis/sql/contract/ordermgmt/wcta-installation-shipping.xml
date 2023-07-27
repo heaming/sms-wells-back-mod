@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaInstallationShippingMapper">
+
+
+    <select id="selectInstallationShippings" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaInstallationShippingDvo">
+        SELECT /*+ LEADING(T10) INDEX_DESC(T10 IX_SSCT_CNTR_BAS_02) USE_NL(T10 T11 T12 T30 T32 T33 T40) INDEX(T12 PK_SSCT_CNTR_WELLS_DTL)
+                   NO_MERGE(T11) PUSH_PRED(T11) */
+                   T11.KAETC1
+                 , T11.REF_PD_CLSF_VAL
+                 , F_CMZ_CD_NM(#{session.tenantId} , 'SELL_TP_CD', T11.SELL_TP_CD ) AS SELL_TP_NM    /* 판매구분 : LCGUBN */
+                 , T11.IST_PCSV_TP_CD   /* 설치택배구분 (1:설치, 2:택배) 설치요청 구분  - REQ_SET_DIV - KA11.KACK05 */
+                 /* WELLS는 배송계획기본 관리X -> 서비스작업출고내역 설치(1)건 으로 임시대체 ASIS:COUNT(LC6000P) */
+                 , (SELECT COUNT(1)
+                      FROM TB_SVST_SV_WK_OSTR_IZ SWOI /* 서비스작업출고내역 */
+                     WHERE 1=1
+                       AND SWOI.CNTR_NO  = T11.CNTR_NO
+                       AND SWOI.CNTR_SN  = T11.CNTR_SN
+                       AND SWOI.SV_BIZ_HCLSF_CD = '1'    /* 서비스업무대분류코드 - 설치(1)*/
+                       AND SWOI.OSTR_DT IS NOT NULL     /* 출고일자 */
+                       AND SWOI.DTA_DL_YN ='N'
+                      ) AS SPP_QTY  /* DELVER_CNT (성능느림)*/
+                 , T11.SELL_TP_CD                               /* 판매구분2 (ORDRTYPE:L10,..)*/
+                 , T10.SELL_PRTNR_NO                            /* 판매자사번 (LCDCDE) */
+                 , T30.OG_CD                                    /* 지점코드(LCDDPT) 소속 */
+                 , T32.DGR3_LEVL_DG_PRTNR_NM                    /* 지점장명(AKDBNM,LCBNAM  - 설치:화면표시안함 */
+                 , T33.CRAL_LOCARA_TNO  AS DGR3_CRAL_LOCARA_TNO /* 지점장전화번호-휴대지역전화번호 (AKDBTD,LCBPHONE) - 설치:화면표시안함 */
+                 , T33.MEXNO_ENCR       AS DGR3_MEXNO_ENCR      /* 지점장전화번호-휴대전화국번호암호화 (AKDBT1,LCBPHONE) - 설치:화면표시안함 */
+                 , T33.CRAL_IDV_TNO     AS DGR3_CRAL_IDV_TNO    /* 지점장전화번호-휴대개별전화번호 (AKDBT2,LCBPHONE) - 설치:화면표시안함 */
+                 , SUBSTR(T10.CNTR_RCP_FSH_DTM, 0, 8) AS CNTR_RCP_FSH_DT    /* 계약접수완료일시(접수일:LCCRTT.LCCRTY) */
+                 , T11.CNTR_NO                                  /* 계약번호 : LCYEAR, LC_CODE*/
+                 , T11.CNTR_SN                                  /* 계약일련번호 : LCCODE*/
+                 , T11.CNTR_NO || '-' || T11.CNTR_SN  AS CNTR_DTL_NO /* 계약상세번호 */
+                 , T40.CST_KNM                                              /* 계약자정보 - 고객명(LCCNAM) */
+                 , CASE WHEN T30.PRTNR_NO IS NOT NULL THEN T30.PRTNR_KNM
+                        ELSE (SELECT FNM
+                                FROM TB_GBCO_EMP_BAS /* T.직원기본 */
+                               WHERE SAP_EMPNO = T10.SELL_PRTNR_NO
+                                 AND DTA_DL_YN = 'N') END AS PRTNR_KNM       /* 판매자명(LCDNAM : AK05.AKDNAM or IS10.ISCNAM:직원) */
+                 , CASE WHEN (SELECT CTT_PRGS_STAT_CD
+                                FROM TB_SSOP_CTT_BAS TSCB
+                               WHERE 1=1
+                                 AND CTT_OJ_ID = T11.CTT_OJ_ID) = '20' THEN 'Y' ELSE 'N' END AS CTT_YN     /* 컨택여부(CWCFLG) ->  컨택진행상태코드(20:컨택완료) */
+                 , T11.CTT_RS_CD            /* 컨택코드(CWFLG3, LCCCDE) ->  컨택결과코드 */
+                 , (CASE WHEN T11.SELL_TP_CD = '2' THEN F_CMZ_CD_NM(#{session.tenantId} , 'FILT_CTT_RS_CD', T11.CTT_RS_CD)  /* LC컨택 */
+                         WHEN T11.SELL_TP_CD = '9' THEN F_CMZ_CD_NM(#{session.tenantId} , 'LC_CTT_RS_CD', T11.CTT_RS_CD)    /* 필터컨택 */
+                         ELSE '' END) AS CTT_RS_NM         /* 컨택내용(CWCNA3/CWCNA4) ->  컨택결과코드명 (CTT_SELL_TP_CD 대신 SELL_TP_CD 으로 구분함)*/
+                 , T11.BASE_PD_CD /* 기준상품코드(상품 LCIC01) */
+                 , CASE WHEN T11.SELL_TP_CD = '1' --일시불
+                        THEN (T11.PD_NM || (SELECT CASE WHEN COUNT(1) > 1 THEN '외 '|| (COUNT(1) -1) || '건'
+                                                  ELSE '' END
+                                             FROM TB_SSCT_CNTR_DTL TSCD             /* T.계약상세 */
+                                            WHERE 1=1
+                                              AND TSCD.CNTR_NO = T11.CNTR_NO /*계약번호  */
+                                              AND TSCD.DTA_DL_YN = 'N'))
+                        WHEN T11.SELL_TP_CD = '4' --정기배송
+                        THEN (T11.PD_NM || (SELECT CASE WHEN COUNT(1) > 1 THEN '외 '|| (COUNT(1) -1) || '건'
+                                                  ELSE '' END
+                                             FROM TB_SSCT_CNTR_PD_REL TSCR             /* T.계약상품관계 */
+                                            WHERE 1=1
+                                              AND TSCR.CNTR_NO = T11.CNTR_NO /*계약번호  */
+                                              AND TSCR.CNTR_SN   = T11.CNTR_SN
+                                              AND TSCR.OJ_PD_CD = T11.BASE_PD_CD
+                                              AND TSCR.PD_REL_TP_CD IN ('01','08')   /* 상품관계유형코드 : 복합-기준(01), 패키지(Package):08 */
+                                              AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN TSCR.VL_STRT_DTM AND TSCR.VL_END_DTM
+                                              AND TSCR.VL_END_DTM = '99991231235959' /* 유효종료일시 */
+                                              AND TSCR.DTA_DL_YN = 'N'))
+                        ELSE T11.PD_NM  END AS PD_NM   /* 상품명 (KAINAM) */
+                 , CASE WHEN T11.SELL_TP_CD = '1' --일시불
+                        THEN (T11.PD_NM || ( SELECT LISTAGG(TPPB.PD_NM,',') WITHIN GROUP(ORDER BY CNTR_SN)
+                                              FROM TB_SSCT_CNTR_DTL TSCD             /* T.계약상세 */
+                                             INNER JOIN TB_PDBS_PD_BAS TPPB          /* T.상품기본 -  */
+                                                ON TPPB.TEMP_SAVE_YN = 'N'                /* 임시저장여부 */
+                                               AND TPPB.PD_CD = TSCD.BASE_PD_CD           /* 상품코드 */
+                                               AND TPPB.DTA_DL_YN = 'N'                   /* 데이터삭제여부 */
+                                             WHERE 1=1
+                                               AND TSCD.CNTR_NO = T11.CNTR_NO /*계약번호  */
+                                               AND TSCD.DTA_DL_YN = 'N'
+                                             GROUP BY TSCD.CNTR_NO ))
+                        ELSE T11.PD_NM  END AS WO_PD_NM   /* 연관전체 상품명 (LCKANM(LC01NM~LC10NM)) , ASIS에서는  상품명을 10까지 붙여서 보여줬으나 TOBE에선 상품일련번호기준임  */
+                 , T11.SPP_DUEDT        /* 배송예정일자 (설치예정일:LCDEMD,LCDEMY)*/
+                 , T12.IST_DT           /* 설치일자 (LCSETD,LCSLEY) - 일시불일때만 */
+                 , T11.CNTR_PD_STRTDT   /* 상품시작일자(매출일자:LCSLED,LCSLEY) - 전체사용매출*/
+                 , '' AS PCSV_BZS_CD    /* 택배업체 (택배사구분:LCTGUB) - 배송관련저보 관리 X */
+                 , '' AS PCSV_BZS_NM    /* 택배업체명 (택배사구분:LCTGUB_NM) - 배송관련저보 관리 X */
+                 , '' AS SPP_ORD_NO     /* 설치처정보 - 송장번호 : LCTBNO - 배송관련저보 관리 X */
+    --             , CASE WHEN T11.SELL_TP_CD = '1' THEN '01' --일시불
+    --                    WHEN T11.SELL_TP_CD = '2' THEN T46.SPP_PROCS_BZS_CD /*DL10.PSCOCD*/  --렌탈
+    --                    WHEN T11.SELL_TP_CD = '3' THEN '' --멤버십
+    --                    ELSE '' END AS PCSV_BZS_CD  /* 택배업체 (택배사구분:LCTGUB)*/
+    --             , F_CMZ_CD_NM('TNT_WELSS', 'SELL_TP_CD', T46.SPP_PROCS_BZS_CD )  AS PCSV_BZS_NM  /* 택배업체명 (택배사구분:LCTGUB_NM)*/
+    --             , CASE WHEN T11.SELL_TP_CD = '1' THEN T46.SPP_ORD_NO     --일시불
+    --                    WHEN T11.SELL_TP_CD = '2' THEN T46.SPP_ORD_NO    --렌탈
+    --                    WHEN T11.SELL_TP_CD = '3' THEN '' --멤버십
+    --                    ELSE '' END AS SPP_ORD_NO  /* 설치처정보 - 송장번호 : LCTBNO */
+                 , CASE WHEN T11.SELL_TP_CD = '1' OR T11.SELL_TP_CD = '2' --일시불, 렌탈
+                        THEN ( CASE WHEN T11.BOO_SELL_TP_CD IS NOT NULL THEN 'Y' ELSE 'N'END)
+                        WHEN T11.SELL_TP_CD = '3' THEN '' --멤버십
+                        ELSE '' END AS BOO_SELL_YN  /* 예약확정유무 (예약확정유무(LC30.LCST08)) 맵핑부정확함 */
+                 , T11.PD_HCLSF_NM    /* 대분류명 KAETC1(4:환경가전) */
+                 , T11.PD_MCLSF_NM    /* 대분류명 KAETC2(C:전기레인지) */
+
+             <choose>
+                <when test='@MybatisUtils@equals(istPcsvDvCd, "1")'>
+    --------            ----------------------------------------
+    --------            -- 설치 일때 REQ_SET_DIV 분기
+    --------            ----------------------------------------
+                 , CASE WHEN T11.SELL_TP_CD  IN ('1','2') THEN (CASE WHEN T11.KAETC1 = '4' AND T11.IST_BZS_CD = 'O' THEN '3' /* IST_BZS_CD (설치업체 (설치업체(IST_BZS_CD):S:삼성전자,C:청호,o:기타) : KA11.KACK04)  )*/
+                                                                     WHEN T11.KAETC1 = '4' AND T11.IST_BZS_CD = 'S' THEN '4'
+                                                                     ELSE T11.IST_PCSV_TP_CD END)    /* 일시불/렌탈   설치택배구분(IST_PCSV_TP_CD) */
+                        WHEN T11.SELL_TP_CD IN ('3','6') THEN '1' /* 멤버십, 정기배송 */
+                        ELSE '' END AS IST_PCSV_SELL_TP_CD   /* 공통코드 (SV_IST_PCSV_DV_CD) 설치택배구분 (1:설치, 2:택배) 설치요청 구분  - REQ_SET_DIV - KA11.KACK05  설치요청 구분 1:설치, 2:택배배송, 3:아웃소싱*/
+               </when>
+              <otherwise>
+    ------------            ----------------------------------------
+    ------------            -- 배송일때 REQ_SET_DIV
+    ------------            ----------------------------------------
+    ----             , CASE WHEN T11.SELL_TP_CD  IN ('1') THEN (CASE WHEN T11.KAETC1 = '4' AND T11.IST_BZS_CD IS NOT NULL THEN '3'
+    ----                                                             ELSE T11.IST_PCSV_TP_CD END)
+    ----                    WHEN T11.SELL_TP_CD IN ('6') THEN '2' /* 정기배송 */
+    ----                    ELSE '' END AS IST_PCSV_SELL_TP_CD   /* 공통코드 (SV_IST_PCSV_DV_CD) 설치택배구분 (1:설치, 2:택배) 설치요청 구분  - REQ_SET_DIV - KA11.KACK05  설치요청 구분 1:설치, 2:택배배송, 3:아웃소싱*/
+               </otherwise>
+            </choose>
+                 , T11.IST_BZS_CD       /* 설치업체 (설치업체(IST_BZS_CD):S:삼성전자,C:청호,o:기타) : KA11.KACK04)  */
+                 , CASE WHEN T11.CNTR_DTL_STAT_CD IN ('301', '302', '303') THEN 'Y'
+                        ELSE 'N' END AS LC_CANYN /* 취소여부 */
+                 , CASE WHEN T11.SELL_TP_CD = '1' OR T11.SELL_TP_CD = '3' --일시불, -- 멤버십
+                        THEN '' /* TODO.제조사(LCJEJO) 배정시 필요하지만, 아직 배정호출 항목 미정의됨  */
+                        ELSE ''END AS MNFT_CO_ID /* 제조사(LCJEJO)  */
+                 , CASE WHEN T11.SELL_TP_CD = '1'
+                        THEN (SELECT NVL(SUM(DP_CPRCNF_AMT),0) AS DP_CPRCNF_AMT /*입금대사금액*/
+                                FROM TB_RVDW_DP_CPRCNF_BAS /*입금대사기본*/
+                               WHERE 1=1
+                                 AND CNTR_NO = T11.CNTR_NO
+                                 AND CNTR_SN = T11.CNTR_SN
+                                 AND DTA_DL_YN = 'N')
+                        ELSE 0 END AS DP_CPRCNF_AMT  /* DPCMAM  - 홈케어 환불요청을 위한 입금 대사금액 조회 */
+                , CASE WHEN T11.SELL_TP_CD = '1' OR T11.SELL_TP_CD = '2' --일시불, 렌탈
+                       THEN (CASE WHEN T11.IST_BZS_CD = 'S' /* 삼성전자일때(KA11.KAICD3 IN ('6130','6140','6141')  )*/
+                                    THEN (SELECT MAX(BSDT) KEEP(DENSE_RANK FIRST ORDER BY FST_RGST_DTM DESC)
+                                            FROM WSMDBS.TB_SSOP_SPP_BZS_ULD_HIST /*배송업체업로드이력*/
+                                           WHERE 1=1
+                                             AND OTSD_LK_DRM_VAL = '1000001' /*배송업체관리항목코드*/
+                                             AND CNTR_NO = T11.CNTR_NO
+                                             AND CNTR_SN = T11.CNTR_SN
+                                             AND SPP_PROCS_BZS_CD = '3'   /* 배송처리업체코드 : 삼성물류(3)*/
+                                             AND DTA_DL_YN = 'N')
+                                    ELSE '' END)
+                       ELSE '' END AS SS_SPP_DUEDT /* 삼성전자 - 배송예정일자 (SMDEMT) */
+                , CASE WHEN T11.SELL_TP_CD = '1' OR T11.SELL_TP_CD = '2' --일시불, 렌탈
+                       THEN (CASE WHEN T11.IST_BZS_CD = 'S' /* 삼성전자일때(KA11.KAICD3 IN ('6130','6140','6141')  )*/
+                                    THEN (SELECT MAX(BSDT) KEEP(DENSE_RANK FIRST ORDER BY FST_RGST_DTM DESC)
+                                            FROM WSMDBS.TB_SSOP_SPP_BZS_ULD_HIST /*배송업체업로드이력*/
+                                           WHERE 1=1
+                                             AND OTSD_LK_DRM_VAL = '1000002' /*배송업체관리항목코드*/
+                                             AND CNTR_NO = T11.CNTR_NO
+                                             AND CNTR_SN = T11.CNTR_SN
+                                             AND SPP_PROCS_BZS_CD = '3'   /* 배송처리업체코드 : 삼성물류(3)*/
+                                             AND DTA_DL_YN = 'N')
+                                    ELSE '' END)
+                       ELSE '' END AS SS_STOCK_STR_DT /* 삼성전자-재고입고일자 SMINVT */
+                , CASE WHEN T11.SELL_TP_CD = '1' OR T11.SELL_TP_CD = '2' --일시불, 렌탈
+                       THEN (CASE WHEN T11.IST_BZS_CD = 'S' /* 삼성전자일때(KA11.KAICD3 IN ('6130','6140','6141')  )*/
+                                    THEN (SELECT MAX(SPP_BZS_ORD_ID) KEEP(DENSE_RANK FIRST ORDER BY FST_RGST_DTM DESC)
+                                            FROM WSMDBS.TB_SSOP_SPP_BZS_ULD_HIST /*배송업체업로드이력*/
+                                           WHERE 1=1
+                                             AND OTSD_LK_DRM_VAL IN ('1000001', '1000002') /*배송업체관리항목코드*/
+                                             AND CNTR_NO = T11.CNTR_NO
+                                             AND CNTR_SN = T11.CNTR_SN
+                                             AND SPP_PROCS_BZS_CD = '3'   /* 배송처리업체코드 : 삼성물류(3)*/
+                                             AND DTA_DL_YN = 'N')
+                                    ELSE '' END)
+                       ELSE '' END AS SS_ORD_ID /* 삼성주문번호 - SMDENO */
+                , T11.OTSC_PD_YN    /* 아웃소싱여부  KA11.KACK07*/
+                , CASE WHEN (T11.SELL_TP_CD = '1' OR T11.SELL_TP_CD = '2') THEN ''                        /* 일시불, 렌탈 (ASIS 동일하게 빈값) */
+                       WHEN T11.SELL_TP_CD = '3' THEN (CASE WHEN T11.PD_TP_CD = 'M' THEN 'Y' ELSE 'N' END)  /* 멤버십 (LC3500P@LCGGBN : 그룹:홈케어)*/
+                       WHEN T11.SELL_TP_CD = '4' THEN (CASE WHEN (SELECT COUNT(1) FROM TB_PDBS_PD_REL
+                                                                   WHERE BASE_PD_CD  = T11.BASE_PD_CD
+                                                                     AND VL_END_DTM = '99991231235959'
+                                                                     AND PD_REL_TP_CD = '05' /* 기준-제품 */
+                                                                     AND DTA_DL_YN = 'N'
+                                                                     AND TEMP_SAVE_YN = 'N') > 0
+                                                             THEN 'Y' ELSE 'N' END)  /* 정기배송 (LC3500P@LCGGBN : 그룹:홈케어)*/
+                       ELSE '' END AS PKG_YN  /* 패키지여부 - LCPKYN  */
+                , T45.NEW_ADR_ZIP      AS IST_ADR_ZIP                  /* 설치처정보 - 우편번호 : LCWZP1, LCWZP2 */
+                , T45.RNADR            AS IST_RNADR                    /* 설치처정보 - 기준주소 : LCWAD1 */
+                , (SELECT PDCT_IDNO /* 제품고유번호 (SMSN)*/
+                     FROM TB_SSSO_PDCT_IDNO_OSTR_IZ /* T.제품고유번호출고내역 */
+                    WHERE 1=1
+                      AND CNTR_NO  = T11.CNTR_NO    /* 계약번호 */
+                      AND CNTR_SN  = T11.CNTR_SN    /* 계약일련번호 */
+                      AND OSTR_SN  = 0  /* 출고일련번호 (LCISEQ)*/
+                      AND OSTR_MTR_DV_CD = '1' /* 출고자료구분코드 (LCIGUB - 일반고객:1)*/
+                      AND SPP_PROCS_BZS_CD = '3' /* 배송처리업체코드 (LCETC2(택배사) - 삼성전자:3)*/
+                      AND DTA_DL_YN = 'N'
+                      ) AS PDCT_IDNO /*  삼성전자 - 제품고유번호 (SMSN)*/
+                 , CASE WHEN (T11.KAETC1 = '4'
+                        AND NOT REGEXP_LIKE(T11.REF_PD_CLSF_VAL, '^05001003001$|^05001003002$|^05001003003$|^03003003$|^03003002001$|^04001001$|^04002001$'))
+                        THEN '10'   /* 작업그룹-환경가전 : KA11.KAETC1 = 4 */
+                        WHEN (REGEXP_LIKE(T11.REF_PD_CLSF_VAL, '^05001003001$|^05001003002$|^05001003003$'))
+                        THEN '12'   /* 작업그룹-웰스팜 */
+                        WHEN T11.SELL_TP_DTL_CD IN ('12')
+                        THEN '20'   /* 작업그룹-홈케어서비스 */
+                        WHEN (REGEXP_LIKE(T11.REF_PD_CLSF_VAL, '^03003003$|^03003002001$|^04001001$|^04002001$'))
+                        THEN '30'   /* 작업그룹-대형가전 */
+                        ELSE '' END AS WK_GRP_DV
+            -------------------------------------------------------------------
+            -- 계약관련 테이블
+            -------------------------------------------------------------------
+              FROM TB_SSCT_CNTR_BAS T10                  /* T.계약기본 */
+             INNER JOIN (
+                /* 대상계약 선리스트 조회 - 상품에 대한 조건이 복잡하여 WITH절로 이동 */
+                /* ######  일시불 / 렌탈 / 멤버십 ###### */
+                SELECT /*+ NO_EXPAND LEADING(T100) USE_NL(T100 T110 T200 T210 T220 T230) INDEX(T100 PK_SSCT_CNTR_BAS) */	--★★★★★★★★★★ 힌트 추가!!!
+                       T110.*
+                     , CASE WHEN T200.SELL_TP_DTL_CD = '13' OR (T220.PD_PRP_VAL01 = '1' AND T230.PD_PRP_VAL11 = 'Y') /* 환경가전, 설치 */
+                            THEN '4'
+    --                        방법1
+    --                        WHEN T200.SELL_TP_DTL_CD IN ('13','24','26') /* 환경리스(24), 환경할부(26) KA11.KAETC1 = 4*/
+    --                        THEN '4'
+                            WHEN T200.SELL_TP_DTL_CD IN ('12')      /* 홈케어(12) KA11.KAETC1 = 8 */
+                            THEN '8'
+                            ELSE '' END AS KAETC1 /* ASIS에서 사용하던 상품대분류 로직에서 많이 사용하여 상품코드로 분류함.*/
+                     , T220.PD_PRP_VAL01 AS IST_PCSV_TP_CD   /* 설치택배구분 (1:설치, 2:택배) 설치요청 구분  - REQ_SET_DIV - KA11.KACK05 */
+                     , T220.PD_PRP_VAL02 AS IST_BZS_CD       /* 설치업체 (설치업체(IST_BZS_CD):S:삼성전자,C:청호,o:기타) : KA11.KACK04)  */
+                     , T230.PD_PRP_VAL03 AS OTSC_PD_YN       /* 아웃소싱여부  KA11.KACK07*/
+                     , T210.REF_PD_CLSF_VAL
+                     , T200.PD_TP_CD
+                     , T200.PD_NM
+                     , (SELECT /*+ NO_UNNEST INDEX(TPPCB1) */			--★★★★★★★★★★ 힌트 추가!!!
+                               TPPCB1.PD_CLSF_NM
+                          FROM TB_PDBS_PD_CLSF_BAS TPPCB1
+                         WHERE TPPCB1.PD_CLSF_ID = T200.PD_HCLSF_ID
+                           AND TPPCB1.DTA_DL_YN = 'N'  )  AS PD_HCLSF_NM    /* 대분류명 KAETC1(4:환경가전) */
+                     , (SELECT /*+ NO_UNNEST INDEX(TPPCB2) */			--★★★★★★★★★★ 힌트 추가!!!
+                               TPPCB2.PD_CLSF_NM
+                          FROM TB_PDBS_PD_CLSF_BAS TPPCB2
+                         WHERE TPPCB2.PD_CLSF_ID = T200.PD_MCLSF_ID
+                           AND TPPCB2.DTA_DL_YN = 'N'  )  AS PD_MCLSF_NM    /* 대분류명 KAETC2(C:전기레인지) */
+                  FROM TB_SSCT_CNTR_BAS T100                  /* T.계약기본 */
+                 INNER JOIN TB_SSCT_CNTR_DTL T110             /* T.계약상세 */
+                    ON T110.CNTR_NO = T100.CNTR_NO              /*계약번호  */
+                 INNER JOIN TB_PDBS_PD_BAS T200         /* T.상품기본 -  */
+                    ON T200.TEMP_SAVE_YN = 'N'                /* 임시저장여부 */
+                   AND T200.PD_CD = T110.BASE_PD_CD             /* 상품코드 */
+                   AND T200.DTA_DL_YN = 'N'                   /* 데이터삭제여부 */
+                 INNER JOIN TB_PDBS_PD_CLSF_BAS T210    /* T.상품분류기본 상품대분류ID */
+                    ON T210.PD_CLSF_ID = T200.PD_CLSF_ID        /* 상품분류ID */
+                   AND T210.DTA_DL_YN = 'N'
+                  LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T220    /* T.상품각사속성상세 - 설치업체, 설치택배구분*/
+                    ON T220.PD_EXTS_PRP_GRP_CD = 'SPP'           /* 설치업체, 설치택배구분 */
+                   AND T220.PD_CD = T200.PD_CD
+                   AND T220.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T230    /* T.상품각사속성상세 - 환경가전여부 */
+                    ON T230.PD_EXTS_PRP_GRP_CD = 'IND'           /* */
+                   AND T230.PD_CD = T200.PD_CD
+                   AND T230.DTA_DL_YN = 'N'
+                 WHERE 1=1
+                   AND T110.SELL_TP_CD IN ('1', '2', '3')   /* 판매유형코드 : 일시불(1),렌탈(2),멤버십(3),정기배송(6)*/
+                   --조건1.계약기간 (필수)
+                   AND T100.CNTR_CNFM_DTM <![CDATA[>=]]>  #{cntrCnfmDtFr}||'000000'
+                   AND T100.CNTR_CNFM_DTM <![CDATA[<=]]>  #{cntrCnfmDtTo}||'235959'
+                       /* 일시불 인경우 */
+                   AND T220.PD_PRP_VAL01 = '1'   /* 서비스설치택배구분코드 : 1 (설치(홈케어서비스포함)) */
+                   AND ((T110.SELL_TP_CD = '1' AND (
+                                                      T200.SELL_TP_DTL_CD = '13' /* 환경가전(13)   KA11.KAETC1 = '4' AND KA11.KAETC2 NOT IN ('6','8','9') */
+                                                    ) AND T220.PD_PRP_VAL04 != 'Y' /* 업체배송 여부 (BZS_SPP_YN)  : KA11.KACK11 = ' ' */
+                                                   )
+                                                   OR (T210.REF_PD_CLSF_VAL = '04009001')  --  (KA11.KAETC1 = '6' AND KA11.KAETC2 IN ('K')) /*타업체 설치 관련*/
+                                                   OR (T200.PD_CD = 'WP07110344' --6415 커피머신　수납장　  --상품명으로 검색하여 맵핑함
+                                                    OR T200.PD_CD = 'WP07110354' --6430 프레임　아트월　사이드보드
+                                                    OR T200.PD_CD = 'WP07110355' --6431  프레임　아트월　협탁
+                                                   )
+                                                   OR (T200.SELL_TP_DTL_CD IN ('12')) -- KA11.KAETC1 = '8'  : 05001 ~ 05006
+                                                   )
+                      /* 렌탈인경우  KA11.KAETC1 IN ('4','7','8') > BUT ASIS 기준 렌탈에 7,8 없음 */
+                      OR (T110.SELL_TP_CD = '2' AND ( T220.PD_PRP_VAL01 = '1' AND T230.PD_PRP_VAL11 = 'Y')  --KA11.KAETC1 = '4' (환경가전)
+                      --OR (T110.SELL_TP_CD = '2' AND ( T200.SELL_TP_DTL_CD IN ('24','26'))  --KA11.KAETC1 = '4' (환경가전)
+                      /* 멤버십인경우 홈케어서비스(ASIS:2홈케어멤버십)*/
+                      OR (T110.SELL_TP_CD = '3' AND T200.SELL_TP_DTL_CD = '33')  /* 홈케어 멤버십 */
+                       )
+                   AND T110.DTA_DL_YN = 'N'
+                   AND T100.DTA_DL_YN = 'N'
+                UNION ALL
+                /* ######  정기배송 ###### */
+                SELECT /*+ LEADING(T100) USE_NL(T100 T110 T760 T200 T210 T220 T230) INDEX(T100 PK_SSCT_CNTR_BAS) */		--★★★★★★★★★★ 힌트 추가!!!
+                       T110.*
+                     , CASE WHEN T110.SELL_TP_DTL_CD IN ('62')      /* 모종(62) KA11.KAETC1 = 7*/
+                            THEN '7'
+                            ELSE '' END AS KAETC1 /* ASIS에서 사용하던 상품대분류*/
+                     , T220.PD_PRP_VAL01 AS IST_PCSV_TP_CD   /* 설치택배구분 (1:설치, 2:택배) 설치요청 구분  - REQ_SET_DIV - KA11.KACK05 */
+                     , T220.PD_PRP_VAL02 AS IST_BZS_CD       /* 설치업체 (설치업체(IST_BZS_CD):S:삼성전자,C:청호,o:기타) : KA11.KACK04)  */
+                     , T230.PD_PRP_VAL03 AS OTSC_PD_YN       /* 아웃소싱여부  KA11.KACK07*/
+                     , T210.REF_PD_CLSF_VAL
+                     , T200.PD_TP_CD
+                     , T200.PD_NM
+                     , (SELECT PD_CLSF_NM
+                          FROM TB_PDBS_PD_CLSF_BAS
+                         WHERE PD_CLSF_ID = T200.PD_HCLSF_ID
+                           AND DTA_DL_YN = 'N'  )  AS PD_HCLSF_NM    /* 대분류명 KAETC1(4:환경가전) */
+                     , (SELECT PD_CLSF_NM
+                          FROM TB_PDBS_PD_CLSF_BAS
+                         WHERE PD_CLSF_ID = T200.PD_MCLSF_ID
+                           AND DTA_DL_YN = 'N'  )  AS PD_MCLSF_NM    /* 대분류명 KAETC2(C:전기레인지) */
+                  FROM TB_SSCT_CNTR_BAS T100                  /* T.계약기본 */
+                 INNER JOIN TB_SSCT_CNTR_DTL T110             /* T.계약상세 */
+                    ON T110.CNTR_NO = T100.CNTR_NO              /*계약번호  */
+                 INNER JOIN TB_SSCT_CNTR_REL T760       /*계약관계 -- 정기배송에서 원주문(대상)을 제외한 기준정보만 발췌  */
+                    ON T760.OJ_DTL_CNTR_NO = T110.CNTR_NO
+                   AND T760.OJ_DTL_CNTR_SN = T110.CNTR_SN
+                   AND T760.CNTR_REL_DTL_CD IN ('216') /* 계약관계상세코드 : 모종결합(216)*/
+                   AND T760.DTA_DL_YN = 'N'
+                   AND T760.VL_END_DTM = '99991231235959'    /*유효종료일시*/
+                 INNER JOIN TB_PDBS_PD_BAS T200         /* T.상품기본 -  */
+                    ON T200.TEMP_SAVE_YN = 'N'                /* 임시저장여부 */
+                   AND T200.PD_CD = T110.BASE_PD_CD             /* 상품코드 */
+                   AND T200.DTA_DL_YN = 'N'
+                 INNER JOIN TB_PDBS_PD_CLSF_BAS T210    /* T.상품분류기본 상품대분류ID */
+                    ON T210.PD_CLSF_ID = T200.PD_CLSF_ID        /* 상품분류ID */
+                   AND T210.DTA_DL_YN = 'N'
+                  LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T220    /* T.상품각사속성상세 - 설치업체, 설치택배구분*/
+                    ON T220.PD_EXTS_PRP_GRP_CD = 'SPP'           /* 설치업체, 설치택배구분 */
+                   AND T220.PD_CD = T200.PD_CD
+                   AND T220.DTA_DL_YN = 'N'
+                 LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T230    /* T.상품각사속성상세 - 환경가전여부 */
+                    ON T230.PD_EXTS_PRP_GRP_CD = 'IND'           /* */
+                   AND T230.PD_CD = T200.PD_CD
+                   AND T230.DTA_DL_YN = 'N'
+                 WHERE 1=1
+                   AND T110.SELL_TP_CD IN ('6')   /* 판매유형코드 : 일시불(1),렌탈(2),멤버십(3),정기배송(6)*/
+                   --조건1.계약기간
+                   AND T100.CNTR_CNFM_DTM  <![CDATA[>=]]>   #{cntrCnfmDtFr} ||'000000'
+                   AND T100.CNTR_CNFM_DTM  <![CDATA[<=]]>   #{cntrCnfmDtTo} ||'235959'
+                   AND T100.DTA_DL_YN = 'N'
+                   AND T110.DTA_DL_YN = 'N'
+                ) T11                              /* T.계약상세 (WITH절로 이동)*/
+                ON T11.CNTR_NO = T10.CNTR_NO              /*계약번호  */
+             INNER JOIN TB_SSCT_CNTR_WELLS_DTL T12  /* T.WELLS상세 */
+                ON T12.CNTR_NO = T10.CNTR_NO              /*계약번호  */	--★★★★★★★★★★ SQL 수정!!!
+               AND T12.CNTR_SN = T11.CNTR_SN              /*계약번호  */
+               AND T12.DTA_DL_YN = 'N'
+            ---------------------------------------------------------------------
+            ---- 파트너 테이블
+            ---------------------------------------------------------------------
+             INNER JOIN TB_OGBS_MM_PRTNR_IZ T30         /* T.월파트너내역 - 판매자 */
+                ON T30.BASE_YM = SUBSTR(T10.CNTR_CNFM_DTM, 1, 6)
+                --ON T30.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+               AND T30.OG_TP_CD = T10.SELL_OG_TP_CD
+               AND T30.PRTNR_NO = T10.SELL_PRTNR_NO
+               AND T30.DTA_DL_YN = 'N'
+             INNER JOIN TB_OGBS_MM_OG_IZ T32          /* T.월조직내역 - 지점장 (조직정보) */
+                ON T32.BASE_YM = SUBSTR(T10.CNTR_CNFM_DTM, 1, 6)
+                --ON T30.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+               AND T32.OG_ID = T30.OG_ID
+               AND T32.DTA_DL_YN = 'N'
+             INNER JOIN TB_OGBS_PRTNR_BAS T33         /* T.파트너기본  - 지점장-전화번호  */
+                ON T33.OG_TP_CD = T32.OG_TP_CD
+               AND T33.PRTNR_NO = T32.DGR3_LEVL_DG_PRTNR_NO
+               AND T33.DTA_DL_YN = 'N'
+            ---------------------------------------------------------------------
+            ---- 계약자 / 설치처 정보
+            ---------------------------------------------------------------------
+             INNER JOIN TB_CUBS_CST_BAS T40           /* T.고객기본 - 계약자 */
+                ON T40.CST_NO = T10.CNTR_CST_NO/* 고객번호*/
+               AND T40.DTA_DL_YN = 'N'/* 데이터삭제여부 */
+             INNER JOIN TB_SSCT_CNTR_ADR_REL T43      /* T.계약주소관계 - 설치 */
+                ON T43.DTL_CNTR_NO = T10.CNTR_NO					--★★★★★★★★★★ SQL 수정!!!
+               AND T43.DTL_CNTR_SN = T11.CNTR_SN
+               AND T43.ADRPC_TP_CD IN ('2','3')                    /* 주소지유형코드 : 설치처(3) */
+               AND T43.VL_END_DTM = '99991231235959'        /* 유효종료일시 */
+               AND T43.DTA_DL_YN = 'N'
+             INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T44    /* T.계약주소지기본 - 설치 */
+                ON T44.CNTR_ADRPC_ID = T43.CNTR_ADRPC_ID
+               AND T44.DTA_DL_YN = 'N'
+             INNER JOIN TB_GBCO_ADR_BAS T45           /* T.주소기본 - 설치 */
+                ON T45.ADR_ID = T44.ADR_ID
+               AND T45.DTA_DL_YN = 'N'
+               /* WELL에서는 배송관련 정보 관리 안하고 있음(2023.07)*/
+    --          LEFT OUTER JOIN LATERAL (SELECT MAX(T431.CNTR_NO) KEEP(DENSE_RANK FIRST ORDER BY T430.FNL_MDFC_DTM DESC) AS CNTR_NO
+    --                                        , MAX(T431.CNTR_SN) KEEP(DENSE_RANK FIRST ORDER BY T430.FNL_MDFC_DTM DESC) AS CNTR_SN
+    --                                        , MAX(T430.SPP_ORD_NO) KEEP(DENSE_RANK FIRST ORDER BY T430.FNL_MDFC_DTM DESC) AS SPP_ORD_NO
+    --                                        , MAX(T431.SPP_PROCS_BZS_CD) KEEP(DENSE_RANK FIRST ORDER BY T430.FNL_MDFC_DTM DESC) AS SPP_PROCS_BZS_CD /* 배송처리업체코드 */
+    --                                     FROM TB_SSSO_SPP_ORD_BAS T430              /* 배송주문기본 */
+    --                                    INNER JOIN TB_SSSO_SPP_ORD_DTL T431         /* T.배송주문상세 */
+    --                                       ON T431.SPP_ORD_NO = T430.SPP_ORD_NO
+    --                                      AND T431.CNTR_NO = T11.CNTR_NO
+    --                                      AND T431.CNTR_SN = T11.CNTR_SN
+    --                                      AND T431.DTA_DL_YN = 'N'
+    --                                    WHERE 1=1
+    --                                      AND T430.IOST_TP_CD = '10'    /* 입출고유형코드 : 출고(10) */
+    --                                      AND T431.IOST_DTL_CD = '13'    /* 입출고유형코드 : 정상출고(13) RPCOID */
+    --                                      AND T431.SPP_ORD_RGST_TP_CD = '10'    /* 배송주문등록유형코드 : 정상(10) */
+    --                                      AND T431.SPP_PRGS_STAT_CD IN ('40','50','60','70')    /* 배송진행상태코드 : 출고요청~배송완료*/
+    --                                      AND T430.DTA_DL_YN = 'N'
+    --                                  ) T46             /* 운송장번호(계약일련번호별) */
+    --            ON T46.CNTR_NO = T11.CNTR_NO
+    --           AND T46.CNTR_SN = T11.CNTR_SN
+           WHERE 1=1
+           <if test="@MybatisUtils@isNotEmpty(cntrCnfmDtFr) and @MybatisUtils@isNotEmpty(cntrCnfmDtTo)">
+             AND T10.CNTR_CNFM_DTM  <![CDATA[>=]]>   #{cntrCnfmDtFr} ||'000000'
+             AND T10.CNTR_CNFM_DTM  <![CDATA[<=]]>   #{cntrCnfmDtTo} ||'235959'
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(cstKnm)">
+             AND T40.CST_KNM LIKE #{cstKnm}||'%'
+           </if>
+               /* 조건4.매출상태별  */
+               /* 조건4-1.  상태구분(매출확정) */
+           <if test='@MybatisUtils@equals(statDv, "B")'>
+             AND T11.SPP_DUEDT  IS NOT NULL AND T11.CNTR_PD_STRTDT IS NOT NULL
+           </if>
+           <if test='@MybatisUtils@equals(statDv, "C")'>
+            /* 조건4-2. 상태구분(설치예정확정) */
+            AND T11.SPP_DUEDT  IS NOT NULL AND T11.CNTR_PD_STRTDT IS NULL
+           </if>
+           <if test='@MybatisUtils@equals(statDv, "D")'>
+             /* 조건4-3. 상태구분(미확정) */
+            AND T11.SPP_DUEDT IS NULL AND T11.CNTR_PD_STRTDT IS NULL
+           </if>
+            /* 조건5.계약번호 CNTR_DTL_NO */
+           <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+            AND T10.CNTR_NO = #{cntrNo}
+           </if>
+           <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+            AND T11.CNTR_SN = #{cntrSn}
+           </if>
+               ------------------------------------------------------------------------
+               --조건6. 작업그룹  구분:설치일때만 사용(구분별 화면에서 분기처리코드 SQL로 변경)    WK_GRP_DV
+               ------------------------------------------------------------------------
+           <if test='@MybatisUtils@equals(istPcsvDvCd, "1")'>
+            <choose>
+                 <when test='@MybatisUtils@equals(wkGrpDv, "10")'>
+                  /* 조건6-1. 작업그룹-환경가전 */
+                  AND (T11.KAETC1 = '4'
+                        AND NOT REGEXP_LIKE(T11.REF_PD_CLSF_VAL, '^05001003001$|^05001003002$|^05001003003$|^03003003$|^03003002001$|^04001001$|^04002001$'))
+                </when>
+                <when test='@MybatisUtils@equals(wkGrpDv, "12")'>
+                   /* -조건6-2. 작업그룹-웰스팜 */
+                 AND (REGEXP_LIKE(T11.REF_PD_CLSF_VAL, '^05001003001$|^05001003002$|^05001003003$'))
+                </when>
+                <when test='@MybatisUtils@equals(wkGrpDv, "20")'>
+                  /* 조건6-3. 작업그룹-홈케어서비스 */
+                  AND (T11.SELL_TP_DTL_CD IN ('12'))
+                </when>
+                <when test='@MybatisUtils@equals(wkGrpDv, "30")'>
+                   /* 조건6-4. 작업그룹-대형가전 */
+                  AND (REGEXP_LIKE(T11.REF_PD_CLSF_VAL, '^03003003$|^03003002001$|^04001001$|^04002001$'))
+                </when>
+                <otherwise>
+                  AND (
+                         (T11.KAETC1 = '4'
+                          AND NOT REGEXP_LIKE(T11.REF_PD_CLSF_VAL, '^05001003001$|^05001003002$|^05001003003$|^03003003$|^03003002001$|^04001001$|^04002001$'))
+                      OR (REGEXP_LIKE(T11.REF_PD_CLSF_VAL, '^05001003001$|^05001003002$|^05001003003$'))
+                      OR (T11.SELL_TP_DTL_CD IN ('12'))
+                      OR (REGEXP_LIKE(T11.REF_PD_CLSF_VAL, '^03003003$|^03003002001$|^04001001$|^04002001$'))
+                  )
+                </otherwise>
+            </choose>
+           </if>
+            /*  조건 아웃소싱여부 OTSC_PD_YN (T24.PD_PRP_VAL03)  */
+           <if test="@MybatisUtils@isNotEmpty(otscPdYn)">
+            AND T11.OTSC_PD_YN = #{otscPdYn}
+           </if>
+           ORDER BY T10.CNTR_CNFM_DTM DESC
+    </select>
+
+    <select id="selectKiwiInstallOrders" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaInstallationShippingDvo">
+        SELECT *
+          FROM (SELECT
+                ROW_NUMBER() OVER(PARTITION BY T10.CNTR_NO,T10.CNTR_SN
+                                ORDER BY (CASE WHEN T10.WK_PRGS_STAT_CD = '20' THEN '1' --AC221_PROC_STUS
+                                               WHEN T10.WK_PRGS_STAT_CD = '10' THEN '2'
+                                               WHEN T10.WK_PRGS_STAT_CD = '00' THEN '3'
+                                               WHEN T10.WK_PRGS_STAT_CD LIKE '7%' THEN '4'
+                                               ELSE '5' END
+                                         ), T10.FST_RGST_DTM DESC) AS RN
+                     , T10.CNTR_NO
+                     , T10.CNTR_SN
+                     , T20.RCPDT /*작업일자 AC211_WRK_DT*/
+                     , T20.AS_IST_OJ_NO /*작업순번 AC211_SEQ*/
+                     , T20.CNSL_MO_CN           /*상담메모(엔지니어 전달메모) AC211_MEMO*/
+                     , T10.EGER_ASN_DT     /*배정일자(엔지니어배정) AC221_ORD_DT_ENG*/
+                     , T10.WK_ACPTE_STAT_CD  /*작업수락상태(수락 'Y', 그외 '') AC221_CFRM_STUS_WRK*/
+                     , T10.WK_ACPTE_DT    /*작업수락일자 : 배송상품 수신 일시 AC221_CFRM_DT_WRK*/
+                     , T10.WK_ACPTE_HH    /*작업수락시간 : 배송상품 수신 일시 AC221_CFRM_TM_WRK*/
+                     , CASE WHEN T10.VST_EXP_HH = '010000' THEN '08:00~12:00'
+                            WHEN T10.VST_EXP_HH = '020000' THEN ''
+                            WHEN T10.VST_EXP_HH = '030000' THEN '16:00~19:00'
+                            ELSE SUBSTR(T10.VST_EXP_HH,1,2) || ':' || SUBSTR(T10.VST_EXP_HH,3,2) || ':' || SUBSTR(T10.VST_EXP_HH,5,2)
+                            END     AS VST_EXP_HH  /*방문예약시간(고객센터입력시간) AC221_VST_TM*/
+                     , T10.VST_CNFMDT        /*방문확정일자(최초 고객센터 입력, 최종 변경 일자) AC221_CFRM_DT*/
+                     , CASE WHEN T10.VST_CNFM_HH = '010000' THEN '08:00~12:00'
+                            WHEN T10.VST_CNFM_HH = '020000' THEN ''
+                            WHEN T10.VST_CNFM_HH = '030000' THEN '16:00~19:00'
+                            ELSE SUBSTR(T10.VST_CNFM_HH,1,2) || ':' || SUBSTR(T10.VST_CNFM_HH,3,2) || ':' || SUBSTR(T10.VST_CNFM_HH,5,2)
+                            END     AS VST_CNFM_HH  /*방문확정시간(최초 고객센터 입력, 최종 변경 시간) AC221_CFRM_TM*/
+                     , T10.WK_PRGS_STAT_CD      /*작업진행상태 AC221_PROC_STUS*/
+                     , T10.WK_CAN_MO_CN      /*작업취소메모 AC221_CANC_MEMO*/
+                     , T33.OG_NM /*센터명 AC021_DEPT_NM*/
+                     , T33.PRTNR_KNM AS EGER_NM  /*엔지니어명 AC021_EMP_NM*/
+                     , T33.CRAL_LOCARA_TNO AS EGER_CRAL_LOCARA_TNO
+                     , T33.MEXNO_ENCR AS EGER_MEXNO_ENCR
+                     , T33.CRAL_IDV_TNO  AS EGER_CRAL_IDV_TNO /*휴대전화번호 AC021_HNO_NO, AC021_HNO_NO1*/
+                     , CASE WHEN TD.INST_ING_CNT = 0 AND TD.INST_END_CNT = TD.REMV_END_CNT AND TD.REMV_END_CNT > 0
+                            THEN 'Y'
+                            ELSE 'N'
+                            END AS RETR_TRGT_YN     /*반품 대상 여부*/
+                    , T20.IN_CHNL_DV_CD
+                    , T10.SV_BIZ_HCLSF_CD /* 서비스세분류코드 */
+                    , TD.SV_BIZ_DCLSF_CD /* 서비스대분류코드 */
+                  FROM TB_SVPD_CST_SVAS_IST_ASN_IZ T10   /* 고객서비스AS설치배정내역 - 설치및A/S배정정보*/ -- LC_ALLOCATE_AC221TB
+                 INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ T20   /* 고객서비스AS설치대상내역 - A/S및 설치 배정 대상 정보*/ -- LC_ALLOCATE_AC211TB
+                    ON T20.CST_SV_ASN_NO = T10.CST_SV_ASN_NO /* 배정번호 */
+                   AND T20.DTA_DL_YN = 'N'
+                  LEFT OUTER JOIN TB_OGBS_PRTNR_BAS T33         /* T.파트너기본  - 파트너-전화번호 판매자 LC_ALLOCATE_AC021TB */
+                    ON T33.OG_TP_CD = T10.ICHR_OG_TP_CD /* 조직유형코드 */
+                   AND T33.PRTNR_NO = T10.ICHR_PRTNR_NO /* 담당파트너번호 */
+                   AND T33.DTA_DL_YN = 'N'
+                  LEFT OUTER JOIN LATERAL (SELECT EXCN.CNTR_NO   /* 계약번호-AC201_CSMR_YR*/
+                                                , EXCN.CNTR_SN   /* 계약일련번호- AC201_CSMR_CD*/
+                                                , SUM(CASE WHEN OJ.SV_BIZ_DCLSF_CD = '1110' AND ASN.WK_PRGS_STAT_CD ='00'  THEN 1 ELSE 0 END) AS INST_ING_CNT
+                                                , SUM(CASE WHEN OJ.SV_BIZ_DCLSF_CD = '1110' AND ASN.WK_PRGS_STAT_CD ='20'  THEN 1 ELSE 0 END) AS INST_END_CNT
+                                                , SUM(CASE WHEN OJ.SV_BIZ_DCLSF_CD = '3460' AND ASN.WK_PRGS_STAT_CD ='20'  THEN 1 ELSE 0 END) AS REMV_END_CNT
+                                                , OJ.SV_BIZ_DCLSF_CD
+                                             FROM TB_SVPD_CST_SVAS_IST_ASN_IZ ASN  /* TA 설치및A/S배정정보 LC_ALLOCATE_AC221TB*/
+                                            INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ OJ   /* TB A/S및 설치 배정 대상 정보 LC_ALLOCATE_AC211TB*/
+                                               ON OJ.CST_SV_ASN_NO = ASN.CST_SV_ASN_NO /* 배정번호 */
+                                              AND OJ.DTA_DL_YN = 'N'
+                                            INNER JOIN TB_SVPD_CST_SV_EXCN_IZ EXCN /* 고객 마스터 LC_ALLOCATE_AC201TB*/  --고객서비스수행내역
+                                               ON EXCN.CNTR_NO = OJ.CNTR_NO
+                                              AND EXCN.CNTR_SN = OJ.CNTR_SN
+                                              AND EXCN.DTA_DL_YN = 'N'
+                                             LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_DL_IZ DEL         /* T.고객서비스수행삭제내역 LC_ALLOCATE_AC201TB */
+                                               ON DEL.CNTR_NO = EXCN.CNTR_NO
+                                              AND DEL.CNTR_SN = EXCN.CNTR_SN
+                                              AND DEL.DTA_DL_YN = 'N'
+                                            WHERE 1=1
+                                              AND ASN.DTA_DL_YN = 'N'
+                                              AND OJ.SV_BIZ_DCLSF_CD IN ('1110', '3460', '4110') /* 신규설치,택배반품,일시불H/S */
+                                              AND EXCN.IST_DT IS NULL /* 설치일자 : AC201_INST_DT*/
+                                              AND DEL.CAN_DT IS NULL   /* 취소일자 없는거 */
+                        --                     AND EXCN.BFCH_PD_CD = '43071000000' /* TODO 상품코드 맵핑 필요 FC_MIG_PD_CD, AC201_GDS_CD */
+                                              AND (ASN.CNTR_NO, ASN.CNTR_SN) IN (
+                                            <foreach collection="list" item="item" index="index" separator=",">
+                                            (#{item.cntrNo}, #{item.cntrSn}) /* 파라미터 */
+                                            </foreach>
+                                            )
+                                            GROUP BY EXCN.CNTR_NO ,EXCN.CNTR_SN, OJ.SV_BIZ_DCLSF_CD
+                       ) TD
+                    ON T10.CNTR_NO = TD.CNTR_NO /* 계약번호 */
+                   AND T10.CNTR_SN = TD.CNTR_SN /* 계약일련번호 */
+                 WHERE 1=1
+                   AND T10.DTA_DL_YN = 'N'
+                   AND (T10.CNTR_NO,T10.CNTR_SN) IN (
+                    <foreach collection="list" item="item" index="index" separator=",">
+                    (#{item.cntrNo}, #{item.cntrSn}) /* 파라미터 */
+                    </foreach>
+                    )
+                   AND T10.SV_BIZ_HCLSF_CD IN ('1','4')  /*1:설치, 2:BS, 3:AS, 4:홈케어서비스 : AC221_DATA_GB*/
+                )
+          WHERE RN = 1 /*가장 최근 등록된 주문건만 조회*/
+    </select>
+
+    <select id="selectCheckCancel" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaInstallationShippingDvo">
+        SELECT T11.CNTR_NO
+             , T11.CNTR_SN
+             , CASE WHEN T11.CNTR_DTL_STAT_CD IN ('301','302','303') THEN 'Y' ELSE 'N' END AS LC_CANYN /* 취소여부 @@@*/
+             , SUBSTR(T10.CNTR_RCP_FSH_DTM,1,8) AS CNTR_RCP_FSH_DT   /*접수일자(LC_CRDT) @@@*/
+             , T44.RCGVP_KNM    /* 수령자 한글명 LCWNAM */
+             , T45.NEW_ADR_ZIP  /* 설치처정보 - 우편번호 : LCWZP1, LCWZP2 */
+             , CASE WHEN (SELECT COUNT(1)
+                             FROM TB_SSCT_CNTR_STLM_BAS   /* T.계약결제기본 */
+                            WHERE 1=1
+                              AND DTA_DL_YN = 'N'
+                              AND FNIT_APR_RS_CD = 'Y'      /* 금융기관승인결과코드 : Y(승인완료)*/
+                              AND FNIT_RSG_FSH_DTM IS NULL  /* 금융기관해지완료일시 */
+                              AND CNTR_STLM_ID = (SELECT CNTR_STLM_ID /*계약결제ID*/
+                                                         FROM TB_SSCT_CNTR_STLM_REL     /*계약결제관계*/
+                                                        WHERE 1=1
+                                                          AND DTL_CNTR_NO = T11.CNTR_NO
+                                                          AND DTL_CNTR_SN = T11.CNTR_SN
+                                                          AND DP_TP_CD IN ('0102','0203') /*입금유형코드 (계좌자동이체,카드자동이체 )*/
+                                                          AND VL_END_DTM = '99991231235959'
+                                                          AND DTA_DL_YN = 'N'
+                                                       )) = 0
+                    THEN 'N' ELSE 'Y' END ATMT_RGSN_YN    /*자동이체 등록여부 @@@ */
+          FROM TB_SSCT_CNTR_BAS T10                  /* T.계약기본 */
+         INNER JOIN TB_SSCT_CNTR_DTL T11             /* T.계약상세 */
+            ON T11.CNTR_NO = T10.CNTR_NO              /*계약번호  */
+           AND T11.DTA_DL_YN = 'N'
+        ---------------------------------------------------------------------
+        ---- 설치처 정보
+        ---------------------------------------------------------------------
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADR_REL T43      /* T.계약주소관계 - 설치 */
+            ON T43.DTL_CNTR_NO = T11.CNTR_NO
+           AND T43.DTL_CNTR_SN = T11.CNTR_SN
+           AND T43.ADRPC_TP_CD = '3'                    /* 주소지유형코드 : 설치처(3) */
+           AND T43.VL_END_DTM = '99991231235959'        /* 유효종료일시 */
+           AND T43.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_SSCT_CNTR_ADRPC_BAS T44    /* T.계약주소지기본 - 설치 */
+            ON T44.CNTR_ADRPC_ID = T43.CNTR_ADRPC_ID
+           AND T44.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS T45           /* T.주소기본 - 설치 */
+            ON T45.ADR_ID = T44.ADR_ID
+           AND T45.DTA_DL_YN = 'N'
+         WHERE 1=1
+           AND T11.SELL_TP_CD IN ('1', '2', '3', '6', '4')   /* 판매유형코드 : 일시불(1),렌탈(2),멤버십(3),정기배송(6), 회사설치(4)*/
+           AND T11.CNTR_NO = #{cntrNo} /* 계약번호 */
+           AND T11.CNTR_SN = #{cntrSn} /* 계약일련번호 */
+    </select>
+
+    <select id="selectSameSppDueDtNotSetCheck" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaInstallationShippingDvo">
+        SELECT CNTR_NO
+             , CNTR_SN
+             , SPP_DUEDT /* 배송예정일자 LCDEM_DT, LCDEMY */
+          FROM TB_SSCT_CNTR_DTL
+         WHERE 1=1
+           AND SELL_TP_CD = '6' /* 정기배송 */
+           AND CNTR_NO = #{cntrNo} /* 계약번호 */
+           AND CNTR_SN = #{cntrSn}
+           AND SPP_DUEDT = #{sppDuedt} /* 배송예정일자 */
+           AND DTA_DL_YN = 'N'
+    </select>
+    <update id="updateSppDuedt">
+        UPDATE TB_SSCT_CNTR_DTL
+           SET SPP_DUEDT = #{sppDuedt} /* 배송예정일 */
+        <include refid="COMMON.updateSystemField"/>
+          WHERE 1=1
+            AND CNTR_NO = #{cntrNo} /* 계약번호 */
+            AND CNTR_SN = #{cntrSn}  /* 계약일련번호 */
+    </update>
+</mapper>

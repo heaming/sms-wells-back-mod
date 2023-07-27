@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaOrderDetailDepositRgstMapper">
+    <select id="selectDepositRgstIzs" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailDepositRgstDvo">
+        SELECT T0.RVE_DT /* 수납일자[수납일] */
+             , T0.PERF_DT /* 실적일자[실적일] */
+             , T0.CNTR_NO /* 계약번호 */
+             , T0.CNTR_SN /* 계약일련번호 */
+             , T0.RVE_AMT /* 금액 */
+             , T0.DP_MES_CD /* 입금수단코드 */
+             , F_CMZ_CD_NM('TNT_WELLS', 'DP_MES_CD', T0.DP_MES_CD) AS DP_MES_NM /* 입금수단코드명 */
+             , CASE WHEN T0.DP_MES_CD = '01' /* 현금(01) */
+                         THEN T1.FNIT_CD /* 금융기관코드 */
+                    ELSE /* 카드(02) */
+                         T1.CRDCD_FNIT_CD /* 매입카드사코드 */
+               END AS CDCO_CD/* 카드(은행사) 코드 */
+             , CASE WHEN T0.DP_MES_CD = '01' /* 현금(01) */
+                         THEN (
+                               SELECT MAX(D1.FNIT_NM)
+                                 FROM TB_RVDW_FNIT_CD D1
+                                WHERE D1.FNIT_DV_CD = '1'
+                                  AND D1.DTA_DL_YN = 'N'
+                                  AND D1.FNIT_CD = T1.FNIT_CD
+                              )
+                    ELSE /* 카드(02) */
+                         (
+                          SELECT MAX(D2.FNIT_NM)
+                            FROM TB_RVDW_FNIT_CD D2
+                           WHERE D2.FNIT_DV_CD = '2'
+                             AND D2.DTA_DL_YN = 'N'
+                             AND D2.FNIT_CD = T1.CRDCD_FNIT_CD
+                         )
+               END AS CDCO_NM/* [카드(은행사)] */
+             , CASE WHEN T0.DP_MES_CD = '01' /* 현금(01) */
+                         THEN T1.ACNO_ENCR /* 계좌번호암호화 */
+                    ELSE /* 카드(02) */
+                         T1.CRCDNO_ENCR /* 신용카드번호암호화 */
+               END AS CRCDNO_ENCR /* [카드번호(가상계좌) ]*/
+             , T1.CRDCD_ISTM_MCN /* 매핑정보 없음(LC3300P.LCMON1)-통합입금기본.신용카드할부개월수로 대체 [할부개월] */
+             , T0.FNL_MDFC_PRG_ID  /* 최종수정프로그램 ID [모듈] */
+             , '' AS STAT /* 상태제외 AS-IS기준 버튼으로 구성되어있음 취소-등록당일만 취소가능,취소(합계전)-관리자이면서 합계체크 이전 등록건 삭제 버튼 [상태] */
+          FROM TB_RVDW_RVE_DTL T0 /* 수납상세 */
+         INNER JOIN TB_RVDW_ITG_DP_BAS T1 /* 통합입금기본 */
+            ON T1.ITG_DP_NO = T0.ITG_DP_NO
+           AND T0.DTA_DL_YN = 'N'
+           AND T1.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_DTL T2 /* 계약상세 */
+            ON T2.CNTR_NO = T0.CNTR_NO /* 계약번호 */
+           AND T2.CNTR_SN = T0.CNTR_SN /* 계약일련번호 */
+           AND T2.DTA_DL_YN = 'N'
+           AND T0.DTA_DL_YN = 'N'
+         WHERE 1 = 1
+           AND T0.DP_MES_CD IN ('01','02') /* 입금수단코드 01:현금, 02:신용카드 */
+        --   AND T0.DP_DV_CD = '01' /* 입금구분코드 01:입금 - (참고)개발데이터는 1로 되어있음 */
+           AND T0.CNTR_NO = #{cntrNo} /* 계약번호 */
+           AND T0.CNTR_SN = #{cntrSn} /* 계약일련번호 */
+           AND T0.RVE_DT BETWEEN #{rveDtFr} AND #{rveDtTo} /* 입금일자 */
+    </select>
+</mapper>

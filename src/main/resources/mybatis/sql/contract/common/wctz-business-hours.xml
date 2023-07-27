@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.common.mapper.WctzBusinessHoursMapper">
+    <!-- 영업시간 마감여부 조회 -->
+    <select id="selectIsBusinessClosedHours" resultType="boolean">
+        SELECT COUNT(*)
+          FROM TB_CBCL_BZNS_CL_HH_BAS
+         WHERE KW_GRP_CO_CD = '2000' -- 교원
+           AND CL_BIZ_TP_CD = '02' -- 계약접수마감
+           AND CL_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+           AND TO_CHAR(SYSDATE, 'HH24MI') BETWEEN STRT_HH AND END_HH
+    </select>
+</mapper>

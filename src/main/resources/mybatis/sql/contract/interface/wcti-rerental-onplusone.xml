@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiRerentalOnplusoneMapper">
+    <select id="selectRerentalOneplusones" resultType="com.kyowon.sms.wells.web.contract.interfaces.dto.WctiRerentalOnplusoneDto$SearchRes">
+        SELECT CNTR_NO
+             , CNTR_SN
+             , SELL_TP_CD
+             , SELL_TP_NM
+             , CNTR_DTL_STAT_CD
+             , CNTR_DTL_STAT_NM
+             , BASE_PD_CD
+             , BASE_PD_NM
+             , CNTR_CNFM_DT
+             , IST_DT
+             , KEEP_PTRM_ST_DT
+             , KEEP_PTRM_ED_DT
+             , NVL(PRGS_NMN, 0) AS PRGS_NMN
+             , NVL(SELL_AMT, 0) AS SELL_AMT
+             , NVL(DSC_AMT, 0) AS DSC_AMT
+             , CASE WHEN SELL_TP_CD = '2' THEN
+                    NVL((CASE WHEN DAYM=DAY0 OR DAY0>=30 THEN DSC_AMT
+                          ELSE FLOOR(DSC_AMT/30*DAY0/10)*10
+                          END + DSC_AMT*PRGS_NMN),0)
+                    ELSE 0
+                    END AS TOT_DSC_AMT
+             , NVL(FNL_AMT, 0) AS FNL_AMT
+          FROM (
+            SELECT T1.CNTR_NO
+                 , T1.CNTR_SN
+                 , T1.SELL_TP_CD
+                 , F_CMZ_CD_NM('TNT_WELLS', 'SELL_TP_CD', T1.SELL_TP_CD) AS SELL_TP_NM
+                 , T1.CNTR_DTL_STAT_CD
+                 , F_CMZ_CD_NM('TNT_WELLS', 'CNTR_DTL_STAT_CD', T1.CNTR_DTL_STAT_CD) AS CNTR_DTL_STAT_NM
+                 , T1.BASE_PD_CD
+                 , T3.PD_NM AS BASE_PD_NM
+                 , SUBSTR(T11.CNTR_CNFM_DTM,1,8) AS CNTR_CNFM_DT
+                 , T4.IST_DT
+                 , CASE WHEN T1.SELL_TP_CD = '2' THEN T4.IST_DT
+                        ELSE SUBSTR(T11.CNTR_CNFM_DTM,1,8)
+                        END AS KEEP_PTRM_ST_DT
+                 , CASE WHEN T1.SELL_TP_CD = '2' THEN TO_CHAR(ADD_MONTHS(T4.IST_DT,11),'YYYYMM')
+                        ELSE TO_CHAR(ADD_MONTHS(SUBSTR(T11.CNTR_CNFM_DTM,1,8),11),'YYYYMM')
+                        END AS KEEP_PTRM_ED_DT
+                 , T5.RENTAL_TN AS PRGS_NMN
+                 , T1.SELL_AMT
+                 , (T1.SELL_AMT - T1.FNL_AMT) AS DSC_AMT
+                 , TO_CHAR(LAST_DAY(DECODE(T1.SELL_TP_CD, '2', T4.IST_DT, '00')),'DD') AS DAYM
+                 , TO_CHAR(LAST_DAY(DECODE(T1.SELL_TP_CD, '2', T4.IST_DT, '00')),'DD') - SUBSTR(T4.IST_DT,7) AS DAY0
+                 , T1.FNL_AMT
+              FROM TB_SSCT_CNTR_DTL T1
+             INNER JOIN TB_SSCT_CNTR_BAS T11
+                ON T11.CNTR_NO = T1.CNTR_NO
+               AND T11.DTA_DL_YN = 'N'
+             INNER JOIN TB_SSCT_CNTR_REL T2
+                ON T2.BASE_DTL_CNTR_NO = T1.CNTR_NO
+               AND T2.BASE_DTL_CNTR_SN = T1.CNTR_SN
+               AND T2.CNTR_REL_DTL_CD = '215'
+               AND T2.VL_END_DTM <![CDATA[>=]]>  TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+               AND T2.VL_STRT_DTM <![CDATA[<=]]>  TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+               AND T2.DTA_DL_YN = 'N'
+             INNER JOIN TB_PDBS_PD_BAS T3
+                ON T3.PD_CD = T1.BASE_PD_CD
+               AND T3.DTA_DL_YN = 'N'
+               AND T3.TEMP_SAVE_YN = 'N'
+              LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T4
+                ON T4.CNTR_NO = T1.CNTR_NO
+               AND T4.CNTR_SN = T1.CNTR_SN
+              LEFT OUTER JOIN TB_CBCL_WELLS_SL_MM_CL_IZ T5
+                ON T5.CNTR_NO = T1.CNTR_NO
+               AND T5.CNTR_SN = T1.CNTR_SN
+               AND T5.SL_CL_YM = TO_CHAR(ADD_MONTHS(SYSDATE, -1),'YYYYMM')
+               AND T5.DTA_DL_YN = 'N'
+             WHERE 1=1
+               AND T1.DTA_DL_YN = 'N'
+               AND T1.SELL_TP_CD IN ('2','6')
+               AND T2.OJ_DTL_CNTR_NO = #{cntrNo}
+               AND T2.OJ_DTL_CNTR_SN = #{cntrSn}
+            )
+    </select>
+</mapper>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.orderstatus.mapper.WctdInChargeCustomerOrderMapper">
+
+    <select id="selectInChargeCustomerOrderPages" resultType="com.kyowon.sms.wells.web.contract.orderstatus.dvo.WctdInChargeCustomerOrderDvo">
+        SELECT CD.CNTR_NO
+             , CD.CNTR_SN
+             , SB.CST_KNM
+             , SB.CST_NO
+             , SB.CRAL_LOCARA_TNO
+             , SB.MEXNO_ENCR AS MEXNO
+             , SB.CRAL_IDV_TNO
+             , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', CD.SELL_TP_CD) AS SELL_TP_NM
+             , F_CMZ_CD_NM(#{session.tenantId}, 'CNTR_DTL_STAT_CD', CD.CNTR_DTL_STAT_CD) AS CNTR_DTL_STAT_NM
+             , PB.PD_NM
+             , NVL(AB.RNADR, AB.LTN_ADR) AS ADR
+             , NVL(AB.RDADR, AB.LTN_DTL_ADR) AS DTL_ADR
+             , CB.CNTR_PRGS_STAT_CD
+          FROM TB_SSCT_CNTR_DTL CD
+         INNER JOIN TB_SSCT_CNTR_BAS CB
+            ON CB.CNTR_NO = CD.CNTR_NO
+           AND CB.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_PRTNR_REL PR
+            ON PR.CNTR_NO = CB.CNTR_NO
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN PR.VL_STRT_DTM AND PR.VL_END_DTM
+           AND PR.CNTR_PRTNR_TP_CD = '010'
+           AND PR.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS SB
+            ON SB.CST_NO = CB.CNTR_CST_NO
+           AND SB.DTA_DL_YN = 'N'
+          LEFT OUTER JOIN TB_GBCO_ADR_BAS AB
+            ON AB.ADR_ID = SB.ADR_ID
+           AND AB.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS PB
+            ON PB.PD_CD = CD.BASE_PD_CD
+           AND PB.DTA_DL_YN = 'N'
+           AND PB.TEMP_SAVE_YN = 'N'
+         WHERE PR.PRTNR_NO = #{session.employeeIDNumber}
+           AND PR.OG_TP_CD = #{session.ogTpCd}
+           AND CD.DTA_DL_YN = 'N'
+        <if test='@MybatisUtils@isNotEmpty(cntrNo)'>
+           AND CD.CNTR_NO = #{cntrNo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cntrSn)'>
+           AND CD.CNTR_SN = #{cntrSn}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cstKnm)'>
+           AND SB.CST_KNM LIKE '%'||#{cstKnm}||'%'
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cstNo)'>
+           AND SB.CST_NO = #{cstNo}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cralLocaraTno)'>
+           AND SB.CRAL_LOCARA_TNO = #{cralLocaraTno}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(mexno)'>
+           AND SB.MEXNO_ENCR = #{mexno}
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(cralIdvTno)'>
+           AND SB.CRAL_IDV_TNO = #{cralIdvTno}
+        </if>
+
+    </select>
+</mapper>

@@ -1,0 +1,1244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.changeorder.mapper.WctbSinglePaymentBulkChangeMapper">
+
+    <select id="selectSinglePaymentBulkChangs" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctbSinglePaymentBulkChangeDto$SearchRes">
+        /*** W-SS-U-0113M03 일시불 일괄변경 관리 조회 ***/
+        /*
+         * 리스트 조회 ASIS : 최종수정건만 대상이 되며 HIST 테이블을 조회하지 않음 조회되는 값도 최종값
+         * HIST TABLE 대상으로 조회하는 것이 아니므로 최종 데이터 기준으로 조회
+         * 테이블별로 수정일이 다를수 있으며 계약기본 또는 상세 외 타 테이블이 변경시에 최종 수정일로 확인이 어려울 수 있음
+         * → 계약변경접수기본/상세 기준으로 조회
+         */
+
+        /* TABLE
+         * A1 TB_SSCT_CNTR_BAS          계약기본
+         * A2 TB_SSCT_CNTR_BAS          계약기본
+         * B1 TB_SSCT_CNTR_DTL          계약상세
+         * B2 TB_SSCT_CNTR_DTL          계약상세
+         * B3 TB_SSCT_CNTR_DTL          계약상세
+         * B4 TB_SSCT_CNTR_DTL          계약상세
+         * C1 TB_CUBS_CST_BAS           고객기본
+         * D1 TB_RVDW_RVE_DTL           수납상세
+         * E1 TB_SSCT_CNTR_STLM_BAS     계약결제기본
+         * E2 TB_SSCT_CNTR_STLM_BAS     계약결제기본
+         * F1 TB_PDBS_PD_BAS            상품기본
+         * G1 TB_SSCT_CNTR_WELLS_DTL    계약WELLS상세
+         * G2 TB_SSCT_CNTR_WELLS_DTL    계약WELLS상세
+         * H1 TB_SSSO_SPP_PLAN_BAS      배송계획기본
+         * J1 TB_SSSO_SPP_PLAN_DTL      배송계획상세
+         * K1 TB_SSCT_CNTR_STLM_REL     계약결제관계
+         * K2 TB_SSCT_CNTR_STLM_REL     계약결제관계
+         * L1 TB_SSCT_CNTR_REL          계약관계
+         * L2 TB_SSCT_CNTR_REL          계약관계
+         * M1 TB_SSCT_CNTR_CH_RCP_BAS   계약변경접수기본
+         * N1 TB_SSCT_CNTR_CH_RCP_DTL   계약변경접수상세
+         * O1 T_CMP_USR_ACO_M           사용자계정기본
+         *
+         * I1 INLINE_VIEW               (A2,B4)
+         * I2 INLINE_VIEW               (M1,N1)
+        */
+
+        SELECT B1.CNTR_NO /* [계약상세번호] 계약번호 */
+             , B1.CNTR_SN /* [계약상세번호] 계약일련번호 */
+             , C1.CST_KNM /* [계약자명] 고객한글명 */
+             /* 수납코드 AS-IS : LCLIB.LC3000P.LCSUNA(LnC고객Master.수납코드) 매핑은 TB_RVDW_RVE_DTL.RVE_CD(수납상세.수납코드)로 되어있음 */
+             /* 매핑 기준으로 조회 - 수납상세 테이블 기준 수납을 처리한 최종 수납일자 기준으로 조회
+              * 해당 데이터가 아닐 수도 있어 Scalar SubQuery로 조회
+              */
+             , (
+                SELECT MAX(D1.RVE_CD) KEEP (DENSE_RANK FIRST ORDER BY D1.RVE_DT DESC NULLS LAST) /* 수납코드 */
+                  FROM TB_RVDW_RVE_DTL D1 /* 수납상세 */
+                 WHERE D1.CNTR_NO = B1.CNTR_NO /* 계약번호 */
+                   AND D1.CNTR_SN = B1.CNTR_SN /* 계약일련번호 */
+                   AND D1.RVE_PROCS_YN = 'Y' /* 수납처리여부 = 'Y' */
+                   AND D1.DTA_DL_YN = 'N'
+               ) AS RVE_CD /* [수납코드] */
+             /* 납부자번호로 대체한 경우 - TODO:해당 데이터로 대체가능 여부 확인 필요 */
+             , (
+                SELECT MAX(E1.PYER_NO) /* 납부자번호 */
+                  FROM TB_SSCT_CNTR_STLM_BAS E1 /* 계약결제기본 */
+                 WHERE E1.CNTR_NO = A1.CNTR_NO /* 계약번호 */
+                   AND E1.DTA_DL_YN = 'N'
+               ) AS PYER_NO /* [수납코드] 납부자번호 */
+             , B1.BASE_PD_CD /* [상품코드] 기준상품코드 */
+             , (
+                SELECT MAX(F1.PD_NM) /* 상품명 */
+                  FROM TB_PDBS_PD_BAS F1 /* 상품기본 */
+                 WHERE F1.PD_CD = B1.BASE_PD_CD /* 상품기본.상품코드 = 계약상세.기준상품코드 */
+                   AND F1.TEMP_SAVE_YN = 'N'
+                   AND F1.DTA_DL_YN = 'N'
+               ) AS PD_NM /* [상품명] */
+             , A1.CNTR_RCP_FSH_DTM /* [접수일] 계약접수완료일시 */
+             , G1.IST_DT /* [설치일] 설치일자 */
+             , CASE WHEN TRIM(A1.CNTR_CAN_DTM) IS NOT NULL /* 계약기본.계약취소일시 값이 있으면 */
+                         THEN SUBSTR(TRIM(A1.CNTR_CAN_DTM),1,8) /* 계약상세.계약상품종료일자와 길이 맞춰줌 */
+                    ELSE
+                         CASE WHEN B1.CNTR_DTL_STAT_CD = '303' /* 계약상세.계약상세상태코드 = '303'(계약취소) TODO: 고객요청해약(301), 연체해약(303) 포함여부 확인 필요 */
+                                   THEN B1.CNTR_PD_ENDDT /* 계약상품종료일자 */
+                              ELSE ''
+                         END
+               END AS CNTR_CAN_DT /* [취소일] 계약취소일 */
+             , G1.CPS_DT /* [보상일] 보상일자 */
+             , B1.SPP_DUEDT /* 배송예정일자 - 계약상세.배송예정일자 고객이 배송을 요청하는 일자, 실질적인 배송예정일이 아님... [예정일] */
+              /* 실적취소일 AS-IS : CWLIB.CW5000P.CWCANY/CWCANM/CWCAND(실적마스타.취소년/월/일) 매핑정보 없음 TODO:매핑정보확인필요
+               * CWLIB.CW5000P - 1.현재사용구분 : 사용   2.이행대상구분 : 대상   3.이행대상제외유형 :    4.모델링대상구분 : 대상
+               * 타테이블 CW4900P 등으로 확인하였을때 계약취소일 또는 상품 종료일로 매핑되어있음
+               */
+             , '' AS CAN_PERF_DT /* [실적취소일] */
+              /* KIWI철거일 AS-IS : LCLIB.LCAK10P.REMDAT(KIWI일자정보FileCOMPILENOMAX필수O.철거일자) 매핑정보 없음 TODO:매핑정보확인필요
+               * LCLIB.LCAK10P - 1.현재사용구분 : 미사용   2.이행대상구분 : 제외   3.이행대상제외유형 : 미사용제외(kiwi, 고객센터 연동데이터 불필요)   4.모델링대상구분 : 제외
+               * 계약WELLS상세.철거일자로 임의 조회
+               */
+             , G1.REQD_DT /* [KIWI철거일] 철거일자 */
+             , B1.CTT_RS_CD /* 컨택결과코드. AS-IS:LCLIB.LC3000P.LCCCDE(LnC고객Master.컨택코드) */
+             , F_CMZ_CD_NM (#{session.tenantId}, 'LC_CTT_RS_CD', B1.CTT_RS_CD) AS CTT_RS_NM /* [컨택명] 컨택결과코드명. 공통코드LC컨택결과코드 참조 */
+               /* 예약판매여부 AS-IS:LCLIB.LC3000P.LCCHK2(LnC고객Master.예약판매) 매핑정보 없음 TODO:매핑정보확인필요
+                * 계약상세.예약판매유형코드로 임의조회, ※매핑룰 if LCCHK2 = 'Y' THEN '2' : 배송예약 ELSE NULL END
+                * 설계서는 Y/N으로 되어있음
+                */
+             , CASE WHEN TRIM(B1.BOO_SELL_TP_CD) IS NOT NULL /* 계약상세.예약판매유형코드 값이 있으면 */
+                         THEN 'Y'
+                    ELSE 'N'
+               END BOO_SELL_YN /* [예약여부] 예약판매여부 */
+             , B1.BOO_SELL_TP_CD /* 예약판매유형코드 */
+             , F_CMZ_CD_NM (#{session.tenantId}, 'BOO_SELL_TP_CD', B1.BOO_SELL_TP_CD) AS BOO_SELL_TP_NM /* 예약판매유형명. 공통코드예약판매유형코드 참조 */
+             , NVL(B1.FEE_ACKMT_CT, 0) AS FEE_ACKMT_CT /* [인정건수] 수수료인정건수 */
+             , NVL(B1.ACKMT_PERF_AMT, 0) AS ACKMT_PERF_AMT /* [인정금액] 인정실적금액 */
+             , NVL(B1.ACKMT_PERF_RT, 0) AS ACKMT_PERF_RT /* [인정율(%)] 인정실적율 */
+             , NVL(B1.FEE_ACKMT_BASE_AMT,0) AS FEE_ACKMT_BASE_AMT /* [기준수수료] 수수료인정기준금액 */
+             , NVL(B1.FEE_FXAM_YN, 'N') AS FEE_FXAM_YN /* [정액여부] 수수료정액여부 */
+               /* 할부이체 AS-IS:LCLIB.LC3000P.LCCHK7(LnC고객Master.자동이체) 매핑정보 없음 TODO:매핑정보확인필요
+                * 메타기준 AS-IS 코드값 1:은행, 2:카드, N:보류, S:법인제외로 되어있으나 AS-IS 일시불 일괄변경관리에서 조회시 0이 조회 됨
+                * AS-IS에서도 코드 값이므로 TO-BE 계약결제관계 입금유형코드로 임의 조회
+                * 해당 항목의 의미 확인이 어려워 Scalar Subquery사용
+                * */
+             , (
+                SELECT MAX(K1.DP_TP_CD) /* 입금유형코드 */
+                  FROM TB_SSCT_CNTR_STLM_BAS E2 /* 계약결제기본 */
+                 INNER JOIN TB_SSCT_CNTR_STLM_REL K1 /* 계약결제관계 */
+                    ON K1.CNTR_STLM_ID =  E2.CNTR_STLM_ID /* 계약결제관계.계약결제ID = 계약결제기본.계약결제ID */
+                   AND E2.DTA_DL_YN = 'N' /* 계약결제기본.데이터삭제여부 = 'N' */
+                   AND K1.DTA_DL_YN = 'N' /* 계약결제관계.데이터삭제여부 = 'N' */
+                   AND K1.VL_END_DTM = '99991231235959' /* 계약결제관계.유효종료일시 = '99991231235959'(최종건)-취소 계약건을 포함하여야 한다면 해당 조건 삭제 하여야 하며 조회 조건 확인 필요 */
+                   --AND K1.CNTR_UNIT_TP_CD = '020' /* 계약결제관계.계약단위유형코드 = '020'(계약상세) ★★★ 테이블 컬럼 및 데이터 변경 될 수 있음(계약단위유형코드가 없어지고 계약상세 단위로 처리 될 수 있음) */
+                   AND K1.RVE_DV_CD IN ('03', '04', '05') /* 계약결제관계.수납구분코드가 03(월납입액(할부금,렌탈료)), 04(멤버십회비), 05(정기배송회비) 인 건  */
+                   --AND K1.CNTR_NO = B.CNTR_NO /* 계약결제관계.계약번호 = 계약기본.계약번호 → 계약단위유형코드가 계약(010)인 경우 ★★★ 테이블 컬럼 및 데이터 변경 될 수 있음(계약단위유형코드가 없어지고 계약상세 단위로 처리 될 수 있음) */
+                   AND K1.DTL_CNTR_NO = B1.CNTR_NO /* 상세계약번호 */
+                   AND K1.DTL_CNTR_SN = B1.CNTR_SN /* 상세계약일련번호 */
+               ) AS DP_TP_CD /* [할부이체] 입금유형코드 */
+               /* 할부실적 AS-IS:LCLIB.LC3000P.LCFLG1(LnC고객Master.방문형태) 매핑정보 상이, 방문형태가 할부실적을 의미하는지 확인필요 TODO:매핑정보확인필요
+                * 메타기준 AS-IS 코드값 0:업체, 2:배송없음-요청시배송
+                * TO-BE 매핑 정보대로 조회 TB_SSCT_CNTR_WELLS_DTL.BFSVC_BZS_DV_CD(계약WELLS상세.BS업체구분코드)
+                * AS-IS에서도 CODE를 조회하고 있음
+                */
+             , G1.BFSVC_BZS_DV_CD /* [할부실적] BS업체구분코드. 공통코드 BFSVC_BZS_DV_CD 참조 */
+               /* 멤버이체 AS-IS:LCLIB.LC3000P.LCETC2(LnC고객Master.할부자동이체) 매핑정보확인 필요 TODO:매핑정보확인필요
+                * 메타기준 AS-IS코드값 1:은행, 2:카드, B:오류(이체결과), G(지로), N(보류), S(가상계좌)
+                * ※ [할부이체]와 값이 중복 됨
+                * 일시불 건에 대한 멤버십인 경우 별도로 조회하여야 함
+                *  - 계약관계 TABLE(TB_SSCT_CNTR_REL)의 계약관계 유형코드로 구분하여 조회 - 마이그데이터 확인함
+                */
+             , (SELECT MAX(K2.DP_TP_CD) /* 입금유형코드 */
+                  FROM TB_SSCT_CNTR_REL L1 /* 계약관계 */
+                 INNER JOIN TB_SSCT_CNTR_DTL B2 /* 계약상세 */
+                    ON B2.CNTR_NO = L1.BASE_DTL_CNTR_NO
+                   AND B2.CNTR_SN = L1.BASE_DTL_CNTR_SN
+                   AND L1.DTA_DL_YN = 'N'
+                   AND B2.DTA_DL_YN = 'N'
+                 INNER JOIN TB_SSCT_CNTR_STLM_REL K2 /* 계약결제관계 */
+                    ON K2.DTL_CNTR_NO = B1.CNTR_NO /* 상세계약번호 */
+                   AND K2.DTL_CNTR_SN = B1.CNTR_SN /* 상세계약일련번호 */
+                   AND K2.RVE_DV_CD IN ('03', '04', '05') /* 계약결제관계.수납구분코드가 03(월납입액(할부금,렌탈료)), 04(멤버십회비), 05(정기배송회비) 인 건  */
+                   AND K2.VL_END_DTM = '99991231235959' /* 계약결제관계.유효종료일시 = '99991231235959'(최종건)-취소 계약건을 포함하여야 한다면 해당 조건 삭제 하여야 하며 조회 조건 확인 필요 */
+                   AND K2.DTA_DL_YN = 'N'
+                   AND B1.DTA_DL_YN = 'N'
+                 WHERE L1.OJ_DTL_CNTR_NO = B1.CNTR_NO /* 대상상세계약번호 */
+                   AND L1.OJ_DTL_CNTR_SN = B1.CNTR_SN /* 대상상세계약일련번호 */
+                   AND B2.SELL_TP_CD = '3' /* 판매유형코드 = '3'(멤버십)*/
+               ) AS MMBS_DP_TP_CD /* [멤버십이체] 입금유형코드 */
+               /* 멤버십원장 AS-IS:LCLIB.LC3000P.LCCHK1(LnC고객Master.법인판매) 매핑정보확인 필요 TODO:매핑정보확인필요
+                *  - 법인판매여부인데 화면상의 헤더명은 멤버원장임
+                * 메타기준 AS-IS코드값 Y:예, N:아니오
+                * TO-BE 매핑정보 확인할 수 없으므로 TB_PDBS_PD_BAS.COPN_DV_CD(계약기본.법인격구분코드)로 임의 조회- 1:개인, 2:법인
+                */
+             , CASE WHEN A1.COPN_DV_CD = '2' /* 법인격구분코드='2'(법인) */
+                         THEN 'Y'
+                    ELSE 'N'
+               END COPN_DV_YN /* [멤버십원장] */
+               /* 무상멤버십 AS-IS:LCLIB.LC3000P.LCMMON(LnC고객Master.멤버십무상) */
+             , (SELECT MAX(G2.FRISU_BFSVC_PTRM_N) /* 무상BS기간수 */
+                  FROM TB_SSCT_CNTR_REL L2 /* 계약관계 */
+                 INNER JOIN TB_SSCT_CNTR_DTL B3 /* 계약상세 */
+                    ON B3.CNTR_NO = L2.BASE_DTL_CNTR_NO
+                   AND B3.CNTR_SN = L2.BASE_DTL_CNTR_SN
+                   AND L2.DTA_DL_YN = 'N'
+                   AND B3.DTA_DL_YN = 'N'
+                 INNER JOIN TB_SSCT_CNTR_WELLS_DTL G2 /* 계약WELLS상세 */
+                    ON G2.CNTR_NO = B3.CNTR_NO /* 상세계약번호 */
+                   AND G2.CNTR_SN = B3.CNTR_SN /* 상세계약일련번호 */
+                   AND G2.DTA_DL_YN = 'N'
+                   AND B3.DTA_DL_YN = 'N'
+                 WHERE L2.OJ_DTL_CNTR_NO = B1.CNTR_NO /* 대상상세계약번호 */
+                   AND L2.OJ_DTL_CNTR_SN = B1.CNTR_SN /* 대상상세계약일련번호 */
+                   AND B3.SELL_TP_CD = '3' /* 판매유형코드 = '3'(멤버십)*/
+               ) AS FRISU_BFSVC_PTRM_N /* [무상멤버십] 무상BS기간수 */
+             , G1.FRISU_AS_PTRM_N /* [무상A/S] 무상AS기간수 */
+             , G1.SELL_EV_CD /* [행사코드] 판매행사코드 */
+               /*
+                * 등록자명 / 최종수정자명 조회 시
+                * 계약기준이면 USR_ID
+                * 계약변경기준이면 사번
+                */
+             , CASE WHEN TRIM(#{rfDt}) IS NOT NULL /* 반영일 조회 조건이 입력 된 경우 계약변경 기준 */
+                         THEN I2.RGST_DTM
+                    ELSE I1.RGST_DTM /* 계약기준 */
+               END RGST_DTM /* [등록일] */
+             , CASE WHEN TRIM(#{rfDt}) IS NOT NULL /* 반영일 조회 조건이 입력 된 경우 계약변경 기준 */
+                         THEN I2.RGST_USR_ID
+                    ELSE I1.RGST_USR_ID /* 계약기준-등록자ID */
+               END RGST_USR_ID /* 등록자ID */
+             , CASE WHEN TRIM(#{rfDt}) IS NOT NULL /* 반영일 조회 조건이 입력 된 경우 계약변경 기준 */
+                         THEN (
+                               SELECT MAX(O1.USR_NM)
+                                 FROM T_CMP_USR_ACO_M O1
+                                WHERE O1.EPNO = I2.RGST_USR_ID /* 사번 */
+                                  AND O1.DEL_YN = 'N'
+                              )
+                    ELSE  /* 반영일 조회조건이 입력 안된 경우 계약기준 */
+                         (
+                          SELECT MAX(O1.USR_NM)
+                            FROM T_CMP_USR_ACO_M O1
+                           WHERE O1.USR_ID = I2.RGST_USR_ID /* 사용자ID */
+                             AND O1.DEL_YN = 'N'
+                         )
+               END RGST_USR_NM /* [등록자] 등록자명 */
+             , CASE WHEN TRIM(#{rfDt}) IS NOT NULL /* 반영일 조회 조건이 입력 된 경우 계약변경 기준 */
+                         THEN I2.MDFC_DTM
+                    ELSE I1.MDFC_DTM /* 계약기준 */
+               END MDFC_DTM /* [최종수정일] */
+             , CASE WHEN TRIM(#{rfDt}) IS NOT NULL /* 반영일 조회 조건이 입력 된 경우 계약변경 기준 */
+                         THEN I2.MDFC_USR_ID
+                    ELSE I1.MDFC_USR_ID /* 계약기준 */
+               END MDFC_USR_ID /* 최종수정자ID */
+             , CASE WHEN TRIM(#{rfDt}) IS NOT NULL /* 반영일 조회 조건이 입력 된 경우 계약변경 기준 */
+                         THEN (
+                               SELECT MAX(O1.USR_NM)
+                                 FROM T_CMP_USR_ACO_M O1
+                                WHERE O1.EPNO = I2.MDFC_USR_ID /* 사번 */
+                                  AND O1.DEL_YN = 'N'
+                              )
+                    ELSE /* 반영일 조회조건이 입력 안된 경우 계약기준 */
+                         (
+                          SELECT MAX(O1.USR_NM)
+                            FROM T_CMP_USR_ACO_M O1
+                           WHERE O1.USR_ID = I1.MDFC_USR_ID /* 사용자ID */
+                             AND O1.DEL_YN = 'N'
+                         )
+               END MDFC_USR_NM /* [최종수정자] 최종수정자명 */
+             , I2.PROCS_YN AS PROCS_YN_I2
+             , I1.RGST_DTM AS RGST_DTM_I1
+             , I1.RGST_USR_ID AS RGST_USR_ID_I1
+             , I1.MDFC_DTM AS MDFC_DTM_I1
+             , I1.MDFC_USR_ID AS MDFC_USR_ID_I1
+             , I2.RGST_DTM AS RGST_DTM_I2
+             , I2.RGST_USR_ID AS RGST_USR_I2
+             , I2.MDFC_DTM AS MDFC_DTM_I2
+             , I2.MDFC_USR_ID AS MDFC_USR_ID_I2
+          FROM TB_SSCT_CNTR_BAS A1 /* 계약기본 */
+         INNER JOIN TB_SSCT_CNTR_DTL B1 /* 계약상세 */
+            ON B1.CNTR_NO = A1.CNTR_NO
+           AND B1.DTA_DL_YN = 'N'
+           AND A1.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS C1 /* 고객기본 */
+            ON C1.CST_NO = A1.CNTR_CST_NO /* 고객기본.고객번호 = 계약기본.계약고객번호 */
+           AND C1.DTA_DL_YN = 'N'
+           AND A1.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL G1 /* 계약WELLS상세 */
+            ON G1.CNTR_NO = B1.CNTR_NO
+           AND G1.CNTR_SN = B1.CNTR_SN
+           AND G1.DTA_DL_YN = 'N'
+           AND B1.DTA_DL_YN = 'N'
+         INNER JOIN LATERAL /* 계약기본, 계약상세기준 */
+             (
+              SELECT B4.CNTR_NO AS CNTR_NO /* 계약번호 */
+                   , B4.CNTR_SN AS CNTR_SN /* 계약일련번호 */
+                   , MAX(B4.FST_RGST_DTM) KEEP (DENSE_RANK FIRST ORDER BY NVL(B4.FNL_MDFC_DTM, B4.FST_RGST_DTM) DESC NULLS LAST) AS RGST_DTM /* 최초등록일 [등록일] */
+                   , MAX(B4.FST_RGST_USR_ID) KEEP (DENSE_RANK FIRST ORDER BY NVL(B4.FNL_MDFC_DTM, B4.FST_RGST_DTM) DESC NULLS LAST) AS RGST_USR_ID /* 최초등록사용자ID [등록자] */
+                   , MAX(NVL(B4.FNL_MDFC_DTM, B4.FST_RGST_DTM)) KEEP (DENSE_RANK FIRST ORDER BY NVL(B4.FNL_MDFC_DTM, B4.FST_RGST_DTM) DESC NULLS LAST) AS MDFC_DTM /* 최종수정일시 [최종수정일] */
+                   , MAX(NVL(B4.FNL_MDFC_USR_ID, B4.FST_RGST_USR_ID)) KEEP (DENSE_RANK FIRST ORDER BY NVL(B4.FNL_MDFC_DTM, B4.FST_RGST_DTM) DESC NULLS LAST) AS MDFC_USR_ID /* 최종수정사용자ID [최종수정자] */
+                FROM TB_SSCT_CNTR_BAS A2/* 계약기본 */
+               INNER JOIN TB_SSCT_CNTR_DTL B4 /* 계약상세 */
+                  ON B4.CNTR_NO = A2.CNTR_NO
+                 AND B4.DTA_DL_YN = 'N'
+                 AND A2.DTA_DL_YN = 'N'
+                 AND B4.CNTR_NO = B1.CNTR_NO
+                 AND B4.CNTR_SN = B1.CNTR_SN
+              GROUP BY B4.CNTR_NO /* 계약번호 */
+                     , B4.CNTR_SN /* 계약일련번호 */
+             ) I1
+            ON I1.CNTR_NO = B1.CNTR_NO
+           AND I1.CNTR_SN = B1.CNTR_SN
+          LEFT OUTER JOIN LATERAL /* 계약변경접수기본, 계약변경접수상세기준 */
+             (
+              /* - 리스트 조회 ASIS : 최종수정건만 대상이 되며 HIST 테이블을 조회하지 않음 조회되는 값도 최종값  */
+              SELECT N1.DTL_CNTR_NO AS CNTR_NO /* 상세계약번호 */
+                   , N1.DTL_CNTR_SN AS CNTR_SN /* 상세계약일련번호 */
+                   , MAX(M1.CNTR_CH_RCP_DTM) KEEP (DENSE_RANK FIRST ORDER BY M1.CNTR_CH_FSH_DTM DESC NULLS LAST) AS RGST_DTM /* 계약변경접수일시 [등록일] */
+                   , MAX(M1.CH_RCP_USR_ID) KEEP (DENSE_RANK FIRST ORDER BY M1.CNTR_CH_FSH_DTM DESC NULLS LAST) AS RGST_USR_ID /* 변경접수사용자ID [등록자] */
+                   , MAX(M1.CNTR_CH_FSH_DTM) KEEP (DENSE_RANK FIRST ORDER BY M1.CNTR_CH_FSH_DTM DESC NULLS LAST) AS MDFC_DTM /* 계약변경완료일시 [최종수정일] */
+                   , MAX(N1.PROCS_FSH_DTM) KEEP (DENSE_RANK FIRST ORDER BY M1.CNTR_CH_FSH_DTM DESC NULLS LAST) AS PROCS_FSH_DTM /* 처리완료일시 [최종수정일]*/
+                   , MAX(M1.APR_USR_ID) KEEP (DENSE_RANK FIRST ORDER BY M1.CNTR_CH_FSH_DTM DESC NULLS LAST) AS MDFC_USR_ID /* 승인사용자ID [최종수정자] */
+                   , MAX(N1.CNTR_CH_RCP_ID) KEEP (DENSE_RANK FIRST ORDER BY M1.CNTR_CH_FSH_DTM DESC NULLS LAST) AS CNTR_CH_RCP_ID /* 계약변경접수ID */
+                   , MAX(N1.CNTR_CH_SN) KEEP (DENSE_RANK FIRST ORDER BY M1.CNTR_CH_FSH_DTM DESC NULLS LAST) AS CNTR_CH_SN /* 계약변경일련번호 */
+                   , MAX(N1.PROCS_YN) KEEP (DENSE_RANK FIRST ORDER BY M1.CNTR_CH_FSH_DTM DESC NULLS LAST) AS PROCS_YN /* 처리여부 */
+                FROM TB_SSCT_CNTR_CH_RCP_BAS M1 /* 계약변경접수기본 */
+               INNER JOIN TB_SSCT_CNTR_CH_RCP_DTL N1 /* 계약변경접수상세 - TB_SSCT_CNTR_CH_RCP_DTL.PROCS_FSH_DTM(처리완료 일시) INDEX 생성 확인 필요 */
+                  ON M1.CNTR_CH_RCP_ID = N1.CNTR_CH_RCP_ID /* 계약변경접수ID */
+                 AND M1.DTA_DL_YN = 'N'
+                 AND N1.DTA_DL_YN = 'N'
+                 --AND N1.CNTR_UNIT_TP_CD = '020' /* 계약단위유형코드 020(계약상세) */
+               WHERE 1 = 1
+                 AND N1.DTL_CNTR_NO = B1.CNTR_NO
+                 AND N1.DTL_CNTR_SN = B1.CNTR_SN
+                 /* 반영일조회조건 */
+                <if test="@MybatisUtils@isNotEmpty(rfDt)">
+                 AND M1.CNTR_CH_FSH_DTM BETWEEN #{rfDt}||'000000' AND #{rfDt}||'235959'
+                </if>
+                 /* 계약상세번호조회조건 */
+                <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+                 AND N1.DTL_CNTR_NO = #{cntrNo}
+                </if>
+                <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+                 AND N1.DTL_CNTR_SN = #{cntrSn}
+                </if>
+               GROUP BY N1.DTL_CNTR_NO /* 상세계약번호 */
+                     , N1.DTL_CNTR_SN /* 상세계약일련번호 */
+             ) I2
+            ON I2.CNTR_NO = B1.CNTR_NO
+           AND I2.CNTR_SN = B1.CNTR_SN
+         WHERE B1.SELL_TP_CD = '1' /* 판매유형코드 = '1'(일시불) */
+        <if test="@MybatisUtils@isNotEmpty(cntrNo)">
+           AND B1.CNTR_NO = #{cntrNo}
+        </if>
+        <if test="@MybatisUtils@isNotEmpty(cntrSn)">
+           AND B1.CNTR_SN = #{cntrSn}
+        </if>
+           /* 반영일 조회 조건 추가 시 */
+        <if test="@MybatisUtils@isNotEmpty(rfDt)">
+           AND EXISTS
+             (
+              SELECT N2.DTL_CNTR_NO AS CNTR_NO /* 상세계약번호 */
+                FROM TB_SSCT_CNTR_CH_RCP_BAS M2 /* 계약변경접수기본 */
+               INNER JOIN TB_SSCT_CNTR_CH_RCP_DTL N2 /* 계약변경접수상세 - TB_SSCT_CNTR_CH_RCP_DTL.PROCS_FSH_DTM(처리완료 일시) INDEX 생성 확인 필요 */
+                  ON M2.CNTR_CH_RCP_ID = N2.CNTR_CH_RCP_ID /* 계약변경접수ID */
+                 AND M2.DTA_DL_YN = 'N'
+                 AND N2.DTA_DL_YN = 'N'
+                 --AND N2.CNTR_UNIT_TP_CD = '020' /* 계약단위유형코드 020(계약상세) */
+               WHERE N2.DTL_CNTR_NO = B1.CNTR_NO
+                 AND N2.DTL_CNTR_SN = B1.CNTR_SN
+                 AND M2.CNTR_CH_FSH_DTM BETWEEN #{rfDt}||'000000' AND #{rfDt}||'235959' /* 계약변경접수기본.계약변경완료일시 */
+             )
+        </if>
+    </select>
+    <select id="selectSinglePaymentBulkChangsRgst" resultType="com.kyowon.sms.wells.web.contract.changeorder.dto.WctbSinglePaymentBulkChangeDto$SearchRgstRes">
+        SELECT B1.CNTR_NO||'-'||B1.CNTR_SN AS CNTR_DTL_NO/* [계약상세번호] */
+             , B1.CNTR_NO /* 계약번호 */
+             , B1.CNTR_SN /* 계약일련번호 */
+             , C1.CST_KNM /* 고객한글명 [계약자명] */
+             , (
+                SELECT MAX(D1.RVE_CD) KEEP (DENSE_RANK FIRST ORDER BY D1.RVE_DT DESC NULLS LAST) /* 수납코드 */
+                  FROM TB_RVDW_RVE_DTL D1 /* 수납상세 */
+                 WHERE D1.CNTR_NO = B1.CNTR_NO /* 계약번호 */
+                   AND D1.CNTR_SN = B1.CNTR_SN /* 계약일련번호 */
+                   AND D1.RVE_PROCS_YN = 'Y' /* 수납처리여부 = 'Y' */
+                   AND D1.DTA_DL_YN = 'N'
+               ) AS RVE_CD /* 수납코드 [수납코드] */
+             /* 납부자번호로 대체한 경우 - TODO:해당 데이터로 대체가능 여부 확인 필요 */
+             , (
+                SELECT MAX(E1.PYER_NO) /* 납부자번호 */
+                  FROM TB_SSCT_CNTR_STLM_BAS E1 /* 계약결제기본 */
+                 WHERE E1.CNTR_NO = A1.CNTR_NO /* 계약번호 */
+                   AND E1.DTA_DL_YN = 'N'
+               ) AS PYER_NO /* 납부자번호 [수납코드] */
+             , B1.BASE_PD_CD /* 기준상품코드 [상품코드]*/
+             , (
+                SELECT MAX(F1.PD_NM) /* 상품명 */
+                  FROM TB_PDBS_PD_BAS F1 /* 상품기본 */
+                 WHERE F1.PD_CD = B1.BASE_PD_CD /* 상품기본.상품코드 = 계약상세.기준상품코드 */
+                   AND F1.TEMP_SAVE_YN = 'N'
+                   AND F1.DTA_DL_YN = 'N'
+               ) AS PD_NM /* 상품명 [상품명] */
+             , A1.CNTR_RCP_FSH_DTM /* 계약접수완료일시 [접수일] */
+             , G1.IST_DT /* 설치일자 [설치일] */
+             , CASE WHEN TRIM(A1.CNTR_CAN_DTM) IS NOT NULL /* 계약기본.계약취소일시 값이 있으면 */
+                         THEN SUBSTR(TRIM(A1.CNTR_CAN_DTM),1,8) /* 계약상세.계약상품종료일자와 길이 맞춰줌 */
+                    ELSE
+                         CASE WHEN B1.CNTR_DTL_STAT_CD = '303' /* 계약상세.계약상세상태코드 = '303'(계약취소) TODO: 고객요청해약(301), 연체해약(303) 포함여부 확인 필요 */
+                                   THEN B1.CNTR_PD_ENDDT /* 계약상품종료일자 */
+                              ELSE ''
+                         END
+               END AS CNTR_CAN_DT /* 계약취소일 [취소일] */
+             , G1.CPS_DT /* 보상일자 [보상일] */
+             , B1.SPP_DUEDT /* 배송예정일자 - 계약상세.배송예정일자 고객이 배송을 요청하는 일자, 실질적인 배송예정일이 아님... [예정일] */
+               /* 배송관련 테이블을 기준으로 조회하여야 하는 경우
+                * 배송계획기본.배송예정일자로 매핑(삭제대상일수도 있으므로 Scalar Subquery사용)
+                */
+             , (
+                SELECT MAX(H1.SPP_DUEDT) /* 배송예정일자 */
+                  FROM TB_SSSO_SPP_PLAN_BAS H1 /* 배송계획기본 */
+                 INNER JOIN TB_SSSO_SPP_PLAN_DTL J1 /* 배송계획상세 */
+                    ON J1.SPP_PLAN_ID = H1.SPP_PLAN_ID /* 배송계획ID */
+                   AND J1.DTA_DL_YN = 'N'
+                   AND H1.DTA_DL_YN = 'N'
+                 WHERE J1.PROCS_YN = 'Y' /* 처리여부 */
+                   AND H1.CNTR_NO = B1.CNTR_NO
+                   AND H1.CNTR_SN = B1.CNTR_SN
+               ) AS SPP_DUEDT2 /* [배송예정일자] */
+              /* 실적취소일 AS-IS : CWLIB.CW5000P.CWCANY/CWCANM/CWCAND(실적마스타.취소년/월/일) 매핑정보 없음 TODO:매핑정보확인필요
+               * CWLIB.CW5000P - 1.현재사용구분 : 사용   2.이행대상구분 : 대상   3.이행대상제외유형 :    4.모델링대상구분 : 대상
+               * 타테이블 CW4900P 등으로 확인하였을때 계약취소일 또는 상품 종료일로 매핑되어있음
+               */
+             , '' AS CAN_PERF_DT /* 실적취소일 */
+              /* KIWI철거일 AS-IS : LCLIB.LCAK10P.REMDAT(KIWI일자정보FileCOMPILENOMAX필수O.철거일자) 매핑정보 없음 TODO:매핑정보확인필요
+               * LCLIB.LCAK10P - 1.현재사용구분 : 미사용   2.이행대상구분 : 제외   3.이행대상제외유형 : 미사용제외(kiwi, 고객센터 연동데이터 불필요)   4.모델링대상구분 : 제외
+               * 계약WELLS상세.철거일자로 임의 조회
+               */
+             , G1.REQD_DT /* 철거일자 [KIWI철거일] */
+             , B1.CTT_RS_CD /* 컨택결과코드 AS-IS:LCLIB.LC3000P.LCCCDE(LC고객Master.컨택코드) */
+             , F_CMZ_CD_NM ('TNT_WELLS', 'LC_CTT_RS_CD', B1.CTT_RS_CD) AS CTT_RS_NM /* 컨택코드명 - 공통코드LC컨택결과코드 참조 [컨택명]*/
+               /* 예약판매여부 AS-IS:LCLIB.LC3000P.LCCHK2(LC고객Master.예약판매) 매핑정보 없음 TODO:매핑정보확인필요
+                * 계약상세.예약판매유형코드로 임의조회, ※매핑룰 if LCCHK2 = 'Y' THEN '2' : 배송예약 ELSE NULL END
+                * 설계서는 Y/N으로 되어있음
+                */
+             , B1.BOO_SELL_TP_CD /* 예약판매유형코드 */
+             , CASE WHEN TRIM(B1.BOO_SELL_TP_CD) IS NOT NULL /* 계약상세.예약판매유형코드 값이 있으면 */
+                         THEN 'Y'
+                    ELSE 'N'
+               END BOO_SELL_YN /* 예약판매여부 [예약여부] */
+             , F_CMZ_CD_NM ('TNT_WELLS', 'BOO_SELL_TP_CD', B1.BOO_SELL_TP_CD) AS BOO_SELL_TP_NM /* 예약판매유형코드 - 공통코드예약판매유형코드 참조 */
+             , NVL(B1.FEE_ACKMT_CT, 0) AS FEE_ACKMT_CT /* 수수료인정건수 [인정건수] */
+             , NVL(B1.ACKMT_PERF_AMT, 0) AS ACKMT_PERF_AMT /* 인정실적금액 [인정금액] */
+             , NVL(B1.ACKMT_PERF_RT, 0) AS ACKMT_PERF_RT /* 인정실적율 [인정율(%)] */
+             , NVL(B1.FEE_ACKMT_BASE_AMT,0) AS FEE_ACKMT_BASE_AMT /* 수수료인정기준금액 [기준수수료] */
+             , NVL(B1.FEE_FXAM_YN, 'N') AS FEE_FXAM_YN /* 수수료정액여부[정액여부] */
+               /* 할부이체 AS-IS:LCLIB.LC3000P.LCCHK7(LC고객Master.자동이체) 매핑정보 없음 TODO:매핑정보확인필요
+                * 메타기준 AS-IS 코드값 1:은행, 2:카드, N:보류, S:법인제외로 되어있으나 AS-IS 일시불 일괄변경관리에서 조회시 0이 조회 됨
+                * AS-IS에서도 코드 값이므로 TO-BE 계약결제관계 입금유형코드로 임의 조회
+                * 해당 항목의 의미 확인이 어려워 Scalar Subquery사용
+                * */
+             , (
+                SELECT MAX(K1.DP_TP_CD) /* 입금유형코드 */
+                  FROM TB_SSCT_CNTR_STLM_BAS E2 /* 계약결제기본 */
+                 INNER JOIN TB_SSCT_CNTR_STLM_REL K1 /* 계약결제관계 */
+                    ON K1.CNTR_STLM_ID =  E2.CNTR_STLM_ID /* 계약결제관계.계약결제ID = 계약결제기본.계약결제ID */
+                   AND E2.DTA_DL_YN = 'N' /* 계약결제기본.데이터삭제여부 = 'N' */
+                   AND K1.DTA_DL_YN = 'N' /* 계약결제관계.데이터삭제여부 = 'N' */
+                   AND K1.VL_END_DTM = '99991231235959' /* 계약결제관계.유효종료일시 = '99991231235959'(최종건)-취소 계약건을 포함하여야 한다면 해당 조건 삭제 하여야 하며 조회 조건 확인 필요 */
+                   --AND K1.CNTR_UNIT_TP_CD = '020' /* 계약결제관계.계약단위유형코드 = '020'(계약상세) ★★★ 테이블 컬럼 및 데이터 변경 될 수 있음(계약단위유형코드가 없어지고 계약상세 단위로 처리 될 수 있음) */
+                   AND K1.RVE_DV_CD IN ('03', '04', '05') /* 계약결제관계.수납구분코드가 03(월납입액(할부금,렌탈료)), 04(멤버십회비), 05(정기배송회비) 인 건  */
+                   --AND K1.CNTR_NO = B.CNTR_NO /* 계약결제관계.계약번호 = 계약기본.계약번호 → 계약단위유형코드가 계약(010)인 경우 ★★★ 테이블 컬럼 및 데이터 변경 될 수 있음(계약단위유형코드가 없어지고 계약상세 단위로 처리 될 수 있음) */
+                   AND K1.DTL_CNTR_NO = B1.CNTR_NO /* 상세계약번호 */
+                   AND K1.DTL_CNTR_SN = B1.CNTR_SN /* 상세계약일련번호 */
+               ) AS DP_TP_CD /* 입금유형코드 [할부이체] */
+               /* 할부실적 AS-IS:LCLIB.LC3000P.LCFLG1(LC고객Master.방문형태) 매핑정보 상이, 방문형태가 할부실적을 의미하는지 확인필요 TODO:매핑정보확인필요
+                * 메타기준 AS-IS 코드값 0:업체, 2:배송없음-요청시배송
+                * TO-BE 매핑 정보대로 조회 TB_SSCT_CNTR_WELLS_DTL.BFSVC_BZS_DV_CD(계약WELLS상세.BS업체구분코드)
+                * AS-IS에서도 CODE를 조회하고 있음
+                */
+             , G1.BFSVC_BZS_DV_CD /* BS업체코드 공통코드 BFSVC_BZS_DV_CD 참조  [할부실적] */
+               /* 멤버이체 AS-IS:LCLIB.LC3000P.LCETC2(LC고객Master.할부자동이체) 매핑정보확인 필요 TODO:매핑정보확인필요
+                * 메타기준 AS-IS코드값 1:은행, 2:카드, B:오류(이체결과), G(지로), N(보류), S(가상계좌)
+                * ※ [할부이체]와 값이 중복 됨
+                * 일시불 건에 대한 멤버십인 경우 별도로 조회하여야 함
+                *  - 계약관계 TABLE(TB_SSCT_CNTR_REL)의 계약관계 유형코드로 구분하여 조회 - 마이그데이터 확인함
+                */
+             , (SELECT MAX(K2.DP_TP_CD) /* 입금유형코드 */
+                  FROM TB_SSCT_CNTR_REL L1 /* 계약관계 */
+                 INNER JOIN TB_SSCT_CNTR_DTL B2 /* 계약상세 */
+                    ON B2.CNTR_NO = L1.BASE_DTL_CNTR_NO
+                   AND B2.CNTR_SN = L1.BASE_DTL_CNTR_SN
+                   AND L1.DTA_DL_YN = 'N'
+                   AND B2.DTA_DL_YN = 'N'
+                 INNER JOIN TB_SSCT_CNTR_STLM_REL K2 /* 계약결제관계 */
+                    ON K2.DTL_CNTR_NO = B1.CNTR_NO /* 상세계약번호 */
+                   AND K2.DTL_CNTR_SN = B1.CNTR_SN /* 상세계약일련번호 */
+                   AND K2.RVE_DV_CD IN ('03', '04', '05') /* 계약결제관계.수납구분코드가 03(월납입액(할부금,렌탈료)), 04(멤버십회비), 05(정기배송회비) 인 건  */
+                   AND K2.VL_END_DTM = '99991231235959' /* 계약결제관계.유효종료일시 = '99991231235959'(최종건)-취소 계약건을 포함하여야 한다면 해당 조건 삭제 하여야 하며 조회 조건 확인 필요 */
+                   AND K2.DTA_DL_YN = 'N'
+                   AND B1.DTA_DL_YN = 'N'
+                 WHERE L1.OJ_DTL_CNTR_NO = B1.CNTR_NO /* 대상상세계약번호 */
+                   AND L1.OJ_DTL_CNTR_SN = B1.CNTR_SN /* 대상상세계약일련번호 */
+                   AND B2.SELL_TP_CD = '3' /* 판매유형코드 = '3'(멤버십)*/
+               ) AS MMBS_DP_TP_CD /* 입금유형코드 [멤버십이체] */
+               /* 멤버십원장 AS-IS:LCLIB.LC3000P.LCCHK1(LC고객Master.법인판매) 매핑정보확인 필요 TODO:매핑정보확인필요
+                *  - 법인판매여부인데 화면상의 헤더명은 멤버원장임
+                * 메타기준 AS-IS코드값 Y:예, N:아니오
+                * TO-BE 매핑정보 확인할 수 없으므로 TB_PDBS_PD_BAS.COPN_DV_CD(계약기본.법인격구분코드)로 임의 조회- 1:개인, 2:법인
+                */
+             , CASE WHEN A1.COPN_DV_CD = '2' /* 법인격구분코드='2'(법인) */
+                         THEN 'Y'
+                    ELSE 'N'
+               END COPN_DV_YN /* [멤버십원장] */
+               /* 무상멤버십 AS-IS:LCLIB.LC3000P.LCMMON(LC고객Master.멤버십무상) */
+             , (SELECT MAX(G2.FRISU_BFSVC_PTRM_N) /* 무상BS기간수 */
+                  FROM TB_SSCT_CNTR_REL L2 /* 계약관계 */
+                 INNER JOIN TB_SSCT_CNTR_DTL B3 /* 계약상세 */
+                    ON B3.CNTR_NO = L2.BASE_DTL_CNTR_NO
+                   AND B3.CNTR_SN = L2.BASE_DTL_CNTR_SN
+                   AND L2.DTA_DL_YN = 'N'
+                   AND B3.DTA_DL_YN = 'N'
+                 INNER JOIN TB_SSCT_CNTR_WELLS_DTL G2 /* 계약WELLS상세 */
+                    ON G2.CNTR_NO = B3.CNTR_NO /* 상세계약번호 */
+                   AND G2.CNTR_SN = B3.CNTR_SN /* 상세계약일련번호 */
+                   AND G2.DTA_DL_YN = 'N'
+                   AND B3.DTA_DL_YN = 'N'
+                 WHERE L2.OJ_DTL_CNTR_NO = B1.CNTR_NO /* 대상상세계약번호 */
+                   AND L2.OJ_DTL_CNTR_SN = B1.CNTR_SN /* 대상상세계약일련번호 */
+                   AND B3.SELL_TP_CD = '3' /* 판매유형코드 = '3'(멤버십)*/
+               ) AS FRISU_BFSVC_PTRM_N /* 무상BS기간수 [무상멤버십] */
+             , G1.FRISU_AS_PTRM_N /* 무상AS기간수 [무상A/S] */
+             , G1.SELL_EV_CD /* 판매행사코드[행사코드] */
+             , I1.RGST_DTM /* 계약기준 등록일 */
+             , B1.CNTR_AMT /*계약금액 - 청약금*/
+             , B1.ALNCMP_CD  /* 제휴사코드 */
+             , A1.CNTR_CNFM_DTM /*계약확정일시*/
+             , B1.CTT_OJ_ID		/*컨택대상ID*/
+             , B1.CNTR_DTL_STAT_CD 	/*계약상세상태코드*/
+             , B1.SELL_TP_DTL_CD 	/*판매유형상세코드*/
+             , B1.CNTR_PD_STRTDT 	/*계약상품시작일자*/
+             , B1.CRP_UC_AMT		/*법인미수금*/
+             , G1.SPLY_BZS_DV_CD	/*조달업체구분코드*/
+             , (SELECT CTT_DUEDT    /* 컨택예정일 */
+                  FROM TB_SSOP_CTT_BAS /* 컨택기본 */
+                 WHERE 1=1
+                   AND DTA_DL_YN = 'N'
+                   AND CTT_OJ_ID = B1.CTT_OJ_ID
+               ) AS CTT_DUEDT /* 컨택예정일 */
+          FROM TB_SSCT_CNTR_BAS A1/* 계약기본 */
+         INNER JOIN TB_SSCT_CNTR_DTL B1 /* 계약상세 */
+            ON B1.CNTR_NO = A1.CNTR_NO
+           AND B1.DTA_DL_YN = 'N'
+           AND A1.DTA_DL_YN = 'N'
+         INNER JOIN TB_CUBS_CST_BAS C1 /* 고객기본 */
+            ON C1.CST_NO = A1.CNTR_CST_NO /* 고객기본.고객번호 = 계약기본.계약고객번호 */
+           AND C1.DTA_DL_YN = 'N'
+           AND A1.DTA_DL_YN = 'N'
+         INNER JOIN TB_SSCT_CNTR_WELLS_DTL G1 /* 계약WELLS상세 */
+            ON G1.CNTR_NO = B1.CNTR_NO
+           AND G1.CNTR_SN = B1.CNTR_SN
+           AND G1.DTA_DL_YN = 'N'
+           AND B1.DTA_DL_YN = 'N'
+         INNER JOIN LATERAL /* 계약기본, 계약상세기준 */
+             (
+              SELECT B4.CNTR_NO AS CNTR_NO /* 계약번호 */
+                   , B4.CNTR_SN AS CNTR_SN /* 계약일련번호 */
+                   , MAX(B4.FST_RGST_DTM) KEEP (DENSE_RANK FIRST ORDER BY NVL(B4.FNL_MDFC_DTM, B4.FST_RGST_DTM) DESC NULLS LAST) AS RGST_DTM /* 최초등록일 [등록일] */
+                   , MAX(B4.FST_RGST_USR_ID) KEEP (DENSE_RANK FIRST ORDER BY NVL(B4.FNL_MDFC_DTM, B4.FST_RGST_DTM) DESC NULLS LAST) AS RGST_USR_ID /* 최초등록사용자ID [등록자] */
+                   , MAX(NVL(B4.FNL_MDFC_DTM, B4.FST_RGST_DTM)) KEEP (DENSE_RANK FIRST ORDER BY NVL(B4.FNL_MDFC_DTM, B4.FST_RGST_DTM) DESC NULLS LAST) AS MDFC_DTM /* 최종수정일시 [최종수정일] */
+                   , MAX(NVL(B4.FNL_MDFC_USR_ID, B4.FST_RGST_USR_ID)) KEEP (DENSE_RANK FIRST ORDER BY NVL(B4.FNL_MDFC_DTM, B4.FST_RGST_DTM) DESC NULLS LAST) AS MDFC_USR_ID /* 최종수정사용자ID [최종수정자] */
+                FROM TB_SSCT_CNTR_BAS A2/* 계약기본 */
+               INNER JOIN TB_SSCT_CNTR_DTL B4 /* 계약상세 */
+                  ON B4.CNTR_NO = A2.CNTR_NO
+                 AND B4.DTA_DL_YN = 'N'
+                 AND A2.DTA_DL_YN = 'N'
+                 AND B4.CNTR_NO = B1.CNTR_NO
+                 AND B4.CNTR_SN = B1.CNTR_SN
+              GROUP BY B4.CNTR_NO /* 계약번호 */
+                     , B4.CNTR_SN /* 계약일련번호 */
+             ) I1
+            ON I1.CNTR_NO = B1.CNTR_NO
+           AND I1.CNTR_SN = B1.CNTR_SN
+         WHERE B1.SELL_TP_CD = '1' /* 판매유형코드 = '1'(일시불)*/
+           AND B1.CNTR_NO = #{cntrNo}
+           AND B1.CNTR_SN = #{cntrSn}
+    </select>
+    <!-- 데이터의 INSERT/UPDATE/유효시작일시/유효종료일시를 일관되게 맞추기 위해, 미리 조회해온다. -->
+    <select id="selectDateTime" resultType="com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbSinglePaymentBulkChangeDvo">
+        /* 데이터의 INSERT/UPDATE/유효시작일시/유효종료일시를 일관되게 맞추기 위해, 미리 조회해온다. */
+        SELECT TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FST_RGST_DTM
+             , #{session.userId} AS FST_RGST_USR_ID
+             , #{session.pageId} AS FST_RGST_PRG_ID
+             , #{session.ogId} AS FST_RGST_DEPT_ID
+             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') AS FNL_MDFC_DTM
+             , #{session.userId} AS FNL_MDFC_USR_ID
+             , #{session.pageId} AS FNL_MDFC_PRG_ID
+             , #{session.ogId} AS FNL_MDFC_DEPT_ID
+          FROM DUAL
+    </select>
+    <!-- 계약WELLS상세 - 보상일자변경 -->
+    <update id="updateCntrWellsDtlCpsDt">
+        UPDATE TB_SSCT_CNTR_WELLS_DTL /* 계약WELLS상세 */
+           SET CPS_DT = #{compD}
+             , FNL_MDFC_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_USR_ID = #{fnlMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{fnlMdfcPrgId}
+             , FNL_MDFC_DEPT_ID = #{fnlMdfcDeptId}
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+    <!-- 계약상세 - 취소일자변경 -->
+    <update id="updateCntrDtlCanDtCh">
+        UPDATE TB_SSCT_CNTR_DTL /* 계약상세 */
+           SET CNTR_PD_ENDDT = #{cancDt} /* 계약상품종료일자 */
+             , FNL_MDFC_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_USR_ID = #{fnlMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{fnlMdfcPrgId}
+             , FNL_MDFC_DEPT_ID = #{fnlMdfcDeptId}
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+    <!-- 컨택기본 - 컨택정보변경 -->
+    <update id="updateCttBasCttCdCh">
+        UPDATE TB_SSOP_CTT_BAS /* 컨택기본 */
+           SET CTT_DUEDT = #{duedt} /* 컨택예정일자 */
+        <if test='@MybatisUtils@isNotEmpty(cttCd)'>
+             , CTT_RS_CD = #{cttCd} /* 컨택결과코드 */
+        </if>
+             , FNL_MDFC_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_USR_ID = #{fnlMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{fnlMdfcPrgId}
+             , FNL_MDFC_DEPT_ID = #{fnlMdfcDeptId}
+         WHERE CTT_OJ_ID = #{cttOjId}
+    </update>
+    <!-- 계약상세 - 컨택정보변경 -->
+    <update id="updateCntrDtlCttCdCh">
+        UPDATE TB_SSCT_CNTR_DTL /* 계약상세 */
+           SET CTT_OJ_ID = NULL /* 컨택대상ID */
+             , FNL_MDFC_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_USR_ID = #{fnlMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{fnlMdfcPrgId}
+             , FNL_MDFC_DEPT_ID = #{fnlMdfcDeptId}
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+    <!-- 계약상세 - 인정금액정보변경 -->
+    <update id="updateCntrDtlRecogAmtInfCh">
+        UPDATE TB_SSCT_CNTR_DTL /* 계약상세 */
+           SET FEE_FXAM_YN = #{fxamYnCh} /* 수수료정액여부 */
+             , FEE_ACKMT_CT = #{pdAccCnt} /* 수수료인정건수 */
+             , ACKMT_PERF_AMT = #{recogAmt} /* 인정실적금액 */
+             , ACKMT_PERF_RT = #{recogRt} /* 인정실적율 */
+             , FEE_ACKMT_BASE_AMT = #{pdStdFee} /* 수수료인정기준금액 */
+             , FNL_MDFC_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_USR_ID = #{fnlMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{fnlMdfcPrgId}
+             , FNL_MDFC_DEPT_ID = #{fnlMdfcDeptId}
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+    <!-- 계약WELLS상세 - 무상멤버십/AS정보 변경  -->
+    <update id="updateCntrWellsDtlFreeAsBsInfCh">
+        UPDATE TB_SSCT_CNTR_WELLS_DTL /* 계약WELLS상세 */
+           SET FNL_MDFC_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_USR_ID = #{fnlMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{fnlMdfcPrgId}
+             , FNL_MDFC_DEPT_ID = #{fnlMdfcDeptId}
+        <if test='@MybatisUtils@isNotEmpty(frisuMsh)'>
+             , FRISU_BFSVC_PTRM_N = #{frisuMsh} /* 무상BS기간수 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(frisuAs)'>
+             , FRISU_AS_PTRM_N = #{frisuAs} /* 무상AS기간수 */
+        </if>
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+    <!-- 계약WELLS상세 - 행사코드변경 -->
+    <update id="updateCntrWellsDtlEvCdCh">
+        UPDATE TB_SSCT_CNTR_WELLS_DTL /* 계약WELLS상세 */
+           SET SELL_EV_CD = #{evCd}
+             , FNL_MDFC_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_USR_ID = #{fnlMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{fnlMdfcPrgId}
+             , FNL_MDFC_DEPT_ID = #{fnlMdfcDeptId}
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+    <!-- 계약WELLS상세 - 설치취소 -->
+    <update id="updateCntrWellsDtlIstCan">
+        UPDATE TB_SSCT_CNTR_WELLS_DTL /* 계약WELLS상세 */
+           SET IST_DT = NULL
+             , FNL_MDFC_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_USR_ID = #{fnlMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{fnlMdfcPrgId}
+             , FNL_MDFC_DEPT_ID = #{fnlMdfcDeptId}
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+    <!-- 계약상세 - 접수일변경 -->
+    <update id="updateCntrDtlRcpdtCh">
+        UPDATE TB_SSCT_CNTR_DTL /* 계약상세 */
+           SET CNTR_PD_STRTDT = #{rcpDtChDuedt} /* 계약상품시작일자 */
+             , FNL_MDFC_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_USR_ID = #{fnlMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{fnlMdfcPrgId}
+             , FNL_MDFC_DEPT_ID = #{fnlMdfcDeptId}
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+    <!-- 계약WELLS상세 - BS업체구분값변경 -->
+    <update id="updateCntrWellsDtlBsCh">
+        UPDATE TB_SSCT_CNTR_WELLS_DTL /* 계약WELLS상세 */
+           SET FNL_MDFC_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_USR_ID = #{fnlMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{fnlMdfcPrgId}
+             , FNL_MDFC_DEPT_ID = #{fnlMdfcDeptId}
+        <if test='@MybatisUtils@isNotEmpty(modBfsvcBzsDvCd)'>
+             , BFSVC_BZS_DV_CD = #{modBfsvcBzsDvCd} /* BS업체구분코드 */
+        </if>
+        <if test='@MybatisUtils@isNotEmpty(modSplyBzsDvCd)'>
+             , SPLY_BZS_DV_CD = #{modSplyBzsDvCd} /* 조달업체구분코드 */
+        </if>
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+    </update>
+    <!-- 계약변경접수기본 생성 -->
+    <insert id="insertCntrChRcpBas">
+		<selectKey keyProperty="info.cntrChRcpId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(TO_CHAR(NVL(MAX(TO_NUMBER(CNTR_CH_RCP_ID)), 0)+1),15,0)
+              FROM TB_SSCT_CNTR_CH_RCP_BAS
+        </selectKey>
+		INSERT INTO TB_SSCT_CNTR_CH_RCP_BAS (  /* 계약변경접수기본 */
+			  CNTR_CH_RCP_ID       /* 계약변경접수ID */
+			, CNTR_CH_RCP_DTM      /* 계약변경접수일시 */
+			, CNTR_CH_TP_CD        /* 계약변경유형코드 */
+			, CH_RQR_DV_CD         /* 변경요청자구분코드 */
+			, CNTR_CH_AK_CN        /* 계약변경요청내용 */
+			, CNTR_CH_PRGS_STAT_CD /* 계약변경진행상태코드 */
+			--, CH_RCST_DV_CD        /* 변경접수자구분코드 */
+			, CH_RCP_USR_ID        /* 변경접수사용자ID */
+			, APR_DTM              /* 승인일시 */
+			, APR_USR_ID           /* 승인사용자ID */
+			, CNTR_CH_FSH_DTM      /* 계약변경완료일시 */
+			<include refid="COMMON.insertSystemField" />)
+		VALUES (
+			  #{info.cntrChRcpId}
+			, #{info.fstRgstDtm}			/*작업일시*/
+			, #{info.procsDv}   			/*처리구분 선택값 : 계약변경유형 710 ~ 711 */
+			, '2'							/*2:교원*/
+			, #{info.cntrChAkCn}
+			, '50'							/*50:처리완료*/
+			--, 변경접수자구분코드
+			, #{session.employeeIDNumber}	/*로그인유저ID*/
+			, #{info.fstRgstDtm}				/*작업일시*/
+			, #{session.employeeIDNumber}	/*로그인유저ID*/
+			, #{info.fstRgstDtm}			/*작업일시		*/
+			, #{info.fstRgstDtm}
+            , #{info.fstRgstUsrId}
+            , #{info.fstRgstPrgId}
+            , #{info.fstRgstDeptId}
+            , #{info.fnlMdfcDtm}
+            , #{info.fnlMdfcUsrId}
+            , #{info.fnlMdfcPrgId}
+            , #{info.fnlMdfcDeptId}  )
+	</insert>
+	<!-- 계약변경접수상세 생성 -->
+	<insert id="insertCntrChRcpDtl">
+		INSERT INTO TB_SSCT_CNTR_CH_RCP_DTL (  /* 계약변경접수상세 */
+			  CNTR_CH_RCP_ID     /* 계약변경접수ID */
+			, CNTR_CH_SN         /* 계약변경일련번호 */
+			, CNTR_UNIT_TP_CD    /* 계약단위유형코드 */
+			, DTL_CNTR_NO        /* 상세계약번호 */
+			, DTL_CNTR_SN        /* 상세계약일련번호 */
+			--, CNTR_CH_RSON_DV_CD /* 계약변경사유구분코드 */
+			--, CNTR_CH_RSON_CD    /* 계약변경사유코드 */
+			--, CNTR_CH_ATC_DV_CD  /* 계약변경항목구분코드 */
+			, CNTR_CH_AK_CN      /* 계약변경요청내용 */
+			, BFCH_CN            /* 변경전내용 */
+			, PROCS_YN           /* 처리여부 */
+			, PROCS_FSH_DTM      /* 처리완료일시 */
+			<include refid="COMMON.insertSystemField" />)
+		VALUES (
+			  #{info.cntrChRcpId}		/*계약변경기본에서 생성한 ID */
+			, 1							/*순번 */
+			, '020'						/*020:계약상세*/
+			, #{info.cntrNo}
+			, #{info.cntrSn}
+			--, 계약변경사유구분코드
+			--, 계약변경사유코드
+			--, 계약변경항목구분코드
+			, #{info.cntrChAkCn}
+			, #{info.bfchCn}
+			, 'Y'
+			, #{info.fstRgstDtm}     /*작업일시		*/
+			, #{info.fstRgstDtm}
+            , #{info.fstRgstUsrId}
+            , #{info.fstRgstPrgId}
+            , #{info.fstRgstDeptId}
+            , #{info.fnlMdfcDtm}
+            , #{info.fnlMdfcUsrId}
+            , #{info.fnlMdfcPrgId}
+            , #{info.fnlMdfcDeptId} )
+	</insert>
+
+    <!-- 계약WELLS상세변경이력 -->
+    <update id="updateCntrWellsDchHist">
+        UPDATE TB_SSCT_CNTR_WELLS_DCH_HIST /* 계약WELLS상세변경이력 */
+           SET HIST_END_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_USR_ID = #{fnlMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{fnlMdfcPrgId}
+             , FNL_MDFC_DEPT_ID = #{fnlMdfcDeptId}
+         WHERE CNTR_NO = #{cntrNo}
+           AND CNTR_SN = #{cntrSn}
+           AND HIST_END_DTM = '99991231235959'
+    </update>
+    <insert id="insertCntrWellsDchHist">
+        INSERT INTO TB_SSCT_CNTR_WELLS_DCH_HIST (
+              CNTR_NO
+            , CNTR_SN
+            , HIST_STRT_DTM
+            , HIST_END_DTM
+            , FRISU_BFSVC_PTRM_UNIT_CD
+            , FRISU_BFSVC_PTRM_N
+            , FRISU_AS_PTRM_UNIT_CD
+            , FRISU_AS_PTRM_N
+            , IST_DT
+            , REQD_DT
+            , CPS_DT
+            , PRM_APY_DV_CD
+            , PRM_PTRM_MCN
+            , SELL_EV_CD
+            , BFSVC_BZS_DV_CD
+            , SPLY_BZS_DV_CD
+            , OCO_CPS_BZS_DV_CD
+            , HCR_DV_CD
+            , FMMB_N
+            , FRISU_RCVRY_TP_CD
+            , IST_PLC_TP_CD
+            , WRFR_IST_MTH_CD
+            , WTQLTY_TST_YN
+            , SRCWT_TP_CD
+            , WPRS_ITST_TP_CD
+            , USE_ELECT_TP_CD
+            , TBHS_EYN
+            , STVLV_EYN
+            , KUMON_ITRDT_DV_CD
+            , KUMON_CST_IDK_VAL
+            , KUMON_RCOMR_IDK_VAL
+            , OTSD_LK_DRM_VAL
+            , FRISU_MSH_CRT_YN
+            , IST_MM_BIL_MTHD_TP_CD
+            , CO_IST_DV_CD
+            , CO_IST_MNGT_DV_CD
+            , CO_IST_USWY_CD
+            , IST_AK_ARTC_MO_CN
+            , SCON_CN
+            , DTA_DL_YN
+            <include refid="COMMON.insertSystemField" />
+        ) SELECT CNTR_NO
+               , CNTR_SN
+               , #{fstRgstDtm}
+               , '99991231235959'
+               , FRISU_BFSVC_PTRM_UNIT_CD
+               , FRISU_BFSVC_PTRM_N
+               , FRISU_AS_PTRM_UNIT_CD
+               , FRISU_AS_PTRM_N
+               , IST_DT
+               , REQD_DT
+               , CPS_DT
+               , PRM_APY_DV_CD
+               , PRM_PTRM_MCN
+               , SELL_EV_CD
+               , BFSVC_BZS_DV_CD
+               , SPLY_BZS_DV_CD
+               , OCO_CPS_BZS_DV_CD
+               , HCR_DV_CD
+               , FMMB_N
+               , FRISU_RCVRY_TP_CD
+               , IST_PLC_TP_CD
+               , WRFR_IST_MTH_CD
+               , WTQLTY_TST_YN
+               , SRCWT_TP_CD
+               , WPRS_ITST_TP_CD
+               , USE_ELECT_TP_CD
+               , TBHS_EYN
+               , STVLV_EYN
+               , KUMON_ITRDT_DV_CD
+               , KUMON_CST_IDK_VAL
+               , KUMON_RCOMR_IDK_VAL
+               , OTSD_LK_DRM_VAL
+               , FRISU_MSH_CRT_YN
+               , IST_MM_BIL_MTHD_TP_CD
+               , CO_IST_DV_CD
+               , CO_IST_MNGT_DV_CD
+               , CO_IST_USWY_CD
+               , IST_AK_ARTC_MO_CN
+               , SCON_CN
+               , DTA_DL_YN
+               , #{fstRgstDtm}
+               , #{fstRgstUsrId}
+               , #{fstRgstPrgId}
+               , #{fstRgstDeptId}
+               , #{fnlMdfcDtm}
+               , #{fnlMdfcUsrId}
+               , #{fnlMdfcPrgId}
+               , #{fnlMdfcDeptId}
+            FROM TB_SSCT_CNTR_WELLS_DTL
+           WHERE CNTR_NO = #{cntrNo}
+             AND CNTR_SN = #{cntrSn}
+    </insert>
+    <!-- 계약상세변경이력 -->
+    <update id="updateCntrDchHist" >
+        UPDATE TB_SSCT_CNTR_DCH_HIST /* 계약상세변경이력 */
+           SET HIST_END_DTM        = #{fnlMdfcDtm}      /* 이력종료일시 */
+             , FNL_MDFC_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_USR_ID = #{fnlMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{fnlMdfcPrgId}
+             , FNL_MDFC_DEPT_ID = #{fnlMdfcDeptId}
+         WHERE 1 = 1
+           AND CNTR_NO             = #{cntrNo}              /* 계약번호 */
+           AND CNTR_SN             = #{cntrSn}              /* 계약일련번호 */
+           AND HIST_END_DTM        = '99991231235959'
+    </update>
+    <insert id="insertCntrDchHist" >
+        INSERT INTO TB_SSCT_CNTR_DCH_HIST  (  /* 계약상세변경이력 */
+              CNTR_NO             /* 계약번호 */
+            , HIST_STRT_DTM       /* 이력시작일시 */
+            , CNTR_SN             /* 계약일련번호 */
+            , HIST_END_DTM        /* 이력종료일시 */
+            , BASE_PD_CD          /* 기준상품코드 */
+            , HGR_PD_CD           /* 상위상품코드 */
+            , PD_QTY              /* 상품수량 */
+            , SELL_TP_CD          /* 판매유형코드 */
+            , SELL_TP_DTL_CD      /* 판매유형상세코드 */
+            , CNTR_DTL_STAT_CD    /* 계약상세상태코드 */
+            , CNTR_PTRM_UNIT_CD   /* 계약기간단위코드 */
+            , CNTR_PTRM           /* 계약기간 */
+            , CNTR_PD_STRTDT      /* 계약상품시작일자 */
+            , CNTR_PD_ENDDT       /* 계약상품종료일자 */
+            , STPL_PTRM_UNIT_CD   /* 약정기간단위코드 */
+            , STPL_PTRM           /* 약정기간 */
+            , SV_PTRM_UNIT_CD     /* 서비스기간단위코드 */
+            , SV_PRD              /* 서비스주기 */
+            , CNTRW_TP_CD         /* 계약서유형코드 */
+            , BLG_CRP_CD          /* 소속법인코드 */
+            , RVE_CRP_CD          /* 수납법인코드 */
+            , CO_CD               /* 회사코드 */
+            , BOO_SELL_TP_CD      /* 예약판매유형코드 */
+            , PD_GD_CD            /* 상품등급코드 */
+            , PD_HCLSF_ID         /* 상품대분류ID */
+            , PD_MCLSF_ID         /* 상품중분류ID */
+            , PD_LCLSF_ID         /* 상품소분류ID */
+            , PD_DCLSF_ID         /* 상품세분류ID */
+            , SELL_DSC_DV_CD      /* 판매할인구분코드 */
+            , SELL_DSCR_CD        /* 판매할인율코드 */
+            , SELL_DSC_CTR_AMT    /* 판매할인조정금액 */
+            , SELL_DSC_TP_CD      /* 판매할인유형코드 */
+            , STLM_TP_CD          /* 결제유형코드 */
+            , CRNCY_DV_CD         /* 통화구분코드 */
+            , APY_EXCR            /* 적용환율 */
+            , PD_BASE_AMT         /* 상품기준금액 */
+            , SELL_AMT            /* 판매금액 */
+            , DSC_AMT             /* 할인금액 */
+            , FNL_AMT             /* 최종금액 */
+            , VAT                 /* 부가가치세 */
+            , CNTR_AMT            /* 계약금액 */
+            , CNTRAM_DSC_AMT      /* 계약금할인금액 */
+            , ISTM_MCN            /* 할부개월수 */
+            , ISTM_PCAM_AMT       /* 할부원금금액 */
+            , ISTM_INT_AMT        /* 할부이자금액 */
+            , MM_ISTM_AMT         /* 월할부금액 */
+            , CRP_UC_AMT          /* 법인미수금액 */
+            , SELL_FEE            /* 판매수수료 */
+            , CNTR_TAM            /* 계약총액 */
+            , ACKMT_PERF_RT       /* 인정실적율 */
+            , ACKMT_PERF_AMT      /* 인정실적금액 */
+            , CVT_PERF_AMT        /* 환산실적금액 */
+            , FEE_ACKMT_CT        /* 수수료인정건수 */
+            , FEE_ACKMT_BASE_AMT  /* 수수료인정기준금액 */
+            , FEE_FXAM_YN         /* 수수료정액여부 */
+            , SPP_DUEDT           /* 배송예정일자 */
+            , RESUB_YN            /* 재구독여부 */
+            , RSTL_YN             /* 재약정여부 */
+            , FRISU_YN            /* 무상여부 */
+            , FRISU_DSB_TP_CD     /* 무상지급유형코드 */
+            , TXINV_PBL_OJ_YN     /* 세금계산서발행대상여부 */
+            , ALNCMP_CD           /* 제휴사코드 */
+            , ALNCMP_CNTR_DRM_VAL /* 제휴사계약식별값 */
+            , SMTPL_ID            /* 스마트플랜ID */
+            , SMTPL_SN            /* 스마트플랜일련번호 */
+            , CTT_OJ_ID           /* 컨택대상ID */
+            , CTT_RS_CD           /* 컨택결과코드 */
+            , CTT_PSIC_ID         /* 컨택담당자ID */
+            , BF_ORD_NO           /* 이전주문번호 */
+            , CNTR_CH_RCP_ID      /* 계약변경접수ID */
+            , CNTR_CH_SN          /* 계약변경일련번호 */
+            , CNTR_CH_DTL_AK_CN   /* 계약변경상세요청내용 */
+            , DTA_DL_YN           /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+       SELECT CNTR_NO             /* 계약번호 */
+            , #{fstRgstDtm}       /* 이력시작일시 */
+            , CNTR_SN             /* 계약일련번호 */
+            , '99991231235959'        /* 이력종료일시 */
+            , BASE_PD_CD          /* 기준상품코드 */
+            , HGR_PD_CD           /* 상위상품코드 */
+            , PD_QTY              /* 상품수량 */
+            , SELL_TP_CD          /* 판매유형코드 */
+            , SELL_TP_DTL_CD      /* 판매유형상세코드 */
+            , CNTR_DTL_STAT_CD    /* 계약상세상태코드 */
+            , CNTR_PTRM_UNIT_CD   /* 계약기간단위코드 */
+            , CNTR_PTRM           /* 계약기간 */
+            , CNTR_PD_STRTDT      /* 계약상품시작일자 */
+            , CNTR_PD_ENDDT       /* 계약상품종료일자 */
+            , STPL_PTRM_UNIT_CD   /* 약정기간단위코드 */
+            , STPL_PTRM           /* 약정기간 */
+            , SV_PTRM_UNIT_CD     /* 서비스기간단위코드 */
+            , SV_PRD              /* 서비스주기 */
+            , CNTRW_TP_CD         /* 계약서유형코드 */
+            , BLG_CRP_CD          /* 소속법인코드 */
+            , RVE_CRP_CD          /* 수납법인코드 */
+            , CO_CD               /* 회사코드 */
+            , BOO_SELL_TP_CD      /* 예약판매유형코드 */
+            , PD_GD_CD            /* 상품등급코드 */
+            , PD_HCLSF_ID         /* 상품대분류ID */
+            , PD_MCLSF_ID         /* 상품중분류ID */
+            , PD_LCLSF_ID         /* 상품소분류ID */
+            , PD_DCLSF_ID         /* 상품세분류ID */
+            , SELL_DSC_DV_CD      /* 판매할인구분코드 */
+            , SELL_DSCR_CD        /* 판매할인율코드 */
+            , SELL_DSC_CTR_AMT    /* 판매할인조정금액 */
+            , SELL_DSC_TP_CD      /* 판매할인유형코드 */
+            , STLM_TP_CD          /* 결제유형코드 */
+            , CRNCY_DV_CD         /* 통화구분코드 */
+            , APY_EXCR            /* 적용환율 */
+            , PD_BASE_AMT         /* 상품기준금액 */
+            , SELL_AMT            /* 판매금액 */
+            , DSC_AMT             /* 할인금액 */
+            , FNL_AMT             /* 최종금액 */
+            , VAT                 /* 부가가치세 */
+            , CNTR_AMT            /* 계약금액 */
+            , CNTRAM_DSC_AMT      /* 계약금할인금액 */
+            , ISTM_MCN            /* 할부개월수 */
+            , ISTM_PCAM_AMT       /* 할부원금금액 */
+            , ISTM_INT_AMT        /* 할부이자금액 */
+            , MM_ISTM_AMT         /* 월할부금액 */
+            , CRP_UC_AMT          /* 법인미수금액 */
+            , SELL_FEE            /* 판매수수료 */
+            , CNTR_TAM            /* 계약총액 */
+            , ACKMT_PERF_RT       /* 인정실적율 */
+            , ACKMT_PERF_AMT      /* 인정실적금액 */
+            , CVT_PERF_AMT        /* 환산실적금액 */
+            , FEE_ACKMT_CT        /* 수수료인정건수 */
+            , FEE_ACKMT_BASE_AMT  /* 수수료인정기준금액 */
+            , FEE_FXAM_YN         /* 수수료정액여부 */
+            , SPP_DUEDT           /* 배송예정일자 */
+            , RESUB_YN            /* 재구독여부 */
+            , RSTL_YN             /* 재약정여부 */
+            , FRISU_YN            /* 무상여부 */
+            , FRISU_DSB_TP_CD     /* 무상지급유형코드 */
+            , TXINV_PBL_OJ_YN     /* 세금계산서발행대상여부 */
+            , ALNCMP_CD           /* 제휴사코드 */
+            , ALNCMP_CNTR_DRM_VAL /* 제휴사계약식별값 */
+            , SMTPL_ID            /* 스마트플랜ID */
+            , SMTPL_SN            /* 스마트플랜일련번호 */
+            , CTT_OJ_ID           /* 컨택대상ID */
+            , CTT_RS_CD           /* 컨택결과코드 */
+            , CTT_PSIC_ID         /* 컨택담당자ID */
+            , BF_ORD_NO           /* 이전주문번호 */
+            , CNTR_CH_RCP_ID      /* 계약변경접수ID */
+            , CNTR_CH_SN          /* 계약변경일련번호 */
+            , CNTR_CH_DTL_AK_CN   /* 계약변경상세요청내용 */
+            , DTA_DL_YN           /* 데이터삭제여부 */
+            , #{fstRgstDtm}
+            , #{fstRgstUsrId}
+            , #{fstRgstPrgId}
+            , #{fstRgstDeptId}
+            , #{fnlMdfcDtm}
+            , #{fnlMdfcUsrId}
+            , #{fnlMdfcPrgId}
+            , #{fnlMdfcDeptId}
+         FROM TB_SSCT_CNTR_DTL    /* 계약상세 */
+        WHERE 1 = 1
+          AND CNTR_NO = #{cntrNo} /* 계약번호 */
+          AND CNTR_SN = #{cntrSn} /* 계약일련번호 */
+    </insert>
+    <!-- 컨택변경이력 -->
+    <update id="updateCttChHist">
+        UPDATE TB_SSOP_CTT_CH_HIST
+           SET HIST_END_DTM = #{fnlMdfcDtm}      /* 이력종료일시 */
+             , FNL_MDFC_DTM = #{fnlMdfcDtm}
+             , FNL_MDFC_USR_ID = #{fnlMdfcUsrId}
+             , FNL_MDFC_PRG_ID = #{fnlMdfcPrgId}
+             , FNL_MDFC_DEPT_ID = #{fnlMdfcDeptId}
+         WHERE CTT_OJ_ID = #{cttOjId}
+           AND HIST_END_DTM = '99991231235959'
+    </update>
+    <insert id="insertCttChHist">
+        INSERT INTO TB_SSOP_CTT_CH_HIST(
+               CTT_OJ_ID        /* 컨택대상ID */
+             , HIST_STRT_DTM    /* 이력시작일시 */
+             , HIST_END_DTM     /* 이력종료일시 */
+             , CST_NO           /* 고객번호 */
+             , CTT_CHNL_TP_CD   /* 컨택채널유형코드 */
+             , CTT_TP_CD        /* 컨택유형코드 */
+             , CTT_AK_RSON_CD   /* 컨택요청사유코드 */
+             , CTT_SELL_TP_CD   /* 컨택판매유형코드 */
+             , CNTR_NO          /* 계약번호 */
+             , CTT_PRGS_STAT_CD /* 컨택진행상태코드 */
+             , CTT_RCP_DTM      /* 컨택접수일시 */
+             , CTT_FSH_DTM      /* 컨택완료일시 */
+             , UC_TOT_AMT       /* 미수총금액 */
+             , CTT_AOFFCE_CD    /* 컨택사무소코드 */
+             , CTT_PSIC_ID      /* 컨택담당자ID */
+             , CTT_DUEDT        /* 컨택예정일자 */
+             , CTT_EXP_DV_CD    /* 컨택예정구분코드 */
+             , CTT_RS_CD        /* 컨택결과코드 */
+             , CTT_MO_CN        /* 컨택메모내용 */
+             , OTSD_LK_DRM_VAL  /* 외부연계식별값 */
+             , DTA_DL_YN        /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />
+        )
+        SELECT CTT_OJ_ID
+             , #{fstRgstDtm}
+             , '99991231235959'
+             , CST_NO           /* 고객번호 */
+             , CTT_CHNL_TP_CD   /* 컨택채널유형코드 */
+             , CTT_TP_CD        /* 컨택유형코드 */
+             , CTT_AK_RSON_CD   /* 컨택요청사유코드 */
+             , CTT_SELL_TP_CD   /* 컨택판매유형코드 */
+             , CNTR_NO          /* 계약번호 */
+             , CTT_PRGS_STAT_CD /* 컨택진행상태코드 */
+             , CTT_RCP_DTM      /* 컨택접수일시 */
+             , CTT_FSH_DTM      /* 컨택완료일시 */
+             , UC_TOT_AMT       /* 미수총금액 */
+             , CTT_AOFFCE_CD    /* 컨택사무소코드 */
+             , CTT_PSIC_ID      /* 컨택담당자ID */
+             , CTT_DUEDT        /* 컨택예정일자 */
+             , CTT_EXP_DV_CD    /* 컨택예정구분코드 */
+             , CTT_RS_CD        /* 컨택결과코드 */
+             , CTT_MO_CN        /* 컨택메모내용 */
+             , OTSD_LK_DRM_VAL  /* 외부연계식별값 */
+             , DTA_DL_YN
+             , #{fstRgstDtm}
+             , #{fstRgstUsrId}
+             , #{fstRgstPrgId}
+             , #{fstRgstDeptId}
+             , #{fnlMdfcDtm}
+             , #{fnlMdfcUsrId}
+             , #{fnlMdfcPrgId}
+             , #{fnlMdfcDeptId}
+          FROM TB_SSOP_CTT_BAS
+         WHERE CTT_OJ_ID = #{cttOjId}
+    </insert>
+    <!-- 계약변경접수변경이력 -->
+    <insert id="insertCntrChRcchHist">
+         INSERT INTO TB_SSCT_CNTR_CH_RCCH_HIST (  /* 계약변경접수변경이력 */
+              CNTR_CH_RCP_ID       /* 계약변경접수ID */
+            , HIST_STRT_DTM        /* 이력시작일시 */
+            , HIST_END_DTM         /* 이력종료일시 */
+            , CNTR_CH_RCP_DTM      /* 계약변경접수일시 */
+            , CNTR_CH_TP_CD        /* 계약변경유형코드 */
+            , CH_RQR_DV_CD         /* 변경요청자구분코드 */
+            , CH_RQR_NM            /* 변경요청자명 */
+            , CST_NO               /* 고객번호 */
+            , CNTR_CH_AK_CN        /* 계약변경요청내용 */
+            , CNTR_CH_PRGS_STAT_CD /* 계약변경진행상태코드 */
+            , CNTR_CH_PRGS_MO_CN   /* 계약변경진행메모내용 */
+            , CH_RCST_DV_CD        /* 변경접수자구분코드 */
+            , CH_RCP_USR_ID        /* 변경접수사용자ID */
+            , APR_DTM              /* 승인일시 */
+            , APR_USR_ID           /* 승인사용자ID */
+            , CNTR_CH_FSH_DTM      /* 계약변경완료일시 */
+            , BIZ_TF_ID            /* 업무이관ID */
+            , DTA_DL_YN            /* 데이터삭제여부 */
+            <include refid="COMMON.insertSystemField" />)
+         SELECT CNTR_CH_RCP_ID       /* 계약변경접수ID */
+                , #{fstRgstDtm} AS HIST_STRT_DTM
+                , '99991231235959'
+                , CNTR_CH_RCP_DTM      /* 계약변경접수일시 */
+                , CNTR_CH_TP_CD        /* 계약변경유형코드 */
+                , CH_RQR_DV_CD         /* 변경요청자구분코드 */
+                , CH_RQR_NM            /* 변경요청자명 */
+                , CST_NO               /* 고객번호 */
+                , CNTR_CH_AK_CN        /* 계약변경요청내용 */
+                , CNTR_CH_PRGS_STAT_CD /* 계약변경진행상태코드 */
+                , CNTR_CH_PRGS_MO_CN   /* 계약변경진행메모내용 */
+                , CH_RCST_DV_CD        /* 변경접수자구분코드 */
+                , CH_RCP_USR_ID        /* 변경접수사용자ID */
+                , APR_DTM              /* 승인일시 */
+                , APR_USR_ID           /* 승인사용자ID */
+                , CNTR_CH_FSH_DTM      /* 계약변경완료일시 */
+                , BIZ_TF_ID            /* 업무이관ID */
+                , DTA_DL_YN            /* 데이터삭제여부 */
+                , #{fstRgstDtm}
+                , #{fstRgstUsrId}
+                , #{fstRgstPrgId}
+                , #{fstRgstDeptId}
+                , #{fnlMdfcDtm}
+                , #{fnlMdfcUsrId}
+                , #{fnlMdfcPrgId}
+                , #{fnlMdfcDeptId}
+           FROM TB_SSCT_CNTR_CH_RCP_BAS
+          WHERE CNTR_CH_RCP_ID = #{cntrChRcpId}
+    </insert>
+    <!-- 계약변경접수상세변경이력 -->
+    <insert id="insertCntrChRcpDchHist">
+        INSERT INTO TB_SSCT_CNTR_CH_RCP_DCH_HIST /* 계약변경접수상세변경이력 */
+             ( CNTR_CH_RCP_ID /* 계약변경접수ID */
+             , HIST_STRT_DTM /* 이력시작일시 */
+             , CNTR_CH_SN /* 계약변경일련번호 */
+             , HIST_END_DTM /* 이력종료일시 */
+             , CNTR_UNIT_TP_CD /* 계약단위유형코드 */
+             , CNTR_NO /* 계약번호 */
+             , DTL_CNTR_NO /* 상세계약번호 */
+             , DTL_CNTR_SN /* 상세계약일련번호 */
+             , CNTR_CH_RSON_DV_CD /* 계약변경사유구분코드 */
+             , CNTR_CH_RSON_CD /* 계약변경사유코드 */
+             , CNTR_CH_ATC_DV_CD /* 계약변경항목구분코드 */
+             , CH_APY_STRTDT /* 변경적용시작일자 */
+             , CH_APY_ENDDT /* 변경적용종료일자 */
+             , CH_PD_CD /* 변경상품코드 */
+             , CH_QTY /* 변경수량 */
+             , CH_AMT /* 변경금액 */
+             , CH_PTRM_UNIT_CD /* 변경기간단위코드 */
+             , CH_PTRM_N /* 변경기간수 */
+             , CNTR_CH_AK_CN /* 계약변경요청내용 */
+             , CNTR_ADRPC_ID /* 계약주소지ID */
+             , CNTR_STLM_ID /* 계약결제ID */
+             , PROCS_YN /* 처리여부 */
+             , BFCH_CN /* 변경전내용 */
+             , PROCS_DUEDT /* 처리예정일자 */
+             , PROCS_FSH_DTM /* 처리완료일시 */
+             , DTA_DL_YN /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField"/>
+             )
+        SELECT CNTR_CH_RCP_ID /* 계약변경접수ID */
+             , #{fstRgstDtm} /* 이력시작일시 */
+             , CNTR_CH_SN /* 계약변경일련번호 */
+             , '99991231235959' /* 이력종료일시 */
+             , CNTR_UNIT_TP_CD /* 계약단위유형코드 */
+             , CNTR_NO /* 계약번호 */
+             , DTL_CNTR_NO /* 상세계약번호 */
+             , DTL_CNTR_SN /* 상세계약일련번호 */
+             , CNTR_CH_RSON_DV_CD /* 계약변경사유구분코드 */
+             , CNTR_CH_RSON_CD /* 계약변경사유코드 */
+             , CNTR_CH_ATC_DV_CD /* 계약변경항목구분코드 */
+             , CH_APY_STRTDT /* 변경적용시작일자 */
+             , CH_APY_ENDDT /* 변경적용종료일자 */
+             , CH_PD_CD /* 변경상품코드 */
+             , CH_QTY /* 변경수량 */
+             , CH_AMT /* 변경금액 */
+             , CH_PTRM_UNIT_CD /* 변경기간단위코드 */
+             , CH_PTRM_N /* 변경기간수 */
+             , CNTR_CH_AK_CN /* 계약변경요청내용 */
+             , CNTR_ADRPC_ID /* 계약주소지ID */
+             , CNTR_STLM_ID /* 계약결제ID */
+             , PROCS_YN /* 처리여부 */
+             , BFCH_CN /* 변경전내용 */
+             , PROCS_DUEDT /* 처리예정일자 */
+             , PROCS_FSH_DTM /* 처리완료일시 */
+             , DTA_DL_YN /* 데이터삭제여부 */
+             , #{fstRgstDtm}
+             , #{fstRgstUsrId}
+             , #{fstRgstPrgId}
+             , #{fstRgstDeptId}
+             , #{fnlMdfcDtm}
+             , #{fnlMdfcUsrId}
+             , #{fnlMdfcPrgId}
+             , #{fnlMdfcDeptId}
+          FROM TB_SSCT_CNTR_CH_RCP_DTL /* 계약변경접수상세 */
+         WHERE CNTR_CH_RCP_ID = #{cntrChRcpId} /* 계약변경접수ID = 입력받은 계약변경접수ID */
+           AND CNTR_CH_SN     = 1   /* 계약변경일련번호 */
+    </insert>
+</mapper>

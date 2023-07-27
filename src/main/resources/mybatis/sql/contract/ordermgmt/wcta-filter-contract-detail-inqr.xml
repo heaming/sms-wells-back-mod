@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaFilterCntrInfDtlInqrMapper">
+    <select id="selectFilterCntrInfDtlInqrPages" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaFilterCntrInfDtlInqrDto$SearchRes">
+SELECT
+      T1.CNTR_NO
+	, T1.CNTR_SN
+	, T8.SV_PD_TP_CD
+	, T1.BASE_PD_CD
+	, T3.PD_NM
+	, T1.PD_QTY
+	, T1.FRISU_YN
+	, T1.FNL_AMT
+  FROM TB_SSCT_CNTR_DTL T1
+ INNER JOIN TB_SSCT_CNTR_BAS T2
+    ON T2.CNTR_NO = T1.CNTR_NO
+   AND T2.DTA_DL_YN = 'N'
+ INNER JOIN TB_SSCT_CNTR_WELLS_DTL T21
+    ON T21.CNTR_NO = T1.CNTR_NO
+   AND T21.CNTR_SN = T1.CNTR_SN
+   AND T21.DTA_DL_YN = 'N'
+ INNER JOIN TB_PDBS_PD_BAS T3
+    ON T3.PD_CD = T1.BASE_PD_CD
+   AND T3.DTA_DL_YN = 'N'
+  LEFT OUTER JOIN TB_SSCT_CNTR_REL T4
+    ON T4.BASE_DTL_CNTR_NO = T1.CNTR_NO
+   AND T4.BASE_DTL_CNTR_SN = T1.CNTR_SN
+   AND T4.CNTR_REL_DTL_CD = '211'
+   AND T4.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+   AND T4.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+   AND T4.DTA_DL_YN = 'N'
+  LEFT OUTER JOIN TB_SSCT_CNTR_DTL T5
+    ON T5.CNTR_NO = T4.OJ_DTL_CNTR_NO
+   AND T5.CNTR_SN = T4.OJ_DTL_CNTR_SN
+   AND T5.DTA_DL_YN = 'N'
+  LEFT OUTER JOIN TB_PDBS_PD_BAS T6
+    ON T6.PD_CD = T5.BASE_PD_CD
+   AND T6.DTA_DL_YN = 'N'
+  LEFT OUTER JOIN TB_SSCT_CNTR_PD_REL T7
+    ON T7.CNTR_NO = T5.CNTR_NO
+   AND T7.CNTR_SN = T5.CNTR_SN
+   AND T7.BASE_PD_CD = T6.PD_CD
+   AND T7.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+   AND T7.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+   AND T7.PD_REL_TP_CD = '03'
+   AND T7.DTA_DL_YN = 'N'
+  LEFT OUTER JOIN TB_PDBS_PD_BAS T8
+    ON T8.PD_CD = T7.OJ_PD_CD
+   AND T8.DTA_DL_YN = 'N'
+ WHERE T1.DTA_DL_YN = 'N'
+   AND T1.SELL_TP_CD = '9'	/* 필터판매 */
+   AND T1.CNTR_NO = #{cntrNo}
+   <if test='@MybatisUtils@isNotEmpty(cntrSn)'>AND T1.CNTR_SN = #{cntrSn}</if>/* 계약일련번호 */
+
+    </select>
+
+</mapper>
