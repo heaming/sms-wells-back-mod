@@ -1060,13 +1060,13 @@
            AND WK_GRP_CD = (CASE WHEN #{vstDvCd} IN ('10', '11', '12') THEN '10'
                                  WHEN #{vstDvCd} = '13' THEN '20'
                                  WHEN #{vstDvCd} = '20' THEN '50'
-                                 ELSE FN_SVPD_WRK_GRP_01(#{pdctPdCd}, #{workTypeDtl}, #{sellDate})
+                                 ELSE FN_SVPD_WRK_GRP_01(#{pdctPdCd}, #{svBizDclsfCd}, #{sellDate})
                             END)
            </if>
 
 
            <if test='!@MybatisUtils@equals(svDvCd, "2")'>
-           AND WK_GRP_CD = FN_SVPD_WRK_GRP_01(#{pdctPdCd}, #{workTypeDtl}, #{sellDate})
+           AND WK_GRP_CD = FN_SVPD_WRK_GRP_01(#{pdctPdCd}, #{svBizDclsfCd}, #{sellDate})
            </if>
 
          INNER JOIN TB_OGBS_MM_PRTNR_IZ T4 /*월파트너내역*/

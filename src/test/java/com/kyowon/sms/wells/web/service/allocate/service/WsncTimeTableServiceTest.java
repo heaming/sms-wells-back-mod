@@ -102,12 +102,12 @@ class WsncTimeTableServiceTest extends SpringTestSupport {
         // &seq=
 
         FindTimeAssignReq req = FindTimeAssignReq.builder()
-            .sellDate("20230718")
+            .sellDate("20230727")
             .baseYm("202307")
-            .chnlDvCd("K")
+            .chnlDvCd("M")
             .svDvCd("1")
             .svBizDclsfCd("1110")
-            .cntrNo("W20235600241")
+            .cntrNo("W20186521145")
             .cntrSn("1")
             .build();
 
