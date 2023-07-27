@@ -49,8 +49,8 @@
                   WHERE LLORDT = TO_CHAR(SYSDATE, 'YYYYMMDD') ) AS LLIFNO   /* I/F전송번호 */
              , TO_CHAR(SYSDATE, 'YYYYMMDD')                     AS LLINDT   /* 등록일 */
              , 0                                                AS LLORSQ   /* 주문일련번호 */
-             , T3.SVPD_PD_CD                                    AS LLPRCD   /* 상품코드 */
-             , T3.SVPD_NM_ABBR1                                 AS LLPRNM   /* 상품명 */
+             , T3.PD_CD                                         AS LLPRCD   /* 상품코드 */
+             , T3.PD_ABBR_NM                                    AS LLPRNM   /* 상품명 */
              , T1.OSTR_AK_QTY                                   AS LLPRQT   /* 상품수량 */
              , '01'                                             AS LLORST   /* 주문상태코드 - 01:주문완료, 02:주문취소, 03:주문확정, 04:출고완료 */
              , TO_CHAR(SYSDATE, 'YYYYMMDD')                     AS LLORSD   /* 주문상태일자 */
@@ -88,25 +88,25 @@
                 INNER JOIN TB_OGBS_OG_BAS D5                  /* 조직기본 */
                    ON D5.OG_ID     = D2.OG_ID
                   AND D5.OG_TP_CD  = D2.OG_TP_CD
-                WHERE D1.OSTR_AK_TP_CD = '360'          /* 물량배정 */
-                  AND D1.DTA_DL_YN     = 'N'
-                  AND D2.DTA_DL_YN     = 'N'
-                  AND D2.WARE_USE_YN   = 'Y'            /* 사용중인 창고 */
-                  AND D3.DTA_DL_YN     = 'N'
-                  AND D5.DTA_DL_YN     = 'N'
-                  AND D1.OSTR_AK_WARE_DV_CD LIKE '3%'   /* 입고대상창고 */
-                  AND D1.OSTR_OJ_WARE_DV_CD LIKE '1%'   /* 출고대상창고 */
-                  AND D1.OSTR_AK_NO   IN
-                                         <foreach collection="dtos" item="item" open="(" close=")" separator=",">
-                                             #{item.ostrAkNo}
-                                         </foreach>
+                WHERE D1.OSTR_AK_TP_CD      = '360'   /* 물량배정 */
+                  AND D1.DTA_DL_YN          = 'N'
+                  AND D2.DTA_DL_YN          = 'N'
+                  AND D2.WARE_USE_YN        = 'Y'     /* 사용중인 창고 */
+                  AND D3.DTA_DL_YN          = 'N'
+                  AND D5.DTA_DL_YN          = 'N'
+                  AND D1.OSTR_AK_WARE_DV_CD = '3'     /* 입고대상창고구분코드 */
+                  AND D1.OSTR_OJ_WARE_DV_CD = '1'     /* 출고대상창고구분코드 */
+                  AND ( D1.OSTR_AK_NO, D1.OSTR_AK_SN ) IN
+                                                    <foreach collection="dtos" item="item" open="(" close=")" separator=",">
+                                                          ( #{item.ostrAkNo}, #{item.ostrAkSn} )
+                                                    </foreach>
              ) T1
-       INNER JOIN TB_OGBS_MM_PRTNR_IZ T2        /* 월파트너내역 */
+       INNER JOIN TB_OGBS_MM_PRTNR_IZ T2   /* 월파트너내역 */
           ON T2.BASE_YM   = T1.APY_YM
          AND T2.OG_TP_CD  = T1.WARE_MNGT_PRTNR_OG_TP_CD
          AND T2.PRTNR_NO  = T1.WARE_MNGT_PRTNR_NO
-       INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) T3   /* 상품 */
-          ON T1.ITM_PD_CD = T3.SVPD_PD_CD
+       INNER JOIN TB_PDBS_PD_BAS T3        /* 상품 */
+          ON T3.PD_CD = T1.ITM_PD_CD
     </insert>
 
     <select id="selectKssQomAsnSendTempLlornos" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsDeliveryAskBssDvo">
@@ -184,7 +184,6 @@
              (
                SELECT DISTINCT D1.SAP_PLNT_CD                       /* SAP플랜트코드 */
                     , D1.LGST_OSTR_AK_NO                            /* 물류출고요청번호 */
-                    , D1.OSTR_AK_SN                                 /* 출고요청일련번호 */
                     , D1.LLORNO                                     /* 주문번호 */
                     , D1.LLPRTP                                     /* 서비스업무중분류코드 */
                     , D1.LLAPTP                                     /* 신청유형코드 */
@@ -213,8 +212,8 @@
                    ON D3.OSTR_AK_NO = D2.REL_NO
                   AND D3.OSTR_AK_SN = D2.REL_SN
                 INNER JOIN TB_SVST_MCBY_WARE_IZ D4            /* 월별창고내역(입고) */
-                   ON D4.APY_YM      = SUBSTR(D3.OSTR_AK_RGST_DT, 1, 6)
-                  AND D4.WARE_NO     = D3.STR_OJ_WARE_NO
+                   ON D4.APY_YM  = SUBSTR(D3.OSTR_AK_RGST_DT, 1, 6)
+                  AND D4.WARE_NO = D3.STR_OJ_WARE_NO
                  LEFT OUTER JOIN TB_OGBS_MM_OG_IZ D5          /* 월조직내역 */
                    ON D5.BASE_YM   = D4.APY_YM
                   AND D5.OG_ID     = D4.OG_ID
@@ -287,21 +286,21 @@
         <include refid="COMMON.insertSystemFieldValue" />
           FROM
              (
-               SELECT D1.SAP_PLNT_CD                                       /* SAP플랜트코드 */
-                    , D1.LGST_OSTR_AK_NO                                   /* 물류출고요청번호 */
-                    , D1.OSTR_AK_SN                                        /* 출고요청일련번호 */
-                    , D1.LLORNO                                            /* 주문번호 */
-                    , D1.LLPRCD                                            /* 상품코드 */
-                    , D1.LLPRNM                                            /* 상품명 */
-                    , FLOOR( D1.LLPRQT / D2.SVPD_BOX_QTY ) AS LLPRQT       /* 상품수량 */
-                    , D1.LLORST                                            /* 주문상태코드 */
-                    , D1.LLORSD                                            /* 주문상태일자 */
-                    , CASE WHEN D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '42%'
-                            AND D2.SVPD_ITEM_KND = '5' THEN '06'
+               SELECT D1.SAP_PLNT_CD                                                /* SAP플랜트코드 */
+                    , D1.LGST_OSTR_AK_NO                                            /* 물류출고요청번호 */
+                    , D1.OSTR_AK_SN                                                 /* 출고요청일련번호 */
+                    , D1.LLORNO                                                     /* 주문번호 */
+                    , D1.LLPRCD                                                     /* 상품코드 */
+                    , D1.LLPRNM                                                     /* 상품명 */
+                    , FLOOR( D1.LLPRQT / TO_NUMBER(D2.PD_PRP_VAL12) ) AS LLPRQT     /* 상품수량 */
+                    , D1.LLORST                                                     /* 주문상태코드 */
+                    , D1.LLORSD                                                     /* 주문상태일자 */
+                    , CASE WHEN D2.PD_PRP_VAL01 LIKE '42%'
+                            AND D2.PD_PRP_VAL19 = '5' THEN '06'
                             ELSE '07'
-                      END                                  AS LLPRDV     /* 작업구분 */
-                    , D2.SVPD_BOX_QTY                      AS BOX_QTY    /* 박스수량 */
-                    , D2.SVPD_PICK_QTY                     AS PICK_QTY   /* 박스피킹수량 */
+                      END                                             AS LLPRDV     /* 작업구분 */
+                    , D2.PD_PRP_VAL12                                 AS BOX_QTY    /* 박스수량 */
+                    , D2.PD_PRP_VAL29                                 AS PICK_QTY   /* 박스피킹수량 */
                  FROM
                     (
                       SELECT SAP_PLNT_CD              /* SAP플랜트코드 */
@@ -320,34 +319,37 @@
                                             WHERE LLORDT = TO_CHAR(SYSDATE, 'YYYYMMDD') )
                        GROUP BY SAP_PLNT_CD, LGST_OSTR_AK_NO, OSTR_AK_SN, LLORNO, LLPRCD, LLPRNM, LLORST, LLORSD
                     ) D1
-                INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) D2   /* 상품 */
-                   ON D1.LLPRCD = D2.SVPD_PD_CD
-                WHERE D2.SVPD_BOX_QTY > 0
-                  AND D2.SVPD_PD_CD NOT IN ('WM07105777', 'WM07105778', 'WM07105779', 'WM07105783', 'WM07105784'
-                                          , 'WM07105785', 'WM07105936', 'WM07105937', 'WM07104797', 'WM07104798')
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2   /* 상품각사속성상세 */
+                   ON D2.PD_CD = D1.LLPRCD
+                WHERE D2.PD_EXTS_PRP_GRP_CD = 'PART'
+                  AND D2.DTA_DL_YN          = 'N'
+                  AND D2.PD_PRP_VAL12 IS NOT NULL
+                  AND TO_NUMBER(D2.PD_PRP_VAL12) <![CDATA[>]]> 0
+                  AND D2.PD_CD NOT IN ('WM07105777', 'WM07105778', 'WM07105779', 'WM07105783', 'WM07105784'
+                                     , 'WM07105785', 'WM07105936', 'WM07105937', 'WM07104797', 'WM07104798')
                 UNION ALL
-               SELECT D1.SAP_PLNT_CD                                  /* SAP플랜트코드 */
-                    , D1.LGST_OSTR_AK_NO                              /* 출고요청번호 */
-                    , D1.OSTR_AK_SN                                   /* 출고요청일련번호 */
-                    , D1.LLORNO                                       /* 주문번호 */
-                    , D1.LLPRCD                                       /* 상품코드 */
-                    , D1.LLPRNM                                       /* 상품명 */
-                    , MOD(D1.LLPRQT, D2.SVPD_BOX_QTY) AS LLPRQT       /* 상품수량 */
-                    , D1.LLORST                                       /* 주문상태코드 */
-                    , D1.LLORSD                                       /* 주문상태일자 */
-                    , CASE WHEN D2.SVPD_PD_CD IN ('WM07105072', 'WM07105126') THEN '11'
-                           WHEN D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '42%'
-                            AND D2.SVPD_ITEM_KND = '5'                        THEN '08'
-                           WHEN (    D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '41%'
-                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '43%'
-                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '44%'
-                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '4921%'
-                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '4922%' )
-                            AND D2.SVPD_ITEM_KND = '5'                        THEN '09'
+               SELECT D1.SAP_PLNT_CD                                               /* SAP플랜트코드 */
+                    , D1.LGST_OSTR_AK_NO                                           /* 출고요청번호 */
+                    , D1.OSTR_AK_SN                                                /* 출고요청일련번호 */
+                    , D1.LLORNO                                                    /* 주문번호 */
+                    , D1.LLPRCD                                                    /* 상품코드 */
+                    , D1.LLPRNM                                                    /* 상품명 */
+                    , MOD( D1.LLPRQT, TO_NUMBER(D2.PD_PRP_VAL12) ) AS LLPRQT       /* 상품수량 */
+                    , D1.LLORST                                                    /* 주문상태코드 */
+                    , D1.LLORSD                                                    /* 주문상태일자 */
+                    , CASE WHEN D2.PD_CD IN ('WM07105072', 'WM07105126') THEN '11'
+                           WHEN D2.PD_PRP_VAL01 LIKE '42%'
+                            AND D2.PD_PRP_VAL19 = '5'                    THEN '08'
+                           WHEN (    D2.PD_PRP_VAL01 LIKE '41%'
+                                  OR D2.PD_PRP_VAL01 LIKE '43%'
+                                  OR D2.PD_PRP_VAL01 LIKE '44%'
+                                  OR D2.PD_PRP_VAL01 LIKE '4921%'
+                                  OR D2.PD_PRP_VAL01 LIKE '4922%' )
+                            AND D2.PD_PRP_VAL19 = '5'                    THEN '09'
                            ELSE '10'
-                      END                             AS LLPRDV       /* 작업구분 */
-                    , D2.SVPD_BOX_QTY                 AS BOX_QTY      /* 박스수량 */
-                    , D2.SVPD_PICK_QTY                AS PICK_QTY     /* 박스피킹수량 */
+                      END                                          AS LLPRDV       /* 작업구분 */
+                    , D2.PD_PRP_VAL12                              AS BOX_QTY      /* 박스수량 */
+                    , D2.PD_PRP_VAL29                              AS PICK_QTY     /* 박스피킹수량 */
                  FROM
                     (
                       SELECT SAP_PLNT_CD              /* SAP플랜트코드 */
@@ -366,37 +368,40 @@
                                             WHERE LLORDT = TO_CHAR(SYSDATE, 'YYYYMMDD') )
                        GROUP BY SAP_PLNT_CD, LGST_OSTR_AK_NO, OSTR_AK_SN, LLORNO, LLPRCD, LLPRNM, LLORST, LLORSD
                     ) D1
-                INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) D2   /* 상품 */
-                   ON D1.LLPRCD = D2.SVPD_PD_CD
-                WHERE D2.SVPD_BOX_QTY > 0
-                  AND D2.SVPD_PD_CD NOT IN ('WM07105777', 'WM07105778', 'WM07105779', 'WM07105783', 'WM07105784'
-                                          , 'WM07105785', 'WM07105936', 'WM07105937', 'WM07104797', 'WM07104798')
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2   /* 상품각사속성상세 */
+                   ON D2.PD_CD = D1.LLPRCD
+                WHERE D2.PD_EXTS_PRP_GRP_CD = 'PART'
+                  AND D2.DTA_DL_YN          = 'N'
+                  AND D2.PD_PRP_VAL12 IS NOT NULL
+                  AND TO_NUMBER(D2.PD_PRP_VAL12) <![CDATA[>]]> 0
+                  AND D2.PD_CD NOT IN ('WM07105777', 'WM07105778', 'WM07105779', 'WM07105783', 'WM07105784'
+                                     , 'WM07105785', 'WM07105936', 'WM07105937', 'WM07104797', 'WM07104798')
                 UNION ALL
-               SELECT D1.SAP_PLNT_CD                     /* SAP플랜트코드 */
-                    , D1.LGST_OSTR_AK_NO                 /* 출고요청번호 */
-                    , D1.OSTR_AK_SN                      /* 출고요청일련번호 */
-                    , D1.LLORNO                          /* 주문번호 */
-                    , D1.LLPRCD                          /* 상품코드 */
-                    , D1.LLPRNM                          /* 상품명 */
-                    , D1.LLPRQT                          /* 상품수량 */
-                    , D1.LLORST                          /* 주문상태코드 */
-                    , D1.LLORSD                          /* 주문상태일자 */
-                    , CASE WHEN D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '42%'
-                            AND D2.SVPD_ITEM_KND = '5' THEN '08'
-                           WHEN D2.SVPD_PD_CD = 'WM07105922'
-                            AND D2.SVPD_ITEM_KND = '5' THEN '10'
-                           WHEN (    D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '41%'
-                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '43%'
-                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '44%'
-                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '4921%'
-                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '4922%'
-                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '49378%'
-                                  OR D2.SVPD_ITEM_CD || D2.SVPD_PART_CD LIKE '49350%' )
-                            AND D2.SVPD_ITEM_KND = '5' THEN '09'
+               SELECT D1.SAP_PLNT_CD                  /* SAP플랜트코드 */
+                    , D1.LGST_OSTR_AK_NO              /* 출고요청번호 */
+                    , D1.OSTR_AK_SN                   /* 출고요청일련번호 */
+                    , D1.LLORNO                       /* 주문번호 */
+                    , D1.LLPRCD                       /* 상품코드 */
+                    , D1.LLPRNM                       /* 상품명 */
+                    , D1.LLPRQT                       /* 상품수량 */
+                    , D1.LLORST                       /* 주문상태코드 */
+                    , D1.LLORSD                       /* 주문상태일자 */
+                    , CASE WHEN D2.PD_PRP_VAL01 LIKE '42%'
+                            AND D2.PD_PRP_VAL19 = '5' THEN '08'
+                           WHEN D2.PD_CD = 'WM07105922'
+                            AND D2.PD_PRP_VAL19 = '5' THEN '10'
+                           WHEN (    D2.PD_PRP_VAL01 LIKE '41%'
+                                  OR D2.PD_PRP_VAL01 LIKE '43%'
+                                  OR D2.PD_PRP_VAL01 LIKE '44%'
+                                  OR D2.PD_PRP_VAL01 LIKE '4921%'
+                                  OR D2.PD_PRP_VAL01 LIKE '4922%'
+                                  OR D2.PD_PRP_VAL01 LIKE '49378%'
+                                  OR D2.PD_PRP_VAL01 LIKE '49350%' )
+                            AND D2.PD_PRP_VAL19 = '5' THEN '09'
                            ELSE '10'
-                      END                AS LLPRDV       /* 작업구분 */
-                    , D2.SVPD_BOX_QTY    AS BOX_QTY      /* 박스수량 */
-                    , D2.SVPD_PICK_QTY   AS PICK_QTY     /* 박스피킹수량 */
+                      END             AS LLPRDV       /* 작업구분 */
+                    , D2.PD_PRP_VAL12 AS BOX_QTY      /* 박스수량 */
+                    , D2.PD_PRP_VAL29 AS PICK_QTY     /* 박스피킹수량 */
                  FROM
                     (
                       SELECT SAP_PLNT_CD              /* SAP플랜트코드 */
@@ -415,24 +420,26 @@
                                             WHERE LLORDT = TO_CHAR(SYSDATE, 'YYYYMMDD') )
                        GROUP BY SAP_PLNT_CD, LGST_OSTR_AK_NO, OSTR_AK_SN, LLORNO, LLPRCD, LLPRNM, LLORST, LLORSD
                     ) D1
-                INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) D2   /* 상품 */
-                   ON D1.LLPRCD = D2.SVPD_PD_CD
-                WHERE D2.SVPD_BOX_QTY = 0
-                  AND D2.SVPD_PD_CD NOT IN ('WM07105777', 'WM07105778', 'WM07105779', 'WM07105783', 'WM07105784'
-                                          , 'WM07105785', 'WM07105936', 'WM07105937', 'WM07104797', 'WM07104798')
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2   /* 상품각사속성상세 */
+                   ON D2.PD_CD = D1.LLPRCD
+                WHERE D2.PD_EXTS_PRP_GRP_CD = 'PART'
+                  AND D2.DTA_DL_YN          = 'N'
+                  AND ( D2.PD_PRP_VAL12 IS NULL OR TO_NUMBER(D2.PD_PRP_VAL12) = 0 )
+                  AND D2.PD_CD NOT IN ('WM07105777', 'WM07105778', 'WM07105779', 'WM07105783', 'WM07105784'
+                                     , 'WM07105785', 'WM07105936', 'WM07105937', 'WM07104797', 'WM07104798')
                 UNION ALL
-               SELECT D1.SAP_PLNT_CD                     /* SAP플랜트코드 */
-                    , D1.LGST_OSTR_AK_NO                 /* 출고요청번호 */
-                    , D1.OSTR_AK_SN                      /* 출고요청일련번호 */
-                    , D1.LLORNO                          /* 주문번호 */
-                    , D1.LLPRCD                          /* 상품코드 */
-                    , D1.LLPRNM                          /* 상품명 */
-                    , D1.LLPRQT                          /* 상품수량 */
-                    , D1.LLORST                          /* 주문상태코드 */
-                    , D1.LLORSD                          /* 주문상태일자 */
-                    , '11'               AS LLPRDV       /* 작업구분 */
-                    , D2.SVPD_BOX_QTY    AS BOX_QTY      /* 박스수량 */
-                    , D2.SVPD_PICK_QTY   AS PICK_QTY     /* 박스피킹수량 */
+               SELECT D1.SAP_PLNT_CD                  /* SAP플랜트코드 */
+                    , D1.LGST_OSTR_AK_NO              /* 출고요청번호 */
+                    , D1.OSTR_AK_SN                   /* 출고요청일련번호 */
+                    , D1.LLORNO                       /* 주문번호 */
+                    , D1.LLPRCD                       /* 상품코드 */
+                    , D1.LLPRNM                       /* 상품명 */
+                    , D1.LLPRQT                       /* 상품수량 */
+                    , D1.LLORST                       /* 주문상태코드 */
+                    , D1.LLORSD                       /* 주문상태일자 */
+                    , '11'            AS LLPRDV       /* 작업구분 */
+                    , D2.PD_PRP_VAL12 AS BOX_QTY      /* 박스수량 */
+                    , D2.PD_PRP_VAL29 AS PICK_QTY     /* 박스피킹수량 */
                  FROM
                     (
                       SELECT SAP_PLNT_CD              /* SAP플랜트코드 */
@@ -451,13 +458,14 @@
                                             WHERE LLORDT = TO_CHAR(SYSDATE, 'YYYYMMDD') )
                        GROUP BY SAP_PLNT_CD, LGST_OSTR_AK_NO, OSTR_AK_SN, LLORNO, LLPRCD, LLPRNM, LLORST, LLORSD
                     ) D1
-                INNER JOIN (<include refid="com.kyowon.sms.wells.web.service.common.BASE.selectPartMaster"/>) D2   /* 상품 */
-                   ON D1.LLPRCD = D2.SVPD_PD_CD
-                WHERE D2.SVPD_PD_CD IN ('WM07105777', 'WM07105778', 'WM07105779', 'WM07105783', 'WM07105784'
-                                      , 'WM07105785', 'WM07105936', 'WM07105937', 'WM07104797', 'WM07104798')
-
+                INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL D2   /* 상품각사속성상세 */
+                   ON D2.PD_CD = D1.LLPRCD
+                WHERE D2.PD_EXTS_PRP_GRP_CD = 'PART'
+                  AND D2.DTA_DL_YN          = 'N'
+                  AND D2.PD_CD IN ('WM07105777', 'WM07105778', 'WM07105779', 'WM07105783', 'WM07105784'
+                                 , 'WM07105785', 'WM07105936', 'WM07105937', 'WM07104797', 'WM07104798')
              ) T1
-         WHERE T1.LLPRQT > 0   /* 상품수량이 0보다 큰 것 */
+         WHERE T1.LLPRQT <![CDATA[>]]> 0   /* 상품수량이 0보다 큰 것 */
     </insert>
 
     <insert id="insertSppPdSendEtxt">

@@ -3,27 +3,32 @@
 <mapper namespace="com.kyowon.sms.wells.web.service.stock.mapper.WsnaLogisticsOutStorageFinishMapper">
 
     <select id="selectItmOstrFshRcvEtxt" resultType="com.kyowon.sms.wells.web.service.stock.dvo.WsnaLogisticsOutStorageFinishDvo">
-        SELECT D1.LINK_OCRN_ID                                    /* 연계발생ID */
-             , D1.OSTR_CNFM_QTY                                   /* 출고확정수량 */
-             , D1.OSTR_NO            AS ITM_OSTR_NO               /* 출고번호 */
-             , D1.OSTR_SN                                         /* 출고일련번호 */
-             , D1.OSTR_DT                                         /* 출고일자 */
-             , D3.OSTR_AK_NO                                      /* 출고요청번호 */
-             , D3.OSTR_AK_SN                                      /* 출고요청일련번호 */
-             , D3.OSTR_AK_TP_CD                                   /* 출고요청유형코드 */
-             , D3.STR_OJ_WARE_NO                                  /* 입고대상창고번호 */
-             , D3.OSTR_AK_WARE_DV_CD                              /* 출고요청창고구분코드 */
-             , D3.WARE_MNGT_PRTNR_NO                              /* 창고관리파트너번호 */
-             , D3.WARE_MNGT_PRTNR_OG_TP_CD                        /* 창고관리파트너조직유형코드 */
-             , D4.HGR_WARE_NO        AS STR_HGR_WARE_NO           /* 입고대상 상위창고번호 */
-             , D5.WARE_DV_CD         AS STR_HGR_DV_CD             /* 입고 상위 창고구분코드 */
-             , D5.WARE_MNGT_PRTNR_NO AS STR_HGR_PRTNR_NO          /* 입고 상위 파트너번호 */
-             , D5.OG_TP_CD           AS STR_HGR_PRTNR_OG_TP_CD    /* 입고 상위 파트너 조직유형코드 */
-             , D6.PD_PRP_VAL19       AS ITM_KND_CD                /* 품목종류코드 */
-             , D3.ITM_PD_CD                                       /* 품목상품코드 */
-             , D3.ITM_GD_CD                                       /* 품목등급코드 */
-             , D3.MNGT_UNIT_CD                                    /* 관리단위코드 */
-             , D3.BOX_UNIT_QTY                                    /* 박스단위수량 */
+        SELECT D1.LINK_OCRN_ID                                               /* 연계발생ID */
+             , D1.OSTR_CNFM_QTY                                              /* 출고확정수량 */
+             , D1.OSTR_NO                       AS ITM_OSTR_NO               /* 출고번호 */
+             , D1.OSTR_SN                                                    /* 출고일련번호 */
+             , D1.OSTR_DT                                                    /* 출고일자 */
+             , D3.OSTR_AK_NO                                                 /* 출고요청번호 */
+             , D3.OSTR_AK_SN                                                 /* 출고요청일련번호 */
+             , D3.OSTR_AK_TP_CD                                              /* 출고요청유형코드 */
+             , D3.STR_OJ_WARE_NO                                             /* 입고대상창고번호 */
+             , D3.OSTR_AK_WARE_DV_CD                                         /* 출고요청창고구분코드 */
+             , D3.WARE_MNGT_PRTNR_NO                                         /* 창고관리파트너번호 */
+             , D3.WARE_MNGT_PRTNR_OG_TP_CD                                   /* 창고관리파트너조직유형코드 */
+             , D4.HGR_WARE_NO                   AS STR_HGR_WARE_NO           /* 입고대상 상위창고번호 */
+             , D5.WARE_DV_CD                    AS STR_HGR_DV_CD             /* 입고 상위 창고구분코드 */
+             , D5.WARE_MNGT_PRTNR_NO            AS STR_HGR_PRTNR_NO          /* 입고 상위 파트너번호 */
+             , D5.OG_TP_CD                      AS STR_HGR_PRTNR_OG_TP_CD    /* 입고 상위 파트너 조직유형코드 */
+             , D6.PD_PRP_VAL19                  AS ITM_KND_CD                /* 품목종류코드 */
+             , D3.ITM_PD_CD                                                  /* 품목상품코드 */
+             , D3.ITM_GD_CD                                                  /* 품목등급코드 */
+             , D3.MNGT_UNIT_CD                                               /* 관리단위코드 */
+             , D3.BOX_UNIT_QTY                                               /* 박스단위수량 */
+             , D3.OSTR_OJ_WARE_NO                                            /* 출고대상창고번호 */
+             , D3.OSTR_OJ_WARE_DV_CD            AS OSTR_WARE_DV_CD           /* 출고대상창고구분코드 */
+             , D3.OSTR_WARE_MNGT_PRTNR_NO       AS OSTR_PRTNR_NO             /* 출고창고파트너번호 */
+             , D3.OSTR_WARE_MNGT_PRTNR_OG_TP_CD AS OSTR_PRTNR_OG_TP_CD       /* 출고창고조직유형코드 */
+             , D3.STR_HOP_DT                                                 /* 입고희망일자 */
           FROM TB_IFIN_ITM_OSTR_FSH_RCV_ETXT D1        /* 품목출고완료수신전문 */
          INNER JOIN TB_IFIN_OSTR_AK_DTL_SEND_ETXT D2   /* 출고요청상세송신전문 */
             ON D2.SAP_PLNT_CD     = D1.SAP_PLNT_CD
@@ -108,8 +113,10 @@
              , STR_AK_WARE_DV_CD          /* 입고요청창고구분코드 */
              , WARE_MNGT_PRTNR_NO         /* 창고관리파트너번호 */
              , WARE_MNGT_PRTNR_OG_TP_CD   /* 창고관리파트너조직유형코드 */
+             , STR_HOP_DT                 /* 입고희망일자 */
              , STR_TP_CD                  /* 입고유형코드 */
              , STR_WARE_NO                /* 입고창고번호 */
+             , STR_RGST_DT                /* 입고등록일자 */
              , COTP_ADJ_DT                /* 운송비정산일자 */
              , ITM_STR_NO                 /* 품목입고번호 */
              , STR_SN                     /* 입고일련번호 */
@@ -119,30 +126,32 @@
              )
         VALUES
              (
-               #{itmOstrNo}                    /* 품목출고번호 */
-             , #{ostrSn}                       /* 출고일련번호 */
-             , #{ostrTpCd}                     /* 출고유형코드 */
-             , #{ostrOjWareNo}                 /* 출고창고번호 */
-             , TO_CHAR(SYSDATE, 'YYYYMMDD')    /* 출고일자 */
-             , #{itmKndCd}                     /* 품목종류코드 */
-             , #{itmPdCd}                      /* 품목상품코드 */
-             , #{ostrWareDvCd}                 /* 출고창고구분코드 */
-             , #{mngtUnitCd}                   /* 관리단위코드 */
-             , #{boxUnitQty}                   /* 박스단위수량 */
-             , #{itmGdCd}                      /* 품목등급코드 */
-             , #{strQty}                       /* 출고수량 */
-             , #{ostrAkNo}                     /* 출고요청번호 */
-             , #{ostrAkSn}                     /* 출고요청일련번호 */
-             , #{strWareDvCd}                  /* 입고요청창고구분코드 */
-             , #{ostrPrtnrNo}                  /* 창고관리파트너번호 */
-             , #{ostrPrtnrOgTpCd}              /* 창고관리파트너조직유형코드 */
-             , #{strTpCd}                      /* 입고유형코드 */
-             , #{strOjWareNo}                  /* 입고창고번호 */
-             , TO_CHAR(SYSDATE, 'YYYYMMDD')    /* 운송비정산일자 */
-             , #{itmStrNo}                     /* 품목입고번호 */
-             , #{strSn}                        /* 입고일련번호 */
-             , #{rmkCn}                        /* 비고내용 */
-             , 'N'                             /* 데이터삭제여부 */
+               #{itmOstrNo}                                     /* 품목출고번호 */
+             , #{ostrSn}                                        /* 출고일련번호 */
+             , #{ostrTpCd}                                      /* 출고유형코드 */
+             , #{ostrOjWareNo}                                  /* 출고창고번호 */
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')                     /* 출고일자 */
+             , #{itmKndCd}                                      /* 품목종류코드 */
+             , #{itmPdCd}                                       /* 품목상품코드 */
+             , #{ostrWareDvCd}                                  /* 출고창고구분코드 */
+             , #{mngtUnitCd}                                    /* 관리단위코드 */
+             , #{boxUnitQty}                                    /* 박스단위수량 */
+             , #{itmGdCd}                                       /* 품목등급코드 */
+             , #{strQty}                                        /* 출고수량 */
+             , #{ostrAkNo}                                      /* 출고요청번호 */
+             , #{ostrAkSn}                                      /* 출고요청일련번호 */
+             , #{strWareDvCd}                                   /* 입고요청창고구분코드 */
+             , #{ostrPrtnrNo}                                   /* 창고관리파트너번호 */
+             , #{ostrPrtnrOgTpCd}                               /* 창고관리파트너조직유형코드 */
+             , NVL(#{strHopDt}, TO_CHAR(SYSDATE, 'YYYYMMDD'))   /* 입고희망일자 */
+             , #{strTpCd}                                       /* 입고유형코드 */
+             , #{strOjWareNo}                                   /* 입고창고번호 */
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')                     /* 입고등록일자 */
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')                     /* 운송비정산일자 */
+             , #{itmStrNo}                                      /* 품목입고번호 */
+             , #{strSn}                                         /* 입고일련번호 */
+             , #{rmkCn}                                         /* 비고내용 */
+             , 'N'                                              /* 데이터삭제여부 */
         <include refid="COMMON.insertSystemFieldValue" />
              )
     </insert>

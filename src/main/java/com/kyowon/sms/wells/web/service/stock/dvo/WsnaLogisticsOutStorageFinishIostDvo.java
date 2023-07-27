@@ -67,6 +67,8 @@ public class WsnaLogisticsOutStorageFinishIostDvo {
     private Integer boxUnitQty;
     // 입고수량
     private int strQty;
+    // 입고희망일자
+    private String strHopDt;
 
     // 비고내용
     private String rmkCn;
