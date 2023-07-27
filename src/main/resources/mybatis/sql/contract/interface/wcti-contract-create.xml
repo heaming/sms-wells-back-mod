@@ -113,11 +113,11 @@
             , #{cstStlmInMthCd}
             , #{prrRcpCntrYn}
             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') -- CNTR_TEMP_SAVE_DTM
-            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') -- CNTR_RCP_FSH_DTM
-            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') -- CNTR_STLM_FSH_DTM
+            , NVL(#{cntrRcpDt} || #{cntrRcpTm}, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')) -- CNTR_RCP_FSH_DTM
+            , NVL2(#{cntrCnfmDt},  #{cntrCnfmDt} || '000000', TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')) -- CNTR_STLM_FSH_DTM
             , '' -- CNTR_CNFM_APR_AK_DTM
             , '' -- CNTR_CNFM_APR_DTM
-            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') -- CNTR_CNFM_DTM
+            , NVL2(#{cntrCnfmDt},  #{cntrCnfmDt} || '000000', TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'))  -- CNTR_CNFM_DTM
             , '' -- CNTR_CAN_DTM
             , '' -- CNTR_CAN_RSON_CD
             , '' -- CNTR_PRGS_STAT_MO_CN
@@ -242,41 +242,41 @@
             , #{contract.crncyDvCd}
             , '' -- APY_EXCR
             , #{product.pdBaseAmt} -- PD_BASE_AMT
-            , #{pdBaseAmt} -- SELL_AMT
-            , '' -- DSC_AMT
+            , #{contract.sellAmt} -- SELL_AMT
+            , #{contract.dscAmt} -- DSC_AMT
             , #{contract.fnlAmt}
             , #{product.vat}
-            , #{contract.cntrTam} -- CNTR_AMT
-            , '' -- CNTRAM_DSC_AMT
+            , #{contract.cntrAmt} -- CNTR_AMT
+            , #{contract.cntramDscAmt} -- CNTRAM_DSC_AMT
             , #{contract.istmMcn}
-            , '' -- ISTM_PCAM_AMT
+            , #{contract.istmPcamAmt} -- ISTM_PCAM_AMT
             , '' -- ISTM_INT_AMT
             , '' -- MM_ISTM_AMT
             , '' -- CRP_UC_AMT
             , #{product.sellFee}
             , #{contract.cntrTam} -- CNTR_TAM
             , '' -- RENTAL_PTRM2
-            , '' -- RENTAL_AMT2
-            , '' -- RENTAL_DSC_AMT2
-            , '' -- SV_AMT
+            , #{contract.rentalAmt2} -- RENTAL_AMT2
+            , #{contract.rentalDscAmt2} -- RENTAL_DSC_AMT2
+            , #{contract.svAmt} -- SV_AMT
             , #{product.ackmtPerfRt}
             , #{product.ackmtPerfAmt}
             , #{product.cvtPerfAmt}
-            , '' -- FEE_ACKMT_CT
-            , '' -- FEE_ACKMT_BASE_AMT
-            , '' -- FEE_FXAM_YN
-            , '' -- SPP_DUEDT
+            , #{contract.feeAckmtCt} -- FEE_ACKMT_CT
+            , #{contract.feeAckmtBaseAmt} -- FEE_ACKMT_BASE_AMT
+            , #{contract.feeFxamYn} -- FEE_FXAM_YN
+            , #{contract.sppDuedt} -- SPP_DUEDT
             , '' -- RESUB_YN
-            , '' -- RSTL_YN
+            , #{contract.rstlYn} -- RSTL_YN
             , 'N' -- FRISU_YN
             , '' -- FRISU_DSB_TP_CD
-            , '' -- TXINV_PBL_OJ_YN
-            , '' -- ALNCMP_CD
-            , '' -- ALNCMP_CNTR_DRM_VAL
+            , #{contract.txinvPblOjYn} -- TXINV_PBL_OJ_YN
+            , #{contract.alncBzsCd} -- ALNCMP_CD
+            , #{contract.alncCntrNo} || #{contract.alncCntrSn} -- ALNCMP_CNTR_DRM_VAL
             , '' -- SMTPL_ID
             , '' -- SMTPL_SN
             , '' -- CTT_OJ_ID
-            , '' -- CTT_RS_CD
+            , #{contract.cttRsCd} -- CTT_RS_CD
             , '' -- CTT_PSIC_ID
             , '' -- BF_ORD_NO
             , '' -- CNTR_CH_RCP_ID
@@ -325,8 +325,8 @@
                                               AND P1.SELL_CHNL_CD = X1.SELL_CHNL_CD)
     </select>
 
-<insert id="insertContractCustomerRelation" useGeneratedKeys="false">
-        <selectKey keyProperty="item.cntrCstRelId" resultType="java.lang.String" order="BEFORE" >
+    <insert id="insertContractCustomerRelation" useGeneratedKeys="false">
+        <selectKey keyProperty="contract.cntrCstRelId" resultType="java.lang.String" order="BEFORE" >
         SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_CST_REL_ID)) + 1, 1) , 15, '0')
           FROM TB_SSCT_CNTR_CST_REL
         </selectKey>
@@ -347,17 +347,17 @@
             , CNTR_CH_RCP_ID     /* 계약변경접수ID */
             <include refid="COMMON.insertSystemField" />)
         VALUES (
-              #{item.cntrCstRelId}
+              #{contract.cntrCstRelId}
             , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
             , '99991231235959'
             , '020'
-            , #{item.cntrNo}
-            , #{item.cntrNo}
-            , #{item.cntrSn}
-            , #{item.copnDvCd}
+            , #{contract.cntrNo}
+            , #{contract.cntrNo}
+            , #{contract.cntrSn}
+            , #{contract.copnDvCd}
             , #{cstNo}
-            , #{cntrCstRelTpCd}
-            , '' -- CNTRT_REL_CD
+            , '10'
+            , #{contract.cntrtRelCd} -- CNTRT_REL_CD
             , '' -- INSI_CST_TP_CD
             , '' -- LRNN_GRY_CD
             , '' -- CNTR_CH_RCP_ID
@@ -394,8 +394,8 @@
              , MVS_DSTC_RCVRY_BASE_DTM /* 소산파기복구기준일시 */
              , MVS_DSTC_RCVRY_DV_CD    /* 소산파기복구구분코드 */
              , MVS_DSTC_RCVRY_DTM      /* 소산파기복구일시 */
-             <include refid="COMMON.insertSystemField" />)
-         VALUES (
+             <include refid="COMMON.insertSystemField" />
+        ) VALUES (
                #{cntrAdrpcId}
              , #{cntrNo}
              , #{cntrCstNo}
@@ -424,6 +424,55 @@
         )
     </insert>
 
+    <insert id="insertContractAddressRelation">
+        <selectKey keyProperty="cntrAdrRelId" resultType="java.lang.String" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_ADR_REL_ID)) + 1, 1), 15, 0)
+            FROM TB_SSCT_CNTR_ADR_REL
+        </selectKey>
+        INSERT INTO TB_SSCT_CNTR_ADR_REL (
+            CNTR_ADR_REL_ID
+            , VL_STRT_DTM
+            , VL_END_DTM
+            , ADRPC_TP_CD
+            , CNTR_UNIT_TP_CD
+            , CNTR_NO
+            , DTL_CNTR_NO
+            , DTL_CNTR_SN
+            , CNTR_ADRPC_ID
+            , VST_RQDT
+            , VST_AK_STRT_HM
+            , VST_AK_END_HM
+            , URGT_OJ_YN
+            , CNTRW_POSND_TP_CD
+            , SPP_MTHD_TP_CD
+            , SPP_MTHD_CD
+            , SPP_ICHR_AOFFCE_CD
+            , SPP_ICHR_USR_ID
+            , CNTR_CH_RCP_ID
+            <include refid="COMMON.insertSystemField" />
+        ) VALUES (
+            #{cntrAdrRelId} -- CNTR_ADR_REL_ID
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') -- VL_STRT_DTM
+            , '99991231235959' -- VL_END_DTM
+            , #{adrpcTpCd} -- ADRPC_TP_CD
+            , '020' -- CNTR_UNIT_TP_CD
+            , #{cntrNo} -- CNTR_NO
+            , #{cntrNo} -- DTL_CNTR_NO
+            , #{cntrSn} -- DTL_CNTR_SN
+            , #{cntrAdrpcId} -- CNTR_ADRPC_ID
+            , #{vstRqdt} -- VST_RQDT
+            , '' -- VST_AK_STRT_HM
+            , '' -- VST_AK_END_HM
+            , #{urgtOjYn} -- URGT_OJ_YN
+            , '' -- CNTRW_POSND_TP_CD
+            , '' -- SPP_MTHD_TP_CD
+            , '' -- SPP_MTHD_CD
+            , '' -- SPP_ICHR_AOFFCE_CD
+            , '' -- SPP_ICHR_USR_ID
+            , '' -- CNTR_CH_RCP_ID
+            <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
 
     <insert id="insertContractAddressForInstall">
         <selectKey keyProperty="cntrAdrpcId" resultType="java.lang.String" order="BEFORE">
@@ -738,8 +787,8 @@
              , O1.OG_ID
              , '' -- RCP_AOFFCE_CD
              , O1.PRR_BIZ_RGST_YN -- PRR_BIZ_RGR_YN
-             , '' ALNC_PRTNR_DRM_VAL
-             , '' ALNC_PRTNR_IDNR_NM
+             , #{alncPrtnrNo} ALNC_PRTNR_DRM_VAL
+             , #{alncPrtnrNm} ALNC_PRTNR_IDNR_NM
              , '' ALNC_PRTNR_DRM_DV_CD
              <include refid="COMMON.insertSystemFieldValue"/>
           FROM TB_OGBS_MM_PRTNR_IZ O1
@@ -792,8 +841,8 @@
             , #{cntrSn} -- CNTR_SN
             , '20' -- FRISU_BFSVC_PTRM_UNIT_CD
             , #{frisuBfsvcPtrmN} -- FRISU_BFSVC_PTRM_N
-            , '' -- FRISU_AS_PTRM_UNIT_CD
-            , '' -- FRISU_AS_PTRM_N
+            , '20' -- FRISU_AS_PTRM_UNIT_CD
+            , #{frisuAsPtrmN} -- FRISU_AS_PTRM_N
             , '' -- IST_DT
             , '' -- REQD_DT
             , '' -- CPS_DT
@@ -802,16 +851,16 @@
             , #{sellEvCd} -- SELL_EV_CD
             , '' -- BFSVC_BZS_DV_CD
             , '' -- SPLY_BZS_DV_CD
-            , '' -- OCO_CPS_BZS_DV_CD
+            , #{ocoCpsBzsDvCd} -- OCO_CPS_BZS_DV_CD
             , '' -- HCR_DV_CD
-            , '' -- FMMB_N
+            , #{fmmbN} -- FMMB_N
             , '' -- FRISU_RCVRY_TP_CD
             , '' -- IST_PLC_TP_CD
             , '' -- WRFR_IST_MTH_CD
-            , '' -- WTQLTY_TST_YN
+            , #{wtqltyTstYn} -- WTQLTY_TST_YN
             , '' -- SRCWT_TP_CD
-            , '' -- WPRS_ITST_TP_CD
-            , '' -- USE_ELECT_TP_CD
+            , #{wprsItstTpCd} -- WPRS_ITST_TP_CD
+            , #{useElectTpCd} -- USE_ELECT_TP_CD
             , '' -- TBHS_EYN
             , '' -- STVLV_EYN
             , '' -- KUMON_ITRDT_DV_CD
@@ -819,12 +868,100 @@
             , '' -- KUMON_RCOMR_IDK_VAL
             , '' -- OTSD_LK_DRM_VAL
             , '' -- FRISU_MSH_CRT_YN
-            , '' -- IST_MM_BIL_MTHD_TP_CD
+            , #{istMmBilMthdTpCd} -- IST_MM_BIL_MTHD_TP_CD
             , '' -- CO_IST_DV_CD
             , '' -- CO_IST_MNGT_DV_CD
             , '' -- CO_IST_USWY_CD
             , #{istAkArtcMoCn} -- IST_AK_ARTC_MO_CN
-            , '' -- SCON_CN
+            , #{sconCn} -- SCON_CN
+            <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+
+    <insert id="insertTaxInvoiceReceipt">
+        INSERT INTO TB_SSCT_TXINV_RCP_BASE_IZ (
+            CNTR_NO
+            , CNTR_SN
+            , TXINV_PD_DV_CD
+            , TXINV_PBL_DV_CD
+            , APLC_PSIC_ID
+            , RCPDT
+            , BZRNO
+            , CNTR_CST_NO
+            , TXINV_PBL_YN
+            , TXINV_PBL_D
+            , TXINV_BNDL_SN
+            , DLPNR_PSIC_NM
+            , EMADR
+            , LOCARA_TNO
+            , EXNO_ENCR
+            , IDV_TNO
+            , CRAL_LOCARA_TNO
+            , MEXNO_ENCR
+            , CRAL_IDV_TNO
+            , RMK_CN
+            , MVS_DSTC_RCVRY_BASE_DTM
+            , MVS_DSTC_RCVRY_DV_CD
+            , MVS_DSTC_RCVRY_DTM
+            <include refid="COMMON.insertSystemField" />
+        ) VALUES (
+            #{cntrNo} -- CNTR_NO
+            , #{cntrSn} -- CNTR_SN
+            , #{txinvPdDvCd} -- TXINV_PD_DV_CD
+            , '01' -- 세금계산서(01) TXINV_PBL_DV_CD
+            , #{rgstUsrId} -- APLC_PSIC_ID
+            , #{cntrRcpDt} -- RCPDT
+            , #{txinvBzrno} -- BZRNO
+            , #{cntrCstNo} -- CNTR_CST_NO
+            , NVL2(#{txinvPblD}, 'Y', 'N') -- TXINV_PBL_YN
+            , #{txinvPblD} -- TXINV_PBL_D
+            , '' -- TXINV_BNDL_SN
+            , #{txinvDlpnrPsicNm} -- DLPNR_PSIC_NM
+            , #{txinvEmadr} -- EMADR
+            , #{txinvLocaraTno} -- LOCARA_TNO
+            , #{txinvExnoEncr} -- EXNO_ENCR
+            , #{txinvIdvTno} -- IDV_TNO
+            , #{txinvCralLocaraTno} -- CRAL_LOCARA_TNO
+            , #{txinvMexnoEncr} -- MEXNO_ENCR
+            , #{txinvCralIdvTno} -- CRAL_IDV_TNO
+            , #{txinvRmkCn} -- RMK_CN
+            , '' -- MVS_DSTC_RCVRY_BASE_DTM
+            , '' -- MVS_DSTC_RCVRY_DV_CD
+            , '' -- MVS_DSTC_RCVRY_DTM
+            <include refid="COMMON.insertSystemFieldValue" />
+        )
+    </insert>
+
+    <insert id="insertMachineChange">
+        INSERT INTO TB_SSCT_MCHN_CH_IZ (
+            BASE_CNTR_NO
+            , BASE_CNTR_SN
+            , MCHN_CH_SN
+            , OJ_CNTR_NO
+            , OJ_CNTR_SN
+            , MCHN_CH_TP_CD
+            , PASG_MCN
+            , BASE_CNTR_RCPDT
+            , BASE_CNTR_SL_DT
+            , MCHN_CPS_APYR
+            , MCHN_CLN_OJ_YN
+            , OJ_CNTR_MM_BASE_DV_CD
+            , OJ_CNTR_CH_FSH_DTM
+            <include refid="COMMON.insertSystemField" />
+        ) VALUES (
+            #{cntrNo} -- BASE_CNTR_NO
+            , #{cntrSn} -- BASE_CNTR_SN
+            , '1' -- MCHN_CH_SN
+            , #{mchnChCntrNo} -- OJ_CNTR_NO
+            , #{mchnChCntrSn} -- OJ_CNTR_SN
+            , '' -- MCHN_CH_TP_CD
+            , '' -- PASG_MCN
+            , '' -- BASE_CNTR_RCPDT
+            , '' -- BASE_CNTR_SL_DT
+            , #{mchnCpsApyr} -- MCHN_CPS_APYR
+            , #{mchnClnOjYn} -- MCHN_CLN_OJ_YN
+            , #{mchnChCntrMmBaseDvCd} -- OJ_CNTR_MM_BASE_DV_CD
+            , '' -- OJ_CNTR_CH_FSH_DTM
             <include refid="COMMON.insertSystemFieldValue" />
         )
     </insert>

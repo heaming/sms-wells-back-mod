@@ -44,11 +44,12 @@ public interface WctiContractCreateMapper {
     );
 
     int insertContractCustomerRelation(
-        @Param("item")
+        @Param("contract")
         WctiContractCreateDvo contract,
-        String cstNo,
-        String cntrCstRelTpCd
+        String cstNo
     );
+
+    int insertContractAddressRelation(WctiContractCreateDvo contract, String adrpcTpCd);
 
     int insertContractAddressForContract(WctiContractCreateDvo contract);
 
@@ -63,4 +64,8 @@ public interface WctiContractCreateMapper {
     int insertContractPartnerRelation(WctiContractCreateDvo contract);
 
     int insertContractWellsDetail(WctiContractCreateDvo contract);
+
+    int insertTaxInvoiceReceipt(WctiContractCreateDvo contract);
+
+    int insertMachineChange(WctiContractCreateDvo contract);
 }

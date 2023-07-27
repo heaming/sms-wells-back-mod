@@ -3,12 +3,14 @@ package com.kyowon.sms.wells.web.contract.interfaces.converter;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateKmembersReq;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateRentalReq;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateSinglePaymentReq;
 import com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractCreateDvo;
 
 @Mapper(componentModel = "spring")
 public interface WctiContractCreateConverter {
 
+    @Mapping(source = "rcpChnlDtl", target = "sellInflwChnlDtlCd")
     @Mapping(source = "cstKnm", target = "cntrCstKnm")
     @Mapping(source = "cstEmadr", target = "cntrtEmadr")
     @Mapping(source = "istPlcLocaraTno", target = "istLocaraTno")
@@ -21,9 +23,9 @@ public interface WctiContractCreateConverter {
     @Mapping(source = "pdQty01", target = "pdQty")
     @Mapping(source = "amt01", target = "fnlAmt")
     @Mapping(source = "sellTam", target = "cntrTam")
-    @Mapping(source = "cntrDt", target = "cntrCnfmDtm")
-    @Mapping(source = "ag1", target = "pifThpOfrAgYn")
-    @Mapping(source = "ag2", target = "thpAgYn")
+    @Mapping(source = "cntrDt", target = "cntrCnfmDt")
+    @Mapping(source = "ag1", target = "pifClcnUAgYn")
+    @Mapping(source = "ag2", target = "pifThpOfrAgYn")
     @Mapping(source = "ag3", target = "mktgPurpAgYn")
     @Mapping(source = "ag4", target = "pifCinfThpOfrAgYn")
     @Mapping(source = "ag5", target = "pifBizFstrAgYn")
@@ -43,5 +45,68 @@ public interface WctiContractCreateConverter {
     @Mapping(source = "dscDv", target = "sellDscDvCd")
     @Mapping(source = "dscTp", target = "sellDscTpCd")
     @Mapping(source = "uswy", target = "svPdTpCd")
-    WctiContractCreateDvo mapCreateKmembersReqToWctiContractCreateDvo(CreateKmembersReq dto);
+    WctiContractCreateDvo mapCreateSinglePaymentReqToWctiContractCreateDvo(CreateSinglePaymentReq dto);
+
+    @Mapping(source = "rcpdt", target = "cntrRcpDt")
+    @Mapping(source = "rcptm", target = "cntrRcpTm")
+    @Mapping(source = "cstNm", target = "cntrCstKnm")
+    @Mapping(source = "cphonLocaraTno", target = "cntrtCralLocaraTno")
+    @Mapping(source = "cphonExnoEncr", target = "cntrtMexnoEncr")
+    @Mapping(source = "cphonIdvTno", target = "cntrtCralIdvTno")
+    @Mapping(source = "locaraTno", target = "cntrtLocaraTno")
+    @Mapping(source = "exnoEncr", target = "cntrtExnoEncr")
+    @Mapping(source = "idvTno", target = "cntrtIdvTno")
+    @Mapping(source = "adrDvCd", target = "cntrtAdrDvCd")
+    @Mapping(source = "zip", target = "cntrtZip")
+    @Mapping(source = "basAdr", target = "cntrtBasAdr")
+    @Mapping(source = "dtlAdr", target = "cntrtDtlAdr")
+    @Mapping(source = "cstNo", target = "cntrCstNo")
+    @Mapping(source = "cstEmadr", target = "cntrtEmadr")
+    @Mapping(source = "istCphonLocaraTno", target = "istCralLocaraTno")
+    @Mapping(source = "istCphonExnoEncr", target = "istMexnoEncr")
+    @Mapping(source = "istCphonIdvTno", target = "istCralIdvTno")
+    @Mapping(source = "istCstNm", target = "istllKnm")
+    @Mapping(source = "urgtIst", target = "urgtOjYn")
+    @Mapping(source = "pdCd", target = "basePdCd")
+    @Mapping(source = "pdQty", target = "pdQty", defaultValue = "1")
+    @Mapping(source = "bnkCdcoDv1", target = "cdcoCd")
+    @Mapping(source = "bnkCdcoDv1", target = "bnkCd")
+    @Mapping(source = "cardAmt1", target = "cardAmt")
+    @Mapping(source = "crcdnoEncr1", target = "crcdNo")
+    @Mapping(source = "cardIstmMcn1", target = "istmMcn")
+    @Mapping(source = "cdonrNm1", target = "crcdOwrKnm")
+    @Mapping(source = "dscDvCd", target = "sellDscDvCd")
+    @Mapping(source = "dscTpCd", target = "sellDscTpCd")
+    @Mapping(source = "uswyCd", target = "svPdTpCd")
+    @Mapping(source = "vstPrdCd", target = "svPrd")
+    @Mapping(source = "prtnrNo", target = "sellPrtnrNo")
+    @Mapping(source = "rsdtBzrNo", target = "bzrNo")
+    @Mapping(source = "mrktUtlzAgYn", target = "mktgPurpAgYn")
+    @Mapping(source = "frisuAsPtrm", target = "frisuAsPtrmN")
+    @Mapping(source = "chdvcPfr", target = "mchnCpsApyr")
+    @Mapping(source = "mmApyDvCd", target = "mchnChCntrMmBaseDvCd")
+    @Mapping(source = "clnDv", target = "mchnClnOjYn")
+    @Mapping(source = "bfCntrNo1", target = "mchnChCntrNo")
+    @Mapping(source = "bfCntrSn1", target = "mchnChCntrSn")
+    @Mapping(source = "cntrtRel", target = "cntrtRelCd", defaultValue = "10")
+    @Mapping(source = "cstClsCd", target = "copnDvCd")
+    @Mapping(source = "rcpChnlDtl", target = "sellInflwChnlDtlCd")
+    @Mapping(source = "cttCd", target = "cttRsCd")
+    @Mapping(source = "svChram", target = "svAmt")
+    @Mapping(source = "rtlfe1", target = "fnlAmt")
+    @Mapping(source = "rentalDscAmt1", target = "dscAmt")
+    @Mapping(source = "feeBaseAmt", target = "feeAckmtBaseAmt")
+    @Mapping(source = "istRqdt", target = "sppDuedt")
+    @Mapping(source = "wprsEyn", target = "wprsItstTpCd")
+    @Mapping(source = "istMmExmpYn", target = "istMmBilMthdTpCd")
+    @Mapping(source = "txinvPblOjYn", target = "txinvPblOjYn")
+    @Mapping(source = "txinvBzrno", target = "txinvBzrno")
+    @Mapping(source = "txinvPsicNm", target = "txinvDlpnrPsicNm")
+    @Mapping(source = "txinvCphonLocaraTno", target = "txinvCralLocaraTno")
+    @Mapping(source = "txinvCphonExnoEncr", target = "txinvMexnoEncr")
+    @Mapping(source = "txinvCphonIdvTno", target = "txinvCralIdvTno")
+    @Mapping(source = "rgstCost", target = "cntrAmt")
+    @Mapping(source = "rgstCostDsc", target = "cntramDscAmt")
+    WctiContractCreateDvo mapCreateRentalReqToWctiContractCreateDvo(CreateRentalReq dto);
+
 }

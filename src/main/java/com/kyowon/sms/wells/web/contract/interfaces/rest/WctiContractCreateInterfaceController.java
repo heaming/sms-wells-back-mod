@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateKmembersReq;
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateKmembersRes;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateRentalReq;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateRentalRes;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateSinglePaymentReq;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateSinglePaymentRes;
 import com.kyowon.sms.wells.web.contract.interfaces.service.WctiContractCreateService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.system.config.annotation.InterfaceController;
@@ -27,18 +29,37 @@ public class WctiContractCreateInterfaceController {
 
     private final WctiContractCreateService service;
 
-    @ApiOperation(value = "[EAI_WSSI1007] K멤버스 일시불 주문 등록", notes = "K멤버스 일시불 주문 등록")
-    @PostMapping("/kmembers")
-    public EaiWrapper createContractForKmembers(
+    @ApiOperation(value = "[EAI_WSSI1007] 일시불 주문 등록(K멤버스, 교원wells)", notes = "일시불 주문 등록(K멤버스, 교원wells)")
+    @PostMapping("/single-payment")
+    public EaiWrapper createContractForSinglePayment(
         @Valid
         @RequestBody
-        EaiWrapper<CreateKmembersReq> reqWrapper
+        EaiWrapper<CreateSinglePaymentReq> reqWrapper
     ) throws Exception {
         // Response용 EaiWrapper 생성
-        EaiWrapper<CreateKmembersRes> resWrapper = reqWrapper.newResInstance();
+        EaiWrapper<CreateSinglePaymentRes> resWrapper = reqWrapper.newResInstance();
 
         // 서비스 메소드 호출
-        CreateKmembersRes res = service.createContractForKmembers(reqWrapper.getBody());
+        CreateSinglePaymentRes res = service.createContractForSinglePayment(reqWrapper.getBody());
+
+        // Response Body 세팅
+        resWrapper.setBody(res);
+
+        return resWrapper;
+    }
+
+    @ApiOperation(value = "[EAI_WSSI1001] 렌탈 주문 등록(K멤버스, 교원wells)", notes = "렌탈 주문 등록(K멤버스, 교원wells)")
+    @PostMapping("/rental")
+    public EaiWrapper createContractForRental(
+        @Valid
+        @RequestBody
+        EaiWrapper<CreateRentalReq> reqWrapper
+    ) throws Exception {
+        // Response용 EaiWrapper 생성
+        EaiWrapper<CreateRentalRes> resWrapper = reqWrapper.newResInstance();
+
+        // 서비스 메소드 호출
+        CreateRentalRes res = service.createContractForRental(reqWrapper.getBody());
 
         // Response Body 세팅
         resWrapper.setBody(res);

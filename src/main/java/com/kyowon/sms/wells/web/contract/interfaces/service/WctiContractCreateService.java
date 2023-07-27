@@ -11,12 +11,15 @@ import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrDetailChangeHistDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzCntrPrccchHistDvo;
 import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.interfaces.converter.WctiContractCreateConverter;
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateKmembersReq;
-import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateKmembersRes;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateRentalReq;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateRentalRes;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateSinglePaymentReq;
+import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateSinglePaymentRes;
 import com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractCreateDvo;
 import com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractProductDvo;
 import com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiContractCreateMapper;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
@@ -34,25 +37,50 @@ public class WctiContractCreateService {
 
     private final SujiewonService sujiewonService;
 
-    public CreateKmembersRes createContractForKmembers(CreateKmembersReq dto) throws Exception {
-        WctiContractCreateDvo contract = converter.mapCreateKmembersReqToWctiContractCreateDvo(
+    public CreateSinglePaymentRes createContractForSinglePayment(CreateSinglePaymentReq dto) throws Exception {
+        WctiContractCreateDvo contract = converter.mapCreateSinglePaymentReqToWctiContractCreateDvo(
             dto
         );
+
+        WctiContractProductDvo product = mapper.selectContractProduct(
+            contract.getBasePdCd(), contract.getSellInflwChnlDtlCd()
+        ).orElseThrow(() -> new BizException(String.format("등록된 상품코드(=%s)가 아닙니다.", contract.getBasePdCd())));
 
         // 1. validation
         checkCustomerNumberValidation(contract);
 
         // 2. 계약초기데이터 세팅
         setContractDefaultData(contract);
-        contract.setSellInflwChnlDtlCd("2010"); // KMEMBERS
 
         // 3. 고객정보동의생성
-        createCustomerAggrement(contract, "04");
+        createCustomerAggrement(contract);
 
         // 4. 계약생성
-        createContract(contract);
+        createContract(contract, product);
 
-        return new CreateKmembersRes("S", "계약생성에 성공했습니다.", "");
+        return new CreateSinglePaymentRes("S", "계약생성에 성공했습니다.", "");
+    }
+
+    public CreateRentalRes createContractForRental(CreateRentalReq dto) throws Exception {
+        WctiContractCreateDvo contract = converter.mapCreateRentalReqToWctiContractCreateDvo(dto);
+
+        WctiContractProductDvo product = mapper.selectContractProduct(
+            contract.getBasePdCd(), contract.getSellInflwChnlDtlCd()
+        ).orElseThrow(() -> new BizException(String.format("등록된 상품코드(=%s)가 아닙니다.", contract.getBasePdCd())));
+
+        // 1. validation
+        checkCustomerNumberValidation(contract);
+
+        // 2. 계약초기데이터 세팅
+        setContractDefaultData(contract);
+
+        // 3. 고객정보동의생성
+        createCustomerAggrement(contract);
+
+        // 4. 계약생성
+        createContract(contract, product);
+
+        return new CreateRentalRes("", "S", "계약생성에 성공했습니다.", "");
     }
 
     private void checkCustomerNumberValidation(WctiContractCreateDvo contract) {
@@ -78,20 +106,24 @@ public class WctiContractCreateService {
         contract.setRveDvCd("01"); // 계약(청약)금(01)
     }
 
-    private void createCustomerAggrement(WctiContractCreateDvo contract, String cstAgChnlDvCd) {
+    private void createCustomerAggrement(WctiContractCreateDvo contract) {
         String cstAgId = mapper.selectCustomerAggrementKey();
+
+        // 판매채널 : kmembers(2010), 교원웰스(2050)
+        // 동의채널 : kmembers(04), 홈페이지(02)
+        String cstAgChnlDvCd = StringUtil.decode(contract.getSellInflwChnlDtlCd(), "2010", "04", "2050", "02");
 
         mapper.insertCustomerAgreement(cstAgId, contract.getCntrCstNo(), cstAgChnlDvCd);
 
         String pdCd = contract.getBasePdCd();
         String nowDay = DateUtil.getNowDayString();
 
-        // (계약) 개인정보3자제공동의
-        String agStatCd = "Y".equals(contract.getPifThpOfrAgYn()) ? "01" : "02";
+        // (계약) 개인정보 수집 및 이용 동의
+        String agStatCd = "Y".equals(contract.getPifClcnUAgYn()) ? "01" : "02";
         mapper.insertCustomerAgreementDetail(cstAgId, "111", pdCd, agStatCd, nowDay);
 
         // (계약) 개인정보 제3자 제공 동의
-        agStatCd = "Y".equals(contract.getThpAgYn()) ? "01" : "02";
+        agStatCd = "Y".equals(contract.getPifThpOfrAgYn()) ? "01" : "02";
         mapper.insertCustomerAgreementDetail(cstAgId, "112", pdCd, agStatCd, nowDay);
 
         // (계약) 마케팅 목적 수집 이용 및 광고성 정보 수신 동의
@@ -107,7 +139,7 @@ public class WctiContractCreateService {
         mapper.insertCustomerAgreementDetail(cstAgId, "115", pdCd, agStatCd, nowDay);
     }
 
-    private void createContract(WctiContractCreateDvo contract) throws Exception {
+    private void createContract(WctiContractCreateDvo contract, WctiContractProductDvo product) throws Exception {
         // 계약기본
         mapper.insertContractBase(contract);
         // 계약기본이력
@@ -118,11 +150,7 @@ public class WctiContractCreateService {
         );
 
         // 계약상세
-        WctiContractProductDvo contractProduct = mapper.selectContractProduct(
-            contract.getBasePdCd(), contract.getSellInflwChnlDtlCd()
-        ).orElseThrow(() -> new BizException(String.format("등록된 상품코드(=%s)가 아닙니다.", contract.getBasePdCd())));
-
-        mapper.insertContractDetail(contract, contractProduct);
+        mapper.insertContractDetail(contract, product);
         // 계약상세이력
         historyService.createContractDetailChangeHistory(
             WctzCntrDetailChangeHistDvo.builder()
@@ -132,7 +160,7 @@ public class WctiContractCreateService {
         );
 
         // 계약가격산출내역(TB_SSCT_CNTR_PRC_CMPT_IZ)
-        mapper.insertContractPrice(contract, contractProduct);
+        mapper.insertContractPrice(contract, product);
         // 계약가격산출변경이력
         historyService.createCntrPrccchHistory(
             WctzCntrPrccchHistDvo.builder()
@@ -142,17 +170,23 @@ public class WctiContractCreateService {
         );
 
         // 계약고객관계(계약자)
-        mapper.insertContractCustomerRelation(contract, contract.getCntrCstNo(), "10");
+        mapper.insertContractCustomerRelation(contract, contract.getCntrCstNo());
 
         // 계약/설치 주소 저장
         if (isValidAddress(contract.getCntrtBasAdr(), contract.getCntrtDtlAdr())) {
-            contract.setCntrtAdrId(getAdrId(contract.getCntrtBasAdr(), contract.getCntrtDtlAdr()));
+            contract.setCntrtAdrId(
+                getAdrId(
+                    contract.getCntrtBasAdr(), contract.getCntrtDtlAdr(), contract.getCntrtAdrDvCd()
+                )
+            );
             mapper.insertContractAddressForContract(contract);
+            mapper.insertContractAddressRelation(contract, "1");
         }
 
         if (isValidAddress(contract.getIstBasAdr(), contract.getIstDtlAdr())) {
-            contract.setIstAdrId(getAdrId(contract.getIstBasAdr(), contract.getIstDtlAdr()));
+            contract.setIstAdrId(getAdrId(contract.getIstBasAdr(), contract.getIstDtlAdr(), contract.getIstAdrDvCd()));
             mapper.insertContractAddressForInstall(contract);
+            mapper.insertContractAddressRelation(contract, "3");
         }
 
         // 결제정보 저장
@@ -173,18 +207,33 @@ public class WctiContractCreateService {
 
         // 웰스계약상세 저장
         mapper.insertContractWellsDetail(contract);
+
+        // 세금계산서발행요청
+        if ("Y".equals(contract.getTxinvPblOjYn())) {
+            contract.setTxinvPdDvCd(StringUtil.decode(product.getSellTpCd(), "1", "21", "2", "23", "3", "25"));
+            mapper.insertTaxInvoiceReceipt(contract);
+        }
+
+        // 기기변경
+        if ("Y".equals(contract.getMchnChYn())) {
+            mapper.insertMachineChange(contract);
+        }
     }
 
     private boolean isValidAddress(String basAdr, String dtlAdr) {
         return StringUtils.isNotEmpty(basAdr) && StringUtils.isNotEmpty(dtlAdr);
     }
 
-    private String getAdrId(String baseAdr, String dtlAdr) throws Exception {
-        // 1. 수지원넷 주소정제
+    private String getAdrId(String baseAdr, String dtlAdr, String adrDvCd) throws Exception {
+        String addressType = "2".equals(adrDvCd) ? CmSujiewonConst.FORMAT_TYPE_LOT_NUMBER
+            : CmSujiewonConst.FORMAT_TYPE_ROAD_ADDRESS;
+
+        // 수지원넷 주소정제
         FormatAddressDvo formatAddress = sujiewonService.getFormattedAddress(
-            baseAdr + " " + dtlAdr, CmSujiewonConst.FORMAT_TYPE_ROAD_ADDRESS
+            baseAdr + " " + dtlAdr, addressType
         );
 
         return formatAddress.getAdrId();
     }
+
 }
