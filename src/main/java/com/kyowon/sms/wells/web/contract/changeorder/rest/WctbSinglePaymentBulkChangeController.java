@@ -3,6 +3,7 @@ package com.kyowon.sms.wells.web.contract.changeorder.rest;
 import java.text.ParseException;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
@@ -38,10 +39,13 @@ public class WctbSinglePaymentBulkChangeController {
     @GetMapping("/SinglePayment-bulk-changes")
     public List<SearchRes> getSinglePaymentBulkChangs(
         @RequestParam
+        @Nullable
         String cntrNo,
         @RequestParam
+        @Nullable
         String cntrSn,
         @RequestParam
+        @Nullable
         String rfDt
     ) {
         return service.getSinglePaymentBulkChangs(cntrNo, cntrSn, rfDt);
