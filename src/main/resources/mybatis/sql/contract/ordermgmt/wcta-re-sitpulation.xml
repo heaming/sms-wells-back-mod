@@ -68,7 +68,7 @@
                           WHERE DTA_DL_YN = 'N'
                             AND CNTR_NO = T_CNTR_DTL.CNTR_NO
                             AND CNTR_SN = T_CNTR_DTL.CNTR_SN
-                            AND RSTL_STAT_CD = '010')
+                            AND RSTL_STAT_CD IN ('010', '020'))
         <if test="@MybatisUtils@isNotEmpty(cstKnm)"><trim>
          AND T_CNTR_CST_BAS.CST_KNM = #{cstKnm}
         </trim></if>
