@@ -154,7 +154,10 @@ public class WctaContractDtlDvo {
     private Integer recapMshPtrm; /* 유상멤버십기간 */
     private String sodbtNftfCntrYn; /* 총판 비대면 계약여부 */
 
-    private Long pdAmt; /* 결제정보 Type A, B 상품금액(신용카드) */
+    private Long cntrAmtCrd; /* 일시불 계약금(카드) */
+    private Long cntrAmtVac; /* 일시불 계약금(가상계좌)  */
+
+    private Long pdAmt; /* 결제정보 Type A, B 일시불  */
     private String dpTpCdMsh; /* 결제정보 Type A 멤버십 자동이체 방식 */
     private Long mshAmt; /* 결제정보 Type A 멤버십 금액 */
 

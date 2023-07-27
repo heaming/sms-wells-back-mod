@@ -85,6 +85,10 @@ public class WctaContractRegStep3Service {
                         && price.getRecapMshPtrm() > 0) {
                         dtl.setRecapMshPtrm(price.getRecapMshPtrm());
                     }
+                    // 일시불인 경우 초기값 계약금 카드 100%, 가상계좌 0원 세팅
+                    dtl.setCntrAmt(dtl.getSellAmt());
+                    dtl.setCntrAmtCrd(dtl.getSellAmt());
+                    dtl.setCntrAmtVac(0l);
                 }
             });
         } else {
@@ -142,10 +146,17 @@ public class WctaContractRegStep3Service {
                     dtl.setDpTpCdMsh(msh.getDpTpCd());
                     dtl.setMshAmt(msh.getStlmAmt());
                 }
-                dtl.setPdAmt(
+                dtl.setCntrAmtCrd(
                     stlmRels.stream()
                         .filter(
-                            (stlmRel) -> stlmRel.getRveDvCd().equals("03") && stlmRel.getDpTpCd().equals("0201")
+                            (stlmRel) -> stlmRel.getRveDvCd().equals("01") && stlmRel.getDpTpCd().equals("0201")
+                        ).findFirst()
+                        .orElse(new WctaContractStlmRelDvo()).getStlmAmt()
+                );
+                dtl.setCntrAmtVac(
+                    stlmRels.stream()
+                        .filter(
+                            (stlmRel) -> stlmRel.getRveDvCd().equals("01") && stlmRel.getDpTpCd().equals("0101")
                         ).findFirst()
                         .orElse(new WctaContractStlmRelDvo()).getStlmAmt()
                 );
@@ -156,11 +167,11 @@ public class WctaContractRegStep3Service {
                         .filter((stlmRel) -> stlmRel.getRveDvCd().equals(regService.getRveDvCd(sellTpCd)))
                         .findFirst().orElse(new WctaContractStlmRelDvo()).getDpTpCd()
                 );
+                dtl.setDpTpCdIdrv(
+                    stlmRels.stream().filter((stlmRel) -> stlmRel.getRveDvCd().equals("01")).findFirst()
+                        .orElse(new WctaContractStlmRelDvo()).getDpTpCd()
+                );
             }
-            dtl.setDpTpCdIdrv(
-                stlmRels.stream().filter((stlmRel) -> stlmRel.getRveDvCd().equals("01")).findFirst()
-                    .orElse(new WctaContractStlmRelDvo()).getDpTpCd()
-            );
 
             // 총판 비대면 계약여부(고객결제입력방법코드 30)
             if (Objects.isNull(bas.getCstStlmInMthCd())) {
@@ -289,26 +300,26 @@ public class WctaContractRegStep3Service {
 
             // 총판비대면 계약여부 Y가 아니라면 금액 저장
             if (!"Y".equals(bDtl.getSodbtNftfCntrYn())) {
-                Long cntrAmt = bDtl.getCntrAmt();
                 if (CtContractConst.SELL_TP_CD_SPAY.equals(bDtl.getSellTpCd())) {
+                    Long cntrAmtCrd = bDtl.getCntrAmtCrd();
                     // 일시불일 때
-                    // 계약금, 01, 0101
-                    if (!Objects.isNull(cntrAmt) && 0l < cntrAmt) {
-                        createStlmInfo(
-                            now, cntrNo, stlmBasMap, cntrSn, cntrAmt, bDtl.getDpTpCdIdrv(), "01", bas.getCntrCstNo()
-                        );
+                    // 계약금(카드)
+                    if (!Objects.isNull(cntrAmtCrd) && 0l < cntrAmtCrd) {
+                        createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, cntrAmtCrd, "0201", "01", bas.getCntrCstNo());
                     }
-                    Long pdAmt = bDtl.getPdAmt(); // 상품금액, 01, 0201
-                    if (!Objects.isNull(pdAmt) && 0l < pdAmt) {
-                        createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, pdAmt, "0201", "03", bas.getCntrCstNo());
+                    Long cntrAmtVac = bDtl.getCntrAmtVac();
+                    // 계약금(가상계좌)
+                    if (!Objects.isNull(cntrAmtVac) && 0l < cntrAmtVac) {
+                        createStlmInfo(now, cntrNo, stlmBasMap, cntrSn, cntrAmtVac, "0101", "01", bas.getCntrCstNo());
                     }
                     Long mshAmt = bDtl.getMshAmt(); // 04, 0203 || 0102
                     if (!Objects.isNull(mshAmt) && 0l < mshAmt) {
                         createStlmInfo(
-                            now, cntrNo, stlmBasMap, cntrSn, pdAmt, bDtl.getDpTpCdMsh(), "04", bas.getCntrCstNo()
+                            now, cntrNo, stlmBasMap, cntrSn, mshAmt, bDtl.getDpTpCdMsh(), "04", bas.getCntrCstNo()
                         );
                     }
                 } else {
+                    Long cntrAmt = bDtl.getCntrAmt();
                     // 그 외(일괄적용 케이스 반영)
                     // 등록비
                     if (!Objects.isNull(cntrAmt) && 0l < cntrAmt) {
