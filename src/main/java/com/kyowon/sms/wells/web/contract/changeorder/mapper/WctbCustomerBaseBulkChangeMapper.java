@@ -38,7 +38,8 @@ public interface WctbCustomerBaseBulkChangeMapper {
 
     int insertContractBaseHist(WctbCustomerBaseBulkChangeDvo dvo);
 
-    int insertContractStlmRel(WctbCustomerBaseBulkChangeDvo dvo);
+    int insertContractStlmRel(@Param("item")
+    WctbCustomerBaseBulkChangeDvo dvo);
 
     int insertContractStlHist(WctbCustomerBaseBulkChangeDvo dvo);
 
@@ -48,8 +49,7 @@ public interface WctbCustomerBaseBulkChangeMapper {
 
     int updateContractBase(WctbCustomerBaseBulkChangeDvo dvo);
 
-    int updateContractStlmRel(@Param("item")
-    WctbCustomerBaseBulkChangeDvo dvo);
+    int updateContractStlmRel(WctbCustomerBaseBulkChangeDvo dvo);
 
     int updateContractStlmBas(WctbCustomerBaseBulkChangeDvo dvo);
 

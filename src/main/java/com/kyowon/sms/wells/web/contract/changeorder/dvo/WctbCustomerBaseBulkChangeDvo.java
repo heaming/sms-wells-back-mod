@@ -91,6 +91,7 @@ public class WctbCustomerBaseBulkChangeDvo {
     private String sellInflwChnlDtlCd; /* 판매유입채널상세코드 */
     private String ogTpCd; /* 판매조직유형코드 */
     private String fntDvCd; /* 이체구분 */
+    private String cntrStlmRelId /* 계약결제관계ID*/;
 
     @Getter
     @Setter

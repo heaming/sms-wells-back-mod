@@ -182,7 +182,10 @@ public class WctbCustomerBaseBulkChangeService {
                     );
                     if (List.of("S", "G").contains(fntDvCd)) {
                         BizAssert
-                            .isFalse("301".equals(aftnInfFntDvCd), "고객요청해약 처리된 계약입니다.(" + cntrNo + "-" + cntrSn + ")");
+                            .isFalse(
+                                !"2".equals(contractDvo.getCopnDvCd()),
+                                "가상계좌,지로는 법인고객만 등록 가능합니다.(" + cntrNo + "-" + cntrSn + ")"
+                            );
                         BizAssert.isFalse(
                             "G".equals(fntDvCd) && !"2".equals(sellTpCd),
                             "지로변경은 렌탈주문만 가능합니다.(" + cntrNo + "-" + cntrSn + ")"
@@ -212,12 +215,13 @@ public class WctbCustomerBaseBulkChangeService {
 
                     if (List.of("N", "B").contains(fntDvCd)) { // 이체구분(atmtTranDiv)- S:가상계좌, G:지로, N:보류, B:보류
 
+                        String paramStlmHdDvCd = "N".equals(fntDvCd) ? "N" : "";
+                        dvo.setStlmHdDvCd(paramStlmHdDvCd);
+
                         int relRes = mapper.updateContractStlmRel(dvo);
                         BizAssert.isFalse(relRes <= 0, "MSG_ALT_SVE_ERR");
                         relRes = mapper.insertContractStlmRel(dvo);
                         BizAssert.isFalse(relRes <= 0, "MSG_ALT_SVE_ERR");
-
-                        String stlmHdDvCd = dvo.getStlmHdDvCd();
 
                         /* 계약변경접수기본 설정 */
                         dvo.setCntrChRcpDtm(fstRgstDtm); /* 계약변경접수일자 */
@@ -238,7 +242,7 @@ public class WctbCustomerBaseBulkChangeService {
 
                         /* 계약변경접수상세 설정 */
 
-                        String cntrChAkCn = String.format("결제보류구분코드: %s", stlmHdDvCd);
+                        String cntrChAkCn = String.format("결제보류구분코드: %s", paramStlmHdDvCd);
                         String bfchCn = String.format("결제보류구분코드: %s", bfrStlmHdDvCd);
 
                         dvo.setCntrUnitTpCd("020"); /* 계약단위유형코드 */
@@ -259,6 +263,7 @@ public class WctbCustomerBaseBulkChangeService {
                         BizAssert.isFalse(changeDtlRes <= 0, "MSG_ALT_SVE_ERR");
                         changeDtlRes = mapper.insertContractChangeRcpDtlHist(dvo);
                         BizAssert.isFalse(changeDtlRes <= 0, "MSG_ALT_SVE_ERR");
+                        processCount += relRes;
 
                     } else if (List.of("S", "G").contains(fntDvCd)) {
 
@@ -266,7 +271,13 @@ public class WctbCustomerBaseBulkChangeService {
                         BizAssert.isFalse(stlmRes <= 0, "MSG_ALT_SVE_ERR");
 
                         stlmRes = mapper.updateContractStlHist(dvo);
+                        //                        BizAssert.isFalse(stlmRes <= 0, "MSG_ALT_SVE_ERR");
+
+                        stlmRes = mapper.insertContractStlHist(dvo);
                         BizAssert.isFalse(stlmRes <= 0, "MSG_ALT_SVE_ERR");
+
+                        String paramDpTpCd = "S".equals(fntDvCd) ? "0101" : "0401";
+                        dvo.setDpTpCd(paramDpTpCd);
 
                         int relRes = mapper.updateContractStlmRel(dvo);
                         BizAssert.isFalse(relRes <= 0, "MSG_ALT_SVE_ERR");
@@ -290,8 +301,7 @@ public class WctbCustomerBaseBulkChangeService {
                         changeRes = mapper.insertContractChangeRcpBaseHist(dvo);
                         BizAssert.isFalse(changeRes <= 0, "MSG_ALT_SVE_ERR");
 
-                        String dpTpCd = dvo.getDpTpCd();
-                        String cntrChAkCn = String.format("입금유형코드: %s", dpTpCd);
+                        String cntrChAkCn = String.format("입금유형코드: %s", paramDpTpCd);
                         String bfchCn = String.format("입금유형코드: %s", bfrDpTpCd);
 
                         /* 계약변경접수상세 설정 */
@@ -313,6 +323,8 @@ public class WctbCustomerBaseBulkChangeService {
                         BizAssert.isFalse(changeDtlRes <= 0, "MSG_ALT_SVE_ERR");
                         changeDtlRes = mapper.insertContractChangeRcpDtlHist(dvo);
                         BizAssert.isFalse(changeDtlRes <= 0, "MSG_ALT_SVE_ERR");
+                        processCount += stlmRes;
+                        System.out.println("processCount: " + processCount);
                     }
                     break;
                 }
