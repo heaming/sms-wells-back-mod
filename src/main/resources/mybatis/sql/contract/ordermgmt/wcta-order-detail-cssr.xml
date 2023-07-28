@@ -5,7 +5,7 @@
         SELECT T1.CSSR_IS_DV_CD    /* 현금영수증발급구분코드 */
              , T1.CSSR_IS_NO_ENCR AS CSSR_IS_NO       /* 현금영수증발급번호 */
              , T1.KW_GRP_CO_CD /* 교원그룹회사코드 */
-             ,  F_CMZ_CD_NM('TNT_EDU', 'CSSR_IS_DV_CD', A.CSSR_IS_DV_CD) AS CSSR_IS_DV_NM /* 현금영수증발급구분명 */
+             ,  F_CMZ_CD_NM(#{session.tenantId}, 'CSSR_IS_DV_CD', T1.CSSR_IS_DV_CD) AS CSSR_IS_DV_NM /* 현금영수증발급구분명 */
              , T1.CST_NO /* 고객번호 */
              , T1.CNTR_NO
              , T1.CNTR_SN
