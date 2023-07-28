@@ -9,7 +9,11 @@ import com.kyowon.sms.wells.web.contract.changeorder.dvo.WctbRentalBulkChangeDvo
 
 @Mapper(componentModel = "spring")
 public interface WctbRentalBulkChangeConverter {
-List<WctbRentalBulkChangeDto.SearchRes> mapAllRentalBulkChangeDvoToSearchRes(
+    List<WctbRentalBulkChangeDto.SearchRes> mapAllRentalBulkChangeDvoToSearchRes(
         List<WctbRentalBulkChangeDvo> dvos
+    );
+
+    WctbRentalBulkChangeDvo mapSaveListReqToWctbRentalBulkChangeDvo(
+        WctbRentalBulkChangeDto.SaveListReq dto
     );
 }

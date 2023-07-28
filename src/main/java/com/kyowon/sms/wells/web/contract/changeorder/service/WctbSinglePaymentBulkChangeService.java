@@ -91,12 +91,12 @@ public class WctbSinglePaymentBulkChangeService {
                 // 계약WELLS상세.보상일자(CPS_DT) = 입력일자
                 dvo.setCompD(saveStatusDto.compD());
                 res = mapper.updateCntrWellsDtlCpsDt(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                 // 계약WELLS상세변경이력 생성
                 res = mapper.updateCntrWellsDchHist(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                 res = mapper.insertCntrWellsDchHist(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
             } else if ("702".equals(saveStatusDto.procsDv())) { // 취소일자변경
                 // 조회데이타에 보상일자가 있으면 보상완료고객으로 수정불가
                 BizAssert.isTrue(
@@ -119,12 +119,12 @@ public class WctbSinglePaymentBulkChangeService {
                 //취소일자(계약상세.계약상품종료일자)=입력취소일자
                 dvo.setCancDt(saveStatusDto.cancDt());
                 res = mapper.updateCntrDtlCanDtCh(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                 //계약상세 이력생성
                 res = mapper.updateCntrDchHist(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                 res = mapper.insertCntrDchHist(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
 
                 // TODO : 실적체크해서 실적정보가 있으면 실적업데이트
             } else if ("703".equals(saveStatusDto.procsDv())) { // 컨택정보변경
@@ -167,54 +167,54 @@ public class WctbSinglePaymentBulkChangeService {
                         // 컨택기본.컨택예정일자 입력일자로 업데이트
                         dvo.setDuedt(saveStatusDto.duedt());
                         res = mapper.updateCttBasCttCdCh(dvo);
-                        BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                        BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                         //컨택변경이력 생성
                         res = mapper.updateCttChHist(dvo);
-                        BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                        BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                         res = mapper.insertCttChHist(dvo);
-                        BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                        BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                     } else if ("Y".equals(saveStatusDto.duedtDel())) { // 예약일삭제='Y' 이면
                         // 컨택기본.컨택예정일자 NULL로 업데이트
                         dvo.setDuedt(null);
                         res = mapper.updateCttBasCttCdCh(dvo);
-                        BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                        BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                         //컨택변경이력 생성
                         res = mapper.updateCttChHist(dvo);
-                        BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                        BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                         res = mapper.insertCttChHist(dvo);
-                        BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                        BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
 
                         // 계약상세.컨택대상ID = NULL
                         res = mapper.updateCntrDtlCttCdCh(dvo);
-                        BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                        BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
 
                         //계약상세 이력생성
                         res = mapper.updateCntrDchHist(dvo);
-                        BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                        BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                         res = mapper.insertCntrDchHist(dvo);
-                        BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                        BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                     }
                 } else if (StringUtils.isEmpty(saveStatusDto.duedt())) { // (입력)예정일이 없으면
                     if ("Y".equals(saveStatusDto.duedtDel())) { // 예약일삭제='Y' 이면
                         //컨택기본.컨택예정일자(CTT_DUEDT) NULL로 업데이트
                         dvo.setDuedt(null);
                         res = mapper.updateCttBasCttCdCh(dvo);
-                        BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                        BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                         //컨택변경이력 생성
                         res = mapper.updateCttChHist(dvo);
-                        BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                        BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                         res = mapper.insertCttChHist(dvo);
-                        BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                        BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
 
                         // 계약상세.컨택대상ID = NULL
                         res = mapper.updateCntrDtlCttCdCh(dvo);
-                        BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                        BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
 
                         //계약상세 이력생성
                         res = mapper.updateCntrDchHist(dvo);
-                        BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                        BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                         res = mapper.insertCntrDchHist(dvo);
-                        BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                        BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                     }
                 }
             } else if ("704".equals(saveStatusDto.procsDv())) { // 이체정보변경
@@ -227,13 +227,13 @@ public class WctbSinglePaymentBulkChangeService {
                 dvo.setRecogRt(saveStatusDto.recogRt()); // 인정율
                 dvo.setPdStdFee(saveStatusDto.pdStdFee()); // 기준수수료
                 res = mapper.updateCntrDtlRecogAmtInfCh(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
 
                 //계약상세 이력생성
                 res = mapper.updateCntrDchHist(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                 res = mapper.insertCntrDchHist(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
             } else if ("706".equals(saveStatusDto.procsDv())) { // 무상멤버십/AS정보 변경
                 //계약WELLS상세.행사코드(SELL_EV_CD) = 'F' 체크해서 아니면 수정불가(F:국고보조대상상품)
                 BizAssert.isTrue(
@@ -254,13 +254,13 @@ public class WctbSinglePaymentBulkChangeService {
                     dvo.setFrisuMsh(saveStatusDto.frisuMsh());
                     dvo.setFrisuAs(saveStatusDto.frisuAs());
                     res = mapper.updateCntrWellsDtlFreeAsBsInfCh(dvo);
-                    BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                    BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
 
                     // 계약WELLS상세변경이력 생성
                     res = mapper.updateCntrWellsDchHist(dvo);
-                    BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                    BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                     res = mapper.insertCntrWellsDchHist(dvo);
-                    BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                    BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                 }
             } else if ("707".equals(saveStatusDto.procsDv())) { // 행사코드 변경
                 //계약WELLS상세.행사코드(SELL_EV_CD) = 'F' 이면(F:국고보조대상상품)
@@ -281,13 +281,13 @@ public class WctbSinglePaymentBulkChangeService {
                 //그외는 행사코드 업데이트
                 dvo.setEvCd(saveStatusDto.evCd());
                 res = mapper.updateCntrWellsDtlEvCdCh(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
 
                 // 계약WELLS상세변경이력 생성
                 res = mapper.updateCntrWellsDchHist(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                 res = mapper.insertCntrWellsDchHist(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
             } else if ("708".equals(saveStatusDto.procsDv())) { // 설치 취소
                 //계약WELLS상세.설치일자(IST_DT)가 없으면 수정불가
                 BizAssert.isTrue(
@@ -305,13 +305,13 @@ public class WctbSinglePaymentBulkChangeService {
 
                 //계약WELLS상세 설치일자 제거
                 res = mapper.updateCntrWellsDtlIstCan(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
 
                 // 계약WELLS상세변경이력 생성
                 res = mapper.updateCntrWellsDchHist(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                 res = mapper.insertCntrWellsDchHist(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
 
                 //설치취소(8)일때 출고정보 삭제(TODO : 웰스는 배송정보 삭제하기위해 삭제서비스호출 형태로 )
             } else if ("709".equals(saveStatusDto.procsDv())) { // 접수일변경
@@ -337,12 +337,12 @@ public class WctbSinglePaymentBulkChangeService {
                 //계약일자(계약상품시작일자:CNTR_PD_STRTDT)에 입력일자 저장
                 dvo.setRcpDtChDuedt(saveStatusDto.rcpDtChDuedt());
                 res = mapper.updateCntrDtlRcpdtCh(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                 //계약상세 이력생성
                 res = mapper.updateCntrDchHist(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                 res = mapper.insertCntrDchHist(dvo);
-                BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
 
                 //TODO : 할부계약이 있으면 할부정보 변경 확인필요!!
             } else if ("710".equals(saveStatusDto.procsDv())) { // 법인미수입금대상설정
@@ -363,13 +363,13 @@ public class WctbSinglePaymentBulkChangeService {
                     // 계약WELLS상세.BS업체구분코드(BFSVC_BZS_DV_CD) = 입력값
                     // 계약WELLS상세.조달업체구분코드(SPLY_BZS_DV_CD) = 입력값
                     res = mapper.updateCntrWellsDtlBsCh(dvo);
-                    BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                    BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
 
                     // 계약WELLS상세변경이력 생성
                     res = mapper.updateCntrWellsDchHist(dvo);
-                    BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                    BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                     res = mapper.insertCntrWellsDchHist(dvo);
-                    BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+                    BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
                 }
 
             }
@@ -400,19 +400,19 @@ public class WctbSinglePaymentBulkChangeService {
 
             //계약변경접수기본 생성
             res = mapper.insertCntrChRcpBas(dvo);
-            BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+            BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
 
             // 계약변경접수변경이력 생성
             res = mapper.insertCntrChRcchHist(dvo);
-            BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+            BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
 
             //계약변경접수상세 생성
             res = mapper.insertCntrChRcpDtl(dvo);
-            BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+            BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
 
             // 계약변경접수상세변경이력 생성
             res = mapper.insertCntrChRcpDchHist(dvo);
-            BizAssert.isTrue(res == 1, "MSG_ALT_APR_CAN_ERR");
+            BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
         }
         return res;
     }
