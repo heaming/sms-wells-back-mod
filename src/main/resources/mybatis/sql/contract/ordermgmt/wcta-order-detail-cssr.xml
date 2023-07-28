@@ -1,25 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaOrderDetailCssrMapper">
-    <select id="selectContractBaseInformation" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailCssrDto$FindBaseRcpRes">
+    <select id="selectContractBaseInformation" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailCssrDvo">
         SELECT T1.CSSR_IS_DV_CD    /* 현금영수증발급구분코드 */
-             , T1.CSSR_IS_NO       /* 현금영수증발급번호 */
+             , T1.CSSR_IS_NO_ENCR AS CSSR_IS_NO       /* 현금영수증발급번호 */
              , T1.KW_GRP_CO_CD /* 교원그룹회사코드 */
+             ,  F_CMZ_CD_NM('TNT_EDU', 'CSSR_IS_DV_CD', A.CSSR_IS_DV_CD) AS CSSR_IS_DV_NM /* 현금영수증발급구분명 */
              , T1.CST_NO /* 고객번호 */
              , T1.CNTR_NO
              , T1.CNTR_SN
              , (SELECT CH_RSON_CN
-                 FROM (SELECT CNTR_NO
-                            , CNTR_SN
-                            , CST_NO
-                            , CH_RSON_CN
-                            , ROW_NUMBER() OVER(ORDER BY CH_SN DESC) AS RN
-                         FROM TB_RVDW_CSSR_IS_INF_BAS_HIST  /* 현금영수증발급정보기본이력 */
-                        WHERE 1=1
-                          AND KW_GRP_CO_CD = T1.KW_GRP_CO_CD
-                          AND CNTR_NO = T1.CNTR_NO
-                          AND CNTR_SN = T1.CNTR_SN
-                          AND CST_NO = T1.CST_NO
+                  FROM (SELECT CNTR_NO
+                             , CNTR_SN
+                             , CST_NO
+                             , CH_RSON_CN
+                             , ROW_NUMBER() OVER(ORDER BY CH_SN DESC) AS RN
+                          FROM TB_RVDW_CSSR_IS_INF_BAS_HIST  /* 현금영수증발급정보기본이력 */
+                         WHERE 1=1
+                           AND KW_GRP_CO_CD = T1.KW_GRP_CO_CD
+                           AND CNTR_NO = T1.CNTR_NO
+                           AND CNTR_SN = T1.CNTR_SN
+                           AND CST_NO = T1.CST_NO
                        )
                   WHERE RN = 1) AS CH_RSON_CN   /* 마지막 변경사유 */
           FROM TB_RVDW_CSSR_IS_INF_BAS  T1/* 현금영수증발급정보기본 */
@@ -54,7 +55,7 @@
            AND DTA_DL_YN = 'N'
     </select>
 
-    <select id="selectCashSalesReceipts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaOrderDetailCssrDto$SearchRcpRes">
+    <select id="selectCashSalesReceipts" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaOrderDetailCssrDvo">
         SELECT T1.RVE_DT /*수납일자*/
              , T4.PD_NM /*상품명*/
              , T1.CSSR_AGRG_SN
@@ -66,7 +67,7 @@
                       AS CSSR_IS_DV_CD
              , T5.CST_KNM /*고객명*/
              , T1.BFCH_CSSR_TRD_DV_CD /*변경전 공제구분*/
-             , T1.BFCH_CSSR_IS_NO /*변경전 발행번호*/
+             , T1.BFCH_CSSR_IS_NO_ENCR /*변경전 발행번호*/
              , T1.BFCH_CSSR_TRD_AMT /*변경전 승인금액*/
              , T1.BFCH_CSSR_APR_RS_CD /*승인결과*/
              , T1.FST_RGST_DTM /*등록일*/
@@ -78,7 +79,7 @@
              /*변경후*/
              , T1.AFCH_CSSR_IS_DV_CD /* 현금영수증발급구분코드 */
              , T1.AFCH_CSSR_TRD_DV_CD/*공제구분*/
-             , T1.AFCH_CSSR_IS_NO/*발행번호*/
+             , T1.AFCH_CSSR_IS_NO_ENCR/*발행번호*/
              , T1.AFCH_CSSR_TRD_AMT/*승인금액*/
              , T1.AFCH_CSSR_APRNO/*승인번호*/
              , T1.AFCH_CSSR_APR_RS_CD/*승인결과*/
@@ -126,7 +127,7 @@
             , CNTR_SN
             , CST_NO
             , CSSR_IS_DV_CD
-            , CSSR_IS_NO
+            , CSSR_IS_NO_ENCR
             , CSSR_TRD_DV_CD
             <include refid="COMMON.insertSystemField"/>
        ) VALUES (
@@ -149,10 +150,10 @@
            , CST_NO
            , CH_SN
            , BFCH_CSSR_IS_DV_CD
-           , BFCH_CSSR_IS_NO
+           , BFCH_CSSR_IS_NO_ENCR
            , BFCH_CSSR_TRD_DV_CD
            , CSSR_IS_DV_CD
-           , CSSR_IS_NO
+           , CSSR_IS_NO_ENCR
            , CSSR_TRD_DV_CD
            , CH_RSON_CN
            , DTA_DL_YN
@@ -192,7 +193,7 @@
                 , CSSR_IS_CH_SN /*현금영수증발급변경일련번호*/
 
                 , BFCH_CSSR_IS_DV_CD /*변경전현금영수증발급구분코드*/
-                , BFCH_CSSR_IS_NO /*변경전현금영수증발급번호*/
+                , BFCH_CSSR_IS_NO_ENCR /*변경전현금영수증발급번호*/
                 , BFCH_CSSR_TRD_AMT /*변경전현금영수증거래금액*/
                 , BFCH_CSSR_TRD_DV_CD /*변경전현금영수증거래구분코드*/
                 , BFCH_CSSR_APR_DT /*변경전현금영수증승인일자*/
@@ -201,7 +202,7 @@
                 , BFCH_CSSR_APR_RS_CD /*변경전현금영수증승인결과코드*/
 
                 , AFCH_CSSR_IS_DV_CD /*변경후현금영수증발급구분코드*/
-                , AFCH_CSSR_IS_NO /*변경후현금영수증발급번호*/
+                , AFCH_CSSR_IS_NO_ENCR /*변경후현금영수증발급번호*/
                 , AFCH_CSSR_TRD_DV_CD /*변경후현금영수증거래구분코드*/
                 , AFCH_CSSR_TRD_AMT /*변경후현금영수증거래금액*/
                 , AFCH_CSSR_APR_DT /*변경후현금영수증승인일자*/
@@ -260,7 +261,7 @@
     <update id="updateCashSalesReceiptApprovalPresentState">
        UPDATE TB_RVDW_CSSR_IS_INF_BAS
           SET CSSR_IS_DV_CD = #{afchCssrIsDvCd}
-            , CSSR_IS_NO = #{afchCssrIsNo}
+            , CSSR_IS_NO_ENCR = #{afchCssrIsNo}
             , CSSR_TRD_DV_CD = #{afchCssrTrdDvCd}
            <include refid="COMMON.updateSystemField"/>
         WHERE 1 = 1
@@ -275,7 +276,7 @@
     <update id="updateCashSalesReceiptRegistration">
         UPDATE TB_RVDW_CSSR_IS_OJ_DTL
            SET CSSR_IS_DV_CD = #{afchCssrIsDvCd} /*발급구분*/
-             , CSSR_IS_NO = #{afchCssrIsNo} /*발급번호*/
+             , CSSR_IS_NO_ENCR = #{afchCssrIsNo} /*발급번호*/
              , CSSR_TRD_DV_CD = #{afchCssrTrdDvCd} /*공제구분*/
              , CSSR_IS_CH_YN = 'Y' /*변경여부*/
              , CSSR_IS_CHDT =  TO_CHAR(SYSDATE,'YYYYMMDD') /*변경일자*/

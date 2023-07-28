@@ -21,11 +21,11 @@ public class WctaOrderDetailCssrService {
     private final WctaOrderDetailCssrConverter converter;
 
     public List<SearchRcpRes> getCashSalesReceipts(String cntrNo, String cntrSn) {
-        return mapper.selectCashSalesReceipts(cntrNo, cntrSn);
+        return converter.mapWctaOrderDetailCssrDvToSearchRes(mapper.selectCashSalesReceipts(cntrNo, cntrSn));
     }
 
     public FindBaseRcpRes getContractBaseInformation(FindBaseRcpReq dto) {
-        return mapper.selectContractBaseInformation(dto);
+        return converter.mapWctaOrderDetailCssrDvToFindRes(mapper.selectContractBaseInformation(dto));
     }
 
     @Transactional
