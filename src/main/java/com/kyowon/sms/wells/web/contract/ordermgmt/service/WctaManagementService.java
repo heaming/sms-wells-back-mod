@@ -241,6 +241,10 @@ public class WctaManagementService {
                 .mapWctaMastOrdrDtptDvoToSearchMastOrdrDtptRes(mapper.selectMastOrdrDtpt(cntrNo, cntrSn));
             //log.debug("cntrPrgsStatCd : {}", searchMastOrdrDtptList.get(0).cntrPrgsStatCd());
 
+            if (searchMastOrdrDtptList.size() == 0) {
+                throw new BizException("MSG_ALT_ORD_INF_NOT_CONF"); // 주문정보를 확인할 수 없습니다.
+            }
+
             //계약진행상태코드 확정인지 여부 체크
             if (!"60".equals(searchMastOrdrDtptList.get(0).cntrPrgsStatCd()) && !isPymnSkip) {
                 throw new BizException("MSG_ALT_NOT_CNFM_ORD_AND_NOTAK_FW_IMP"); // 확정되지 않은 주문은 알림톡 발송 불가 합니다.
