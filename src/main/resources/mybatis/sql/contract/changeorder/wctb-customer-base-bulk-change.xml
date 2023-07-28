@@ -931,6 +931,10 @@
     </insert>
 
     <insert id="insertContractStlmRel">
+        <selectKey resultType="java.lang.String" keyProperty="item.cntrStlmRelId" order="BEFORE">
+            SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_STLM_REL_ID)), 0) +1, 15, 0) AS CNTR_STLM_REL_ID
+              FROM TB_SSCT_CNTR_STLM_REL
+        </selectKey>
         INSERT INTO TB_SSCT_CNTR_STLM_REL (
                CNTR_STLM_REL_ID		/* 계약결제관계ID*/
              , VL_STRT_DTM			/* 유효시작일시*/
@@ -948,9 +952,9 @@
              , BF_CNTR_STLM_ID		/* 이전계약결제ID*/
              , DTA_DL_YN			/* 데이터삭제여부*/
              <include refid="COMMON.insertSystemField" />
-        ) SELECT CNTR_STLM_REL_ID	/* 계약결제관계ID*/
-               , #{histStrtDtm}	    /* 유효시작일시*/
-               , #{histEndDtm}	    /* 유효종료일시*/
+        ) SELECT #{item.cntrStlmRelId}	/* 계약결제관계ID*/
+               , #{item.histStrtDtm}	    /* 유효시작일시*/
+               , #{item.histEndDtm}	    /* 유효종료일시*/
                , CNTR_UNIT_TP_CD	/* 계약단위유형코드*/
                , CNTR_STLM_ID		/* 계약결제ID*/
                , CNTR_NO			/* 계약번호*/
@@ -963,19 +967,19 @@
                , STLM_HD_DV_CD		/* 결제보류구분코드*/
                , BF_CNTR_STLM_ID	/* 이전계약결제ID*/
                , 'N'				/* 데이터삭제여부*/
-               , #{fstRgstDtm}
-               , #{fstRgstUsrId}
-               , #{fstRgstPrgId}
-               , #{fstRgstDeptId}
-               , #{fnlMdfcDtm}
-               , #{fnlMdfcUsrId}
-               , #{fnlMdfcPrgId}
-               , #{fnlMdfcDeptId}
+               , #{item.fstRgstDtm}
+               , #{item.fstRgstUsrId}
+               , #{item.fstRgstPrgId}
+               , #{item.fstRgstDeptId}
+               , #{item.fnlMdfcDtm}
+               , #{item.fnlMdfcUsrId}
+               , #{item.fnlMdfcPrgId}
+               , #{item.fnlMdfcDeptId}
              FROM TB_SSCT_CNTR_STLM_REL
-            WHERE CNTR_STLM_ID = #{cntrStlmId}
-              AND VL_END_DTM   = #{histStrtDtm}
-              AND DTL_CNTR_NO  = #{cntrNo}
-              AND DTL_CNTR_SN  = #{cntrSn}
+            WHERE CNTR_STLM_ID = #{item.cntrStlmId}
+              AND VL_END_DTM   = #{item.histStrtDtm}
+              AND DTL_CNTR_NO  = #{item.cntrNo}
+              AND DTL_CNTR_SN  = #{item.cntrSn}
               AND DTA_DL_YN    = 'N'
     </insert>
 
