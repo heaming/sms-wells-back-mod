@@ -16,7 +16,7 @@ import com.sds.sflex.system.config.test.SpringTestSupport;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 
 class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
-    private final String BASE_URL = CtContractConst.INTERFACE_URL_V1 + "/contracts";
+    private final String BASE_URL = CtContractConst.INTERFACE_URL_V1;
 
     /*
         -- SAMPLE DATA 추출
@@ -106,7 +106,7 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
         EaiWrapper<CreateSinglePaymentReq> dto = new EaiWrapper(req);
 
         // when & then
-        MockHttpServletRequestBuilder request = post(BASE_URL + "/single-payment")
+        MockHttpServletRequestBuilder request = post(BASE_URL + "/create-singlepayment-contract")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(dto));
 
@@ -166,7 +166,7 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
         EaiWrapper<CreateSinglePaymentReq> dto = new EaiWrapper(req);
 
         // when & then
-        MockHttpServletRequestBuilder request = post(BASE_URL + "/rental")
+        MockHttpServletRequestBuilder request = post(BASE_URL + "/create-rental-contract")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(dto));
 

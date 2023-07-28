@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @InterfaceController
 @Api(tags = "[WCTI] 인터페이스 계약생성")
-@RequestMapping(value = CtContractConst.INTERFACE_URL_V1 + "/contracts")
+@RequestMapping(value = CtContractConst.INTERFACE_URL_V1)
 @RequiredArgsConstructor
 @Validated
 public class WctiContractCreateInterfaceController {
@@ -30,7 +30,7 @@ public class WctiContractCreateInterfaceController {
     private final WctiContractCreateService service;
 
     @ApiOperation(value = "[EAI_WSSI1007] 일시불 주문 등록(K멤버스, 교원wells)", notes = "일시불 주문 등록(K멤버스, 교원wells)")
-    @PostMapping("/single-payment")
+    @PostMapping("/create-singlepayment-contract")
     public EaiWrapper createContractForSinglePayment(
         @Valid
         @RequestBody
@@ -49,7 +49,7 @@ public class WctiContractCreateInterfaceController {
     }
 
     @ApiOperation(value = "[EAI_WSSI1001] 렌탈 주문 등록(K멤버스, 교원wells)", notes = "렌탈 주문 등록(K멤버스, 교원wells)")
-    @PostMapping("/rental")
+    @PostMapping("/create-rental-contract")
     public EaiWrapper createContractForRental(
         @Valid
         @RequestBody
