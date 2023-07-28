@@ -67,5 +67,6 @@
                  AND A1.CNTR_SN = #{cntrSn}
                ORDER BY  A1.CTT_Y||A1.CTT_MM||A1.CTT_D ASC /* AS-IS와 동일하게 기준 맞춤 - DESC가 맞지 않나 */
              ) C1
+         ORDER BY CTT_DT, CTT_TM
     </select>
 </mapper>
