@@ -4,6 +4,7 @@ import com.kyowon.sms.common.web.withdrawal.zcommon.dvo.ZwdzWithdrawalReceiveAsk
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzItgDpBasDvo;
 import com.kyowon.sms.wells.web.contract.common.dvo.WctzRveDtlDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.Collection;
@@ -55,4 +56,6 @@ public interface WctaContractSettlementMapper {
     List<WctzRveDtlDvo> selectRveDtls(WctzRveDtlDvo dvo);
 
     Optional<WctzItgDpBasDvo> selectItgDpBasByPk(String itgDpNo);
+
+    Optional<WsnbWorkOrderDvo> selectWorkOrderIfSpp(WctaContractDtlDvo contractDtlDvo);
 }

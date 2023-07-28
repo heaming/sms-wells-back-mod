@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo;
+import com.kyowon.sms.wells.web.service.visit.service.WsnbInstallationOrderService;
 import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,6 +68,8 @@ public class WctaContractRegStep5Service {
     private final ZwdbVirtualAccountIsMgtService virtualAccountIsMgtService;
     private final ZwdcCashSalesReceiptApprovalStateService cashSalesReceiptApprovalStateService;
     private final ZwdaKiccReceiveProcessService KiccReceiveService;
+
+    private final WsnbInstallationOrderService installationOrderService;
 
     private final WctbContractDtlStatCdChService cntrStatChService;
     private final WctzHistoryService historyService;
@@ -322,6 +326,9 @@ public class WctaContractRegStep5Service {
         /* 20230627 세금계산서 발행 추가.. saveTaxInvoice? */
         putTaxInvoice(cntrNo);
 
+        /*택배 배송 상품 계약 시, 서비스 호출*/
+        // requestCreateInstallationOrder(cntrNo);
+
         /* 현금 영수증을 생성합니다. */
         List<CreateStlmCssrIsReq> cssrIss = req.cssrIss();
         cssrIss.forEach(this::createCashSalesReceiptIssueByStlm);
@@ -366,6 +373,50 @@ public class WctaContractRegStep5Service {
                 taxInvoiceMapper.insertTaxInvoiceReceiptBaseHist(taxInvoiceInquiryDvo);
             }
         });
+    }
+
+    @Transactional
+    public void requestCreateInstallationOrder(String cntrNo) {
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String tomorrow = LocalDate.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        WctaContractBasDvo basDvo = contractRegService.selectContractBas(cntrNo);
+        List<WctaContractDtlDvo> dtlDvos = contractRegService.selectContractDtl(cntrNo);
+
+        List<WsnbWorkOrderDvo> workOrders = dtlDvos.stream()
+            .map(this::getWorkOrderByCntrDtl)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .toList();
+
+        if (workOrders.isEmpty()) { return; }
+
+        workOrders.forEach(wsnbWorkOrderDvo -> {
+            wsnbWorkOrderDvo.setUserId(basDvo.getSellPrtnrNo());
+            wsnbWorkOrderDvo.setRcpOgTpCd(basDvo.getSellOgTpCd());
+            wsnbWorkOrderDvo.setInChnlDvCd("3"); /* 입력채널구분코드: 요청 사항 */
+            wsnbWorkOrderDvo.setSvBizHclsfCd("1"); /* 서비스업무대분류코드: 요청 사항 */
+            wsnbWorkOrderDvo.setSvBizDclsfCd("1112"); /* 서비스업무세분류코드: 요청 사항 */
+            wsnbWorkOrderDvo.setMtrStatCd("1"); /* 자료상태코드 */
+            wsnbWorkOrderDvo.setRcpdt(today);  /* 접수일자 */
+            wsnbWorkOrderDvo.setVstRqdt(tomorrow);  /* 방문요청일자 */
+            wsnbWorkOrderDvo.setVstAkHh("0900");  /* 방문요청시간 */
+            wsnbWorkOrderDvo.setCnslMoCn("택배제품배송작업자동생성");  /* 상담메모내용 */
+            wsnbWorkOrderDvo.setRcpOgTpCd(basDvo.getSellOgTpCd());
+            wsnbWorkOrderDvo.setRcpOgTpCd(basDvo.getSellOgTpCd());
+            wsnbWorkOrderDvo.setRcpOgTpCd(basDvo.getSellOgTpCd());
+            wsnbWorkOrderDvo.setRcpOgTpCd(basDvo.getSellOgTpCd());
+        });
+
+        try {
+            installationOrderService.saveInstallationOrderByDvo(workOrders);
+        } catch (Exception e) {
+            throw new BizException("택배제품 배송작업 생성에 실패했습니다." + e.getMessage());
+        }
+
+    }
+
+    Optional<WsnbWorkOrderDvo> getWorkOrderByCntrDtl(WctaContractDtlDvo contractDtlDvo) {
+        return mapper.selectWorkOrderIfSpp(contractDtlDvo);
     }
 
     @Transactional
@@ -657,7 +708,7 @@ public class WctaContractRegStep5Service {
                 )
             )
         );
-        @SuppressWarnings("unchecked") List<ZwdbCreditCardApprovalDvo> responses = (List<ZwdbCreditCardApprovalDvo>)saveResponse
+        @SuppressWarnings("unchecked") List<ZwdbCreditCardApprovalDvo> responses = (List<ZwdbCreditCardApprovalDvo>) saveResponse
             .getData();
 
         BizAssert.notEmpty(responses, "신용승인 요청 실패");
@@ -737,7 +788,8 @@ public class WctaContractRegStep5Service {
         BizAssert.notEmpty(rveDtls, "대사처리가 이루어진 수납건이 없습니다.");
         List<WctzItgDpBasDvo> itgDpBasDvos = rveDtls.stream()
             .map(wctzRveDtlDvo -> getItgDpBasByPk(wctzRveDtlDvo.getItgDpNo()))
-            .filter(wctzRveDtlDvo -> crcdnoEncr.equals(wctzRveDtlDvo.getCrcdnoEncr()))
+            .filter(wctzRveDtlDvo -> (crcdnoEncr.equals(wctzRveDtlDvo.getCrcdnoEncr()) /* 카드 번호가 같고 */
+                && "N".equals(wctzRveDtlDvo.getItgDpCanYn()))) /* 취소가 안된 건 */
             .toList();
         BizAssert.notEmpty(itgDpBasDvos, "해당 결제수단에 해당하는 수납건이 없습니다.");
         itgDpBasDvos.forEach(this::requestCancelCardApproval);
@@ -763,7 +815,7 @@ public class WctaContractRegStep5Service {
     WctzItgDpBasDvo getItgDpBasByPk(String itgDpNo) {
         return mapper.selectItgDpBasByPk(itgDpNo)
             .orElseThrow(() -> new BizException("통합 입금 번호가 상이합니다!"));
-    };
+    }
 
     @Transactional
     ZwdbCreditCardApprovalDvo requestCancelCardApproval(WctzItgDpBasDvo itgDpBasDvo) {
@@ -800,7 +852,7 @@ public class WctaContractRegStep5Service {
                 null // itgDpBasDvo.getRveCd()
             )
         );
-        @SuppressWarnings("unchecked") ZwdbCreditCardApprovalDvo cardCancelApprovalDvo = (ZwdbCreditCardApprovalDvo)saveResponse
+        @SuppressWarnings("unchecked") ZwdbCreditCardApprovalDvo cardCancelApprovalDvo = (ZwdbCreditCardApprovalDvo) saveResponse
             .getData();
 
         BizAssert.isTrue(cardCancelApprovalDvo.getErrorCd().equals("S"), cardCancelApprovalDvo.getErrorCntn());
@@ -890,7 +942,7 @@ public class WctaContractRegStep5Service {
 
         ZwdzWithdrawalVirtualAccountIssueDvo responseData;
         try {
-            responseData = (ZwdzWithdrawalVirtualAccountIssueDvo)virtualAccountIsMgtService
+            responseData = (ZwdzWithdrawalVirtualAccountIssueDvo) virtualAccountIsMgtService
                 .saveVirtualAccountIssue(saveReq).getData();
             BizAssert.hasText(responseData.getVacNo(), "가상계좌 생성에 실패했습니다.");
             BizAssert.hasText(responseData.getVacAcownNm(), "가상계좌 생성에 실패했습니다.");
@@ -952,7 +1004,7 @@ public class WctaContractRegStep5Service {
         String copnDvDrmVal = CtCopnDvCd.of(cntrCstInfo.getCopnDvCd()) == CtCopnDvCd.INDIVIDUAL
             ? cntrCstInfo.getBryyMmdd()
             : CtCopnDvCd.of(cntrCstInfo.getCopnDvCd()) == CtCopnDvCd.COOPERATION ? cntrCstInfo.getBzrno()
-                : "";
+            : "";
 
         String telephoneNumber = cntrCstInfo.getCralLocaraTno() + cntrCstInfo.getMexnoEncr()
             + cntrCstInfo.getCralIdvTno();

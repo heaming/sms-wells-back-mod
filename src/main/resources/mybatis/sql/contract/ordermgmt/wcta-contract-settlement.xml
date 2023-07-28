@@ -755,4 +755,22 @@
     <select id="selectItgDpBasByPk" resultType="com.kyowon.sms.wells.web.contract.common.dvo.WctzItgDpBasDvo">
         SELECT * FROM TB_RVDW_ITG_DP_BAS WHERE DTA_DL_YN = 'N' AND ITG_DP_NO = #{itgDpNo}
     </select>
+
+    <select id="selectWorkOrderIfSpp" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbWorkOrderDvo">
+        SELECT T_PD_CNTR_PD_REL.CNTR_NO
+             , T_PD_CNTR_PD_REL.CNTR_SN
+             , T_PD_CNTR_PD_REL.OJ_PD_CD AS PD_CD
+          FROM TB_SSCT_CNTR_PD_REL                T_PD_CNTR_PD_REL
+               INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T_PD_ECOM_PRP_DTL
+               ON T_PD_ECOM_PRP_DTL.DTA_DL_YN = 'N'
+                   AND T_PD_ECOM_PRP_DTL.PD_EXTS_PRP_GRP_CD = 'SPP'
+                   AND T_PD_ECOM_PRP_DTL.PD_CD = T_PD_CNTR_PD_REL.BASE_PD_CD
+         WHERE T_PD_CNTR_PD_REL.DTA_DL_YN = 'N'
+           AND T_PD_CNTR_PD_REL.PD_REL_TP_CD = '05'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN T_PD_CNTR_PD_REL.VL_STRT_DTM AND T_PD_CNTR_PD_REL.VL_END_DTM
+           AND T_PD_CNTR_PD_REL.CNTR_NO = #{cntrNo}
+           AND T_PD_CNTR_PD_REL.CNTR_SN = #{cntrSn}
+           AND T_PD_CNTR_PD_REL.BASE_PD_CD = #{basePdCd}
+           AND T_PD_ECOM_PRP_DTL.PD_PRP_VAL01 = '2'
+    </select>
 </mapper>
