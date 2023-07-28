@@ -1069,10 +1069,8 @@
            AND WK_GRP_CD = FN_SVPD_WRK_GRP_01(#{pdctPdCd}, #{svBizDclsfCd}, #{sellDate})
            </if>
 
-         INNER JOIN TB_OGBS_MM_PRTNR_IZ T4 /*월파트너내역*/
+         INNER JOIN TB_OGBS_PRTNR_BAS T4 /*파트너기본*/
             ON T4.DTA_DL_YN = 'N'
-           /*AND T4.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')*/
-           AND T4.BASE_YM = SUBSTR(#{sellDate}, 1, 6)
            AND T4.OG_TP_CD = T3.ICHR_PRTNR_OG_TP_CD
            AND T4.PRTNR_NO = T3.ICHR_PRTNR_NO
          INNER JOIN TB_SVPD_SV_CLND_BAS C /*서비스달력기본*/
