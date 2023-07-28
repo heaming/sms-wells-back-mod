@@ -83,10 +83,10 @@ public class WctaEmployeePrchsGcfMngtDto {
     //직원구매 계약 목록 조회 Search Request Dto
     @ApiModel(value = "WctaEmployeePrchsGcfMngtDto-SearchCntrReq")
     public record SearchCntrReq(
-        String stYy,
-        String colDv,
-        String empno,
-        String srchGbn
+        String stYy, // 연도(YYYY)
+        String colDv, // 월구분. 전월(pre), 1~12월(01~12), 전체(tot)
+        String empno, // 사번
+        String srchGbn // 설치구분. 설치(null), 취소(cncl), 최종(fnl)
     ) {}
 
     // *********************************************************

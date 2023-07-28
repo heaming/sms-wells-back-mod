@@ -154,7 +154,7 @@
           LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T5    /*월파트너내역*/
             ON T5.PRTNR_NO = T2.SELL_PRTNR_NO
            AND T5.OG_TP_CD = T2.SELL_OG_TP_CD
-           AND T5.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+           AND T5.BASE_YM = SUBSTR(T2.CNTR_CNFM_DTM, 1, 6)
            AND T5.DTA_DL_YN = 'N'
           LEFT OUTER JOIN LATERAL (
                     /*임직원-사번변경된 경우 최종사번으로 조회*/
@@ -187,15 +187,35 @@
          WHERE T1.DTA_DL_YN = 'N'
            AND T1.SELL_TP_CD = '2'    /*렌탈*/
            AND T3.IST_DT <![CDATA[<=]]> TO_CHAR(SYSDATE - 14, 'YYYYMMDD')
-           AND T1.CNTR_PD_STRTDT LIKE #{stYy}||#{colDv}||'%'  /*매출일자-설치일자*/
-            --월별 취소건이면
-        <if test='@MybatisUtils@equals(srchGbn, "cncl")'>
-           AND T1.CNTR_DTL_STAT_CD = '303'
-        </if>
-            --월별 최종구분
-        <if test='@MybatisUtils@equals(srchGbn, "fnl")'>
-           AND T2.CNTR_CAN_DTM IS NULL
-        </if>
+        <choose>
+            <when test='@MybatisUtils@equals(colDv, "pre")'> /* 월구분이 전월(pre)이면서, */
+                <if test='@MybatisUtils@isEmpty(srchGbn)'> /* 설치구분이 없으면,(=설치이면,) */
+                   AND T3.IST_DT BETWEEN #{stYy}||'0101' AND TO_CHAR(LAST_DAY(ADD_MONTHS(SYSDATE, -1)), 'YYYYMMDD')
+                </if>
+                <if test='@MybatisUtils@equals(srchGbn, "cncl")'> /* 설치구분이 취소(cncl)이면, */
+                   AND T1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                   AND T1.CNTR_PD_ENDDT BETWEEN #{stYy}||'0101' AND TO_CHAR(LAST_DAY(ADD_MONTHS(SYSDATE, -1)), 'YYYYMMDD')
+                </if>
+                <if test='@MybatisUtils@equals(srchGbn, "fnl")'> /* 설치구분이 최종(fnl)이면, */
+                   AND T3.IST_DT BETWEEN #{stYy}||'0101' AND TO_CHAR(LAST_DAY(ADD_MONTHS(SYSDATE, -1)), 'YYYYMMDD')
+                </if>
+            </when>
+            <when test='@MybatisUtils@equals(colDv, "tot")'> /* 월구분이 전체(tot)이면서, */
+                AND T3.IST_DT BETWEEN #{stYy}||'0101' AND #{stYy}||'1231'
+            </when>
+            <otherwise>
+                <if test='@MybatisUtils@isEmpty(srchGbn)'> /* 설치구분이 없으면,(=설치이면,) */
+                   AND T3.IST_DT BETWEEN #{stYy}||#{colDv}||'01' AND TO_CHAR(LAST_DAY(#{stYy}||#{colDv}||'01'), 'YYYYMMDD')
+                </if>
+                <if test='@MybatisUtils@equals(srchGbn, "cncl")'> /* 설치구분이 취소(cncl)이면, */
+                   AND T1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                   AND T1.CNTR_PD_ENDDT BETWEEN #{stYy}||#{colDv}||'01' AND TO_CHAR(LAST_DAY(#{stYy}||#{colDv}||'01'), 'YYYYMMDD')
+                </if>
+                <if test='@MybatisUtils@equals(srchGbn, "fnl")'> /* 설치구분이 최종(fnl)이면, */
+                   AND T3.IST_DT BETWEEN #{stYy}||#{colDv}||'01' AND TO_CHAR(LAST_DAY(#{stYy}||#{colDv}||'01'), 'YYYYMMDD')
+                </if>
+            </otherwise>
+        </choose>
            AND (T6.SAP_EMPNO = #{empno}
             OR T5.PRTNR_NO = #{empno})
          ORDER BY T3.IST_DT
