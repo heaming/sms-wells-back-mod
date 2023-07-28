@@ -118,4 +118,13 @@ public class WctaContractSettlementController {
         return service.requestVacIsRveAsk(req);
     }
 
+
+    @ApiOperation(value = "임시", notes = "설치오더생성분리를 위한 임시 api")
+    @PostMapping("/install-order")
+    public SaveRes requestCreateInstallationOrder(
+        @RequestBody String cntrNo
+    ) {
+        service.requestCreateInstallationOrder(cntrNo);
+        return SaveRes.builder().result(true).build();
+    }
 }
