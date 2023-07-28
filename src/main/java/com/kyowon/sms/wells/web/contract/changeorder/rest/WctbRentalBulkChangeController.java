@@ -6,14 +6,15 @@ import static com.kyowon.sms.wells.web.contract.changeorder.dto.WctbRentalBulkCh
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import com.kyowon.sms.wells.web.contract.changeorder.dto.WctbRentalBulkChangeDto;
 import com.kyowon.sms.wells.web.contract.changeorder.service.WctbRentalBulkChangeService;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.system.config.response.SaveResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -32,13 +33,38 @@ public class WctbRentalBulkChangeController {
 
     @ApiOperation(value = "멤버십 일괄변경 조회", notes = "")
     @ApiImplicitParams(value = {
-            @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
+        @ApiImplicitParam(name = "", value = "", paramType = "query", required = true),
     })
     @GetMapping("/rental-bulk-change")
     public List<SearchRes> getRentalBulkChanges(
-            @Valid
-            SearchReq dto
+        @Valid
+        SearchReq dto
     ) {
         return service.getRentalBulkChanges(dto);
+    }
+
+    @ApiOperation(value = "렌탈 일괄변경 계약정보 조회", notes = "")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "cntrNo", value = "계약번호", paramType = "query", required = true),
+        @ApiImplicitParam(name = "cntrSn", value = "계약일련번호", paramType = "query", required = true),
+    })
+    @GetMapping("/rental-change-contracts")
+    public WctbRentalBulkChangeDto.SearchCntrRes getBulkChangeContractsInfs(
+        @NotBlank
+        String cntrNo,
+        @NotBlank
+        String cntrSn
+    ) {
+        return service.getBulkChangeContractsInfs(cntrNo, cntrSn);
+    }
+
+    @ApiOperation(value = "렌탈 일괄변경 등록", notes = "")
+    @PostMapping("/rental-bulk-change")
+    public SaveResponse saveRentalBulkChange(
+        @RequestBody
+        @Valid
+        WctbRentalBulkChangeDto.SaveReq dto
+    ) {
+        return SaveResponse.builder().processCount(service.saveRentalBulkChange(dto)).build();
     }
 }
