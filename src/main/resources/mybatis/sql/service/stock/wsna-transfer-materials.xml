@@ -124,6 +124,7 @@
              , COTP_ADJ_DT                /* 운송비정산일자 */
              , ITM_STR_NO                 /* 품목입고번호 */
              , STR_SN                     /* 입고일련번호 */
+             , STR_RGST_DT                /* 입고등록일자 */
              , RMK_CN                     /* 비고 */
              , DTA_DL_YN                  /* 데이터삭제여부 */
         <include refid="COMMON.insertSystemField" />
@@ -156,6 +157,7 @@
              , TO_CHAR(SYSDATE, 'YYYYMMDD')    /* 운송비정산일자 */
              , #{itmStrNo}                     /* 품목입고번호 */
              , #{strSn}                        /* 입고일련번호 */
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')    /* 입고등록일자 */
              , #{rmkCn}                        /* 비고 */
              , 'N'                             /* 데이터삭제여부 */
         <include refid="COMMON.insertSystemFieldValue" />
