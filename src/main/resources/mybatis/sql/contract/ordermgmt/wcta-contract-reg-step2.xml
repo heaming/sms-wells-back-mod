@@ -424,12 +424,6 @@
           LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS T11 -- 상품분류
             ON T11.PD_CLSF_ID = M1.PD_CLSF_ID
            AND T11.DTA_DL_YN = 'N'
-         INNER JOIN TB_PDBS_PD_PRC_FNL_DTL T13
-            ON T13.PD_CD = M1.PD_CD
-           AND T13.VER_SN = (SELECT MAX(VER_SN)
-                              FROM TB_PDBS_PD_PRC_FNL_DTL
-                             WHERE PD_PRC_FNL_DTL_ID = T13.PD_PRC_FNL_DTL_ID)
-           AND T13.SELL_CHNL_CD = #{sellInflwChnlDtlCd}
          WHERE 1 = 1
            AND M1.SELL_YN = 'Y'
            AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN M1.SELL_STRTDT AND M1.SELL_ENDDT
@@ -450,6 +444,14 @@
            AND M1.SELL_TP_CD NOT IN ('4', '9', '3', '5', '6') -- 회사설치, 필터, 멤버십, 유지관리, 정기배송 제외
            </otherwise>
         </choose>
+           AND EXISTS (
+                SELECT 1 FROM TB_PDBS_PD_PRC_FNL_DTL P1
+                WHERE PD_CD = M1.PD_CD
+                  AND VER_SN = (SELECT MAX(VER_SN)
+                                              FROM TB_PDBS_PD_PRC_FNL_DTL
+                                             WHERE PD_PRC_FNL_DTL_ID = P1.PD_PRC_FNL_DTL_ID)
+                  AND SELL_CHNL_CD = #{sellInflwChnlDtlCd}
+                )
            AND NOT EXISTS (
              -- 판매제한 조회
                  SELECT 1
