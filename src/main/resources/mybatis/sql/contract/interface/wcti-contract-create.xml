@@ -8,7 +8,7 @@
          WHERE B1.CST_NO = #{cstNo}
     </select>
 
- <select id="selectCustomerAggrementKey" resultType="java.lang.String">
+    <select id="selectCustomerAggrementKey" resultType="java.lang.String">
         SELECT LPAD(WSMDBS.SQ_CUBS_CST_AG_IZ$CST_AG_ID.NEXTVAL,15,0)
           FROM DUAL
     </select>
@@ -244,16 +244,16 @@
             , #{product.pdBaseAmt} -- PD_BASE_AMT
             , #{contract.sellAmt} -- SELL_AMT
             , #{contract.dscAmt} -- DSC_AMT
-            , #{contract.fnlAmt}
-            , #{product.vat}
+            , #{contract.fnlAmt} -- FNL_AMT
+            , NVL(#{contract.vat}, #{product.vat}) -- VAT
             , #{contract.cntrAmt} -- CNTR_AMT
             , #{contract.cntramDscAmt} -- CNTRAM_DSC_AMT
-            , #{contract.istmMcn}
+            , #{contract.istmMcn} -- ISTM_MCN
             , #{contract.istmPcamAmt} -- ISTM_PCAM_AMT
             , '' -- ISTM_INT_AMT
             , '' -- MM_ISTM_AMT
             , '' -- CRP_UC_AMT
-            , #{product.sellFee}
+            , #{product.sellFee} -- SELL_FEE
             , #{contract.cntrTam} -- CNTR_TAM
             , '' -- RENTAL_PTRM2
             , #{contract.rentalAmt2} -- RENTAL_AMT2
@@ -287,7 +287,7 @@
     </insert>
 
     <select id="selectContractProduct" resultType="com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractProductDvo">
-        SELECT P2.BAS_VAL AS PD_BASE_AMT
+            SELECT P2.BAS_VAL AS PD_BASE_AMT
                  , P3.PD_CD
                  , P3.PD_HCLSF_ID
                  , P3.PD_MCLSF_ID

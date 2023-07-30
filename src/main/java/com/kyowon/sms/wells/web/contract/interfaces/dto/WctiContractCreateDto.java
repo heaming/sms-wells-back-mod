@@ -338,12 +338,16 @@ public class WctiContractCreateDto {
         String inDv,
         @JsonProperty("IN_DV_CD")
         String inDvCd,
+        @NotBlank
         @JsonProperty("RCPDT")
         String rcpdt,
+        @NotBlank
         @JsonProperty("RCPTM")
         String rcptm,
+        @NotBlank
         @JsonProperty("CNTR_NO")
         String cntrNo,
+        @NotBlank
         @JsonProperty("CNTR_SN")
         String cntrSn,
         @JsonProperty("CST_NM")
@@ -364,24 +368,32 @@ public class WctiContractCreateDto {
         String exnoEncr,
         @JsonProperty("IDV_TNO")
         String idvTno,
+        @NotBlank
         @JsonProperty("ZIP")
         String zip,
         @JsonProperty("ADR_DV_CD")
         String adrDvCd,
+        @NotBlank
         @JsonProperty("BAS_ADR")
         String basAdr,
+        @NotBlank
         @JsonProperty("DTL_ADR")
         String dtlAdr,
+        @NotBlank
         @JsonProperty("CST_NO")
         String cstNo,
         @JsonProperty("CST_EMADR")
         String cstEmadr,
+        @NotBlank
         @JsonProperty("IST_CST_NM")
         String istCstNm,
+        @NotBlank
         @JsonProperty("IST_CPHON_LOCARA_TNO")
         String istCphonLocaraTno,
+        @NotBlank
         @JsonProperty("IST_CPHON_EXNO_ENCR")
         String istCphonExnoEncr,
+        @NotBlank
         @JsonProperty("IST_CPHON_IDV_TNO")
         String istCphonIdvTno,
         @JsonProperty("IST_LOCARA_TNO")
@@ -390,20 +402,26 @@ public class WctiContractCreateDto {
         String istExnoEncr,
         @JsonProperty("IST_IDV_TNO")
         String istIdvTno,
+        @NotBlank
         @JsonProperty("IST_ZIP")
         String istZip,
+        @NotBlank
         @JsonProperty("IST_ADR_DV_CD")
         String istAdrDvCd,
+        @NotBlank
         @JsonProperty("IST_BAS_ADR")
         String istBasAdr,
+        @NotBlank
         @JsonProperty("IST_DTL_ADR")
         String istDtlAdr,
         @JsonProperty("IST_PLC")
         String istPlc,
         @JsonProperty("URGT_IST")
         String urgtIst,
+        @NotBlank
         @JsonProperty("PD_CD")
         String pdCd,
+        @NotBlank
         @JsonProperty("PD_QTY")
         String pdQty,
         @JsonProperty("PD_CD01")
@@ -636,6 +654,7 @@ public class WctiContractCreateDto {
         String svChram,
         @JsonProperty("DSC_AMT")
         String dscAmt,
+        @NotBlank
         @JsonProperty("RTLFE1")
         String rtlfe1,
         @JsonProperty("RTLFE2")

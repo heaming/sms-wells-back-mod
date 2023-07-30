@@ -32,9 +32,9 @@ public interface WctiContractCreateConverter {
     @Mapping(source = "dpDvCd1", target = "dpDvCd")
     @Mapping(source = "subscAmt1", target = "stlmAmt")
     @Mapping(source = "cdno1", target = "crcdNo")
-    @Mapping(source = "cino", target = "cntrtBryyMmdd")
     @Mapping(source = "crdcdIstmMcn1", target = "istmMcn")
     @Mapping(source = "cdonrNm1", target = "crcdOwrKnm")
+    @Mapping(source = "cino", target = "cntrtBryyMmdd")
     @Mapping(source = "evCd", target = "sellEvCd")
     @Mapping(source = "dcde", target = "sellPrtnrNo")
     @Mapping(source = "achldrNm", target = "owrKnm")
@@ -46,6 +46,17 @@ public interface WctiContractCreateConverter {
     @Mapping(source = "dscTp", target = "sellDscTpCd")
     @Mapping(source = "uswy", target = "svPdTpCd")
     WctiContractCreateDvo mapCreateSinglePaymentReqToWctiContractCreateDvo(CreateSinglePaymentReq dto);
+
+    /* Default 값 처리 항목
+     * sellAmt
+     * dscAmt
+     * cntrAmt
+     * cntramDscAmt
+     * cntrTam
+     * rentalAmt2
+     * rentalDscAmt2
+     * svAmt
+     */
 
     @Mapping(source = "rcpdt", target = "cntrRcpDt")
     @Mapping(source = "rcptm", target = "cntrRcpTm")
@@ -92,9 +103,9 @@ public interface WctiContractCreateConverter {
     @Mapping(source = "cstClsCd", target = "copnDvCd")
     @Mapping(source = "rcpChnlDtl", target = "sellInflwChnlDtlCd")
     @Mapping(source = "cttCd", target = "cttRsCd")
-    @Mapping(source = "svChram", target = "svAmt")
+    @Mapping(source = "svChram", target = "svAmt", defaultValue = "0")
     @Mapping(source = "rtlfe1", target = "fnlAmt")
-    @Mapping(source = "rentalDscAmt1", target = "dscAmt")
+    @Mapping(source = "rentalDscAmt1", target = "dscAmt", defaultValue = "0")
     @Mapping(source = "feeBaseAmt", target = "feeAckmtBaseAmt")
     @Mapping(source = "istRqdt", target = "sppDuedt")
     @Mapping(source = "wprsEyn", target = "wprsItstTpCd")
@@ -105,8 +116,8 @@ public interface WctiContractCreateConverter {
     @Mapping(source = "txinvCphonLocaraTno", target = "txinvCralLocaraTno")
     @Mapping(source = "txinvCphonExnoEncr", target = "txinvMexnoEncr")
     @Mapping(source = "txinvCphonIdvTno", target = "txinvCralIdvTno")
-    @Mapping(source = "rgstCost", target = "cntrAmt")
-    @Mapping(source = "rgstCostDsc", target = "cntramDscAmt")
+    @Mapping(source = "rgstCost", target = "cntrAmt", defaultValue = "0")
+    @Mapping(source = "rgstCostDsc", target = "cntramDscAmt", defaultValue = "0")
     WctiContractCreateDvo mapCreateRentalReqToWctiContractCreateDvo(CreateRentalReq dto);
 
 }

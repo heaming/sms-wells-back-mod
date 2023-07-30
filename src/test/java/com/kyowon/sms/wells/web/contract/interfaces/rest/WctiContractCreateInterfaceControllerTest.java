@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateRentalReq;
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCreateDto.CreateSinglePaymentReq;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.system.config.test.SpringTestSupport;
 import com.sds.sflex.system.config.webclient.ivo.EaiWrapper;
 
@@ -94,12 +95,16 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
             .pdQty01("1")
             .subscAmt1("1000")
             .dpDvCd1("01")
+            .cdno1("11122233334444")
+            .crdcdIstmMcn1("1")
+            .cdonrNm1("조순옥")
             .ag1("Y")
             .ag2("Y")
             .ag3("Y")
             .ag4("Y")
             .ag5("Y")
             .dscDv("2")
+            .dscTp("1")
             .uswy("0")
             .mngtPrd("6")
             .build();
@@ -119,10 +124,13 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
     @DisplayName("렌탈 wells 계약생성")
     void createContractForRental() throws Exception {
         // given
+        String nowString = DateUtil.getNowString();
         CreateRentalReq req = CreateRentalReq.builder()
             .cntrNo("W2022538820X")
             .cntrSn("1")
             .rcpChnlDtl("2010")
+            .rcpdt(nowString.substring(0, 7))
+            .rcptm(nowString.substring(8, 13))
             .cstNm("조순옥")
             .adrDvCd("1")
             .cphonLocaraTno("010")
@@ -142,7 +150,8 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
             .istDtlAdr("528동 2003호 (정자동,백설마을삼환나우빌아파트)")
             .pdCd("WP05120580")
             .pdQty("1")
-            .cardAmt1("1000")
+            .rtlfe1("12000")
+            .cardAmt1("12000")
             .crcdnoEncr1("11122233334444")
             .cardIstmMcn1("1")
             .cdonrNm1("조순옥")
@@ -156,8 +165,9 @@ class WctiContractCreateInterfaceControllerTest extends SpringTestSupport {
             .mrktUtlzAgYn("Y")
             .fstrAgYn("Y")
             .pifBizFstrAgYn("Y")
-            .cntrtRel("0")
+            .cntrtRel("01")
             .txinvPblOjYn("Y")
+            .txinvBzrno("1018139767")
             .txinvCphonLocaraTno("010")
             .txinvCphonExnoEncr("2222")
             .txinvCphonIdvTno("3333")
