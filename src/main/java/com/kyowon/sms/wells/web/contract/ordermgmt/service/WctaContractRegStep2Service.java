@@ -580,7 +580,7 @@ public class WctaContractRegStep2Service {
      * @param dtls 상품목록
      * @return 확정된 상품목록
      */
-    public List<WctaContractRegStep2Dvo.PdDetailDvo> confirmProducts(List<WctaContractRegStep2Dvo.PdDetailDvo> dtls) {
+    public List<WctaContractDtlDvo> confirmProducts(List<WctaContractDtlDvo> dtls) {
         // TODO 상품확정 로직 추가
         return dtls;
     }
