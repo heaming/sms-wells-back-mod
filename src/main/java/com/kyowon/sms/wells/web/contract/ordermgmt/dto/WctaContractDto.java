@@ -454,6 +454,7 @@ public class WctaContractDto {
         String dgr1LevlOgNm,
         String dgr2LevlOgNm,
         String dgr3LevlOgNm,
+        String dgr3LevlDgPrtnrNm,
         String prtnrKnm,
         String prtnrNo
     ) {}

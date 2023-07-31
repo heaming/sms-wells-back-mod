@@ -8,6 +8,8 @@
          WHERE SAP_EMPNO = #{prtnrNo}
            AND EMP_YN = 'Y'
            AND DTA_DL_YN = 'N'
+         ORDER BY FNL_MDFC_DTM DESC
+         FETCH FIRST 1 ROW ONLY
     </select>
 
     <select id="selectEnsmCstNo" resultType="String">
@@ -33,10 +35,11 @@
     <select id="selectCstPrtnrNo" resultType="String">
         SELECT SAP_EMPNO
           FROM TB_CUBS_CST_DTL
-         WHERE 1 = 1
-           AND CST_NO = #{cstNo}
+         WHERE CST_NO = #{cstNo}
            AND EMP_YN = 'Y'
            AND DTA_DL_YN = 'N'
+         ORDER BY FNL_MDFC_DTM DESC
+         FETCH FIRST 1 ROW ONLY
     </select>
 
     <select id="selectCstEnsmNo" resultType="String">

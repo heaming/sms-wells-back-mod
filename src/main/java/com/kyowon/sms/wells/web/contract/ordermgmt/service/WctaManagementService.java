@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kyowon.sflex.common.message.dvo.KakaoSendReqDvo;
 import com.kyowon.sflex.common.message.service.KakaoMessageService;
+import com.kyowon.sms.wells.web.contract.common.dvo.WctzContractNotifyFowrdindHistDvo;
+import com.kyowon.sms.wells.web.contract.common.service.WctzHistoryService;
 import com.kyowon.sms.wells.web.contract.ordermgmt.converter.WctaManagementConverter;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaManagementDto.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaDfntAckdReqDvo;
@@ -14,6 +16,8 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaMastOrdrDtptDvo;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaManagementMapper;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 import com.sds.sflex.system.config.exception.BizException;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +32,7 @@ public class WctaManagementService {
     private final WctaManagementMapper mapper;
     private final WctaManagementConverter converter;
     private final KakaoMessageService kakaoMessageService; //카카오톡 메신저 알림톡
+    private final WctzHistoryService historyService;
     WctaDfntAckdReqDvo paramMap = new WctaDfntAckdReqDvo();
     WctaMastOrdrDtptDvo paramKakaoTalk = new WctaMastOrdrDtptDvo();
 
@@ -226,7 +231,8 @@ public class WctaManagementService {
     public int saveNotificationTalkFws(List<SaveNotificationTalkFwsReq> dtos) throws Exception {
         int processCount = 0;
         boolean isPymnSkip = false;
-        String templetCode = "Wells18104";
+        String templetCode = "Wells18104"; // 템플릿코드
+        String rstlYn = ""; // 재약정여부
 
         Iterator<SaveNotificationTalkFwsReq> iterator = dtos.iterator();
         while (iterator.hasNext()) {
@@ -279,6 +285,7 @@ public class WctaManagementService {
             // 계약구분(재약정) 주문은 별개의 템플릿으로 전송
             if ("R".equals(cntrDv)) {
                 templetCode = "wells17945";
+                rstlYn = "RSTL";
             }
 
             paramKakaoTalk.setCstKnm(searchMastOrdrDtptList.get(0).cstKnm());
@@ -356,14 +363,15 @@ public class WctaManagementService {
             }
 
             // 알림톡 메시지 발송
-            processCount = sendKakao(processCount, templetCode, paramMap);
+            processCount = sendKakao(processCount, templetCode, rstlYn, paramMap);
         }
         return processCount;
     }
 
-    private int sendKakao(int processCount, String templetCode, Map<String, Object> paramMap)
+    private int sendKakao(int processCount, String templetCode, String rstlYn, Map<String, Object> paramMap)
         throws Exception {
         log.info("templetCode : " + templetCode);
+        log.info("rstlYn : " + rstlYn);
         log.info("paramMap : " + paramMap);
         log.info("CstKnm : " + paramKakaoTalk.getCstKnm());
         log.info("CntrCralLocaraTno : " + paramKakaoTalk.getCntrCralLocaraTno());
@@ -383,6 +391,32 @@ public class WctaManagementService {
             .build();
 
         processCount += kakaoMessageService.sendMessage(kakaoSendReqDvo);
+
+        String now = DateUtil.todayNnow();
+        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
+        historyService.createContractNotifyFowrdindHistory(
+            WctzContractNotifyFowrdindHistDvo.builder()
+                .notyFwTpCd("20") // 알림발송유형코드(알림톡)
+                .notyFwBizDvCd("10") // 알림발송업무구분코드(계약서)
+                .akUsrId(session.getUserId()) // 요청자 ID
+                .rqrNm(session.getUserName())// 요청자명
+                .akDtm(now) // 요청일시
+                .fwDtm(now) // 발송일시
+                .msgCn(paramMap.toString()) // 메시지내용
+                .cntrNo(paramKakaoTalk.getCntrNo()) // 계약번호
+                .cntrSn(Integer.parseInt(paramKakaoTalk.getCntrSn())) // 계약일련번호
+                .fwOjRefkVal1(templetCode) // 발송대상참조키값1
+                .fwOjRefkVal2(rstlYn) // 발송대상참조키값2(재약정여부)
+                .rcvrNm(paramKakaoTalk.getCstKnm()) // 수신자명
+                .rcvrLocaraTno(paramKakaoTalk.getCntrCralLocaraTno()) // 수신자지역전화번호
+                .rcvrExnoEncr(paramKakaoTalk.getCntrMexnoEncr()) // 수신자전화국번호암호화
+                .rcvrIdvTno(paramKakaoTalk.getCntrCralIdvTno()) // 수신자개별전화번호
+                .notyFwRsCd("10") // 알림발송결과코드
+                .dtaDlYn("N") // 삭제여부
+                .build(),
+            false
+        );
+
         return processCount;
     }
 
