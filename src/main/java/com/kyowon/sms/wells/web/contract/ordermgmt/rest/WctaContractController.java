@@ -370,6 +370,16 @@ public class WctaContractController {
         return step2Service.selectWelsfHcfPkgs(pdCd);
     }
 
+    @ApiOperation(value = "상품 확정", notes = "Step2 상품에 프로모션 등 적용해 가격을 확정한다.")
+    @PostMapping("confirm-products")
+    public List<WctaContractRegStep2Dvo.PdDetailDvo> confirmProducts(
+        @RequestBody
+        @Valid
+        List<WctaContractRegStep2Dvo.PdDetailDvo> dtls
+    ) {
+        return step2Service.confirmProducts(dtls);
+    }
+
     @ApiOperation(value = "Step2 저장", notes = "Step2 정보를 신규 등록하거나 기존 정보를 수정한다.")
     @PostMapping("save-cntr-step2")
     public SaveResponse saveContractStep2(
