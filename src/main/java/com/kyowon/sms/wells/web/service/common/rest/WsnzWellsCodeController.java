@@ -103,22 +103,16 @@ public class WsnzWellsCodeController {
         return service.getPartMaster(req);
     }
 
-    /*@ApiOperation(value = "상품기본조회")
-    @GetMapping("/products")
+    @ApiOperation(value = "서비스센터 조직원 조회")
+    @GetMapping("/service-center-prtnr")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "newAdrZip", paramType = "query", example = "37714"),
-        @ApiImplicitParam(name = "emdSn", paramType = "query", example = "1"),
-        @ApiImplicitParam(name = "ctpvNm", paramType = "query", example = "경상북도"),
-        @ApiImplicitParam(name = "ctctyNm", paramType = "query", example = "포항시 북구"),
-        @ApiImplicitParam(name = "lawcEmdNm", paramType = "query", example = "항구동"),
-        @ApiImplicitParam(name = "amtdNm", paramType = "query", example = "중앙동"),
-        @ApiImplicitParam(name = "pdlvNo", paramType = "query")
+        @ApiImplicitParam(name = "ogId", paramType = "query", example = ""),
     })
-    public List<SearchProductBaseRes> getProductBase(
-        SearchProductBaseReq req
+    public List<SearchServiceCenterPrtnrRes> getServiceCenterPrtnr(
+        SearchServiceCenterPrtnrReq req
     ) {
-        return service.getProductBase(req);
-    }*/
+        return service.getServiceCenterPrtnr(req);
+    }
 
     @ApiOperation(value = "서비스센터 조직 조회")
     @GetMapping("/service-center-orgs")

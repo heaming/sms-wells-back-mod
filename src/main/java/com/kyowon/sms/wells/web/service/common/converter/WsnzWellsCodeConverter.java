@@ -34,7 +34,7 @@ public interface WsnzWellsCodeConverter {
 
     List<SearchDistrictsRes> mapAllDistrictsDvoToRes(List<WsnzWellsCodeDistrictsDvo> dvos);
 
-    List<SearchProductBaseRes> mapAllProductBaseDvoToRes(List<WsnzWellsCodeProductBaseDvo> dvos);
+    List<SearchServiceCenterPrtnrRes> mapAllServiceCenterPrtnrDvoToRes(List<WsnzWellsCodeServiceCenterPrtnrDvo> dvos);
 
     List<SearchMcbyCstSvOjIzRes> mapAllMonthCstServsDvoToRes(List<WsnzWellsCodeMonthCstServsDvo> dvos);
 
