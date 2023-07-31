@@ -150,7 +150,6 @@ public class WsnbSafetyAccidentDto {
         int totRduAmt,
         String cpsDvCd,
         String cstSignCn,
-        String maasBirthdate,
         String maasFnm,
         String fmlRelDvNm1,
         String rfndAcnoEncr,
