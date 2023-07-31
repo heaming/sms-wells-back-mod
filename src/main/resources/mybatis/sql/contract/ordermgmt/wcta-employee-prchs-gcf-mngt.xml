@@ -2,130 +2,386 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaEmployeePrchsGcfMngtMapper">
     <select id="selectEmployeePurchaseGcfs" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaEmployeePrchsGcfMngtDvo">
-        SELECT NVL(T6.SAP_EMPNO, T5.PRTNR_NO) AS EMPNO    /* 인사사원번호 */
-             , NVL(T6.FNM, T5.PRTNR_KNM ) AS FNM
-             , T6.CRAL_LOCARA_TNO AS CRAL_LOCARA_TNO
-             , T6.MEXNO_ENCR AS MEXNO_ENCR
-             , T6.CRAL_IDV_TNO AS CRAL_IDV_TNO
-             , T6.CRAL_LOCARA_TNO || '-' || T6.MEXNO_ENCR || '-' || T6.CRAL_IDV_TNO AS CRAL_TNO
-             , MAX(T6.RSGN_DT) AS RSGN_DT
-             , MAX(CASE WHEN T2.SELL_INFLW_CHNL_DTL_CD = '9020' THEN '임직원' ELSE T5.OG_NM END) AS SELL_INFLW_CHNL_DTL_CD
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'MM') THEN 1 ELSE 0 END) AS CNT_PRE
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'MM') AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_PRE_C
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'MM') THEN 1 ELSE 0 END) - SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'MM') AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_PRE_FNL
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = TO_CHAR(SYSDATE, 'MM') THEN 1 ELSE 0 END) AS CNT_CUR
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = TO_CHAR(SYSDATE, 'MM') AND T1.CNTR_DTL_STAT_CD = '303'  THEN 1 ELSE 0 END) AS CNT_CUR_C
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = TO_CHAR(SYSDATE, 'MM') THEN 1 ELSE 0 END) - SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = TO_CHAR(SYSDATE, 'MM') AND T1.CNTR_DTL_STAT_CD = '303'  THEN 1 ELSE 0 END) AS CNT_CUR_FNL
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '01' THEN 1 ELSE 0 END) AS CNT_01
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '01' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_01_C    /* 설치 후 취소건 */
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '01' THEN 1 ELSE 0 END) - SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '01' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_01_FNL
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '02' THEN 1 ELSE 0 END) AS CNT_02
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '02' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_02_C
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '02' THEN 1 ELSE 0 END) - SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '02' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_02_FNL
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '03' THEN 1 ELSE 0 END) AS CNT_03
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '03' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_03_C
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '03' THEN 1 ELSE 0 END) - SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '03' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_03_FNL
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '04' THEN 1 ELSE 0 END) AS CNT_04
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '04' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_04_C
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '04' THEN 1 ELSE 0 END) - SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '04' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_04_FNL
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '05' THEN 1 ELSE 0 END) AS CNT_05
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '05' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_05_C
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '05' THEN 1 ELSE 0 END) - SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '05' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_05_FNL
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '06' THEN 1 ELSE 0 END) AS CNT_06
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '06' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_06_C
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '06' THEN 1 ELSE 0 END) - SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '06' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_06_FNL
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '07' THEN 1 ELSE 0 END) AS CNT_07
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '07' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_07_C
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '07' THEN 1 ELSE 0 END) - SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '07' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_07_FNL
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '08' THEN 1 ELSE 0 END) AS CNT_08
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '08' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_08_C
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '08' THEN 1 ELSE 0 END) - SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '08' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_08_FNL
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '09' THEN 1 ELSE 0 END) AS CNT_09
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '09' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_09_C
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '09' THEN 1 ELSE 0 END) - SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '09' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_09_FNL
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '10' THEN 1 ELSE 0 END) AS CNT_10
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '10' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_10_C
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '10' THEN 1 ELSE 0 END) - SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '10' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_10_FNL
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '11' THEN 1 ELSE 0 END) AS CNT_11
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '11' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_11_C
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '11' THEN 1 ELSE 0 END) - SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '11' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_11_FNL
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '12' THEN 1 ELSE 0 END) AS CNT_12
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '12' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_12_C
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '12' THEN 1 ELSE 0 END) - SUM(CASE WHEN SUBSTR(T3.IST_DT, 5,2) = '12' AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_12_FNL
-             , COUNT(1) AS CNT_TOT
-             , SUM(CASE WHEN SUBSTR(T3.IST_DT, 1,4) = #{istDt} AND T1.CNTR_DTL_STAT_CD = '303' THEN 1 ELSE 0 END) AS CNT_TOT_C
-         FROM TB_SSCT_CNTR_DTL T1  /* T.계약상세 */
-        INNER JOIN TB_SSCT_CNTR_BAS T2  /* T.계약기본 */
-           ON T2.CNTR_NO = T1.CNTR_NO
-          AND T2.DTA_DL_YN = 'N'
-          AND (T2.SELL_INFLW_CHNL_DTL_CD IN ('1030','1040','9020')
-           OR T2.SELL_PRTNR_NO IN ('1525290' /*구몬학습*/, '1650501' /*에듀*/, '1564070' /*수학달인*/, '1593484'/*도요새*/, '1712367' /*더퍼스트*/, '1743635' /*직원구매*/, '1743636' /*5７차월*/, '1743637' /*이자제휴*/))
-         LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL T3    /* T.계약WELLS상세 */
-           ON T3.CNTR_NO = T1.CNTR_NO
-          AND T3.CNTR_SN = T1.CNTR_SN
-          AND T3.DTA_DL_YN = 'N'
-         LEFT OUTER JOIN TB_OGBS_MM_PRTNR_IZ T5    /* T.월파트너내역 */
-           ON T5.PRTNR_NO = T2.SELL_PRTNR_NO
-          AND T5.OG_TP_CD = T2.SELL_OG_TP_CD
-          AND T5.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
-          AND T5.DTA_DL_YN = 'N'
-         LEFT OUTER JOIN LATERAL (
-                        /* 임직원-사번변경된 경우 최종사번으로 조회 */
-                        SELECT * FROM (
-                            SELECT FNM
-                                 , CRAL_LOCARA_TNO
-                                 , MEXNO_ENCR
-                                 , CRAL_IDV_TNO
-                                 , RSGN_DT --퇴직일자
-                                 , SAP_EMPNO
-                                 , SAP_REF_EMPNO_VAL    --SAP 참조사번
-                            FROM TB_GBCO_EMP_BAS
-                            WHERE DTA_DL_YN = 'N'
-                            START WITH SAP_EMPNO = T2.SELL_PRTNR_NO
-                            CONNECT BY PRIOR SAP_REF_EMPNO_VAL=SAP_EMPNO
-                         )
-                     WHERE SAP_REF_EMPNO_VAL = '0'   --SAP 참조사번
-                        ) T6
-           ON 1=1
-         LEFT OUTER JOIN TB_SSCT_CNTR_CST_REL T7    /* T.계약자관계코드 */
-           ON T7.DTL_CNTR_NO = T1.CNTR_NO
-          AND T7.DTL_CNTR_SN = T1.CNTR_SN
-          AND T7.CNTR_CST_REL_TP_CD = '10' /* 계약자 */
-          AND T7.DTA_DL_YN = 'N'
-        WHERE T1.DTA_DL_YN = 'N'
-          AND T1.SELL_TP_CD = '2'    /* 렌탈 */
-          AND T3.IST_DT <![CDATA[ <= ]]>  TO_CHAR(SYSDATE - 14, 'YYYYMMDD')
-          AND T1.CNTR_PD_STRTDT LIKE #{istDt} || '%'  /* 매출일자 데이타 없어서 우선 대체해서 테스트 */
-        <if test="@MybatisUtils@isNotEmpty(emplDv)">
-            <choose>
-                <when test='@MybatisUtils@equals(emplDv, "1")'> /* 임직원 */
-                    AND T2.SELL_INFLW_CHNL_DTL_CD IN ('1030','1040','9020')
-                </when>
-                <otherwise> /* 사업자 */
-                    AND T2.SELL_PRTNR_NO IN ('1525290' /*구몬학습*/, '1650501' /*에듀*/, '1564070' /*수학달인*/, '1593484'/*도요새*/, '1712367' /*더퍼스트*/, '1743635' /*직원구매*/, '1743636' /*5７차월*/, '1743637' /*이자제휴*/)
-                </otherwise>
-            </choose>
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(empNo)">
-          AND NVL(T6.SAP_EMPNO, T5.PRTNR_NO) = #{empNo}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(cntrtRelCd)">
-          AND T7.CNTRT_REL_CD = #{cntrtRelCd}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
-          AND T6.CRAL_LOCARA_TNO = #{cralLocaraTno}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
-          AND T6.MEXNO_ENCR = #{mexnoEncr}
-        </if>
-        <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
-          AND T6.CRAL_IDV_TNO = #{cralIdvTno}
-        </if>
-        GROUP BY NVL(T6.SAP_EMPNO, T5.PRTNR_NO)
-               , NVL(T6.FNM, T5.PRTNR_KNM)
-               , T6.CRAL_LOCARA_TNO
-               , T6.MEXNO_ENCR
-               , T6.CRAL_IDV_TNO
+        WITH W1 AS (
+            SELECT
+                   B1.SELL_PRTNR_NO /* 판매자사번 */
+                 , B1.SELL_OG_TP_CD /* 계약기본.판매조직유형코드가 정상적으로 들어있지 않음(EX] @1650, @1564...) */
+                 , B1.CNTR_TP_CD /* 계약유형코드 = '03' 임직원일때 직원구매로 보면 되는지 확인 필요 */
+                 , B1.CNTR_CNFM_DTM /* 계약확정일자 */
+                 , C1.IST_DT /* 설치일자 */
+                 , C1.REQD_DT /* 철거일자 */
+                 , A1.CNTR_DTL_STAT_CD /* 301 고객요청해야, 302 연체해약, 303 계약취소 */
+                 , B1.SELL_INFLW_CHNL_DTL_CD /* 판매유입채널상세코드 9020 일때 직원구매 */
+                 , TO_CHAR(TRUNC(SYSDATE, 'MM'), 'YYYYMM') AS BASE_YM /* 기준년월 */
+                 , TO_CHAR(TRUNC(SYSDATE, 'MM'), 'YYYY') AS BASE_YY /* 기준년도 */
+                 , A1.CNTR_NO
+                 , A1.CNTR_SN
+                 , A1.CNTR_PD_STRTDT /* 계약상품시작일자 */
+                 , A1.CNTR_PD_ENDDT /* 계약상품종료일자 */
+                 , E1.OG_NM /* 파트너기본(조직명) */
+              FROM TB_SSCT_CNTR_DTL A1  /* 계약상세 */
+             INNER JOIN TB_SSCT_CNTR_BAS B1  /* 계약기본 */
+                ON B1.CNTR_NO = A1.CNTR_NO
+               AND B1.DTA_DL_YN = 'N'
+               AND A1.DTA_DL_YN = 'N'
+              LEFT OUTER  JOIN TB_SSCT_CNTR_WELLS_DTL C1 /* 계약WELLS상세 - 매출일 렌탈의 경우 설치일자가 매출인식일자로 처리 되므로 INNER로 변경 */
+                ON C1.CNTR_NO = A1.CNTR_NO
+               AND C1.CNTR_SN = A1.CNTR_SN
+               AND C1.DTA_DL_YN = 'N'
+               AND A1.DTA_DL_YN = 'N'
+              LEFT OUTER JOIN TB_SSCT_CNTR_CST_REL D1    /* T.계약자관계코드 */
+                ON D1.DTL_CNTR_NO = A1.CNTR_NO
+               AND D1.DTL_CNTR_SN = A1.CNTR_SN
+               AND D1.CNTR_CST_REL_TP_CD = '10' /* 계약자 */
+               AND D1.DTA_DL_YN = 'N'
+              LEFT OUTER JOIN TB_OGBS_PRTNR_BAS E1    /* T.파트너 기본 */
+                ON E1.PRTNR_NO = B1.SELL_PRTNR_NO
+               AND E1.DTA_DL_YN = 'N'
+             WHERE 1=1
+        	   AND C1.IST_DT <![CDATA[ >= ]]> #{istDt}||'0101'
+               AND A1.SELL_TP_CD = '2'    /* 렌탈 */
+               AND C1.IST_DT IS NOT NULL
+               AND TO_DATE(C1.IST_DT, 'YYYYMMDD') + 14 <![CDATA[ <= ]]> SYSDATE
+             <if test="@MybatisUtils@isNotEmpty(emplDv)">
+                 <choose>
+                     <when test='@MybatisUtils@equals(emplDv, "1")'> /* 임직원 */
+                         AND B1.SELL_INFLW_CHNL_DTL_CD IN ('1030','1040','9020') /* 1030:정규직원, 1040:계약직원, 9020:직원구매 */
+                     </when>
+                     <otherwise> /* 사업자 */
+                         AND B1.SELL_PRTNR_NO IN ('1525290' /*구몬학습*/
+                                                , '1650501' /*에듀*/
+                                                , '1564070' /*수학달인*/
+                                                , '1593484'/*도요새*/
+                                                , '1712367' /*더퍼스트*/
+                                                , '1743635' /*직원구매*/
+                                                , '1743636' /*57차월*/
+                                                , '1743637' /*이자제휴*/)
+                     </otherwise>
+                 </choose>
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(empNo)">
+               AND B1.SELL_PRTNR_NO = #{empNo}
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(cntrtRelCd)">
+               AND D1.CNTRT_REL_CD = #{cntrtRelCd}
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(cralLocaraTno)">
+               AND E1.CRAL_LOCARA_TNO = #{cralLocaraTno}
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(mexnoEncr)">
+               AND E1.MEXNO_ENCR = #{mexnoEncr}
+             </if>
+             <if test="@MybatisUtils@isNotEmpty(cralIdvTno)">
+               AND E1.CRAL_IDV_TNO = #{cralIdvTno}
+             </if>
+        )
+        , W2 AS (
+            SELECT R.PRTNR_NO /* 파트너번호 */
+                 , R.ALNC_PRTNR_DRM_VAL /* 제휴파트너 : 제휴파트너식별값 */
+                 , R.CNTR_NO
+            --     , R.*
+             FROM TB_SSCT_CNTR_PRTNR_REL R /*계약파트너관계*/
+            INNER JOIN W1
+               ON W1.CNTR_NO = R.CNTR_NO
+              AND W1.SELL_PRTNR_NO = R.PRTNR_NO
+              AND R.DTA_DL_YN = 'N'
+              AND W1.IST_DT BETWEEN R.VL_STRT_DTM AND R.VL_END_DTM
+            WHERE 1=1
+              AND R.CNTR_PRTNR_TP_CD = '010'
+              AND R.ALNC_PRTNR_DRM_VAL != '0'
+              AND R.PRTNR_NO IN ('1525290' /*구몬학습*/, '1743635' /*직원구매*/, '1743636' /*5７차월*/, '1743637')
+        )
+            SELECT
+                   I2.EMPNO
+                 , I2.EMP_DV
+                 , MAX(CASE WHEN I2.EMP_DV = 'Y' THEN '임직원' ELSE I2.OG_NM END) AS SELL_INFLW_CHNL_DTL_CD
+--                 , (SELECT COUNT(*)
+--                      FROM TB_GBCO_EMP_BAS E1
+--                     WHERE E1.DTA_DL_YN = 'N'
+--                       AND E1.SAP_REF_EMPNO_VAL = I2.EMPNO
+--                   ) AS CHK_CN
+                 , (SELECT MAX(D1.PRTNR_KNM) KEEP (DENSE_RANK FIRST ORDER BY NVL(D1.FNL_MDFC_DTM, D1.FST_RGST_DTM) ASC NULLS LAST) AS PRTNR_KNM /* 파트너한글명 */
+                      FROM TB_OGBS_PRTNR_BAS D1 /* 파트너기본 */
+                     WHERE D1.PRTNR_NO = I2.EMPNO
+                     GROUP BY D1.PRTNR_NO) AS PRTNR_KNM
+                 , (SELECT MAX(D1.CRAL_LOCARA_TNO) KEEP (DENSE_RANK FIRST ORDER BY NVL(D1.FNL_MDFC_DTM, D1.FST_RGST_DTM) ASC NULLS LAST) AS CRAL_LOCARA_TNO/* 휴대지역전화번호 */
+                      FROM TB_OGBS_PRTNR_BAS D1 /* 파트너기본 */
+                     WHERE D1.PRTNR_NO = I2.EMPNO
+                     GROUP BY D1.PRTNR_NO) AS CRAL_LOCARA_TNO
+                 , (SELECT MAX(D1.MEXNO_ENCR) KEEP (DENSE_RANK FIRST ORDER BY NVL(D1.FNL_MDFC_DTM, D1.FST_RGST_DTM) ASC NULLS LAST) AS MEXNO_ENCR/* 휴대전화국번호암호화 */
+                      FROM TB_OGBS_PRTNR_BAS D1 /* 파트너기본 */
+                     WHERE D1.PRTNR_NO = I2.EMPNO
+                     GROUP BY D1.PRTNR_NO) AS MEXNO_ENCR
+                 , (SELECT MAX(D1.CRAL_IDV_TNO) KEEP (DENSE_RANK FIRST ORDER BY NVL(D1.FNL_MDFC_DTM, D1.FST_RGST_DTM) ASC NULLS LAST) AS CRAL_IDV_TNO/* 휴대개별전화번호 */
+                      FROM TB_OGBS_PRTNR_BAS D1 /* 파트너기본 */
+                     WHERE D1.PRTNR_NO = I2.EMPNO
+                     GROUP BY D1.CRAL_IDV_TNO) AS CRAL_IDV_TNO
+                 , '' AS CRAL_TNO
+                 , (SELECT
+                            E2.RSGN_DT
+                      FROM (
+                             SELECT E1.SAP_REF_EMPNO_VAL
+                                  , E1.RSGN_DT
+                               FROM TB_GBCO_EMP_BAS E1 /* 직원기본 */
+                              WHERE E1.DTA_DL_YN = 'N'
+                              START WITH E1.SAP_EMPNO = I2.EMPNO
+                            CONNECT BY PRIOR E1.SAP_REF_EMPNO_VAL = E1.SAP_EMPNO
+                            ) E2
+                     WHERE E2.SAP_REF_EMPNO_VAL = '0' /* 최종키 */
+                   ) AS RSGN_DT
+                 , SUM(I2.BF_IST_CN) AS BF_IST_CN /* 이전설치건수 */
+                 , SUM(I2.BF_CAN_CN) AS BF_CAN_CN /* 이전취소건수 */
+                 , (SUM(I2.BF_IST_CN) - SUM(I2.BF_CAN_CN)) AS BF_FNL_CN /* 이전최종건수 */
+                 , SUM(I2.THM_IST_CN) AS THM_IST_CN /* 당월설치건수 */
+                 , SUM(I2.THM_CAN_CN) AS THM_CAN_CN /* 당월취소건수 */
+                 , (SUM(I2.THM_IST_CN) - SUM(I2.THM_CAN_CN)) AS THM_FNL_CN /* 당월최종건수 */
+                 , SUM(I2.MTH01_IST_CN) AS MTH01_IST_CN /* 1월설치건수 */
+                 , SUM(I2.MTH01_CAN_CN) AS MTH01_CAN_CN /* 1월취소건수 */
+                 , (SUM(I2.MTH01_IST_CN) - SUM(I2.MTH01_CAN_CN)) AS MTH01_FNL_CN /* 1월최종건수 */
+                 , SUM(I2.MTH02_IST_CN) AS MTH02_IST_CN /* 2월설치건수 */
+                 , SUM(I2.MTH02_CAN_CN) AS MTH02_CAN_CN /* 2월취소건수 */
+                 , (SUM(I2.MTH02_IST_CN) - SUM(I2.MTH02_CAN_CN)) AS MTH02_FNL_CN /* 2월최종건수 */
+                 , SUM(I2.MTH03_IST_CN) AS MTH03_IST_CN /* 3월설치건수 */
+                 , SUM(I2.MTH03_CAN_CN) AS MTH03_CAN_CN /* 3월취소건수 */
+                 , (SUM(I2.MTH03_IST_CN) - SUM(I2.MTH03_CAN_CN)) AS MTH03_FNL_CN /* 3월최종건수 */
+                 , SUM(I2.MTH04_IST_CN) AS MTH04_IST_CN /* 4월설치건수 */
+                 , SUM(I2.MTH04_CAN_CN) AS MTH04_CAN_CN /* 4월취소건수 */
+                 , (SUM(I2.MTH04_IST_CN) - SUM(I2.MTH04_CAN_CN)) AS MTH04_FNL_CN /* 4월최종건수 */
+                 , SUM(I2.MTH05_IST_CN) AS MTH05_IST_CN /* 5월설치건수 */
+                 , SUM(I2.MTH05_CAN_CN) AS MTH05_CAN_CN /* 5월취소건수 */
+                 , (SUM(I2.MTH05_IST_CN) - SUM(I2.MTH05_CAN_CN)) AS MTH05_FNL_CN /* 5월최종건수 */
+                 , SUM(I2.MTH06_IST_CN) AS MTH06_IST_CN /* 6월설치건수 */
+                 , SUM(I2.MTH06_CAN_CN) AS MTH06_CAN_CN /* 6월취소건수 */
+                 , (SUM(I2.MTH06_IST_CN) - SUM(I2.MTH06_CAN_CN)) AS MTH06_FNL_CN /* 6월최종건수 */
+                 , SUM(I2.MTH07_IST_CN) AS MTH07_IST_CN /* 7월설치건수 */
+                 , SUM(I2.MTH07_CAN_CN) AS MTH07_CAN_CN /* 7월취소건수 */
+                 , (SUM(I2.MTH07_IST_CN) - SUM(I2.MTH07_CAN_CN)) AS MTH07_FNL_CN /* 7월최종건수 */
+                 , SUM(I2.MTH08_IST_CN) AS MTH08_IST_CN /* 8월설치건수 */
+                 , SUM(I2.MTH08_CAN_CN) AS MTH08_CAN_CN /* 8월취소건수 */
+                 , (SUM(I2.MTH08_IST_CN) - SUM(I2.MTH08_CAN_CN)) AS MTH08_FNL_CN /* 8월최종건수 */
+                 , SUM(I2.MTH09_IST_CN) AS MTH09_IST_CN /* 9월설치건수 */
+                 , SUM(I2.MTH09_CAN_CN) AS MTH09_CAN_CN /* 9월취소건수 */
+                 , (SUM(I2.MTH09_IST_CN) - SUM(I2.MTH09_CAN_CN)) AS MTH09_FNL_CN /* 9월최종건수 */
+                 , SUM(I2.MTH10_IST_CN) AS MTH10_IST_CN /* 10월설치건수 */
+                 , SUM(I2.MTH10_CAN_CN) AS MTH10_CAN_CN /* 10월취소건수 */
+                 , (SUM(I2.MTH10_IST_CN) - SUM(I2.MTH10_CAN_CN)) AS MTH10_FNL_CN /* 10월최종건수 */
+                 , SUM(I2.MTH11_IST_CN) AS MTH11_IST_CN /* 11월설치건수 */
+                 , SUM(I2.MTH11_CAN_CN) AS MTH11_CAN_CN /* 11월취소건수 */
+                 , (SUM(I2.MTH11_IST_CN) - SUM(I2.MTH11_CAN_CN)) AS MTH11_FNL_CN /* 11월최종건수 */
+                 , SUM(I2.MTH12_IST_CN) AS MTH12_IST_CN /* 12월설치건수 */
+                 , SUM(I2.MTH12_CAN_CN) AS MTH12_CAN_CN /* 12월취소건수 */
+                 , (SUM(I2.MTH12_IST_CN) - SUM(I2.MTH12_CAN_CN)) AS MTH12_FNL_CN /* 12월최종건수 */
+                 , SUM(I2.TOT_IST_CN) AS TOT_IST_CN /* 전체설치건수 */
+                 , SUM(I2.TOT_CAN_CN) AS TOT_CAN_CN /* 전체취소건수 */
+                 , (SUM(I2.TOT_IST_CN) - SUM(I2.TOT_CAN_CN)) AS TOT_FNL_CN /* 전체최종건수 */
+              FROM
+                   (
+                    SELECT I1.EMPNO
+                         , I1.EMP_DV
+                         , I1.SELL_INFLW_CHNL_DTL_CD
+                         , I1.OG_NM
+                         , CASE WHEN SUBSTR(I1.IST_DT, 1, 6) <![CDATA[ < ]]> I1.BASE_YM /* 설치일자 */
+                                     THEN 1
+                                ELSE 0
+                           END BF_IST_CN /* 이전설치건수 */
+                           /* 당월설치, 당월취소건  */
+                         , CASE WHEN     SUBSTR(I1.IST_DT, 1, 6) <![CDATA[ < ]]> I1.BASE_YM /* 설치일자 */
+                                     AND I1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                                     AND SUBSTR(I1.CNTR_PD_ENDDT, 1, 6) <![CDATA[ < ]]> I1.BASE_YM /* 계약상품종료일자 */
+                                     AND I1.CNTR_PD_ENDDT IS NOT NULL
+                    --                 AND SUBSTR(I1.REQD_DT, 1, 6) <![CDATA[ < ]]> I1.BASE_YM /* 철거일자 */
+                    --                 AND I1.REQD_DT IS NOT NULL
+                                     THEN 1
+                                ELSE 0
+                           END BF_CAN_CN /* 이전취소건수  */
+                         , CASE WHEN SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YM /* 설치일자 */
+                                     THEN 1
+                                ELSE 0
+                           END THM_IST_CN /* 당월설치건수 */
+                           /* 당월설치, 당월취소건  */
+                         , CASE WHEN     SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YM /* 설치일자 */
+                                     AND I1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                                     AND SUBSTR(I1.CNTR_PD_ENDDT, 1, 6) = I1.BASE_YM /* 계약상품종료일자 */
+                                     AND I1.CNTR_PD_ENDDT IS NOT NULL
+                    --                 AND SUBSTR(I1.REQD_DT, 1, 6) <![CDATA[ < ]]> I1.BASE_YM /* 철거일자 */
+                    --                 AND I1.REQD_DT IS NOT NULL
+                                     THEN 1
+                                ELSE 0
+                           END THM_CAN_CN /* 당월취소건수  */
+                         , CASE WHEN SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'01' /* 설치일자 */
+                                     THEN 1
+                                ELSE 0
+                           END MTH01_IST_CN /* 1월설치건수 */
+                         , CASE WHEN     SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'01' /* 설치일자 */
+                                     AND I1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                                     AND SUBSTR(I1.CNTR_PD_ENDDT, 1, 6) = I1.BASE_YY||'01' /* 계약상품종료일자 */
+                                     AND I1.CNTR_PD_ENDDT IS NOT NULL
+                                     THEN 1
+                                ELSE 0
+                           END MTH01_CAN_CN /* 1월취소건수  */
+                         , CASE WHEN SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'02' /* 설치일자 */
+                                     THEN 1
+                                ELSE 0
+                           END MTH02_IST_CN /* 2월설치건수 */
+                         , CASE WHEN     SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'02' /* 설치일자 */
+                                     AND I1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                                     AND SUBSTR(I1.CNTR_PD_ENDDT, 1, 6) = I1.BASE_YY||'02' /* 계약상품종료일자 */
+                                     AND I1.CNTR_PD_ENDDT IS NOT NULL
+                                     THEN 1
+                                ELSE 0
+                           END MTH02_CAN_CN /* 2월취소건수  */
+                         , CASE WHEN SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'03' /* 설치일자 */
+                                     THEN 1
+                                ELSE 0
+                           END MTH03_IST_CN /* 3월설치건수 */
+                         , CASE WHEN     SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'03' /* 설치일자 */
+                                     AND I1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                                     AND SUBSTR(I1.CNTR_PD_ENDDT, 1, 6) = I1.BASE_YY||'03' /* 계약상품종료일자 */
+                                     AND I1.CNTR_PD_ENDDT IS NOT NULL
+                                     THEN 1
+                                ELSE 0
+                           END MTH03_CAN_CN /* 3월취소건수  */
+                         , CASE WHEN SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'04' /* 설치일자 */
+                                     THEN 1
+                                ELSE 0
+                           END MTH04_IST_CN /* 4월설치건수 */
+                         , CASE WHEN     SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'04' /* 설치일자 */
+                                     AND I1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                                     AND SUBSTR(I1.CNTR_PD_ENDDT, 1, 6) = I1.BASE_YY||'04' /* 계약상품종료일자 */
+                                     AND I1.CNTR_PD_ENDDT IS NOT NULL
+                                     THEN 1
+                                ELSE 0
+                           END MTH04_CAN_CN /* 4월취소건수  */
+                         , CASE WHEN SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'05' /* 설치일자 */
+                                     THEN 1
+                                ELSE 0
+                           END MTH05_IST_CN /* 5월설치건수 */
+                         , CASE WHEN     SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'05' /* 설치일자 */
+                                     AND I1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                                     AND SUBSTR(I1.CNTR_PD_ENDDT, 1, 6) = I1.BASE_YY||'05' /* 계약상품종료일자 */
+                                     AND I1.CNTR_PD_ENDDT IS NOT NULL
+                                     THEN 1
+                                ELSE 0
+                           END MTH05_CAN_CN /* 5월취소건수  */
+                         , CASE WHEN SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'06' /* 설치일자 */
+                                     THEN 1
+                                ELSE 0
+                           END MTH06_IST_CN /* 6월설치건수 */
+                         , CASE WHEN     SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'06' /* 설치일자 */
+                                     AND I1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                                     AND SUBSTR(I1.CNTR_PD_ENDDT, 1, 6) = I1.BASE_YY||'06' /* 계약상품종료일자 */
+                                     AND I1.CNTR_PD_ENDDT IS NOT NULL
+                                     THEN 1
+                                ELSE 0
+                           END MTH06_CAN_CN /* 6월취소건수  */
+                         , CASE WHEN SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'07' /* 설치일자 */
+                                     THEN 1
+                                ELSE 0
+                           END MTH07_IST_CN /* 7월설치건수 */
+                         , CASE WHEN     SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'07' /* 설치일자 */
+                                     AND I1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                                     AND SUBSTR(I1.CNTR_PD_ENDDT, 1, 6) = I1.BASE_YY||'07' /* 계약상품종료일자 */
+                                     AND I1.CNTR_PD_ENDDT IS NOT NULL
+                                     THEN 1
+                                ELSE 0
+                           END MTH07_CAN_CN /* 7월취소건수  */
+                         , CASE WHEN SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'08' /* 설치일자 */
+                                     THEN 1
+                                ELSE 0
+                           END MTH08_IST_CN /* 8월설치건수 */
+                         , CASE WHEN     SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'08' /* 설치일자 */
+                                     AND I1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                                     AND SUBSTR(I1.CNTR_PD_ENDDT, 1, 6) = I1.BASE_YY||'08' /* 계약상품종료일자 */
+                                     AND I1.CNTR_PD_ENDDT IS NOT NULL
+                                     THEN 1
+                                ELSE 0
+                           END MTH08_CAN_CN /* 8월취소건수  */
+                         , CASE WHEN SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'09' /* 설치일자 */
+                                     THEN 1
+                                ELSE 0
+                           END MTH09_IST_CN /* 9월설치건수 */
+                         , CASE WHEN     SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'09' /* 설치일자 */
+                                     AND I1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                                     AND SUBSTR(I1.CNTR_PD_ENDDT, 1, 6) = I1.BASE_YY||'09' /* 계약상품종료일자 */
+                                     AND I1.CNTR_PD_ENDDT IS NOT NULL
+                                     THEN 1
+                                ELSE 0
+                           END MTH09_CAN_CN /* 9월취소건수  */
+                         , CASE WHEN SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'10' /* 설치일자 */
+                                     THEN 1
+                                ELSE 0
+                           END MTH10_IST_CN /* 10월설치건수 */
+                         , CASE WHEN     SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'10' /* 설치일자 */
+                                     AND I1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                                     AND SUBSTR(I1.CNTR_PD_ENDDT, 1, 6) = I1.BASE_YY||'10' /* 계약상품종료일자 */
+                                     AND I1.CNTR_PD_ENDDT IS NOT NULL
+                                     THEN 1
+                                ELSE 0
+                           END MTH10_CAN_CN /* 10월취소건수  */
+                         , CASE WHEN SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'11' /* 설치일자 */
+                                     THEN 1
+                                ELSE 0
+                           END MTH11_IST_CN /* 11월설치건수 */
+                         , CASE WHEN     SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'11' /* 설치일자 */
+                                     AND I1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                                     AND SUBSTR(I1.CNTR_PD_ENDDT, 1, 6) = I1.BASE_YY||'11' /* 계약상품종료일자 */
+                                     AND I1.CNTR_PD_ENDDT IS NOT NULL
+                                     THEN 1
+                                ELSE 0
+                           END MTH11_CAN_CN /* 11월취소건수  */
+                         , CASE WHEN SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'12' /* 설치일자 */
+                                     THEN 1
+                                ELSE 0
+                           END MTH12_IST_CN /* 12월설치건수 */
+                         , CASE WHEN     SUBSTR(I1.IST_DT, 1, 6) = I1.BASE_YY||'12' /* 설치일자 */
+                                     AND I1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                                     AND SUBSTR(I1.CNTR_PD_ENDDT, 1, 6) = I1.BASE_YY||'12' /* 계약상품종료일자 */
+                                     AND I1.CNTR_PD_ENDDT IS NOT NULL
+                                     THEN 1
+                                ELSE 0
+                           END MTH12_CAN_CN /* 12월취소건수  */
+                         , CASE WHEN SUBSTR(I1.IST_DT, 1, 4) = I1.BASE_YY /* 설치일자 */
+                                     THEN 1
+                                ELSE 0
+                           END TOT_IST_CN /* 전체설치건수 */
+                         , CASE WHEN     SUBSTR(I1.IST_DT, 1, 4) = I1.BASE_YY /* 설치일자 */
+                                     AND I1.CNTR_DTL_STAT_CD IN ('301', '302', '303') /* 301:고객요청해약, 302:연체해약, 303:계약취소 */
+                                     AND SUBSTR(I1.CNTR_PD_ENDDT, 1, 4) = I1.BASE_YY /* 계약상품종료일자 */
+                                     AND I1.CNTR_PD_ENDDT IS NOT NULL
+                                     THEN 1
+                                ELSE 0
+                           END TOT_CAN_CN /* 12월취소건수  */
+                      FROM
+                         (
+                          SELECT
+                                 NVL(W2.ALNC_PRTNR_DRM_VAL, W1.SELL_PRTNR_NO) AS EMPNO
+                               , CASE WHEN W1.SELL_INFLW_CHNL_DTL_CD IN ('1030','1040','9020')
+                                           THEN 'Y'
+                                      ELSE 'N'
+                                 END EMP_DV
+                               , W1.SELL_PRTNR_NO
+                               , W2.ALNC_PRTNR_DRM_VAL
+                               , W1.SELL_OG_TP_CD
+                               , W1.CNTR_TP_CD
+                               , W1.CNTR_CNFM_DTM
+                               , W1.IST_DT
+                               , W1.REQD_DT
+                               , W1.CNTR_DTL_STAT_CD
+                               , W1.SELL_INFLW_CHNL_DTL_CD
+                               , W1.BASE_YM
+                               , W1.BASE_YY
+                               , W1.CNTR_NO
+                               , W1.CNTR_SN
+                               , W1.CNTR_PD_STRTDT
+                               , W1.CNTR_PD_ENDDT
+                               , W1.OG_NM
+                            FROM W1
+                            LEFT OUTER JOIN W2
+                              ON W1.CNTR_NO = W2.CNTR_NO
+                         ) I1
+                   ) I2
+               WHERE 1=1
+               GROUP BY I2.EMPNO, I2.EMP_DV
     </select>
     <select id="selectEmployeePurchases" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaEmployeePrchsGcfMngtDto$SearchCntrRes">
         SELECT NVL(T6.SAP_EMPNO, T5.PRTNR_NO) AS HMNRSC_EMPNO    /*인사사원번호 - 판매자사번*/
