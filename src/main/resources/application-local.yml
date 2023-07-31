@@ -150,31 +150,29 @@ kportal:
 kakaopay:
     callbackUrl: http://localhost:8080/api/v1/interface/sflex/common/common/kakaopay
 
-#datasource:
-#    ########### DEV #######################
-#    pri:
-#        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-#        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.29:1515/DITGKW
-#        username: WSMDEV
-#        password: WSM#DEV1249##
-#        maximumpoolsize: 10
-#        auto-commit: false
-#        cacheprepstmts: true
-#        prepstmtcachesize: 250
-#        prepstmtcachesqlLimit: 2048
-#    sec:
-#        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-#        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.29:1515/DITGKW
-#        username: WSMDEV
-#        password: WSM#DEV1249##
-#        maximumpoolsize: 10
-#        auto-commit: false
-#        cacheprepstmts: true
-#        prepstmtcachesize: 250
-#        prepstmtcachesqlLimit: 2048
+datasource:
+    ########### DEV #######################
+    pri:
+        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.29:1515/DITGKW
+        username: WSMDEV
+        password: WSM#DEV1249##
+        maximumpoolsize: 10
+        auto-commit: false
+        cacheprepstmts: true
+        prepstmtcachesize: 250
+        prepstmtcachesqlLimit: 2048
+    sec:
+        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.60.29:1515/DITGKW
+        username: WSMDEV
+        password: WSM#DEV1249##
+        maximumpoolsize: 10
+        auto-commit: false
+        cacheprepstmts: true
+        prepstmtcachesize: 250
+        prepstmtcachesqlLimit: 2048
 
-#
-#datasource:
 #    ########### QA #######################
 #    pri:
 #        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
@@ -197,38 +195,36 @@ kakaopay:
 #        prepstmtcachesize: 250
 #        prepstmtcachesqlLimit: 2048
 
-
-datasource:
-    ########### PROD #######################
-    pri:
-        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.30.120:1535/PITGKW
-        username: WSMDEV
-        password: wsm$DEV4708#$
-        maximumpoolsize: 10
-        auto-commit: false
-        cacheprepstmts: true
-        prepstmtcachesize: 250
-        prepstmtcachesqlLimit: 2048
-    kportal:
-        name: 'kportal'
-        driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
-        jdbcUrl: jdbc:sqlserver://10.1.30.195:3950;DatabaseName=Kportal_ezBoardSTD
-        username: ekpboard
-        password: ekp!23
-        maximumpoolsize: 10
-        auto-commit: false
-        cacheprepstmts: true
-        prepstmtcachesize: 250
-        prepstmtcachesqlLimit: 2048
-        initialSize: 2
-        maxTotal: 30
-        maxIdle: 10
-        minIdle: 3
-        maxWaitMillis: 30000
-        removeAbandonedOnMaintenance: true
-        removeAbandonedTimeout: 30
-        validationQuery: SELECT 1
+#    ########### PROD #######################
+#    pri:
+#        driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+#        jdbcUrl: jdbc:log4jdbc:oracle:thin:@//10.1.30.120:1535/PITGKW
+#        username: WSMDEV
+#        password: wsm$DEV4708#$
+#        maximumpoolsize: 10
+#        auto-commit: false
+#        cacheprepstmts: true
+#        prepstmtcachesize: 250
+#        prepstmtcachesqlLimit: 2048
+#    kportal:
+#        name: 'kportal'
+#        driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
+#        jdbcUrl: jdbc:sqlserver://10.1.30.195:3950;DatabaseName=Kportal_ezBoardSTD
+#        username: ekpboard
+#        password: ekp!23
+#        maximumpoolsize: 10
+#        auto-commit: false
+#        cacheprepstmts: true
+#        prepstmtcachesize: 250
+#        prepstmtcachesqlLimit: 2048
+#        initialSize: 2
+#        maxTotal: 30
+#        maxIdle: 10
+#        minIdle: 3
+#        maxWaitMillis: 30000
+#        removeAbandonedOnMaintenance: true
+#        removeAbandonedTimeout: 30
+#        validationQuery: SELECT 1
 
 
 ############## LOGGING Setting ############
