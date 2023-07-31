@@ -757,7 +757,7 @@
     </select>
 
     <!--getMojongDays_ilsibul-->
-    <select id="selectSidingDaysForSpay" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo">
+    <select id="selectSidingDaysForSpay_back" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo">
         SELECT SUBSTR(W3TH, 1, 4) || '-' || SUBSTR(W3TH, 5, 2) || '-' || SUBSTR(W3TH, 7, 2) AS ENABLE_DAYS
              , W3TH
              , SUM(SUM_CNT) AS SUM_CNT
@@ -970,6 +970,193 @@
                                        AND B.PHLD_YN IS NULL)
                              WHERE VST_DT(+) = DAYS)
                      GROUP BY VST_CNFMDT
+                )
+            ON W3TH = VST_CNFMDT
+         WHERE 1 = 1
+           /* BS 마감일 기준 D-3일 이내 배정불가 */
+           AND W3TH NOT IN (SELECT BASE_Y || BASE_MM || BASE_D
+                              FROM TB_SVPD_BFSVC_CL_D_BASE_IZ AC271 /*LC_ALLOCATE_AC271TB*//*BS목록조회마감일기준내역*/
+                                 , TB_SVPD_SV_CLND_BAS        CLND /*LC_COMMONCODE_CO160TB*/
+                             WHERE AC271.MNGT_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                               AND BASE_Y || BASE_MM || BASE_D BETWEEN TO_CHAR(TO_DATE(AC271.BFSVC_ENDDT, 'YYYYMMDD') - 3, 'YYYYMMDD') AND AC271.BFSVC_ENDDT)
+           AND SUM_CNT > 0
+         GROUP BY W3TH
+         ORDER BY W3TH
+    </select>
+    <select id="selectSidingDaysForSpay" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo">
+        SELECT SUBSTR(W3TH, 1, 4) || '-' || SUBSTR(W3TH, 5, 2) || '-' || SUBSTR(W3TH, 7, 2) AS ENABLE_DAYS
+             , W3TH
+             , SUM(SUM_CNT) AS SUM_CNT
+             , CASE WHEN #{sdingCombin} = '03' THEN (SELECT CLND.BASE_Y || CLND.BASE_MM || CLND.BASE_D
+                                                FROM TB_SVPD_SV_CLND_BAS CLND /*LC_COMMONCODE_CO160TB*/
+                                               WHERE (BASE_Y || BASE_MM || BASE_D BETWEEN TO_CHAR(TO_DATE(W3TH, 'YYYYMMDD') - 35, 'YYYYMMDD') AND W3TH)
+                                                 AND DF_YN IS NULL
+                                                 AND PHLD_YN IS NULL
+                                                 AND ROWNUM = 1)
+                    WHEN #{sdingCombin} = '02' THEN (SELECT CLND.BASE_Y || CLND.BASE_MM || CLND.BASE_D
+                                                FROM TB_SVPD_SV_CLND_BAS CLND /*LC_COMMONCODE_CO160TB*/
+                                               WHERE (CLND.BASE_Y || CLND.BASE_MM || CLND.BASE_D BETWEEN TO_CHAR(TO_DATE(W3TH, 'YYYYMMDD') - 35, 'YYYYMMDD') AND W3TH)
+                                                 AND DF_YN IS NULL
+                                                 AND PHLD_YN IS NULL
+                                                 AND ROWNUM = 1)
+                    ELSE (SELECT BASE_Y || BASE_MM || BASE_D
+                            FROM TB_SVPD_SV_CLND_BAS CLND /*LC_COMMONCODE_CO160TB*/
+                           WHERE (BASE_Y || BASE_MM || BASE_D BETWEEN TO_CHAR(TO_DATE(W3TH, 'YYYYMMDD') - 4, 'YYYYMMDD') AND W3TH)
+                             AND DF_YN IS NULL
+                             AND PHLD_YN IS NULL
+                             AND ROWNUM = 1)
+               END AS SOW_DAY-- PAJONG_DAY
+          FROM (
+                    SELECT V1.BASE_Y
+                         , V1.BASE_MM
+                         , V1.BASE_D
+                         , V1.CO160_DAYS
+                         , V1.DF_YN
+                         , V1.PHLD_YN
+                         , W3TH
+                         , B.RN
+                      FROM (
+                                SELECT A.BASE_Y
+                                     , A.BASE_MM
+                                     , A.BASE_D
+                                     , TO_CHAR(TO_DATE(TRIM(A.BASE_Y) || TRIM(A.BASE_MM) || TRIM(A.BASE_D)), 'D') AS CO160_DAYS
+                                     , A.DF_YN
+                                     , A.PHLD_YN
+                                       /**  1. 2020.02.03 휴일, 공휴일 또는 회사휴무일 제외 모든 일자 배송가능  **/
+                                     , CASE WHEN (TO_CHAR(TO_DATE(TRIM(A.BASE_Y) || TRIM(A.BASE_MM) || TRIM(A.BASE_D)), 'D') != '1' AND A.DF_YN IS NULL AND A.PHLD_YN IS NULL)
+                                            THEN TO_CHAR(TO_DATE(A.BASE_Y || A.BASE_MM || A.BASE_D), 'YYYYMMDD')
+                                       END AS W3TH
+                                  FROM TB_SVPD_SV_CLND_BAS A /*LC_COMMONCODE_CO160TB*/
+                                 INNER JOIN (
+                                        SELECT T1.PD_CD
+                                             , T2.PD_PRP_VAL20 AS PD_GRP_CD
+                                          FROM TB_PDBS_PD_BAS T1
+                                         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T2
+                                            ON T1.PD_CD = T2.PD_CD
+                                           AND T2.PD_EXTS_PRP_GRP_CD IN ('PART')
+                                           AND T2.DTA_DL_YN = 'N'
+                                        ) B/*LC_STOCK_ST101TB*/
+                                    ON 1 = 1
+                                 WHERE BASE_Y || BASE_MM || BASE_D BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(#{sellDate},0,6) || '01'), -5), 'YYYYMMDD') AND TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTR(#{sellDate},0,6) || '01'), 5), 'YYYYMMDD')
+                                   AND (SELECT REL.OJ_PD_CD
+                                          FROM TB_PDBS_PD_REL REL
+                                         WHERE REL.PD_REL_TP_CD = '05'
+                                           AND REL.DTA_DL_YN = 'N'
+                                           AND TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') BETWEEN VL_STRT_DTM AND VL_END_DTM
+                                           AND REL.BASE_PD_CD = #{basePdCd}) = B.PD_CD
+                                   AND (B.PD_GRP_CD = '11' OR (B.PD_GRP_CD = '92' AND #{svDvCd} != '3'))
+                            ) V1
+                      LEFT OUTER JOIN (
+                                SELECT BASE_Y
+                                     , BASE_MM
+                                     , BASE_D
+                                     , ROW_NUMBER() OVER (PARTITION BY BASE_Y,BASE_MM ORDER BY BASE_D ASC ) AS RN
+                                  FROM TB_SVPD_SV_CLND_BAS CLND /*LC_COMMONCODE_CO160TB*/
+                                 WHERE TO_CHAR(TO_DATE(TRIM(BASE_Y) || TRIM(BASE_MM) || TRIM(BASE_D)), 'D') != '1'
+                                   AND DF_YN IS NULL
+                                   AND PHLD_YN IS NULL
+                           ) B
+                        ON V1.W3TH = B.BASE_Y || B.BASE_MM || B.BASE_D
+                     WHERE W3TH IS NOT NULL
+                  )
+                    INNER JOIN (
+
+                    SELECT SUM(SUM_CNT) AS SUM_CNT, VST_CNFMDT
+                      FROM (
+
+                            SELECT
+                                   -SUM(CASE WHEN P2.PD_PRP_VAL15 = '2' THEN 0.5 ELSE 1 END) AS SUM_CNT   /*와이드유형: 1 WIDE, 2 SLIM*/
+                                 , AC221.VST_CNFMDT
+                              FROM TB_SVPD_CST_SVAS_IST_OJ_IZ  AC211 /*고객서비스AS설치대상내역*/
+                                     INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ AC221 /*고객서비스AS설치배정내역보*/
+                                             ON AC211.CST_SV_ASN_NO = AC221.CST_SV_ASN_NO
+                                     INNER JOIN TB_SVPD_SDING_PKG_ITM_IZ MJ3 /*모종패키지품목내역*/
+                                             ON  MJ3.SDING_PD_CD = AC211.PD_CD
+                                             AND MJ3.DTA_DL_YN = 'N'
+                                             AND MJ3.SDING_PKG_GRP_CD = (SELECT SDING_PKG_GRP_CD
+                                                                           FROM TB_SVPD_SDING_PKG_ITM_IZ
+                                                                           WHERE SDING_PD_CD = #{pdctPdCd})
+                                     INNER JOIN TB_SSCT_CNTR_DTL C /*계약상세*/
+                                             ON  C.CNTR_NO = AC221.CNTR_NO
+                                             AND C.CNTR_SN = AC221.CNTR_SN
+                                     INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P2
+                                             ON  P2.PD_CD = C.BASE_PD_CD /*판매상품코드*/
+                                             AND P2.PD_EXTS_PRP_GRP_CD = 'CNTR'
+                             WHERE 1 = 1
+                               AND AC211.IN_CHNL_DV_CD = #{svDvCd}
+                               AND AC221.WK_PRGS_STAT_CD IN ('00', '10')
+                               AND AC221.VST_CNFMDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+                             GROUP BY AC221.VST_CNFMDT
+
+                             UNION ALL
+
+                            SELECT
+                                  -SUM(CASE WHEN P2.PD_PRP_VAL15 = '2' THEN 0.5 ELSE 1 END) AS SUM_CNT   /*와이드유형: 1 WIDE, 2 SLIM*/
+                                 , AC261.VST_DUEDT
+                              FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ  AC251 /*고객서비스BS대상내역*/
+                                   INNER JOIN TB_SVPD_CST_SV_BFSVC_ASN_IZ AC261 /*고객서비스BS배정내역*/
+                                           ON AC251.CST_SV_ASN_NO = AC261.CST_SV_ASN_NO
+                                     INNER JOIN TB_SVPD_SDING_PKG_ITM_IZ MJ3 /*모종패키지품목내역*/
+                                             ON  MJ3.SDING_PD_CD = AC251.PDCT_PD_CD
+                                             AND MJ3.DTA_DL_YN = 'N'
+                                             AND MJ3.SDING_PKG_GRP_CD = (SELECT SDING_PKG_GRP_CD
+                                                                           FROM TB_SVPD_SDING_PKG_ITM_IZ
+                                                                           WHERE SDING_PD_CD = #{pdctPdCd})
+                                     INNER JOIN TB_SSCT_CNTR_DTL C /*계약상세*/
+                                             ON  C.CNTR_NO = AC261.CNTR_NO
+                                             AND C.CNTR_SN = AC261.CNTR_SN
+                                     INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL P2
+                                             ON  P2.PD_CD = C.BASE_PD_CD /*판매상품코드*/
+                                             AND P2.PD_EXTS_PRP_GRP_CD = 'CNTR'
+                             WHERE 1 = 1
+                               AND SUBSTR(AC251.CST_SV_ASN_NO, 0, 1) = #{svDvCd}
+                               AND AC261.VST_PRGS_STAT_CD IN ('00', '10')
+                               AND AC261.VST_DUEDT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+                               AND AC251.ASN_OJ_YM = TO_CHAR(SYSDATE, 'YYYYMM')
+                             GROUP BY AC261.VST_DUEDT
+
+                             UNION ALL
+
+                            SELECT NVL(LIM_QTY, 500), DAYS
+                              FROM (SELECT *
+                                     FROM (SELECT row_number() OVER(PARTITION BY SDING_PKG_GRP_CD, SV_BIZ_HCLSF_CD,VST_DT
+                                                                        ORDER BY SDING_PKG_GRP_CD, SV_BIZ_HCLSF_CD,VST_DT,LIM_SN DESC ) AS RN
+                                                 , T1.LIM_QTY, T1.VST_DT
+                                              FROM TB_SVPD_DCBY_SDING_RCP_LIM_IZ T1 /*LC_FARM_FA105TB 일별모종접수한도내역*/
+                                             WHERE 1=1
+                                               AND SDING_PKG_GRP_CD = (SELECT SDING_PKG_GRP_CD
+                                                                         FROM TB_SVPD_SDING_PKG_ITM_IZ
+                                                                        WHERE SDING_PD_CD = #{pdctPdCd})
+                                               AND SV_BIZ_HCLSF_CD = #{svDvCd}
+                                               AND VST_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+                                            )
+                                    WHERE RN = 1
+                                    ) A
+                                 , (SELECT B.BASE_Y || B.BASE_MM || B.BASE_D AS DAYS
+                                      FROM TB_SVPD_SV_CLND_BAS B /*LC_COMMONCODE_CO160TB*/
+                                     WHERE B.BASE_Y || B.BASE_MM || B.BASE_D BETWEEN (CASE WHEN #{sdingCombin} = '03' THEN TO_CHAR(SYSDATE + 40, 'YYYYMMDD')
+                                                                                           ELSE (CASE WHEN (SELECT COUNT(1)
+                                                                                                              FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*LC_ALLOCATE_AC261TB*//*고객서비스BS배정내역*/
+                                                                                                             WHERE ASN_OJ_YM = TO_CHAR(SYSDATE, 'YYYYMM') || '00' AND CNTR_NO = #{cntrNo}) > 0
+                                                                                                      THEN TO_CHAR(ADD_MONTHS(SYSDATE, 1), 'YYYYMM') || '01'
+                                                                                                      ELSE TO_CHAR(SYSDATE, 'YYYYMMDD')
+                                                                                                 END)
+                                                                                      END) AND (CASE WHEN #{sdingCombin} = '03' THEN TO_CHAR(SYSDATE + 70, 'YYYYMMDD')
+                                                                                                     ELSE (CASE WHEN (SELECT COUNT(1)
+                                                                                                                        FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ /*LC_ALLOCATE_AC261TB*//*고객서비스BS배정내역*/
+                                                                                                                       WHERE ASN_OJ_YM = TO_CHAR(SYSDATE, 'YYYYMM') || '00' AND CNTR_NO = #{cntrNo}) > 0
+                                                                                                                THEN (TO_CHAR(TO_DATE(TO_CHAR(ADD_MONTHS(SYSDATE, 1), 'YYYYMM') || '01', 'YYYYMMDD') + 70, 'YYYYMMDD'))
+                                                                                                                ELSE TO_CHAR(SYSDATE + 70, 'YYYYMMDD')
+                                                                                                           END)
+                                                                                                END)
+                                       AND TO_CHAR(TO_DATE(TRIM(B.BASE_Y) || TRIM(B.BASE_MM) || TRIM(B.BASE_D)), 'D') != '1'
+                                       AND B.DF_YN IS NULL
+                                       AND B.PHLD_YN IS NULL) C
+                             WHERE A.VST_DT(+) = C.DAYS
+
+                    )
+                     GROUP BY VST_CNFMDT
+
                 )
             ON W3TH = VST_CNFMDT
          WHERE 1 = 1

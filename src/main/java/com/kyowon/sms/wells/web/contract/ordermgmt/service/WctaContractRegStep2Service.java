@@ -279,6 +279,7 @@ public class WctaContractRegStep2Service {
         WctaContractBasDvo bas = regService.selectContractBas(cntrNo);
 
         WctaContractRegStep2Dvo pdDvo = new WctaContractRegStep2Dvo();
+        // 코드관리X, 임의의 분류
         List<WctaContractRegStep2Dvo.PdClsfDvo> pdClsfs = buildPdClsfs(
             "1", "정수기",
             "2", "청정기",
@@ -329,7 +330,6 @@ public class WctaContractRegStep2Service {
         }
         pdClsfs.removeIf((pdClsf) -> CollectionUtils.isEmpty(pdClsf.getProducts()));
         pdDvo.setPdClsf(pdClsfs);
-        // pdDvo.setProducts(pds);
         return pdDvo;
     }
 
@@ -573,5 +573,15 @@ public class WctaContractRegStep2Service {
         }
 
         return cntrNo;
+    }
+
+    /**
+     * 상품 확정
+     * @param dtls 상품목록
+     * @return 확정된 상품목록
+     */
+    public List<WctaContractRegStep2Dvo.PdDetailDvo> confirmProducts(List<WctaContractRegStep2Dvo.PdDetailDvo> dtls) {
+        // TODO 상품확정 로직 추가
+        return dtls;
     }
 }

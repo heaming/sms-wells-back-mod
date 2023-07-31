@@ -3,7 +3,7 @@
 <mapper namespace="com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaEmployeePrchsGcfMngtMapper">
     <select id="selectEmployeePurchaseGcfs" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaEmployeePrchsGcfMngtDvo">
         WITH W1 AS (
-            SELECT
+            SELECT DISTINCT
                    B1.SELL_PRTNR_NO /* 판매자사번 */
                  , B1.SELL_OG_TP_CD /* 계약기본.판매조직유형코드가 정상적으로 들어있지 않음(EX] @1650, @1564...) */
                  , B1.CNTR_TP_CD /* 계약유형코드 = '03' 임직원일때 직원구매로 보면 되는지 확인 필요 */
@@ -383,6 +383,7 @@
                WHERE 1=1
                GROUP BY I2.EMPNO, I2.EMP_DV
     </select>
+
     <select id="selectEmployeePurchases" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dto.WctaEmployeePrchsGcfMngtDto$SearchCntrRes">
         SELECT NVL(T6.SAP_EMPNO, T5.PRTNR_NO) AS HMNRSC_EMPNO    /*인사사원번호 - 판매자사번*/
              , NVL(T6.FNM, T5.PRTNR_KNM) AS PRTNR_KNM        /*판매자명*/
