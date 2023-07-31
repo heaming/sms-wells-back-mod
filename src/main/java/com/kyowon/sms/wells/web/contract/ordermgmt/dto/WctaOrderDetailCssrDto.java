@@ -113,10 +113,10 @@ public class WctaOrderDetailCssrDto {
     ) {
         public SearchRcpRes {
             if (!StringUtil.isEmpty(afchCssrIsNo)) {
-                afchCssrIsNo = DbEncUtil.enc(afchCssrIsNo);
+                afchCssrIsNo = DbEncUtil.dec(afchCssrIsNo);
             }
             if (!StringUtil.isEmpty(bfchCssrIsNo)) {
-                bfchCssrIsNo = DbEncUtil.enc(bfchCssrIsNo);
+                bfchCssrIsNo = DbEncUtil.dec(bfchCssrIsNo);
             }
         }
     }
@@ -134,7 +134,7 @@ public class WctaOrderDetailCssrDto {
     ) {
         public FindBaseRcpRes {
             if (!StringUtil.isEmpty(cssrIsNo)) {
-                cssrIsNo = DbEncUtil.enc(cssrIsNo);
+                cssrIsNo = DbEncUtil.dec(cssrIsNo);
             }
         }
     }
