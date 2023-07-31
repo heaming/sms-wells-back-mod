@@ -131,7 +131,8 @@
            AND D1.DTA_DL_YN = 'N'
          INNER JOIN TB_SVPD_EGER_ASN_ADR_IZ E1
             ON E1.NEW_ADR_ZIP = AB1.NEW_ADR_ZIP
-           AND E1.EMD_SN      = (SELECT MAX(EMD_SN)
+           AND E1.EMD_SN      = (SELECT /*+ NO_UNNEST INDEX(TB_SVPD_EGER_ASN_ADR_IZ PK_SVPD_EGER_ASN_ADR_IZ) */
+                                        MAX(EMD_SN)
                                    FROM TB_SVPD_EGER_ASN_ADR_IZ
                                   WHERE NEW_ADR_ZIP = AB1.NEW_ADR_ZIP)
            AND E1.DTA_DL_YN   = 'N'
@@ -210,7 +211,7 @@
                   FROM TB_SVPD_ASN_RS_TF_IZ
                  WHERE CST_SV_ASN_NO = #{cstSvAsnNo}
                ), 1) FROM DUAL)
-             , ''
+             , '20'
              , TO_CHAR(sysdate, 'YYYYMMDD')
              , '01'
              , ''
