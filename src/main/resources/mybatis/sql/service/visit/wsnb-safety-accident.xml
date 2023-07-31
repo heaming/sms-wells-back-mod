@@ -145,7 +145,6 @@
              , T1.AGR_IZ
              , NVL(T1.TOT_RDU_AMT,0) AS TOT_RDU_AMT
              , T1.CST_SIGN_CN AS SIGN_CN
-             , T1.MAAS_BRYY_MMDD AS MAAS_BIRTH_DATE
              , T1.MAAS_FNM
              , F_CMZ_CD_NM(#{session.tenantId}, 'CST_REL_CD', T1.FML_REL_DV_CD1, #{session.langId}) AS FML_REL_DV_NM1
              , T1.RFND_ACNO_ENCR
@@ -158,7 +157,7 @@
              , T1.CAUS_ANA_APN_DOC_ID
         FROM TB_SVPD_ACDN_DOAN_IZ T1
         LEFT OUTER JOIN TB_OGBS_MM_OG_IZ O1
-          ON O1.BASE_YM = SUBSTR(SYSDATE, 'YYYYMM')
+          ON O1.BASE_YM = TO_CHAR(SYSDATE, 'YYYYMM')
          AND O1.OG_ID = T1.SV_CNR_OG_ID
          AND O1.OG_LEVL_DV_CD = '1'
          AND O1.DTA_DL_YN = 'N'

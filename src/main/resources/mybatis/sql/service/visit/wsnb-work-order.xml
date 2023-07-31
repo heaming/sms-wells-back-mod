@@ -59,11 +59,7 @@
     </select>
     <select id="selectAsAssignCountByPk" resultType="int">
         SELECT COUNT(1)
-         FROM TB_SVPD_CST_SV_EXCN_IZ E1
-        INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ O1
-           ON E1.CNTR_NO   = O1.CNTR_NO
-          AND E1.CNTR_SN   = O1.CNTR_SN
-          AND O1.DTA_DL_YN = 'N'
+         FROM TB_SVPD_CST_SVAS_IST_OJ_IZ O1
         INNER JOIN TB_SVPD_CST_SVAS_IST_ASN_IZ I1
            ON O1.CST_SV_ASN_NO = I1.CST_SV_ASN_NO
           AND I1.DTA_DL_YN     = 'N'
@@ -81,7 +77,7 @@
           AND I1.WK_PRGS_STAT_CD IN ('00', '10')
           AND I1.CNTR_NO   = #{cntrNo}
           AND I1.CNTR_SN   = #{cntrSn}
-          AND E1.DTA_DL_YN = 'N'
+          AND O1.DTA_DL_YN = 'N'
     </select>
     <select id="selectWorkContent" resultType="string">
         SELECT F_CMZ_CD_NM(#{session.tenantId}, 'SV_BIZ_DCLSF_CD', #{newSvBizDclsfCd}, #{session.langId})
