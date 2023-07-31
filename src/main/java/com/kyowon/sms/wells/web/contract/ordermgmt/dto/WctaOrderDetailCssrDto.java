@@ -1,5 +1,8 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.dto;
 
+import com.sds.sflex.common.utils.DbEncUtil;
+import com.sds.sflex.common.utils.StringUtil;
+
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -30,7 +33,17 @@ public class WctaOrderDetailCssrDto {
         String cstNo,
         String kwGrpCoCd
 
-    ) {}
+    ) {
+        public SaveRcpReq {
+            if (!StringUtil.isEmpty(cssrIsNo)) {
+                cssrIsNo = DbEncUtil.enc(cssrIsNo);
+            }
+            if (!StringUtil.isEmpty(afchCssrIsNo)) {
+                afchCssrIsNo = DbEncUtil.enc(afchCssrIsNo);
+            }
+
+        }
+    }
 
     @Builder
     @ApiModel("WctaOrderDetailCssrDto-SaveRpblsReq")
@@ -52,7 +65,20 @@ public class WctaOrderDetailCssrDto {
         String cssrAgrgSn,
         String cssrDtlSn
 
-    ) {}
+    ) {
+        public SaveRpblsReq {
+            if (!StringUtil.isEmpty(cssrIsNo)) {
+                cssrIsNo = DbEncUtil.enc(cssrIsNo);
+            }
+            if (!StringUtil.isEmpty(afchCssrIsNo)) {
+                afchCssrIsNo = DbEncUtil.enc(afchCssrIsNo);
+            }
+            if (!StringUtil.isEmpty(bfchCssrIsNo)) {
+                bfchCssrIsNo = DbEncUtil.enc(bfchCssrIsNo);
+            }
+        }
+
+    }
     @Builder
     @ApiModel("WctaOrderDetailCssrDto-SearchRcpRes")
     public record SearchRcpRes(
@@ -84,7 +110,16 @@ public class WctaOrderDetailCssrDto {
         String fnlMdfcDtm, /*등록일*/
         String fnlMdfcUsrId, /* 등록자 사번*/
         String fnlMdfcUsrNm /* 등록자 이름 */
-    ) {}
+    ) {
+        public SearchRcpRes {
+            if (!StringUtil.isEmpty(afchCssrIsNo)) {
+                afchCssrIsNo = DbEncUtil.enc(afchCssrIsNo);
+            }
+            if (!StringUtil.isEmpty(bfchCssrIsNo)) {
+                bfchCssrIsNo = DbEncUtil.enc(bfchCssrIsNo);
+            }
+        }
+    }
     // 기본정보 FindRes
     @Builder
     @ApiModel("WctaOrderDetailCssrDto-FindBaseRcpRes")
@@ -96,5 +131,11 @@ public class WctaOrderDetailCssrDto {
         String cntrNo,
         String kwGrpCoCd,
         String cstNo
-    ) {}
+    ) {
+        public FindBaseRcpRes {
+            if (!StringUtil.isEmpty(cssrIsNo)) {
+                cssrIsNo = DbEncUtil.enc(cssrIsNo);
+            }
+        }
+    }
 }
