@@ -536,6 +536,7 @@
         SELECT T2.DGR1_LEVL_OG_NM
              , T2.DGR2_LEVL_OG_NM
              , T2.DGR3_LEVL_OG_NM
+             , T2.DGR3_LEVL_DG_PRTNR_NM
              , T1.PRTNR_KNM
              , T1.PRTNR_NO
           FROM TB_OGBS_MM_PRTNR_IZ T1
