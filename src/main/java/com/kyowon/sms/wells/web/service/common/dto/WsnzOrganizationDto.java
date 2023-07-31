@@ -11,7 +11,8 @@ public class WsnzOrganizationDto {
     public record SearchPrtnrReq(
         String dgr1LevlOgId,
         String dgr2LevlOgId,
-        String dgr3LevlOgId
+        String dgr3LevlOgId,
+        String authYn
     ) {}
     // *********************************************************
     // Result Dto
