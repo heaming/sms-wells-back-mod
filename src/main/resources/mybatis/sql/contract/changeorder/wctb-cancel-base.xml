@@ -539,7 +539,6 @@
          INNER JOIN TB_SSCT_CNTR_DTL CD
             ON CD.CNTR_NO = SM.CNTR_NO
            AND CD.CNTR_SN = SM.CNTR_SN
-           AND CD.SELL_TP_CD = #{sellTpCd}
            AND CD.DTA_DL_YN = 'N'
         --   AND CD.ALNCMP_CD NOT IN ('45','69')
           LEFT OUTER JOIN TB_CBCL_DLQ_BAS DB
@@ -834,5 +833,14 @@
          WHERE RP.CNTR_NO = #{cntrNo}
            AND RP.CNTR_SN = #{cntrSn}
            AND RP.DTA_DL_YN = 'N'
+    </select>
+
+    <select id="selectPartnerOgTpCd" resultType="java.lang.String">
+        SELECT O1.OG_TP_CD
+          FROM TB_OGBS_PRTNR_BAS O1
+         WHERE 1 = 1
+           AND O1.PRTNR_NO = #{prtnrNo}
+           AND O1.DTA_DL_YN = 'N'
+           AND O1.OG_TP_CD != 'HR1'
     </select>
 </mapper>

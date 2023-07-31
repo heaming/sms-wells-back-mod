@@ -1,6 +1,7 @@
 package com.kyowon.sms.wells.web.contract.changeorder.mapper;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.ibatis.annotations.Mapper;
 
@@ -18,7 +19,14 @@ public interface WctbCancelBaseMapper {
 
     WctbCancelBaseDvo selectRentalCancelBase(SearchReq dto);
 
+    Optional<WctbCancelBaseDvo> selectRentalCancelBase(String cntrNo, String cntrSn, String cancelDt);
+
     WctbCancelBaseDvo selectMembershipCancelBase(SearchReq dto);
+
+    Optional<WctbCancelBaseDvo> selectMembershipCancelBase(
+        String cntrNo, String cntrSn, String cancelDt, String slCtrAmt, String dscDdctam,
+        String filtDdctam
+    );
 
     int insertContractResign(WctbCancelBaseDvo dvo);
 
@@ -31,4 +39,6 @@ public interface WctbCancelBaseMapper {
     int insertContractResignHistory(WctbCancelBaseDvo dvo);
 
     FindDetailRes selectCancelInfo(SearchReq dto);
+
+    Optional<String> selectPartnerOgTpCd(String prtnrNo);
 }
