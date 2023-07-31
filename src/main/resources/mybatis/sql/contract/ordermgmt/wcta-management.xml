@@ -182,7 +182,9 @@
                     ELSE 'Y'  END AS EMIL_SNDG_YN                       /* 계약서 발송여부(이메일) */
              , CASE WHEN T92.FW_DTM IS NULL THEN ''
                     ELSE SUBSTR(T92.FW_DTM, 1, 8) END AS EMIL_SNDG_DT   /* 계약서 발송일자 */
-             , TO_CHAR(T90.DATE_CLIENT_REQ,'YYYYMMDD') AS NOTAK_FW_DT   /* 알림톡 발송일자 TALK_SEND_DT */
+             --, TO_CHAR(T90.DATE_CLIENT_REQ,'YYYYMMDD') AS NOTAK_FW_DT   /* 알림톡 발송일자 TALK_SEND_DT */
+             , CASE WHEN T93.FW_DTM IS NULL THEN ''
+                    ELSE SUBSTR(T93.FW_DTM, 1, 8) END AS NOTAK_FW_DT   /* 알림톡 발송일자 */
              , CASE WHEN T90.MT_PR IS NOT NULL AND T90.DATE_MT_REPORT IS NULL THEN 'N'
                     WHEN T90.MT_PR IS NOT NULL AND T90.DATE_MT_REPORT IS NOT NULL THEN 'Y'
                     ELSE '' END AS TALK_RCV_YN                          /* 알림톡 수신여부(TODO : 변경가능성 존재함.)- TOBE 신규 */
@@ -252,6 +254,20 @@
                                   ) T92
             ON T92.CNTR_NO = T11.CNTR_NO
            AND T92.CNTR_SN = T11.CNTR_SN
+          LEFT OUTER JOIN LATERAL (SELECT NFH.CNTR_NO
+                                        , NFH.CNTR_SN
+                                        , MAX(FW_DTM) KEEP(DENSE_RANK FIRST ORDER BY NFH.NOTY_FW_ID DESC) AS FW_DTM
+                                     FROM TB_SSCT_CNTR_NOTY_FW_HIST NFH
+                                    WHERE 1=1
+                                      AND NFH.CNTR_NO = T11.CNTR_NO
+                                      AND NFH.CNTR_SN = T11.CNTR_SN
+                                      AND NFH.NOTY_FW_TP_CD = '20' /* 알림톡 */
+                                      AND NFH.FW_OJ_REFK_VAL1 IN ('Wells18104','Wells18157','Wells18202','Wells18203','wells17944','wells17945') /* 발송템플릿 메일보낼때 템플릿 */
+                                      AND NFH.DTA_DL_YN = 'N'
+                                    GROUP BY NFH.CNTR_NO, NFH.CNTR_SN
+                                  ) T93
+            ON T93.CNTR_NO = T11.CNTR_NO
+           AND T93.CNTR_SN = T11.CNTR_SN
          WHERE 1=1
         <if test='!@MybatisUtils@equals(session.ogTpCd, "HR1")'>
           /* 로그인 유저의 조직유형코드가 본사(HR1)가 아니면 */
