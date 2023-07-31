@@ -81,10 +81,13 @@ class WctiContractCancelInterfaceControllerTest extends SpringTestSupport {
 
         String nowDayString = DateUtil.getNowDayString();
         CancelMembershipContractReq req = CancelMembershipContractReq.builder()
-            .cntrNo("W20225673636")
+            .cntrNo("W20232291692")
             .cntrSn("1")
             .canDt(nowDayString)
             .rgstUsrId(user.getEmployeeIDNumber())
+            .slCtrAmt("0")
+            .dscDdctam("0")
+            .filtDdctam("0")
             .build();
 
         EaiWrapper<CancelMembershipContractReq> dto = new EaiWrapper(req);
