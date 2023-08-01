@@ -805,9 +805,14 @@
     </select>
 
     <select id="selectProductRgstCss" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep2Dvo$PdDetailDvo">
-        -- 렌탈 - 등록비
-        SELECT DISTINCT T1.PD_PRC_CNDT_CHRC_VAL01 AS CODE_ID
-             , TO_CHAR(T1.PD_PRC_CNDT_CHRC_VAL01, 'FM999,999,999,999') AS CODE_NAME
+        -- 렌탈 - 등록비(할인여부 Y라면 0으로 표시)
+        SELECT CASE WHEN PD_PRC_FNL_PRP_VAL15 = 'Y' THEN '0'
+                    ELSE T1.PD_PRC_CNDT_CHRC_VAL01
+               END AS CODE_ID
+             , CASE WHEN PD_PRC_FNL_PRP_VAL15 = 'Y' THEN '0'
+                    ELSE TO_CHAR(T1.PD_PRC_CNDT_CHRC_VAL01, 'FM999,999,999,999')
+               END AS CODE_NAME
+             , T1.PD_PRC_CNDT_CHRC_VAL01 AS VAL1
         FROM TB_PDBS_PD_PRC_FNL_DTL T1
         <include refid="productWhereClause" />
            AND T1.PD_PRC_CNDT_CHRC_VAL01 IS NOT NULL
@@ -931,7 +936,6 @@
                 <otherwise> AND T1.PD_PRC_CNDT_CHRC_VAL03 IS NULL </otherwise>
                 </choose>
 
-          AND T1.PD_PRC_CNDT_CHRC_VAL01 = #{cntrAmt} /*등록비*/
           AND T1.PD_PRC_CNDT_CHRC_VAL07 = #{cntrPtrm} /*변동개월 (소유권이전기간)*/
           /*AND T1.PD_PRC_CNDT_CHRC_VAL18 =  -- 렌탈결합구분, TODO 모종 조치할 때 추가*/
             </when>
@@ -1216,6 +1220,26 @@
           FROM TB_SSCT_CNTR_DTL
          WHERE CNTR_NO = #{cntrNo}
            AND CNTR_SN = #{cntrSn}
+    </select>
+
+    <select id="selectMchnChBfInfo" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep2Dvo$PdMchnChBfInfo">
+        SELECT NVL(T4.PD_PRP_VAL05, 'N') AS CHDVC_PRMIT_YN
+             , T3.PD_CLSF_ID AS CHDVC_BF_PD_CLSF_CD
+             , T3.PD_CD AS CHDVC_BF_PD_CD
+             , SUBSTR(T2.CNTR_CNFM_DTM,1,8) AS OPPST_ORD_RCPTDT
+             , T1.CNTR_PD_STRTDT AS OPPST_SL_DT
+          FROM TB_SSCT_CNTR_DTL T1
+         INNER JOIN TB_SSCT_CNTR_BAS T2
+            ON T2.CNTR_NO = T1.CNTR_NO
+           AND T2.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_BAS T3
+            ON T3.PD_CD = T1.BASE_PD_CD
+           AND T3.DTA_DL_YN = 'N'
+         INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T4
+            ON T4.PD_EXTS_PRP_GRP_CD = 'CNTR'
+           AND T4.PD_CD = T3.PD_CD
+         WHERE T1.CNTR_NO = #{mchnChOjCntrNo}
+           AND T1.CNTR_SN = #{mchnChOjCntrSn}
     </select>
 
     <!-- STEP2 저장 -->
