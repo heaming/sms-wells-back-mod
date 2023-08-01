@@ -200,7 +200,7 @@
              , F_CMZ_CD_NM(#{session.tenantId}, 'SELL_TP_CD', M1.SELL_TP_CD) AS PD_CHIP1
              , 1 AS PD_QTY
              , #{sellInflwChnlDtlCd} AS SELL_INFLW_CHNL_DTL_CD
-             , T12.FNL_VAL AS FNL_AMT
+             , T13.FNL_VAL AS FNL_AMT
           FROM TB_PDBS_PD_BAS M1
           LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T1 -- 공통속성
             ON T1.PD_CD = M1.PD_CD
@@ -248,13 +248,13 @@
           LEFT OUTER JOIN TB_PDBS_PD_CLSF_BAS T11 -- 상품분류
             ON T11.PD_CLSF_ID = M1.PD_CLSF_ID
            AND T11.DTA_DL_YN = 'N'
-         INNER JOIN TB_PDBS_PD_PRC_FNL_DTL T12
-            ON T12.PD_CD = M1.PD_CD
-           AND T12.VER_SN = (SELECT MAX(VER_SN)
+         INNER JOIN TB_PDBS_PD_PRC_FNL_DTL T13
+            ON T13.PD_CD = M1.PD_CD
+           AND T13.VER_SN = (SELECT MAX(VER_SN)
                               FROM TB_PDBS_PD_PRC_FNL_DTL
-                             WHERE PD_PRC_FNL_DTL_ID = T12.PD_PRC_FNL_DTL_ID)
-           AND T12.PD_PRC_FNL_PRP_VAL16 = 'N'
-           AND T12.SELL_CHNL_CD = #{sellInflwChnlDtlCd}
+                             WHERE PD_PRC_FNL_DTL_ID = T13.PD_PRC_FNL_DTL_ID)
+           AND T13.PD_PRC_FNL_PRP_VAL16 = 'N'
+           AND T13.SELL_CHNL_CD = #{sellInflwChnlDtlCd}
          WHERE 1 = 1
            AND M1.SELL_YN = 'Y'
            AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN M1.SELL_STRTDT AND M1.SELL_ENDDT
@@ -806,13 +806,8 @@
 
     <select id="selectProductRgstCss" resultType="com.kyowon.sms.wells.web.contract.ordermgmt.dvo.WctaContractRegStep2Dvo$PdDetailDvo">
         -- 렌탈 - 등록비(할인여부 Y라면 0으로 표시)
-        SELECT CASE WHEN PD_PRC_FNL_PRP_VAL15 = 'Y' THEN '0'
-                    ELSE T1.PD_PRC_CNDT_CHRC_VAL01
-               END AS CODE_ID
-             , CASE WHEN PD_PRC_FNL_PRP_VAL15 = 'Y' THEN '0'
-                    ELSE TO_CHAR(T1.PD_PRC_CNDT_CHRC_VAL01, 'FM999,999,999,999')
-               END AS CODE_NAME
-             , T1.PD_PRC_CNDT_CHRC_VAL01 AS VAL1
+        SELECT DISTINCT T1.PD_PRC_CNDT_CHRC_VAL01 AS CODE_ID
+             , TO_CHAR(T1.PD_PRC_CNDT_CHRC_VAL01, 'FM999,999,999,999') AS CODE_NAME
         FROM TB_PDBS_PD_PRC_FNL_DTL T1
         <include refid="productWhereClause" />
            AND T1.PD_PRC_CNDT_CHRC_VAL01 IS NOT NULL
@@ -889,6 +884,7 @@
              , T1.VER_SN -- 버전일련번호
              , T1.CTR_VAL -- 조정값
              , T1.PD_PRC_ID -- 상품가격ID
+             , T1.PD_PRC_FNL_PRP_VAL15                                      AS RGST_CS_DSC_YN -- 등록비 할인여부
           FROM TB_PDBS_PD_PRC_FNL_DTL T1
           LEFT OUTER JOIN TB_PDBS_PD_BAS T2
             ON T2.PD_CD = T1.PD_CD
