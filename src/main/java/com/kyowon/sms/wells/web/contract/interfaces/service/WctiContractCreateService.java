@@ -47,7 +47,7 @@ public class WctiContractCreateService {
         ).orElseThrow(() -> new BizException(String.format("등록된 상품코드(=%s)가 아닙니다.", contract.getBasePdCd())));
 
         // 1. validation
-        checkCustomerNumberValidation(contract);
+        checkValidation(contract);
 
         // 2. 계약초기데이터 세팅
         setContractDefaultData(contract);
@@ -69,7 +69,7 @@ public class WctiContractCreateService {
         ).orElseThrow(() -> new BizException(String.format("등록된 상품코드(=%s)가 아닙니다.", contract.getBasePdCd())));
 
         // 1. validation
-        checkCustomerNumberValidation(contract);
+        checkValidation(contract);
 
         // 2. 계약초기데이터 세팅
         setContractDefaultData(contract);
@@ -83,12 +83,17 @@ public class WctiContractCreateService {
         return new CreateRentalRes("", "S", "계약생성에 성공했습니다.", "");
     }
 
-    private void checkCustomerNumberValidation(WctiContractCreateDvo contract) {
+    private void checkValidation(WctiContractCreateDvo contract) {
+        // 1. 고객번호 유효성 검사 체크
         String existYn = mapper.selectExistCustomerYn(contract.getCntrCstNo());
         BizAssert.isTrue(
             "Y".equals(existYn),
             String.format("등록되지 않은 계약고객번호(%s)입니다.", contract.getCntrCstNo())
         );
+
+        // 2. 계약번호 중복 체크
+        existYn = mapper.selectExistContractNumberYn(contract.getCntrNo());
+        BizAssert.isTrue("N".equals(existYn), String.format("기 등록된 계약번호(%s) 입니다.", contract.getCntrNo()));
     }
 
     private void setContractDefaultData(WctiContractCreateDvo contract) {

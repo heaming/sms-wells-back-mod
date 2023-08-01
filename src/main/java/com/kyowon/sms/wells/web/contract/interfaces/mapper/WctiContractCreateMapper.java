@@ -68,4 +68,6 @@ public interface WctiContractCreateMapper {
     int insertTaxInvoiceReceipt(WctiContractCreateDvo contract);
 
     int insertMachineChange(WctiContractCreateDvo contract);
+
+    String selectExistContractNumberYn(String cntrNo);
 }

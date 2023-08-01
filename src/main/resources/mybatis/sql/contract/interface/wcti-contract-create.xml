@@ -9,7 +9,7 @@
     </select>
 
     <select id="selectCustomerAggrementKey" resultType="java.lang.String">
-        SELECT LPAD(WSMDBS.SQ_CUBS_CST_AG_IZ$CST_AG_ID.NEXTVAL,15,0)
+        SELECT 'CUA' || LPAD(WSMDBS.SQ_CUBS_CST_AG_IZ$CST_AG_ID.NEXTVAL, 12, 0)
           FROM DUAL
     </select>
 
@@ -64,7 +64,7 @@
              , #{agStatCd}
              , #{agStrtdt}
              , '' -- AG_EXN_DUEDT
-             , '' -- AG_EXN_PRCSDT
+             , '99991231' -- AG_EXN_PRCSDT
              , '' -- AG_EXN_PROCS_RSON_CD
              , 'N'
              <include refid="COMMON.insertSystemFieldValue" />
@@ -965,4 +965,10 @@
             <include refid="COMMON.insertSystemFieldValue" />
         )
     </insert>
+
+    <select id="selectExistContractNumberYn" resultType="java.lang.String">
+        SELECT CASE WHEN COUNT(*) > 0 THEN 'Y' ELSE 'N' END
+          FROM TB_SSCT_CNTR_BAS C1
+         WHERE C1.CNTR_NO = #{cntrNo}
+    </select>
 </mapper>
