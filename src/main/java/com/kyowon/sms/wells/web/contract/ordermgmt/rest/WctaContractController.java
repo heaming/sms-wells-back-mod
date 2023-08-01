@@ -372,10 +372,10 @@ public class WctaContractController {
 
     @ApiOperation(value = "상품 확정", notes = "Step2 상품에 프로모션 등 적용해 가격을 확정한다.")
     @PostMapping("confirm-products")
-    public List<WctaContractRegStep2Dvo.PdDetailDvo> confirmProducts(
+    public List<WctaContractDtlDvo> confirmProducts(
         @RequestBody
         @Valid
-        List<WctaContractRegStep2Dvo.PdDetailDvo> dtls
+        List<WctaContractDtlDvo> dtls
     ) {
         return step2Service.confirmProducts(dtls);
     }

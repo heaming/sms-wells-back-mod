@@ -473,8 +473,7 @@
                 </if>
             </otherwise>
         </choose>
-           AND (T6.SAP_EMPNO = #{empno}
-            OR T5.PRTNR_NO = #{empno})
+           AND T2.SELL_PRTNR_NO = #{empno}
          ORDER BY T3.IST_DT
     </select>
 </mapper>

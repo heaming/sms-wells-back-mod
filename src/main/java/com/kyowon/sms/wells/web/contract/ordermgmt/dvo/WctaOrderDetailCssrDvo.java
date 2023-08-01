@@ -1,12 +1,10 @@
 package com.kyowon.sms.wells.web.contract.ordermgmt.dvo;
 
-import com.sds.sflex.system.config.annotation.DBDecField;
-import com.sds.sflex.system.config.annotation.DBEncField;
-
 import lombok.*;
 
 @Getter
 @Setter
+@ToString
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,16 +22,12 @@ public class WctaOrderDetailCssrDvo {
 
     /* 변경전 */
 
-    @DBEncField
-    @DBDecField
     private String cssrIsNo; /* 발행번호 */
     private String cssrDtlSn; /*현금영수증상세일련번호*/
     private String cntr; /*계약상세번호*/
     private String cstKnm; /*고객명*/
     private String bfchCssrTrdDvCd; /*변경전 공제구분*/
 
-    @DBEncField
-    @DBDecField
     private String bfchCssrIsNo; /*변경전 발행번호*/
     private String bfchCssrTrdAmt; /*변경전 승인금액*/
     private String bfchCssrAprRsCd; /*승인결과*/
@@ -45,8 +39,6 @@ public class WctaOrderDetailCssrDvo {
     private String afchCssrIsDvCd; /* 변경후 현금영수증발급구분코드 */
     private String afchCssrTrdDvCd; /*공제구분*/
 
-    @DBEncField
-    @DBDecField
     private String afchCssrIsNo; /*발행번호*/
     private String afchCssrTrdAmt; /*승인금액*/
     private String afchCssrAprno; /*승인번호*/

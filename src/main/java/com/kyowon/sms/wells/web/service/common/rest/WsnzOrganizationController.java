@@ -28,33 +28,45 @@ public class WsnzOrganizationController {
     private final WsnzOrganizationService service;
 
     @ApiOperation(value = "매니저 조직 총괄단 조회", notes = "매니저 조직 총괄단 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "authYn", value = "권한적용여부", paramType = "query")
+    })
     @GetMapping("/general-division")
-    public List<SearchManagerOgRes> getGeneralDivisions() {
-        return service.getGeneralDivisions();
+    public List<SearchManagerOgRes> getGeneralDivisions(
+        @RequestParam
+        String authYn
+    ) {
+        return service.getGeneralDivisions(authYn);
     }
 
     @ApiOperation(value = "매니저 조직 지역단 조회", notes = "매니저 조직 지역단 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "ogId", value = "조직ID", paramType = "query"),
+        @ApiImplicitParam(name = "authYn", value = "권한적용여부", paramType = "query")
     })
     @GetMapping("/regional-group")
     public List<SearchManagerOgRes> getRegionalGroups(
         @RequestParam
-        String ogId
+        String ogId,
+        @RequestParam
+        String authYn
     ) {
-        return service.getRegionalGroups(ogId);
+        return service.getRegionalGroups(ogId, authYn);
     }
 
     @ApiOperation(value = "매니저 조직 지점 조회", notes = "매니저 조직 지점 조회")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "ogId", value = "조직ID", paramType = "query"),
+        @ApiImplicitParam(name = "authYn", value = "권한적용여부", paramType = "query")
     })
     @GetMapping("/branch")
     public List<SearchManagerOgRes> getBranchs(
         @RequestParam
-        String ogId
+        String ogId,
+        @RequestParam
+        String authYn
     ) {
-        return service.getBranchs(ogId);
+        return service.getBranchs(ogId, authYn);
     }
 
     @ApiOperation(value = "매니저 조회", notes = "매니저 조회")
@@ -62,6 +74,7 @@ public class WsnzOrganizationController {
         @ApiImplicitParam(name = "dgr1LevlOgId", value = "1위계 조직ID", paramType = "query"),
         @ApiImplicitParam(name = "dgr2LevlOgId", value = "2위계 조직ID", paramType = "query"),
         @ApiImplicitParam(name = "dgr3LevlOgId", value = "3위계 조직ID", paramType = "query"),
+        @ApiImplicitParam(name = "authYn", value = "권한적용여부", paramType = "query")
     })
     @GetMapping("/manager")
     public List<SearchManagerRes> getManagers(SearchPrtnrReq dto) {
@@ -69,14 +82,21 @@ public class WsnzOrganizationController {
     }
 
     @ApiOperation(value = "엔지니어 조직 센터 조회", notes = "엔지니어 조직 센터 조회")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(name = "authYn", value = "권한적용여부", paramType = "query")
+    })
     @GetMapping("/service-center")
-    public List<SearchEngineerOgRes> getServiceCenters() {
-        return service.getServiceCenters();
+    public List<SearchEngineerOgRes> getServiceCenters(
+        @RequestParam
+        String authYn
+    ) {
+        return service.getServiceCenters(authYn);
     }
 
     @ApiOperation(value = "엔지니어 조회", notes = "엔지니어 조회")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(name = "dgr1LevlOgId", value = "1위계 조직ID", paramType = "query")
+        @ApiImplicitParam(name = "dgr1LevlOgId", value = "1위계 조직ID", paramType = "query"),
+        @ApiImplicitParam(name = "authYn", value = "권한적용여부", paramType = "query")
     })
     @GetMapping("/engineer")
     public List<SearchEngineerRes> getEngineers(SearchPrtnrReq dto) {

@@ -15,24 +15,24 @@ import lombok.RequiredArgsConstructor;
 public class WsnzOrganizationService {
     private final WsnzOrganizationMapper mapper;
 
-    public List<SearchManagerOgRes> getGeneralDivisions() {
-        return mapper.selectGeneralDivisions();
+    public List<SearchManagerOgRes> getGeneralDivisions(String authYn) {
+        return mapper.selectGeneralDivisions(authYn);
     }
 
-    public List<SearchManagerOgRes> getRegionalGroups(String ogId) {
-        return mapper.selectRegionalGroups(ogId);
+    public List<SearchManagerOgRes> getRegionalGroups(String ogId, String authYn) {
+        return mapper.selectRegionalGroups(ogId, authYn);
     }
 
-    public List<SearchManagerOgRes> getBranchs(String ogId) {
-        return mapper.selectBranchs(ogId);
+    public List<SearchManagerOgRes> getBranchs(String ogId, String authYn) {
+        return mapper.selectBranchs(ogId, authYn);
     }
 
     public List<SearchManagerRes> getManagers(SearchPrtnrReq dto) {
         return mapper.selectManagers(dto);
     }
 
-    public List<SearchEngineerOgRes> getServiceCenters() {
-        return mapper.selectServiceCenters();
+    public List<SearchEngineerOgRes> getServiceCenters(String authYn) {
+        return mapper.selectServiceCenters(authYn);
     }
 
     public List<SearchEngineerRes> getEngineers(SearchPrtnrReq dto) {
