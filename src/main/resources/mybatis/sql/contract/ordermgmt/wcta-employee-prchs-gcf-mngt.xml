@@ -68,7 +68,12 @@
         WHERE 1=1
           AND R.CNTR_PRTNR_TP_CD = '010'
           AND R.ALNC_PRTNR_DRM_VAL != '0'
-          AND R.PRTNR_NO IN ('1525290' /*구몬학습*/, '1743635' /*직원구매*/, '1743636' /*5７차월*/, '1743637')
+          AND R.PRTNR_NO IN (  '1525290' /*구몬학습*/
+                             , '1650501' /*에듀*/
+                             , '1564070' /*수학달인*/
+                             , '1593484'/*도요새*/
+                             , '1712367' /*더퍼스트*/
+                            )
         GROUP BY R.PRTNR_NO /* 파트너번호 */
                , R.ALNC_PRTNR_DRM_VAL /* 제휴파트너 : 제휴파트너식별값 */
                , R.CNTR_NO /* 계약번호 */
@@ -133,7 +138,7 @@
                    , I2.EMP_DV
                    , CASE WHEN I2.EMP_DV = 'EMPL'
                                 THEN '임직원'
-                          ELSE MAX(I2.OG_NM)
+                          ELSE MAX(I2.SELL_PRTNR_NM)
                      END AS SELL_INFLW_CHNL_DTL_CD
                    , MAX(I2.PRTNR_KNM) AS PRTNR_KNM /* 파트너한글명 */
                    , MAX(I2.CRAL_LOCARA_TNO) AS CRAL_LOCARA_TNO /* 휴대지역전화번호 */
@@ -253,12 +258,13 @@
                            , I1.BASE_YM
                            , I1.BASE_YY
                            , I1.SELL_PRTNR_NO /* 판매파트너번호 */
+                           , I1.SELL_PRTNR_NM /* 판매파트너명 */
                            , I1.ALNC_PRTNR_DRM_VAL /* 제휴파트너식별값 */
                            , D2.PRTNR_KNM /* 파트너한글명 */
                            , D2.CRAL_LOCARA_TNO/* 휴대지역전화번호 */
                            , D2.MEXNO_ENCR/* 휴대전화국번호암호화 */
                            , D2.CRAL_IDV_TNO/* 휴대개별전화번호 */
-                           , CASE WHEN I1.SELL_INFLW_CHNL_DTL_CD = '9020'
+                           , CASE WHEN I1.SELL_INFLW_CHNL_DTL_CD IN ('1030','1040','9020')
                                        THEN '임직원'
                                   ELSE
                                        (
@@ -470,7 +476,10 @@
                         FROM
                            (
                             SELECT
-                                   NVL(W2.ALNC_PRTNR_DRM_VAL, W1.SELL_PRTNR_NO) AS EMPNO /* 제휴파트너식별값 또는 판매파트너번호 */
+                                   CASE WHEN W1.SELL_INFLW_CHNL_DTL_CD IN ('1030','1040','9020')
+                                             THEN W1.SELL_PRTNR_NO
+                                        ELSE W2.ALNC_PRTNR_DRM_VAL
+                                   END AS EMPNO /* 제휴파트너식별값 또는 판매파트너번호 */
                                  , CASE WHEN W1.SELL_INFLW_CHNL_DTL_CD IN ('1030','1040','9020')
                                              THEN 'EMPL' /* 임직원 */
                                         WHEN W1.SELL_PRTNR_NO IN (  '1525290' /*구몬학습*/
@@ -478,13 +487,18 @@
                                                                   , '1564070' /*수학달인*/
                                                                   , '1593484'/*도요새*/
                                                                   , '1712367' /*더퍼스트*/
-                                                                  , '1743635' /*직원구매*/
-                                                                  , '1743636' /*57차월*/
-                                                                  , '1743637' /*이자제휴*/)
+                                                                 )
                                              THEN 'ENTRPRNR' /* 사업자 */
                                         ELSE 'N'
                                    END EMP_DV
                                  , W1.SELL_PRTNR_NO
+                                 , (
+                                    SELECT MAX(D1.PRTNR_KNM) KEEP (DENSE_RANK FIRST ORDER BY NVL(D1.FNL_MDFC_DTM, D1.FST_RGST_DTM) ASC NULLS LAST) AS PRTNR_KNM /* 파트너한글명 */
+                                      FROM TB_OGBS_PRTNR_BAS D1 /* 파트너기본 */
+                                     WHERE D1.PRTNR_NO = W1.SELL_PRTNR_NO
+                                     --AND D1.OG_TP_CD = I1.SELL_OG_TP_CD /* 계약기본.판매조직유형코드가 정상적으로 들어있지 않음(EX] @1650, @1564...) TODO:정상적인 마이그레이션이 된다면 이후에 SELL_OG_TP_CD = OG_TP_CD 를 걸어야 됨
+                                     GROUP BY D1.PRTNR_NO
+                                   ) AS SELL_PRTNR_NM
                                  , W2.ALNC_PRTNR_DRM_VAL /* 제휴파트너식별값 */
                                  , W1.SELL_OG_TP_CD
                                  , W1.CNTR_TP_CD
@@ -599,14 +613,13 @@
            AND TO_DATE(C1.IST_DT, 'YYYYMMDD') + 14 <![CDATA[<=]]> SYSDATE
            --AND B1.CNTR_TP_CD = '03' /* 계약유형코드 = '03' 임직원일때 직원구매로 보면 되는지 확인 필요 */
            AND (   B1.SELL_INFLW_CHNL_DTL_CD IN ('1030','1040','9020') /* 1030:정규직원, 1040:계약직원, 9020:직원구매 */
-                OR B1.SELL_PRTNR_NO IN (  '1525290' /*구몬학습*/
+                OR B1.SELL_PRTNR_NO IN (
+                                          '1525290' /*구몬학습*/
                                         , '1650501' /*에듀*/
                                         , '1564070' /*수학달인*/
-                                        , '1593484'/*도요새*/
+                                        , '1593484' /*도요새*/
                                         , '1712367' /*더퍼스트*/
-                                        , '1743635' /*직원구매*/
-                                        , '1743636' /*57차월*/
-                                        , '1743637' /*이자제휴*/)
+                                       )
                )
            GROUP BY A1.CNTR_NO, A1.CNTR_SN /* 계약번호, 계약일련번호 GROUP */
         )
@@ -623,7 +636,13 @@
         WHERE 1=1
           AND R.CNTR_PRTNR_TP_CD = '010'
           AND R.ALNC_PRTNR_DRM_VAL != '0'
-          AND R.PRTNR_NO IN ('1525290' /*구몬학습*/, '1743635' /*직원구매*/, '1743636' /*57차월*/, '1743637')
+          AND R.PRTNR_NO IN (
+                               '1525290' /*구몬학습*/
+                             , '1650501' /*에듀*/
+                             , '1564070' /*수학달인*/
+                             , '1593484'/*도요새*/
+                             , '1712367' /*더퍼스트*/
+                            )
         GROUP BY R.PRTNR_NO /* 파트너번호 */
                , R.ALNC_PRTNR_DRM_VAL /* 제휴파트너 : 제휴파트너식별값 */
                , R.CNTR_NO /* 계약번호 */
@@ -667,14 +686,32 @@
         --                 AND D1.OG_TP_CD = W1.SELL_OG_TP_CD /* 계약기본.판매조직유형코드가 정상적으로 들어있지 않음(EX] @1650, @1564...) TODO:정상적인 마이그레이션이 된다면 이후에 SELL_OG_TP_CD = OG_TP_CD 를 걸어야 됨 */
                        GROUP BY D1.PRTNR_NO
                      ) AS PRTNR_KNM
-                   , (
-                      SELECT MAX(F1.OG_NM) /* 조직명 */
-                        FROM TB_OGBS_MM_PRTNR_IZ F1 /* 월파트너내역 */
-                       WHERE F1.PRTNR_NO = W3.SELL_PRTNR_NO /* 제휴파트너식별값(ALNC_PRTNR_DRM_VAL)로 대체 된 경우 조회되지 않음 */
-                         AND F1.BASE_YM = SUBSTR(W3.CNTR_CNFM_DTM, 1, 6)
-                         AND F1.DTA_DL_YN = 'N'
-        --                 AND F1.OG_TP_CD = I1.SELL_OG_TP_CD /* 20230728 확인시 계약기본.판매조직유형코드가 정상적으로 들어있지 않음(EX] @1650, @1564...) */
-                     ) AS OG_NM
+                   , CASE WHEN W3.SELL_INFLW_CHNL_DTL_CD IN ('1030','1040','9020')
+                               THEN
+                                    (
+                                     SELECT MAX(F1.OG_NM) /* 조직명 */
+                                       FROM TB_OGBS_MM_PRTNR_IZ F1 /* 월파트너내역 */
+                                      WHERE F1.PRTNR_NO = W3.SELL_PRTNR_NO /* 제휴파트너식별값(ALNC_PRTNR_DRM_VAL)로 대체 된 경우 조회되지 않음 */
+                                        AND F1.BASE_YM = SUBSTR(W3.CNTR_CNFM_DTM, 1, 6)
+                                        AND F1.DTA_DL_YN = 'N'
+                                        --AND F1.OG_TP_CD = I1.SELL_OG_TP_CD /* 20230728 확인시 계약기본.판매조직유형코드가 정상적으로 들어있지 않음(EX] @1650, @1564...) */
+                                    )
+                          WHEN W3.SELL_PRTNR_NO IN (  '1525290' /* 구몬학습*/
+                                                    , '1650501' /* 에듀*/
+                                                    , '1564070' /* 수학달인*/
+                                                    , '1593484' /* 도요새*/
+                                                    , '1712367' /* 더퍼스트*/
+                                                   )
+                               THEN
+                                    (
+                                     SELECT MAX(D1.PRTNR_KNM) KEEP (DENSE_RANK FIRST ORDER BY NVL(D1.FNL_MDFC_DTM, D1.FST_RGST_DTM) ASC NULLS LAST) AS PRTNR_KNM /* 파트너한글명 */
+                                       FROM TB_OGBS_PRTNR_BAS D1 /* 파트너기본 */
+                                      WHERE D1.PRTNR_NO = W3.SELL_PRTNR_NO
+                                       -- AND D1.OG_TP_CD = W1.SELL_OG_TP_CD /* 계약기본.판매조직유형코드가 정상적으로 들어있지 않음(EX] @1650, @1564...) TODO:정상적인 마이그레이션이 된다면 이후에 SELL_OG_TP_CD = OG_TP_CD 를 걸어야 됨 */
+                                      GROUP BY D1.PRTNR_NO
+                                    )
+                          ELSE ''
+                     END AS OG_NM
                    , W3.CNTR_NO || '-' || W3.CNTR_SN AS CNTR_DTL_NO /*계약번호*/
                    , T8.CST_KNM /*고객명*/
                    , T8.BRYY_MMDD /*고객 생년월일*/
@@ -692,9 +729,6 @@
                                                     , '1564070' /* 수학달인*/
                                                     , '1593484' /* 도요새*/
                                                     , '1712367' /* 더퍼스트*/
-                                                    , '1743635' /* 직원구매*/
-                                                    , '1743636' /* 57차월*/
-                                                    , '1743637' /* 이자제휴*/
                                                    )
                                THEN 'ENTRPRNR' /* 사업자 */
                           ELSE 'N'
@@ -723,7 +757,7 @@
                   ON T9.PD_CD = W3.BASE_PD_CD
                  AND T9.DTA_DL_YN = 'N'
                WHERE 1=1
-                 AND W3.SELL_PRTNR_NO = #{empno}
+                 AND NVL(W4.ALNC_PRTNR_DRM_VAL, W3.SELL_PRTNR_NO) = #{empno}
              )I1
          WHERE 1=1
         <choose>
