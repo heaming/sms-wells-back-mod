@@ -612,13 +612,17 @@
                     AND T2.CNTR_CST_NO = (SELECT T10.CNTR_CST_NO
                                             FROM TB_SSCT_CNTR_BAS T10
                                            WHERE T10.CNTR_NO = #{baseDtlCntrNo})
+                    AND T2.DTA_DL_YN = 'N'
                   INNER JOIN TB_SSCT_CNTR_WELLS_DTL T3 -- 계약 WELLS 상세
                      ON T1.CNTR_NO = T3.CNTR_NO
                     AND T1.CNTR_SN = T3.CNTR_SN
+                    AND T3.DTA_DL_YN = 'N'
                    LEFT OUTER JOIN TB_CUBS_CST_BAS T4
                      ON T2.CNTR_CST_NO = T4.CST_NO
+                    AND T4.DTA_DL_YN = 'N'
                    LEFT OUTER JOIN TB_PDBS_PD_BAS T5
                      ON T1.BASE_PD_CD = T5.PD_CD
+                    AND T5.DTA_DL_YN = 'N'
                    LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T6 --계약상세상태변경이력 테이블
                      ON T1.CNTR_NO = T6.CNTR_NO
                     AND T1.CNTR_SN = T6.CNTR_SN
@@ -626,6 +630,7 @@
                                               FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST TT
                                              WHERE T1.CNTR_NO = TT.CNTR_NO
                                                AND T1.CNTR_SN = TT.CNTR_SN)
+                    AND T6.DTA_DL_YN = 'N'
                    LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS TADR --- 주소
                      ON TADR.ADR_ID = (SELECT T9.ADR_ID
                                          FROM TB_SSCT_CNTR_ADRPC_BAS T9
@@ -636,9 +641,11 @@
                                                                      AND T7.ADRPC_TP_CD = '3'
                                                                      AND T7.VL_END_DTM = '99991231235959') --설치지
                                         )
+                    AND TADR.DTA_DL_YN = 'N'
                   WHERE 1 = 1
                     -- 렌탈 조건
                     AND T1.SELL_TP_CD = '2'                                                      -- 렌탈/리스
+                    AND T1.DTA_DL_YN = 'N'
                     AND T1.CNTR_DTL_STAT_CD = '101'
                     AND SUBSTR(T2.CNTR_CNFM_DTM, 1, 6)  <![CDATA[<=]]>  TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD') -- 확정일자가 오늘 이전
         --                AND (CASE WHEN T5.PD_CD = '살균수기기준상품코드' THEN TADR.NEW_ADR_ZIP ELSE '' END) =
@@ -674,13 +681,17 @@
                     AND T2.CNTR_CST_NO = (SELECT T10.CNTR_CST_NO
                                             FROM TB_SSCT_CNTR_BAS T10
                                            WHERE T10.CNTR_NO = #{baseDtlCntrNo})
+                    AND T2.DTA_DL_YN = 'N'
                   INNER JOIN TB_SSCT_CNTR_WELLS_DTL T3 -- 계약 WELLS 상세
                      ON T1.CNTR_NO = T3.CNTR_NO
                     AND T1.CNTR_SN = T3.CNTR_SN
+                    AND T3.DTA_DL_YN = 'N'
                    LEFT OUTER JOIN TB_CUBS_CST_BAS T4
                      ON T2.CNTR_CST_NO = T4.CST_NO
+                    AND T4.DTA_DL_YN = 'N'
                   INNER JOIN TB_PDBS_PD_BAS T5
                      ON T1.BASE_PD_CD = T5.PD_CD
+                    AND T5.DTA_DL_YN = 'N'
                    LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T6 --계약상세상태변경이력 테이블
                      ON T1.CNTR_NO = T6.CNTR_NO
                     AND T1.CNTR_SN = T6.CNTR_SN
@@ -688,6 +699,7 @@
                                               FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST TT
                                              WHERE T1.CNTR_NO = TT.CNTR_NO
                                                AND T1.CNTR_SN = TT.CNTR_SN)
+                    AND T6.DTA_DL_YN = 'N'
                    LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS TADR --- 주소
                      ON TADR.ADR_ID = (SELECT T9.ADR_ID
                                          FROM TB_SSCT_CNTR_ADRPC_BAS T9
@@ -698,8 +710,10 @@
                                                                      AND T7.ADRPC_TP_CD = '3'
                                                                      AND T7.VL_END_DTM = '99991231235959') --설치지
                                         )
+                    AND TADR.DTA_DL_YN = 'N'
                   WHERE 1 = 1
                     AND T1.SELL_TP_CD = '3'                                         -- 멤버십
+                    AND T1.DTA_DL_YN = 'N'
                     AND T1.CNTR_PD_STRTDT  <![CDATA[<=]]>  TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD') -- 가입일자가 오늘 이전
                     AND T1.CNTR_DTL_STAT_CD = '101'
                     AND T1.CNTR_PD_ENDDT > TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD')
@@ -735,13 +749,17 @@
                     AND T2.CNTR_CST_NO = (SELECT T10.CNTR_CST_NO
                                             FROM TB_SSCT_CNTR_BAS T10
                                            WHERE T10.CNTR_NO = #{baseDtlCntrNo})
+                    AND T2.DTA_DL_YN = 'N'
                   INNER JOIN TB_SSCT_CNTR_WELLS_DTL T3 -- 계약 WELLS 상세
                      ON T1.CNTR_NO = T3.CNTR_NO
                     AND T1.CNTR_SN = T3.CNTR_SN
+                    AND T3.DTA_DL_YN = 'N'
                    LEFT OUTER JOIN TB_CUBS_CST_BAS T4
                      ON T2.CNTR_CST_NO = T4.CST_NO
+                    AND T4.DTA_DL_YN = 'N'
                   INNER JOIN TB_PDBS_PD_BAS T5
                      ON T1.BASE_PD_CD = T5.PD_CD
+                    AND T5.DTA_DL_YN = 'N'
                    LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T6 --계약상세상태변경이력 테이블
                      ON T1.CNTR_NO = T6.CNTR_NO
                     AND T1.CNTR_SN = T6.CNTR_SN
@@ -749,6 +767,7 @@
                                               FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST TT
                                              WHERE T1.CNTR_NO = TT.CNTR_NO
                                                AND T1.CNTR_SN = TT.CNTR_SN)
+                    AND T6.DTA_DL_YN = 'N'
                 LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS TADR --- 주소
                   ON TADR.ADR_ID = (SELECT T9.ADR_ID
                                       FROM TB_SSCT_CNTR_ADRPC_BAS T9
@@ -759,85 +778,94 @@
                                                                   AND T7.ADRPC_TP_CD = '3'
                                                                   AND T7.VL_END_DTM = '99991231235959') --설치지
                                     )
-              WHERE 1 = 1
-                AND T1.SELL_TP_CD = '4'                                                      -- 회사설치
-                --     AND LCSGUB NOT IN ('1','2')  /*관리부서, 영업부 설치건은 제외*/ 이게 TOBE화 못함.
-                AND SUBSTR(T2.CNTR_CNFM_DTM, 1, 6)  <![CDATA[<=]]>  TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD') -- 확정일자가 오늘 이전
-                AND T1.CNTR_DTL_STAT_CD = '101'
-                AND (CASE WHEN T5.PD_CD = '살균수기 기준상품코드' THEN TADR.NEW_ADR_ZIP ELSE '' END) =
-                (CASE WHEN T5.PD_CD = '살균수기 기준상품코드' THEN '입력우편번호' ELSE '' END)
-                -- 만일 살균수기 시에 우편번호가 NULL 이면 검색 안됨 (1=2) 로직 추가 필요
+                    AND TADR.DTA_DL_YN = 'N'
+                  WHERE 1 = 1
+                    AND T1.SELL_TP_CD = '4'                                                      -- 회사설치
+                    AND T1.DTA_DL_YN = 'N'
+                    --     AND LCSGUB NOT IN ('1','2')  /*관리부서, 영업부 설치건은 제외*/ 이게 TOBE화 못함.
+                    AND SUBSTR(T2.CNTR_CNFM_DTM, 1, 6)  <![CDATA[<=]]>  TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD') -- 확정일자가 오늘 이전
+                    AND T1.CNTR_DTL_STAT_CD = '101'
+                    AND (CASE WHEN T5.PD_CD = '살균수기 기준상품코드' THEN TADR.NEW_ADR_ZIP ELSE '' END) =
+                    (CASE WHEN T5.PD_CD = '살균수기 기준상품코드' THEN '입력우편번호' ELSE '' END)
+                    -- 만일 살균수기 시에 우편번호가 NULL 이면 검색 안됨 (1=2) 로직 추가 필요
 
-            UNION ALL
-                -- 일시불
-            SELECT  T1.CNTR_NO          AS CNTR_NO,
-                    T1.CNTR_SN          AS CNTR_SN,
-                    T4.CST_KNM          AS CST_KNM,
-                    T1.SELL_TP_CD       AS SELL_TP_CD,
-                    T1.BASE_PD_CD       AS BASE_PD_CD,
-                    T5.PD_NM            AS PD_NM,
-                    T2.COPN_DV_CD       AS COPN_DV_CD,
-                    CASE
-                    WHEN T1.CNTR_DTL_STAT_CD <![CDATA[>=]]> '301'
-                    AND T1.CNTR_DTL_STAT_CD  <![CDATA[<=]]>  '303' THEN T6.HIST_STRT_DTM
-                    ELSE '' END     AS HIST_STRT_DTM,
-                    ''                  AS RETENTION_STRT, /*상대코드 유지기간 시작 일자 : 설치일 익월 1일 -> 주문 접수시는 유지기간 알수 없음. (접수한 상품의 설치일로부터 6개월)*/
-                    ''                  AS RETENTION_ENDT, /*상대코드 유지기간 시작 일자 : 설치일 익월 1일 -> 주문 접수시는 유지기간 알수 없음. (접수한 상품의 설치일로부터 6개월)*/
-                    T2.CNTR_RCP_FSH_DTM AS CNTR_RCP_FSH_DTM,
-                    TADR.RNADR          AS RNADR,
-                    TADR.RDADR          AS RDADR,
-                    TADR.NEW_ADR_ZIP    AS NEW_ADR_ZIP,
-                    TADR.LTN_ADR        AS LTN_ADR,
-                    TADR.LTN_DTL_ADR    AS LTN_DTL_ADR,
-                    TADR.OLD_ADR_ZIP    AS OLD_ADR_ZIP
-               FROM TB_SSCT_CNTR_DTL T1
-              INNER JOIN TB_SSCT_CNTR_BAS T2
-                 ON T1.CNTR_NO = T2.CNTR_NO
-                AND T2.CNTR_CST_NO = (SELECT T10.CNTR_CST_NO
-                                        FROM TB_SSCT_CNTR_BAS T10
-                                       WHERE T10.CNTR_NO = #{baseDtlCntrNo})
-              INNER JOIN TB_SSCT_CNTR_WELLS_DTL T3 -- 계약 WELLS 상세
-                 ON T1.CNTR_NO = T3.CNTR_NO
-                AND T1.CNTR_SN = T3.CNTR_SN
-               LEFT OUTER JOIN TB_CUBS_CST_BAS T4
-                 ON T2.CNTR_CST_NO = T4.CST_NO
-              INNER JOIN TB_PDBS_PD_BAS T5
-                 ON T1.BASE_PD_CD = T5.PD_CD
-               LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T6 --계약상세상태변경이력 테이블
-                 ON T1.CNTR_NO = T6.CNTR_NO
-                AND T1.CNTR_SN = T6.CNTR_SN
-                AND T6.HIST_STRT_DTM = (SELECT MAX(HIST_STRT_DTM)
-                                          FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST TT
-                                         WHERE T1.CNTR_NO = TT.CNTR_NO
-                                           AND T1.CNTR_SN = TT.CNTR_SN)
-               LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS TADR --- 주소
-                 ON TADR.ADR_ID = (SELECT T9.ADR_ID
-                                     FROM TB_SSCT_CNTR_ADRPC_BAS T9
-                                    WHERE T9.CNTR_ADRPC_ID = (SELECT T7.CNTR_ADRPC_ID
-                                                                FROM TB_SSCT_CNTR_ADR_REL T7
-                                                               WHERE T7.DTL_CNTR_NO = T1.CNTR_NO
-                                                                 AND T7.DTL_CNTR_SN = T1.CNTR_SN
-                                                                 AND T7.ADRPC_TP_CD = '3'
-                                                                 AND T7.VL_END_DTM = '99991231235959') --설치지
-                                    )
-               LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T11
-                 ON T11.PD_CD = T5.PD_CD
-                AND T11.PD_EXTS_PRP_GRP_CD = 'SPP'
-              WHERE 1 = 1
-                AND T1.SELL_TP_CD = '1'                                                       -- 할부 (일시불)
-                /*     AND KA11.KAETC2 NOT IN ('6','8','9') 이거 어떻게 번역하는가
-                (강태욱) 환경가전 중 설치 제품인 경우만 해당. 따라서 아래와 같이 번역됨 */
-                AND T11.PD_PRP_VAL01 = '1' /* 설치제품 */
-                AND SUBSTR(T2.CNTR_CNFM_DTM, 1, 6)  <![CDATA[<=]]>  TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD')  -- 확정일자가 오늘 이전
-                AND T1.CNTR_DTL_STAT_CD NOT IN ('301', '302', '303')                          -- 취소여부
-                AND T3.REQD_DT > TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD')                       -- 철거일
-                AND (T3.FRISU_BFSVC_PTRM_N > 0 AND
-                NOT EXISTS(SELECT 1 FROM TB_SSCT_CNTR_DTL WHERE T1.CNTR_SN = CNTR_SN AND T1.CNTR_NO = CNTR_NO)
-                OR '{상품코드}' = '공기청정기KW-A08E1' OR T1.BASE_PD_CD IN ('WP05110110', 'WP05110111', 'WP05110602')) /*4자리 코드 번역 필요 (강태욱)번역완료*/
-                /* 상기 공기청정기는 TOBE 일시불 상품코드가 정의되어 있지 않음 */
-                --                AND (CASE WHEN T5.PD_CD = '살균수기 기준상품코드' THEN TADR.NEW_ADR_ZIP ELSE '' END) =
-                --                    (CASE WHEN T5.PD_CD = '살균수기 기준상품코드' THEN '입력우편번호' ELSE '' END)
-                -- 만일 살균수기 시에 우편번호가 NULL 이면 검색 안됨 (1=2) 로직 추가 필요
+                UNION ALL
+                    -- 일시불
+                 SELECT T1.CNTR_NO          AS CNTR_NO,
+                        T1.CNTR_SN          AS CNTR_SN,
+                        T4.CST_KNM          AS CST_KNM,
+                        T1.SELL_TP_CD       AS SELL_TP_CD,
+                        T1.BASE_PD_CD       AS BASE_PD_CD,
+                        T5.PD_NM            AS PD_NM,
+                        T2.COPN_DV_CD       AS COPN_DV_CD,
+                        CASE
+                        WHEN T1.CNTR_DTL_STAT_CD <![CDATA[>=]]> '301'
+                        AND T1.CNTR_DTL_STAT_CD  <![CDATA[<=]]>  '303' THEN T6.HIST_STRT_DTM
+                        ELSE '' END     AS HIST_STRT_DTM,
+                        ''                  AS RETENTION_STRT, /*상대코드 유지기간 시작 일자 : 설치일 익월 1일 -> 주문 접수시는 유지기간 알수 없음. (접수한 상품의 설치일로부터 6개월)*/
+                        ''                  AS RETENTION_ENDT, /*상대코드 유지기간 시작 일자 : 설치일 익월 1일 -> 주문 접수시는 유지기간 알수 없음. (접수한 상품의 설치일로부터 6개월)*/
+                        T2.CNTR_RCP_FSH_DTM AS CNTR_RCP_FSH_DTM,
+                        TADR.RNADR          AS RNADR,
+                        TADR.RDADR          AS RDADR,
+                        TADR.NEW_ADR_ZIP    AS NEW_ADR_ZIP,
+                        TADR.LTN_ADR        AS LTN_ADR,
+                        TADR.LTN_DTL_ADR    AS LTN_DTL_ADR,
+                        TADR.OLD_ADR_ZIP    AS OLD_ADR_ZIP
+                   FROM TB_SSCT_CNTR_DTL T1
+                  INNER JOIN TB_SSCT_CNTR_BAS T2
+                     ON T1.CNTR_NO = T2.CNTR_NO
+                    AND T2.CNTR_CST_NO = (SELECT T10.CNTR_CST_NO
+                                            FROM TB_SSCT_CNTR_BAS T10
+                                           WHERE T10.CNTR_NO = #{baseDtlCntrNo})
+                    AND T2.DTA_DL_YN = 'N'
+                  INNER JOIN TB_SSCT_CNTR_WELLS_DTL T3 -- 계약 WELLS 상세
+                     ON T1.CNTR_NO = T3.CNTR_NO
+                    AND T1.CNTR_SN = T3.CNTR_SN
+                    AND T3.DTA_DL_YN = 'N'
+                   LEFT OUTER JOIN TB_CUBS_CST_BAS T4
+                     ON T2.CNTR_CST_NO = T4.CST_NO
+                    AND T4.DTA_DL_YN = 'N'
+                  INNER JOIN TB_PDBS_PD_BAS T5
+                     ON T1.BASE_PD_CD = T5.PD_CD
+                    AND T5.DTA_DL_YN = 'N'
+                   LEFT OUTER JOIN TB_SSCT_CNTR_DTL_STAT_CH_HIST T6 --계약상세상태변경이력 테이블
+                     ON T1.CNTR_NO = T6.CNTR_NO
+                    AND T1.CNTR_SN = T6.CNTR_SN
+                    AND T6.HIST_STRT_DTM = (SELECT MAX(HIST_STRT_DTM)
+                                              FROM TB_SSCT_CNTR_DTL_STAT_CH_HIST TT
+                                             WHERE T1.CNTR_NO = TT.CNTR_NO
+                                               AND T1.CNTR_SN = TT.CNTR_SN)
+                    AND T6.DTA_DL_YN = 'N'
+                   LEFT OUTER JOIN GBSDBS.TB_GBCO_ADR_BAS TADR --- 주소
+                     ON TADR.ADR_ID = (SELECT T9.ADR_ID
+                                         FROM TB_SSCT_CNTR_ADRPC_BAS T9
+                                        WHERE T9.CNTR_ADRPC_ID = (SELECT T7.CNTR_ADRPC_ID
+                                                                    FROM TB_SSCT_CNTR_ADR_REL T7
+                                                                   WHERE T7.DTL_CNTR_NO = T1.CNTR_NO
+                                                                     AND T7.DTL_CNTR_SN = T1.CNTR_SN
+                                                                     AND T7.ADRPC_TP_CD = '3'
+                                                                     AND T7.VL_END_DTM = '99991231235959') --설치지
+                                        )
+                    AND TADR.DTA_DL_YN = 'N'
+                   LEFT OUTER JOIN TB_PDBS_PD_ECOM_PRP_DTL T11
+                     ON T11.PD_CD = T5.PD_CD
+                    AND T11.PD_EXTS_PRP_GRP_CD = 'SPP'
+                  WHERE 1 = 1
+                    AND T1.SELL_TP_CD = '1'                                                       -- 할부 (일시불)
+                    AND T1.DTA_DL_YN = 'N'
+                    /*     AND KA11.KAETC2 NOT IN ('6','8','9') 이거 어떻게 번역하는가
+                    (강태욱) 환경가전 중 설치 제품인 경우만 해당. 따라서 아래와 같이 번역됨 */
+                    AND T11.PD_PRP_VAL01 = '1' /* 설치제품 */
+                    AND SUBSTR(T2.CNTR_CNFM_DTM, 1, 6)  <![CDATA[<=]]>  TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD')  -- 확정일자가 오늘 이전
+                    AND T1.CNTR_DTL_STAT_CD NOT IN ('301', '302', '303')                          -- 취소여부
+                    AND T3.REQD_DT > TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD')                       -- 철거일
+                    AND (T3.FRISU_BFSVC_PTRM_N > 0 AND
+                    NOT EXISTS(SELECT 1 FROM TB_SSCT_CNTR_DTL WHERE T1.CNTR_SN = CNTR_SN AND T1.CNTR_NO = CNTR_NO)
+                    OR '{상품코드}' = '공기청정기KW-A08E1' OR T1.BASE_PD_CD IN ('WP05110110', 'WP05110111', 'WP05110602')) /*4자리 코드 번역 필요 (강태욱)번역완료*/
+                    /* 상기 공기청정기는 TOBE 일시불 상품코드가 정의되어 있지 않음 */
+                    --                AND (CASE WHEN T5.PD_CD = '살균수기 기준상품코드' THEN TADR.NEW_ADR_ZIP ELSE '' END) =
+                    --                    (CASE WHEN T5.PD_CD = '살균수기 기준상품코드' THEN '입력우편번호' ELSE '' END)
+                    -- 만일 살균수기 시에 우편번호가 NULL 이면 검색 안됨 (1=2) 로직 추가 필요
               ) T0
     </select>
 
