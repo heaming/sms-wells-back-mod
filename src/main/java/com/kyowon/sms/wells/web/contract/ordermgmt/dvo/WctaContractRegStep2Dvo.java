@@ -105,7 +105,6 @@ public class WctaContractRegStep2Dvo {
     public static class PdDetailDvo {
         String codeId;
         String codeName;
-        String val1;
     }
 
     @Getter
@@ -125,6 +124,7 @@ public class WctaContractRegStep2Dvo {
         Integer recapMshPtrm;
         Integer mshStrtMcn;
         Integer mshEndMcn;
+        String rgstCsDscYn;
     }
 
     @Getter

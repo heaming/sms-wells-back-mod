@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -51,6 +52,12 @@ public class WctaContractRegStep2Service {
                     .sellTpCd(sellTpCd)
                     .build()
             );
+
+            // 등록비 할인상품인 경우 보여주기 위한 계약금, 등록비할인여부 Y 세팅
+            if (!Objects.isNull(dtl.getCntramDscAmt()) && dtl.getCntramDscAmt() > 0l) {
+                dtl.setCntrAmt(dtl.getCntramDscAmt());
+                dtl.setRgstCsDscYn("Y");
+            }
 
             // 계약관계 관련 정보 세팅
             List<WctaContractPdRelDvo> pdRels = regService.selectContractPdRel(cntrNo, cntrSn);
@@ -377,19 +384,10 @@ public class WctaContractRegStep2Service {
             dtl.setSellAmt(Math.multiplyExact(dtl.getPdQty(), dtl.getFnlAmt()));
             dtl.setSppDuedt(""); // TODO 배송예정일자
             dtl.setRstlYn(""); // TODO 재약정여부
-            // 렌탈, 등록비 0원일 때 등록비 할인여부 확인
-            if (CtContractConst.SELL_TP_CD_RNTL.equals(sellTpCd) && dtl.getCntrAmt() != null
-                && dtl.getCntrAmt() == 0l) {
-                Optional<WctaContractRegStep2Dvo.PdDetailDvo> rgstCss = mapper.selectProductRgstCss(
-                    WctaContractDto.SearchPdSelReq.builder()
-                        .pdCd(dtl.getPdCd())
-                        .sellTpCd(dtl.getSellTpCd())
-                        .sellInflwChnlDtlCd(bas.getSellInflwChnlDtlCd())
-                        .build()
-                ).stream().findFirst();
-                if (rgstCss.isPresent()) {
-                    dtl.setCntramDscAmt(Long.parseLong(rgstCss.get().getVal1()));
-                }
+            // 렌탈, 등록비할인여부 Y일 때 계약금액 대신 계약금액할인금액에 저장
+            if (CtContractConst.SELL_TP_CD_RNTL.equals(sellTpCd) && "Y".equals(dtl.getRgstCsDscYn())) {
+                dtl.setCntramDscAmt(dtl.getCntrAmt());
+                dtl.setCntrAmt(0l);
             }
 
             String mchnSellTpCd = "";
