@@ -587,15 +587,15 @@
                                                ON EXCN.CNTR_NO = OJ.CNTR_NO
                                               AND EXCN.CNTR_SN = OJ.CNTR_SN
                                               AND EXCN.DTA_DL_YN = 'N'
-                                             LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_DL_IZ DEL         /* T.고객서비스수행삭제내역 LC_ALLOCATE_AC201TB */
-                                               ON DEL.CNTR_NO = EXCN.CNTR_NO
-                                              AND DEL.CNTR_SN = EXCN.CNTR_SN
-                                              AND DEL.DTA_DL_YN = 'N'
+<!--                                             LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_DL_IZ DEL         /* T.고객서비스수행삭제내역 LC_ALLOCATE_AC201TB */-->
+<!--                                               ON DEL.CNTR_NO = EXCN.CNTR_NO-->
+<!--                                              AND DEL.CNTR_SN = EXCN.CNTR_SN-->
+<!--                                              AND DEL.DTA_DL_YN = 'N'-->
                                             WHERE 1=1
                                               AND ASN.DTA_DL_YN = 'N'
                                               AND OJ.SV_BIZ_DCLSF_CD IN ('1110', '3460', '4110') /* 신규설치,택배반품,일시불H/S */
                                               AND EXCN.IST_DT IS NULL /* 설치일자 : AC201_INST_DT*/
-                                              AND DEL.CAN_DT IS NULL   /* 취소일자 없는거 */
+<!--                                              AND DEL.CAN_DT IS NULL   /* 취소일자 없는거 */-->
                         --                     AND EXCN.BFCH_PD_CD = '43071000000' /* TODO 상품코드 맵핑 필요 FC_MIG_PD_CD, AC201_GDS_CD */
                                               AND (ASN.CNTR_NO, ASN.CNTR_SN) IN (
                                                 (#{cntrNo}, #{cntrSn}) /* 파라미터 */
