@@ -75,11 +75,11 @@ public class WsnzWellsCodeService {
         return converter.mapAllDistrictsDvoToRes(result);
     }
 
-    /*public List<SearchProductBaseRes> getProductBase(
-        SearchProductBaseReq dto
+    public List<SearchServiceCenterPrtnrRes> getServiceCenterPrtnr(
+        SearchServiceCenterPrtnrReq dto
     ) {
-        return converter.mapAllProductBaseDvoToRes(mapper.selectProductBase(dto));
-    }*/
+        return converter.mapAllServiceCenterPrtnrDvoToRes(mapper.selectServiceCenterPrtnr(dto));
+    }
 
     public List<SearchMcbyCstSvOjIzRes> getMonthCstServs(
         SearchMcbyCstSvOjIzReq dto
