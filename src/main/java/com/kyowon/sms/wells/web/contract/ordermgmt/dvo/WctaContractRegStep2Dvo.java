@@ -124,6 +124,7 @@ public class WctaContractRegStep2Dvo {
         Integer recapMshPtrm;
         Integer mshStrtMcn;
         Integer mshEndMcn;
+        String rgstCsDscYn;
     }
 
     @Getter
@@ -215,5 +216,18 @@ public class WctaContractRegStep2Dvo {
         String ojCntrNo;
         Integer ojCntrSn;
         String pdNm;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class PdMchnChBfInfo {
+        String chdvcPrmitYn;
+        String chdvcBfPdClsfCd;
+        String chdvcBfPdCd;
+        String oppstOrdRcptdt;
+        String oppstSlDt;
     }
 }

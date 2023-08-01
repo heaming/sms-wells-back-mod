@@ -35,13 +35,61 @@ public class WpmzPromotionCheckService {
     private final ZpmzPromotionApplyService applyService;
 
 
+    /**
+     * 조건에 맞는 프로모션 조회 (Swagger 테스트용)
+     * @param req
+     * @return
+     * @throws IllegalAccessException
+     * @throws NoSuchFieldException
+     */
     public List<SearchRes> getAppliedPromotions(SearchReq req) throws IllegalAccessException, NoSuchFieldException {
         return converter.mapAllWpmzPromotionOutputDvoToSearchRes(getAppliedPromotions(converter.mapSearchReqToWpmzPromotionInputDvo(req)));
     }
 
+
+    /**
+     * 조건에 맞는 프로모션 조회
+     * @param paramDvo
+     * @return
+     * @throws IllegalAccessException
+     * @throws NoSuchFieldException
+     */
     public List<WpmzPromotionOutputDvo> getAppliedPromotions(WpmzPromotionInputDvo paramDvo) throws IllegalAccessException, NoSuchFieldException {
 
         /* 1. 입력 파라미터 Validation Check */
+        checkInputParameterValidation(paramDvo);
+
+        /* 2. 프로모션용 dvo로 변경 */
+        // 2.1. 입력 데이터 전체 항목 dvo로 이관
+        List<ZpmzPromotionAtcDvo> inputDvos = new ArrayList<>();
+        for (Field field : paramDvo.getClass().getDeclaredFields()) {
+            field.setAccessible(true);
+            if (StringUtils.isNotEmpty(Objects.toString(field.get(paramDvo), ""))){
+                inputDvos.add(new ZpmzPromotionAtcDvo(field.getName(), Objects.toString(field.get(paramDvo), "")));
+            }
+        }
+
+        // 2.2. 상품관련 항목 추가
+        List<ZpmzPromotionAtcDvo> addClsfInputDvos = getAdditionalProductArticles(inputDvos);
+        if (!addClsfInputDvos.isEmpty()) inputDvos.addAll(addClsfInputDvos);
+
+        /* 3. 적용되는 프로모션 목록 조회 */
+        List<ZpmzPromotionInfoDvo> appliedPromotions = applyService.getPromotionsByConditions(inputDvos);
+
+        /* 4. 우선순위 고려한 프로모션 추출 */
+        List<ZpmzPromotionInfoDvo> priorityRankedPromotions = applyService.getPromotionsByPriorityRank(appliedPromotions);
+
+        /* 5. 프로모션 혜택 결과 정리 후 리턴 */
+        return convertAppliedPromotionsToFinalResults(priorityRankedPromotions);
+    }
+
+
+    /**
+     * 입력 파라미터 Validation Check
+     * @param paramDvo
+     * @throws IllegalAccessException
+     */
+    private void checkInputParameterValidation(WpmzPromotionInputDvo paramDvo) throws IllegalAccessException {
         // 1.1. 필수 항목 체크 - 기준상품코드/복합상품코드/상품가격상세코드
         boolean mandatoryAtcCheck = false;
         for (Field field : paramDvo.getClass().getDeclaredFields()) {
@@ -77,30 +125,8 @@ public class WpmzPromotionCheckService {
             boolean isVaild = StringUtils.equals("Y", Objects.toString(commonMapper.selectProductValidCheckYn(paramDvo.getPkgMndtPdCd()), ""));
             BizAssert.isTrue(isVaild, messageService.getMessage("MSG_ALT_INVALID_ANYTHING", messageService.getMessage("MSG_TXT_PRDT"), paramDvo.getPkgMndtPdCd()));
         }
-
-        /* 2. 프로모션용 dvo로 변경 */
-        // 2.1. 입력 데이터 전체 항목 dvo로 이관
-        List<ZpmzPromotionAtcDvo> inputDvos = new ArrayList<>();
-        for (Field field : paramDvo.getClass().getDeclaredFields()) {
-            field.setAccessible(true);
-            if (StringUtils.isNotEmpty(Objects.toString(field.get(paramDvo), ""))){
-                inputDvos.add(new ZpmzPromotionAtcDvo(field.getName(), Objects.toString(field.get(paramDvo), "")));
-            }
-        }
-
-        // 2.2. 상품관련 항목 추가
-        List<ZpmzPromotionAtcDvo> addClsfInputDvos = getAdditionalProductArticles(inputDvos);
-        if (!addClsfInputDvos.isEmpty()) inputDvos.addAll(addClsfInputDvos);
-
-        /* 3. 적용되는 프로모션 목록 조회 */
-        List<ZpmzPromotionInfoDvo> appliedPromotions = applyService.getPromotionsByConditions(inputDvos);
-
-        /* 4. 우선순위 고려한 프로모션 추출 */
-        List<ZpmzPromotionInfoDvo> priorityRankedPromotions = applyService.getPromotionsByPriorityRank(appliedPromotions);
-
-        /* 5. 프로모션 혜택 결과 정리 후 리턴 */
-        return convertAppliedPromotionsToFinalResults(priorityRankedPromotions);
     }
+
 
     /**
      * 상품관련 항목 추가
@@ -206,6 +232,13 @@ public class WpmzPromotionCheckService {
         return addClsfInputDvos;
     }
 
+
+    /**
+     * 상품/가격속성값에서 항목 추출 후 적용 (렌탈할인구분코드, 렌탈할인유형코드, 방문주기, 택배주기)
+     * @param priceDetailDvo
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     */
     private void setArticlesInProductProps(WpmzPromotionPriceDetailDvo priceDetailDvo) throws NoSuchFieldException, IllegalAccessException {
         // 상품가격조건특성 메타 조회
         WpmzPromotionPriceDetailDvo metaDvo = mapper.selectProductPriceMetaInfo();
@@ -231,6 +264,14 @@ public class WpmzPromotionCheckService {
         priceDetailDvo.setPcsvPrdCd(Objects.toString(pcsvPrdCdField.get(priceDetailDvo), ""));
     }
 
+
+    /**
+     * 프로모션 혜택 결과 정리
+     * @param appliedPromotions
+     * @return
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     */
     private List<WpmzPromotionOutputDvo> convertAppliedPromotionsToFinalResults(List<ZpmzPromotionInfoDvo> appliedPromotions) throws NoSuchFieldException, IllegalAccessException {
 
         List<WpmzPromotionOutputDvo> finalResults = new ArrayList<>();
@@ -346,6 +387,14 @@ public class WpmzPromotionCheckService {
         return finalResults;
     }
 
+
+    /**
+     * 특정 혜택값 추출
+     * @param allFvrDvos
+     * @param standardFvrDvo
+     * @param valueSysCmppNm
+     * @return
+     */
     private String getFavorValue(List<ZpmzPromotionDtlFvrDvo> allFvrDvos, ZpmzPromotionDtlFvrDvo standardFvrDvo, String valueSysCmppNm) {
         Optional<ZpmzPromotionDtlFvrDvo> valDvoOpt = allFvrDvos.stream()
             .filter(item -> StringUtils.equals(item.getHgrPmotFvrId(), standardFvrDvo.getHgrPmotFvrId())

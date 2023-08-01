@@ -2,6 +2,7 @@ package com.kyowon.sms.wells.web.contract.ordermgmt.service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -19,6 +20,8 @@ import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.WctaContractRegStep2Mapper;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.system.config.context.SFLEXContextHolder;
+import com.sds.sflex.system.config.core.dvo.UserSessionDvo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -49,6 +52,12 @@ public class WctaContractRegStep2Service {
                     .sellTpCd(sellTpCd)
                     .build()
             );
+
+            // 등록비 할인상품인 경우 보여주기 위한 계약금, 등록비할인여부 Y 세팅
+            if (!Objects.isNull(dtl.getCntramDscAmt()) && dtl.getCntramDscAmt() > 0l) {
+                dtl.setCntrAmt(dtl.getCntramDscAmt());
+                dtl.setRgstCsDscYn("Y");
+            }
 
             // 계약관계 관련 정보 세팅
             List<WctaContractPdRelDvo> pdRels = regService.selectContractPdRel(cntrNo, cntrSn);
@@ -375,6 +384,11 @@ public class WctaContractRegStep2Service {
             dtl.setSellAmt(Math.multiplyExact(dtl.getPdQty(), dtl.getFnlAmt()));
             dtl.setSppDuedt(""); // TODO 배송예정일자
             dtl.setRstlYn(""); // TODO 재약정여부
+            // 렌탈, 등록비할인여부 Y일 때 계약금액 대신 계약금액할인금액에 저장
+            if (CtContractConst.SELL_TP_CD_RNTL.equals(sellTpCd) && "Y".equals(dtl.getRgstCsDscYn())) {
+                dtl.setCntramDscAmt(dtl.getCntrAmt());
+                dtl.setCntrAmt(0l);
+            }
 
             String mchnSellTpCd = "";
             if ("216".equals(dtl.getCntrRelDtlCd())) {
@@ -398,6 +412,7 @@ public class WctaContractRegStep2Service {
                 dtl.setCntrAmt(dtl.getFnlAmt());
                 dtl.setCntrTam(dtl.getSellAmt());
             } else {
+                dtl.setCntrAmt(dtl.getCntrAmt() == null ? 0l : dtl.getCntrAmt());
                 dtl.setCntrTam(Math.multiplyExact(dtl.getCntrPtrm(), dtl.getFnlAmt()) + dtl.getCntrAmt());
             }
 
@@ -581,7 +596,44 @@ public class WctaContractRegStep2Service {
      * @return 확정된 상품목록
      */
     public List<WctaContractDtlDvo> confirmProducts(List<WctaContractDtlDvo> dtls) {
+        UserSessionDvo session = SFLEXContextHolder.getContext().getUserSession();
         // TODO 상품확정 로직 추가
+        dtls.forEach((dtl) -> {
+            String pmotCd = ""; // 프로모션코드
+            String pmotOjGrpDvCd = ""; // 프로모션대상그룹코드
+            String pmotApyChnlCd = dtl.getSellInflwChnlDtlCd(); // 프로모션적용채널코드
+            String pmotApyOgTpCd = session.getOgTpCd(); // 프로모션적용조직코드
+            String basePdCd = dtl.getPdCd(); // 상품코드
+            String basePdPrcDtlCd = dtl.getPdPrcId(); // 상품가격상세코드
+            // TODO 214 포함여부 확인
+            if ("216".equals(dtl.getCntrRelDtlCd())) {
+                Optional<WctaContractRegStep2Dvo.PdWelsfHcfPkg> pkg = dtl.getPkgs().stream()
+                    .filter((p) -> p.getCodeId().equals(dtl.getPkg())).findFirst();
+                String lkPdClsfCd = pkg.isPresent() ? pkg.get().getPdDclsfId() : ""; // 모종 상품분류코드
+                String lkPdCd = pkg.isPresent() ? pkg.get().getPdCd() : ""; // 모종 상품코드
+            }
+            String pkgMndtPdCd = ""; // 패키지필수 상품코드
+            WctaMachineChangeIzDvo mchnCh = dtl.getMchnCh();
+            if (ObjectUtils.isNotEmpty(mchnCh)) {
+                String mchnChOjCntrNo = mchnCh.getOjCntrNo();
+                Integer mchnChOjCntrSn = mchnCh.getOjCntrSn();
+                WctaContractRegStep2Dvo.PdMchnChBfInfo mchnChBfInfo = mapper
+                    .selectMchnChBfInfo(mchnChOjCntrNo, mchnChOjCntrSn);
+                String chdvcPrmitYn = mchnChBfInfo.getChdvcPrmitYn(); // 기기변경허용여부
+                String chdvcBfPdClsfCd = mchnChBfInfo.getChdvcBfPdClsfCd(); // 기기변경이전상품분류
+                String chdvcBfPdCd = mchnChBfInfo.getChdvcBfPdCd(); // 기기변경이전상품코드
+                String lkChdvcPrmitYn = ""; // 연계코드기변제외
+                String chdvcTpCd = mchnCh.getMchnChTpCd(); // 기기변경유형
+                String oppstOrdRcptdt = mchnChBfInfo.getOppstOrdRcptdt(); // 기기변경이전상품접수일자
+                String oppstSlDt = mchnChBfInfo.getOppstSlDt(); // 기기변경이전상품매출일자
+            }
+            String alncBzsCd = ""; // 제휴업체코드
+            String evCd = ""; // 행사코드
+            String selrCd = session.getEmployeeIDNumber(); // 판매자코드
+            String crpDscExcdYn = ""; // 법인DC제외여부
+            String spcDscCd = ""; // 특별할인코드
+            String freExpnYn = ""; // 무료체험여부
+        });
         return dtls;
     }
 }

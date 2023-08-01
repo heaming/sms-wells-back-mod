@@ -38,5 +38,7 @@ public interface WsnzWellsCodeMapper {
 
     List<WsnzWellsCodeLgldCtpvLocarasDvo> selectLgldCtpvLocaras(SearchLgldCtpvLocarasReq req);
 
+    List<WsnzWellsCodeServiceCenterPrtnrDvo> selectServiceCenterPrtnr(SearchServiceCenterPrtnrReq req);
+
     int selectWarehouseCloseCheckCounter(SearchWarehouseCLReq dto);
 }

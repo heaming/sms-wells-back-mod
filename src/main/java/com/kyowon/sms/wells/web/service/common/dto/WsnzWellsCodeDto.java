@@ -248,15 +248,20 @@ public class WsnzWellsCodeDto {
         String ctctyCd
     ) {}
 
-    @ApiModel(value = "WsnzWellsCodeDto-SearchProductBaseRes")
-    public record SearchProductBaseRes(
-        String newAdrZip,
-        String emdSn,
-        String ctpvNm,
-        String ctctyNm,
-        String lawcEmdNm,
-        String amtdNm,
-        String pdlvNo
+    @ApiModel(value = "WsnzWellsCodeDto-SearchServiceCenterPrtnrRes")
+    public record SearchServiceCenterPrtnrRes(
+        String ogTpCd,
+        String prtnrNo,
+        String prtnrNm,
+        String prtnrNoNm,
+        String pstnDvCd,
+        String rsbDvCd,
+        String rolDvCd,
+        String ogId,
+        String ogCd,
+        String ogNm,
+        String cntrDt,
+        String cltnDt
     ) {}
 
     @ApiModel(value = "WsnzWellsCodeDto-SearchMcbyCstSvOjIzRes")
@@ -284,5 +289,10 @@ public class WsnzWellsCodeDto {
     public record SearchWarehouseCLReq(
         String apyYm,
         String wareNo
+    ) {}
+
+    @ApiModel(value = "WsnzWellsCodeDto-SearchServiceCenterPrtnrReq")
+    public record SearchServiceCenterPrtnrReq(
+        String ogId
     ) {}
 }

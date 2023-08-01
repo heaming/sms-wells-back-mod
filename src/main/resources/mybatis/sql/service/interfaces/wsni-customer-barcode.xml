@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kyowon.sms.wells.web.service.interfaces.mapper.WsniCustomerBarcodeMapper">
+
+    <select id="selectCustomerBarcodes" resultType="com.kyowon.sms.wells.web.service.interfaces.dvo.WsniCustomerBarcodeDvo">
+        SELECT I1.CNTR_NO, T3.CUST_NM
+          FROM TB_SVPD_CST_SV_EXCN_IZ I1
+         INNER JOIN (SELECT T1.DTL_CNTR_NO, T1.DTL_CNTR_SN, TRIM(T2.RCGVP_KNM) AS CUST_NM
+                       FROM TB_SSCT_CNTR_ADR_REL T1
+                      INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T2
+                         ON T2.CNTR_ADRPC_ID = T1.CNTR_ADRPC_ID
+                        AND T2.DTA_DL_YN = 'N'
+                      WHERE 1=1
+                        AND T1.DTA_DL_YN = 'N'
+                        AND T1.ADRPC_TP_CD IN ('2', '3')        /* 설치처 */
+                        AND T1.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                        AND T1.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                    ) T3
+            ON I1.CNTR_NO = T3.DTL_CNTR_NO
+           AND I1.CNTR_SN = T3.DTL_CNTR_SN
+         WHERE 1=1
+           AND I1.BC_NO = TRIM(#{bcNo})
+           AND ROWNUM = 1
+         UNION ALL
+        SELECT I1.CNTR_NO, T3.CUST_NM
+          FROM TB_SVPD_CST_SV_EXCN_IZ I1
+         INNER JOIN TB_SVST_SV_WK_OSTR_IZ O1
+            ON I1.CNTR_NO = O1.CNTR_NO
+           AND I1.CNTR_SN = O1.CNTR_SN
+          LEFT OUTER JOIN (SELECT T1.DTL_CNTR_NO, T1.DTL_CNTR_SN, TRIM(T2.RCGVP_KNM) AS CUST_NM
+                             FROM TB_SSCT_CNTR_ADR_REL T1
+                            INNER JOIN TB_SSCT_CNTR_ADRPC_BAS T2
+                               ON T2.CNTR_ADRPC_ID = T1.CNTR_ADRPC_ID
+                              AND T2.DTA_DL_YN = 'N'
+                            WHERE 1=1
+                              AND T1.DTA_DL_YN = 'N'
+                              AND T1.ADRPC_TP_CD IN ('2', '3')        /* 설치처 */
+                              AND T1.VL_STRT_DTM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                              AND T1.VL_END_DTM <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                          ) T3
+            ON I1.CNTR_NO = T3.DTL_CNTR_NO
+           AND I1.CNTR_SN = T3.DTL_CNTR_SN
+         WHERE 1=1
+           AND FNL_BC_NO = UPPER(#{bcNo})
+           AND FNL_PD_CD IN (SELECT RSTR_CNDT_VAL1 FROM TB_SVPD_SV_RSTR_CNDT_BAS WHERE RSTR_CNDT_ID = 'TC034')
+           AND ROWNUM = 1
+    </select>
+
+</mapper>

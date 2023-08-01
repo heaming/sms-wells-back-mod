@@ -116,6 +116,7 @@ public class WctaContractDtlDvo {
     private Integer verSn;
     private Long ctrVal;
     private String pdPrcId;
+    private String rgstCsDscYn; /* 등록비할인여부 */
 
     private String cntrRelDtlCd; /* 계약관계상세코드 */
     private String pkg; /* 선택한 패키지 상품번호 */
