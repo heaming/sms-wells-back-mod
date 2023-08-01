@@ -573,8 +573,8 @@
                     ON T33.OG_TP_CD = T10.ICHR_OG_TP_CD /* 조직유형코드 */
                    AND T33.PRTNR_NO = T10.ICHR_PRTNR_NO /* 담당파트너번호 */
                    AND T33.DTA_DL_YN = 'N'
-                  LEFT OUTER JOIN LATERAL (SELECT EXCN.CNTR_NO   /* 계약번호-AC201_CSMR_YR*/
-                                                , EXCN.CNTR_SN   /* 계약일련번호- AC201_CSMR_CD*/
+                  LEFT OUTER JOIN LATERAL (SELECT CDTL.CNTR_NO   /* 계약번호-AC201_CSMR_YR*/
+                                                , CDTL.CNTR_SN   /* 계약일련번호- AC201_CSMR_CD*/
                                                 , SUM(CASE WHEN OJ.SV_BIZ_DCLSF_CD = '1110' AND ASN.WK_PRGS_STAT_CD ='00'  THEN 1 ELSE 0 END) AS INST_ING_CNT
                                                 , SUM(CASE WHEN OJ.SV_BIZ_DCLSF_CD = '1110' AND ASN.WK_PRGS_STAT_CD ='20'  THEN 1 ELSE 0 END) AS INST_END_CNT
                                                 , SUM(CASE WHEN OJ.SV_BIZ_DCLSF_CD = '3460' AND ASN.WK_PRGS_STAT_CD ='20'  THEN 1 ELSE 0 END) AS REMV_END_CNT
@@ -583,24 +583,23 @@
                                             INNER JOIN TB_SVPD_CST_SVAS_IST_OJ_IZ OJ   /* TB A/S및 설치 배정 대상 정보 LC_ALLOCATE_AC211TB*/
                                                ON OJ.CST_SV_ASN_NO = ASN.CST_SV_ASN_NO /* 배정번호 */
                                               AND OJ.DTA_DL_YN = 'N'
-                                            INNER JOIN TB_SVPD_CST_SV_EXCN_IZ EXCN /* 고객 마스터 LC_ALLOCATE_AC201TB*/  --고객서비스수행내역
-                                               ON EXCN.CNTR_NO = OJ.CNTR_NO
-                                              AND EXCN.CNTR_SN = OJ.CNTR_SN
-                                              AND EXCN.DTA_DL_YN = 'N'
-<!--                                             LEFT OUTER JOIN TB_SVPD_CST_SV_EXCN_DL_IZ DEL         /* T.고객서비스수행삭제내역 LC_ALLOCATE_AC201TB */-->
-<!--                                               ON DEL.CNTR_NO = EXCN.CNTR_NO-->
-<!--                                              AND DEL.CNTR_SN = EXCN.CNTR_SN-->
-<!--                                              AND DEL.DTA_DL_YN = 'N'-->
+                                            INNER JOIN TB_SSCT_CNTR_DTL CDTL /* 계약상세 LC_ALLOCATE_AC201TB*/
+                                               ON CDTL.CNTR_NO = OJ.CNTR_NO
+                                              AND CDTL.CNTR_SN = OJ.CNTR_SN
+                                              AND CDTL.DTA_DL_YN = 'N'
+                                             LEFT OUTER JOIN TB_SSCT_CNTR_WELLS_DTL WDTL  /* 계약WELLS상세 LC_ALLOCATE_AC201TB*/
+                                               ON WDTL.CNTR_NO = CDTL.CNTR_NO
+                                              AND WDTL.CNTR_SN = CDTL.CNTR_SN
+                                              AND WDTL.DTA_DL_YN = 'N'
                                             WHERE 1=1
                                               AND ASN.DTA_DL_YN = 'N'
                                               AND OJ.SV_BIZ_DCLSF_CD IN ('1110', '3460', '4110') /* 신규설치,택배반품,일시불H/S */
-                                              AND EXCN.IST_DT IS NULL /* 설치일자 : AC201_INST_DT*/
-<!--                                              AND DEL.CAN_DT IS NULL   /* 취소일자 없는거 */-->
-                        --                     AND EXCN.BFCH_PD_CD = '43071000000' /* TODO 상품코드 맵핑 필요 FC_MIG_PD_CD, AC201_GDS_CD */
+                                              AND WDTL.IST_DT IS NULL /* 설치일자 : AC201_INST_DT*/
+                                              AND CDTL.CNTR_DTL_STAT_CD NOT IN ('301','302','302')   /* 계약상세상태코드 취소가 아닌것 */
                                               AND (ASN.CNTR_NO, ASN.CNTR_SN) IN (
                                                 (#{cntrNo}, #{cntrSn}) /* 파라미터 */
                                             )
-                                            GROUP BY EXCN.CNTR_NO ,EXCN.CNTR_SN, OJ.SV_BIZ_DCLSF_CD
+                                            GROUP BY CDTL.CNTR_NO ,CDTL.CNTR_SN, OJ.SV_BIZ_DCLSF_CD
                        ) TD
                     ON T10.CNTR_NO = TD.CNTR_NO /* 계약번호 */
                    AND T10.CNTR_SN = TD.CNTR_SN /* 계약일련번호 */
