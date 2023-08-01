@@ -67,7 +67,7 @@
                       AS CSSR_IS_DV_CD
              , T5.CST_KNM /*고객명*/
              , T1.BFCH_CSSR_TRD_DV_CD /*변경전 공제구분*/
-             , T1.BFCH_CSSR_IS_NO_ENCR /*변경전 발행번호*/
+             , T1.BFCH_CSSR_IS_NO_ENCR AS BFCH_CSSR_IS_NO /*변경전 발행번호*/
              , T1.BFCH_CSSR_TRD_AMT /*변경전 승인금액*/
              , T1.BFCH_CSSR_APR_RS_CD /*승인결과*/
              , T1.FST_RGST_DTM /*등록일*/
@@ -79,7 +79,7 @@
              /*변경후*/
              , T1.AFCH_CSSR_IS_DV_CD /* 현금영수증발급구분코드 */
              , T1.AFCH_CSSR_TRD_DV_CD/*공제구분*/
-             , T1.AFCH_CSSR_IS_NO_ENCR/*발행번호*/
+             , T1.AFCH_CSSR_IS_NO_ENCR AS AFCH_CSSR_IS_NO  /*발행번호*/
              , T1.AFCH_CSSR_TRD_AMT/*승인금액*/
              , T1.AFCH_CSSR_APRNO/*승인번호*/
              , T1.AFCH_CSSR_APR_RS_CD/*승인결과*/
@@ -186,6 +186,7 @@
    <insert id="insertCashSalesReceiptChangeHistory">
            INSERT INTO TB_RVDW_CSSR_IS_CH_IZ (
                   KW_GRP_CO_CD /*교원그룹회사코드*/
+                , CSSR_RVE_DV_CD /* 현금영수증수납구분코드 */
                 , RVE_DT /*수납일자*/
                 , DP_DV_CD /*입금구분코드*/
                 , CSSR_AGRG_SN /*현금영수증집계일련번호*/
@@ -213,6 +214,7 @@
                 <include refid="COMMON.insertSystemField"/>
            ) SELECT
                 T1.KW_GRP_CO_CD
+              , T1.CSSR_RVE_DV_CD
               , T1.RVE_DT
               , T1.DP_DV_CD
               , T1.CSSR_AGRG_SN
