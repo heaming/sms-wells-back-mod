@@ -105,6 +105,7 @@ public class WctaContractRegStep2Dvo {
     public static class PdDetailDvo {
         String codeId;
         String codeName;
+        String val1;
     }
 
     @Getter
@@ -215,5 +216,18 @@ public class WctaContractRegStep2Dvo {
         String ojCntrNo;
         Integer ojCntrSn;
         String pdNm;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class PdMchnChBfInfo {
+        String chdvcPrmitYn;
+        String chdvcBfPdClsfCd;
+        String chdvcBfPdCd;
+        String oppstOrdRcptdt;
+        String oppstSlDt;
     }
 }

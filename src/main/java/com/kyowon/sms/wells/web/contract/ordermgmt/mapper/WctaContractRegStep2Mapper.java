@@ -73,6 +73,8 @@ public interface WctaContractRegStep2Mapper {
         String cntrNo, int cntrSn, String pdCd, List<String> parts
     );
 
+    WctaContractRegStep2Dvo.PdMchnChBfInfo selectMchnChBfInfo(String mchnChOjCntrNo, int mchnChOjCntrSn);
+
     String selectPdNm(String cntrNo, Integer cntrSn);
 
     int selectRntlMcn(String cntrNo, Integer cntrSn);
@@ -102,4 +104,5 @@ public interface WctaContractRegStep2Mapper {
     int deleteCntrWellsDtlStep2(String cntrNo);
 
     int deleteCntrRelStep2(String cntrNo);
+
 }
