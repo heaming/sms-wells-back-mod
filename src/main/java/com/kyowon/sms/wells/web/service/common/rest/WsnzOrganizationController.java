@@ -33,7 +33,7 @@ public class WsnzOrganizationController {
     })
     @GetMapping("/general-division")
     public List<SearchManagerOgRes> getGeneralDivisions(
-        @RequestParam
+        @RequestParam(defaultValue = "Y")
         String authYn
     ) {
         return service.getGeneralDivisions(authYn);
@@ -48,7 +48,7 @@ public class WsnzOrganizationController {
     public List<SearchManagerOgRes> getRegionalGroups(
         @RequestParam
         String ogId,
-        @RequestParam
+        @RequestParam(defaultValue = "Y")
         String authYn
     ) {
         return service.getRegionalGroups(ogId, authYn);
@@ -63,7 +63,7 @@ public class WsnzOrganizationController {
     public List<SearchManagerOgRes> getBranchs(
         @RequestParam
         String ogId,
-        @RequestParam
+        @RequestParam(defaultValue = "Y")
         String authYn
     ) {
         return service.getBranchs(ogId, authYn);
@@ -87,7 +87,7 @@ public class WsnzOrganizationController {
     })
     @GetMapping("/service-center")
     public List<SearchEngineerOgRes> getServiceCenters(
-        @RequestParam
+        @RequestParam(defaultValue = "Y")
         String authYn
     ) {
         return service.getServiceCenters(authYn);
