@@ -73,8 +73,8 @@ public class WsnbInstallationConfirmationDto {
         String cntrtRelNm
     ) {}
 
-    @ApiModel(value = "WsnbInstallationConfirmationDto-CreateConfirmationReq")
-    public record CreateConfirmationReq(
+    @ApiModel(value = "WsnbInstallationConfirmationDto-CreateAgreeReq")
+    public record CreateAgreeReq(
         String decvlIstYn,
         String wtholVlvIstYn,
         String istKitOcoLkYn,
@@ -87,4 +87,5 @@ public class WsnbInstallationConfirmationDto {
         String cntrtRelNm,
         String cstSignCn
     ) {}
+
 }
