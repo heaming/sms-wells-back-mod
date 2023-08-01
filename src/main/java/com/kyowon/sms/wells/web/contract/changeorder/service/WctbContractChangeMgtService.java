@@ -433,6 +433,9 @@ public class WctbContractChangeMgtService {
                     .asIstOjNo(kiwiDvo.getAsIstOjNo())
                     .acpgDiv("3")
                     .basePdCd("")
+                    .inChnlDvCd(kiwiDvo.getInChnlDvCd())
+                    .svBizDclsfCd(kiwiDvo.getSvBizDclsfCd())
+                    .svBizHclsfCd(kiwiDvo.getSvBizHclsfCd())
                     .prdDiv("1")
                     .build();
                 String checkYn = installService.saveAssignProcessings(kiwiDto);
