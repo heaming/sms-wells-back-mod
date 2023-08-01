@@ -757,6 +757,7 @@
           FROM TB_PDBS_PD_PRC_FNL_DTL T1
         <include refid="productWhereClause" />
            AND 1 = CASE WHEN T1.PD_PRC_CNDT_CHRC_VAL02 = '1' AND #{copnDvCd} = '1' THEN 2
+                        WHEN T1.PD_PRC_CNDT_CHRC_VAL02 = '5' AND #{copnDvCd} = '1' THEN 2
                         WHEN T1.PD_PRC_CNDT_CHRC_VAL02 = '8' AND #{copnDvCd} = '2' THEN 2
                         ELSE 1
                         END
