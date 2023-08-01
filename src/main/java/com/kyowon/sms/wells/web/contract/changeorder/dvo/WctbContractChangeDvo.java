@@ -40,6 +40,16 @@ public class WctbContractChangeDvo {
     private boolean hasKiwiOrd; /* 키위 존재여부 */
     private String egerNm; /* 엔지니어명 */
 
+    private String egerCralLocaraTno;
+    @DBEncField
+    @DBDecField
+    private String egerMexnoEncr;
+    private String egerCralIdvTno; /*휴대전화번호 ac021HnoNoprivate String ac021HnoNo1*/
+    private String retrTrgtYn; /*반품 대상 여부*/
+    private String inChnlDvCd;
+    private String svBizHclsfCd; /* 서비스세분류코드 */
+    private String svBizDclsfCd; /* 서비스대분류코드 */
+
     /* 화면 표시 */
     private String sellTpDtlNm; /* 판매유형사케코드명 (판매유형:lcTypeNm)*/
     private String cstKnm; /* 계약자명 - 고객명(lc31.lccnam) */
