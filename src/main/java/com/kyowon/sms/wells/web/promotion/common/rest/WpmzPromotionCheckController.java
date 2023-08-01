@@ -52,6 +52,7 @@ public class WpmzPromotionCheckController {
         @ApiImplicitParam(name = "dupApyPsbYn",         value = "중복적용가능여부",           paramType = "query", required = false, example = ""),
         @ApiImplicitParam(name = "crpDscExcdYn",        value = "법인DC제외여부",           paramType = "query", required = false, example = ""),
         @ApiImplicitParam(name = "spcDscCd",            value = "특별할인코드",             paramType = "query", required = false, example = ""),
+        @ApiImplicitParam(name = "freExpnYn",           value = "무료체험여부",             paramType = "query", required = false, example = ""),
     })
     @ApiOperation(value = "(서비스 API) 적용 프로모션 정보 조회", notes = "조건에 맞는 적용 프로모션 리스트를 조회한다.")
     @GetMapping("/promotions")

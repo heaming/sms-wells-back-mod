@@ -39,6 +39,7 @@ public class WpmzPromotionCheckDto {
      * @param dupApyPsbYn
      * @param crpDscExcdYn
      * @param spcDscCd
+     * @param freExpnYn
      */
     @ApiModel(value = "WpmzPromotionCheckDto-SearchReq")
     public record SearchReq(
@@ -63,7 +64,8 @@ public class WpmzPromotionCheckDto {
         String selrCd,              /* 판매자코드 */
         String dupApyPsbYn,         /* 중복적용가능여부 */
         String crpDscExcdYn,        /* 법인DC제외여부 */
-        String spcDscCd             /* 특별할인코드 */
+        String spcDscCd,            /* 특별할인코드 */
+        String freExpnYn            /* 무료체험여부 */
     ) {}
 
     /**
