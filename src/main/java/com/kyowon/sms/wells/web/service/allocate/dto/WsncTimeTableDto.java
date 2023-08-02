@@ -3,20 +3,17 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.common.utils.StringUtil;
-import com.sds.sflex.system.config.annotation.DBDecField;
-import com.sds.sflex.system.config.annotation.DBEncField;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 import io.swagger.annotations.ApiModel;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 
 @Slf4j
 public class WsncTimeTableDto {
@@ -326,7 +323,6 @@ public class WsncTimeTableDto {
         String rolDvNm,
         String rolDvNm2,
         String sjHp1,
-        @DBDecField
         String sjHp2,
         String sjHp3,
         String rpbLocaraCd,
@@ -352,26 +348,24 @@ public class WsncTimeTableDto {
         String tWrkCnt,
         String empPic,
         String locaraTno,
-        @DBDecField
         String exnoEncr,
         String idvTno,
         String cralLocaraTno,
-        @DBDecField
         String mexnoEncr,
         String cralIdvTno
     ) {
         public Psic {
-//            exnoEncr = DbEncUtil.dec(exnoEncr);
-//            mexnoEncr = DbEncUtil.dec(mexnoEncr);
-//            sjHp2 = DbEncUtil.dec(sjHp2);
 
+            // exnoEncr = DbEncUtil.dec(exnoEncr);
+            // mexnoEncr = DbEncUtil.dec(mexnoEncr);
+            // sjHp2 = DbEncUtil.dec(sjHp2);
+
+            //System.out.println("복호----------------------------------------------");
+            //System.out.println("복호| exnoEncr: " + exnoEncr);
+            //System.out.println("복호| mexnoEncr: " + mexnoEncr);
+            //System.out.println("복호| sjHp2: " + sjHp2);
+            //System.out.println("복호----------------------------------------------");
             empPic = Base64.getEncoder().encodeToString(empPic.getBytes(StandardCharsets.UTF_8));
-
-            System.out.println("복호----------------------------------------------");
-            System.out.println("복호| exnoEncr: " + exnoEncr);
-            System.out.println("복호| mexnoEncr: " + mexnoEncr);
-            System.out.println("복호| sjHp2: " + sjHp2);
-            System.out.println("복호----------------------------------------------");
         }
     }
 
