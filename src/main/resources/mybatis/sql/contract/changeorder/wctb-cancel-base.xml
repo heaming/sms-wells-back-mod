@@ -828,7 +828,6 @@
             , RP.SL_CTR_RMK_CN
             , RP.ICHR_OG_TP_CD
             , RP.ICHR_PRTNR_NO
-            , (SELECT SELL_PRTNR_NO FROM TB_SSCT_CNTR_BAS WHERE CNTR_NO=RP.CNTR_NO) AS SELL_PRTNR_NO /* 철거접수 호출 시 사용 */
           FROM TB_SSCT_CNTR_RSG_PROCS_IZ RP
          WHERE RP.CNTR_NO = #{cntrNo}
            AND RP.CNTR_SN = #{cntrSn}

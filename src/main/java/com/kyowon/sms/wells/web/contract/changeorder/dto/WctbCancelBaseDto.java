@@ -311,8 +311,7 @@ public class WctbCancelBaseDto {
         String slCtrRqrId,
         String slCtrRmkCn,
         String ichrOgTpCd,
-        String ichrPrtnrNo,
-        String sellPrtnrNo
+        String ichrPrtnrNo
     ) {}
 }
 
