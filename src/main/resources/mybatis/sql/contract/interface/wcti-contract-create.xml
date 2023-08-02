@@ -361,14 +361,11 @@
             , '' -- INSI_CST_TP_CD
             , '' -- LRNN_GRY_CD
             , '' -- CNTR_CH_RCP_ID
-            <include refid="COMMON.insertSystemFieldValue" /> )
+            <include refid="COMMON.insertSystemFieldValue" />
+        )
     </insert>
 
     <insert id="insertContractAddressForContract">
-        <selectKey keyProperty="cntrAdrpcId" resultType="java.lang.String" order="BEFORE">
-        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_ADRPC_ID)) + 1, 1), 15, 0)
-          FROM TB_SSCT_CNTR_ADRPC_BAS
-        </selectKey>
         INSERT INTO TB_SSCT_CNTR_ADRPC_BAS (  /* 계약주소지기본 */
                CNTR_ADRPC_ID           /* 계약주소지ID */
              , CNTR_NO                 /* 계약번호 */
@@ -475,10 +472,6 @@
     </insert>
 
     <insert id="insertContractAddressForInstall">
-        <selectKey keyProperty="cntrAdrpcId" resultType="java.lang.String" order="BEFORE">
-        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_ADRPC_ID)) + 1, 1), 15, 0)
-          FROM TB_SSCT_CNTR_ADRPC_BAS
-        </selectKey>
         INSERT INTO TB_SSCT_CNTR_ADRPC_BAS (  /* 계약주소지기본 */
                CNTR_ADRPC_ID           /* 계약주소지ID */
              , CNTR_NO                 /* 계약번호 */
@@ -689,7 +682,7 @@
     </insert>
 
 
-<insert id="insertContractProductRelation">
+    <insert id="insertContractProductRelation">
         <selectKey keyProperty="cntrPdRelId" resultType="java.lang.String" order="BEFORE">
             SELECT NVL(MAX(TO_NUMBER(CNTR_PD_REL_ID)), 0) AS CNTR_PD_REL_ID
               FROM TB_SSCT_CNTR_PD_REL
@@ -965,6 +958,20 @@
             <include refid="COMMON.insertSystemFieldValue" />
         )
     </insert>
+
+    <select id="selectCntrAdrpcId" resultType="java.lang.String">
+        SELECT LPAD(NVL(MAX(TO_NUMBER(CNTR_ADRPC_ID)) + 1, 1), 15, 0)
+          FROM TB_SSCT_CNTR_ADRPC_BAS
+    </select>
+
+    <select id="selectPartnerOgTpCd" resultType="java.lang.String">
+        SELECT O1.OG_TP_CD
+          FROM TB_OGBS_PRTNR_BAS O1
+         WHERE 1 = 1
+           AND O1.PRTNR_NO = #{prtnrNo}
+           AND O1.DTA_DL_YN = 'N'
+           AND O1.OG_TP_CD != 'HR1'
+    </select>
 
     <select id="selectExistContractNumberYn" resultType="java.lang.String">
         SELECT CASE WHEN COUNT(*) > 0 THEN 'Y' ELSE 'N' END

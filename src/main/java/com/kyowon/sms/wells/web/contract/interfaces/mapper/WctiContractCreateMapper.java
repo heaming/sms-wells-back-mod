@@ -49,7 +49,7 @@ public interface WctiContractCreateMapper {
         String cstNo
     );
 
-    int insertContractAddressRelation(WctiContractCreateDvo contract, String adrpcTpCd);
+    int insertContractAddressRelation(WctiContractCreateDvo contract);
 
     int insertContractAddressForContract(WctiContractCreateDvo contract);
 
@@ -70,4 +70,8 @@ public interface WctiContractCreateMapper {
     int insertMachineChange(WctiContractCreateDvo contract);
 
     String selectExistContractNumberYn(String cntrNo);
+
+    Optional<String> selectPartnerOgTpCd(String prtnrNo);
+
+    String selectCntrAdrpcId();
 }

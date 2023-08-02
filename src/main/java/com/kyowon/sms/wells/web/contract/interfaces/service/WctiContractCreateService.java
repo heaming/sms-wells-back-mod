@@ -110,6 +110,13 @@ public class WctiContractCreateService {
         contract.setCntrTpCd("01");
 
         contract.setRveDvCd("01"); // 계약(청약)금(01)
+
+        if (StringUtils.isEmpty(contract.getSellOgTpCd())
+            && StringUtils.isNotEmpty(contract.getSellPrtnrNo())) {
+            String ogTpCd = mapper.selectPartnerOgTpCd(contract.getSellPrtnrNo())
+                .orElseThrow(() -> new BizException("MSG_ALT_CRSP_PRTNR_NO_INF_NEX"));
+            contract.setSellOgTpCd(ogTpCd);
+        }
     }
 
     private void createCustomerAggrement(WctiContractCreateDvo contract) {
@@ -189,9 +196,10 @@ public class WctiContractCreateService {
             contract.setCntrtMexnoEncr(cntrtMexnoEncr);
             contract.setCntrtExnoEncr(cntrtExnoEncr);
             contract.setAdrpcTpCd("1");
+            contract.setCntrAdrpcId(mapper.selectCntrAdrpcId());
 
             mapper.insertContractAddressForContract(contract);
-            mapper.insertContractAddressRelation(contract, "1");
+            mapper.insertContractAddressRelation(contract);
         }
 
         if (isValidAddress(contract.getIstBasAdr(), contract.getIstDtlAdr())) {
@@ -203,9 +211,10 @@ public class WctiContractCreateService {
             contract.setIstMexnoEncr(istMexnoEncr);
             contract.setIstExnoEncr(istExnoEncr);
             contract.setAdrpcTpCd("3");
+            contract.setCntrAdrpcId(mapper.selectCntrAdrpcId());
 
             mapper.insertContractAddressForInstall(contract);
-            mapper.insertContractAddressRelation(contract, "3");
+            mapper.insertContractAddressRelation(contract);
         }
 
         // 결제정보 저장
