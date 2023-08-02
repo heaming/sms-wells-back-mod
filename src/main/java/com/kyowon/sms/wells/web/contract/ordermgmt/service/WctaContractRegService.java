@@ -203,8 +203,10 @@ public class WctaContractRegService {
             List<WctaContractStlmRelDvo> stlmRels = Lists.newArrayList();
             WctaContractDtlDvo fDtl = dtls.get(0);
             // STEP3 결제유형
-            dvo.setStlmTpNm(codeService.getCodeDetailByPk("STLM_TP_CD", fDtl.getStlmTpCd()).getCodeName());
-            dvo.setDpTpNm("카드");
+            if (StringUtils.isNotEmpty(fDtl.getStlmTpCd())) {
+                dvo.setStlmTpNm(codeService.getCodeDetailByPk("STLM_TP_CD", fDtl.getStlmTpCd()).getCodeName());
+                dvo.setDpTpNm("카드");
+            }
             dtls.forEach(
                 (dtl) -> {
                     // STEP2 상품
