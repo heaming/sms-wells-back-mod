@@ -757,7 +757,7 @@
     </select>
 
     <!--getMojongDays_ilsibul-->
-    <select id="selectSidingDaysForSpay_back" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo">
+    <!--<select id="selectSidingDaysForSpay_back" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo">
         SELECT SUBSTR(W3TH, 1, 4) || '-' || SUBSTR(W3TH, 5, 2) || '-' || SUBSTR(W3TH, 7, 2) AS ENABLE_DAYS
              , W3TH
              , SUM(SUM_CNT) AS SUM_CNT
@@ -779,7 +779,7 @@
                              AND DF_YN IS NULL
                              AND PHLD_YN IS NULL
                              AND ROWNUM = 1)
-               END AS SOW_DAY-- PAJONG_DAY
+               END AS SOW_DAY&#45;&#45; PAJONG_DAY
           FROM (
                     SELECT V1.BASE_Y
                          , V1.BASE_MM
@@ -982,7 +982,7 @@
            AND SUM_CNT > 0
          GROUP BY W3TH
          ORDER BY W3TH
-    </select>
+    </select>-->
     <select id="selectSidingDaysForSpay" resultType="com.kyowon.sms.wells.web.service.allocate.dvo.WsncTimeTableSidingDaysDvo">
         SELECT SUBSTR(W3TH, 1, 4) || '-' || SUBSTR(W3TH, 5, 2) || '-' || SUBSTR(W3TH, 7, 2) AS ENABLE_DAYS
              , W3TH
@@ -1440,7 +1440,6 @@
             ON OG1.BASE_YM = OG2.BASE_YM
            AND OG1.OG_ID = OG2.OG_ID
            AND OG2.OG_TP_CD = 'W06'
-
          INNER JOIN TB_OGBS_PRTNR_BAS OG3
             ON OG1.PRTNR_NO = OG3.PRTNR_NO
            AND OG3.OG_TP_CD = 'W06'
