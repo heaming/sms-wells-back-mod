@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import com.kyowon.sms.wells.web.service.allocate.dto.WsncBfsvcCrdovrAsnDto;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbCustomerRglrBfsvcDlDto;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdDto;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbIndividualVisitPrdDvo;
 
 @Mapper
 public interface WsnbIndividualVisitPrdMapper {
@@ -22,4 +23,8 @@ public interface WsnbIndividualVisitPrdMapper {
     List<WsnbCustomerRglrBfsvcDlDto.SaveReq> selectAsnNoTypeBs(WsnbIndividualVisitPrdDto.SearchProcessReq dto);
 
     int deleteSvRgbsprIz(WsnbIndividualVisitPrdDto.SearchProcessReq dto);
+
+    WsnbIndividualVisitPrdDvo selectValidBsForceAssign(WsnbIndividualVisitPrdDto.SearchProcessReq dto);
+
+    int insertBsForceAssign(WsnbIndividualVisitPrdDto.SearchProcessReq dto);
 }

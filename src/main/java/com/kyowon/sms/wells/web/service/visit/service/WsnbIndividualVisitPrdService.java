@@ -13,8 +13,10 @@ import com.kyowon.sms.wells.web.service.allocate.service.WsncRegularBfsvcAsnServ
 import com.kyowon.sms.wells.web.service.allocate.service.WsncVisitPeriodRecrtService;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbCustomerRglrBfsvcDlDto;
 import com.kyowon.sms.wells.web.service.visit.dto.WsnbIndividualVisitPrdDto;
+import com.kyowon.sms.wells.web.service.visit.dvo.WsnbIndividualVisitPrdDvo;
 import com.kyowon.sms.wells.web.service.visit.mapper.WsnbIndividualVisitPrdMapper;
 import com.sds.sflex.system.config.core.service.MessageResourceService;
+import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
 
 import lombok.RequiredArgsConstructor;
@@ -100,7 +102,32 @@ public class WsnbIndividualVisitPrdService {
     @Transactional
     public int processBsForceAssign(WsnbIndividualVisitPrdDto.SearchProcessReq dto) throws Exception {
         log.info("[WsnbIndividualVisitPrdService.processBsForceAssign] process start!");
-        return 0;
+
+        //계약번호를 확인해주세요.
+        BizAssert.hasText(dto.cntrNo(), "MSG_ALT_CHK_CNTR_NO");
+        //계약일련번호를 확인해주세요.
+        BizAssert.hasText(dto.cntrSn(), "MSG_ALT_CHK_CNTR_SN");
+        BizAssert.hasText(
+            dto.asnOjYm(), "MSG_ALT_NCELL_REQUIRED_ITEM",
+            new String[] {messageService.getMessage("MSG_TXT_ASN_YM")}
+        );
+
+        WsnbIndividualVisitPrdDvo dvo = mapper.selectValidBsForceAssign(dto);
+
+        if("Y".equals(dvo.getValidYn1())){
+            throw new BizException("MSG_ALT_ASN_DATA_EXISTS"); //기존 배정 데이터가 있습니다.
+        } else if("Y".equals(dvo.getValidYn2()) || "Y".equals(dvo.getValidYn3()) || "Y".equals(dvo.getValidYn4())){
+            throw new BizException("MSG_ALT_CANNOT_ASN_VALID_1"); //현재월에 배정건이 있어 강제배정할 수 없습니다.
+        } else if("Y".equals(dvo.getValidYn5())){
+            throw new BizException("MSG_ALT_CANNOT_ASN_VALID_2"); //미완료 배정건이 없어 강제배정 할 수 없습니다.
+        }
+
+        mapper.insertBsForceAssign(dto);
+
+        //해당월, 해당계약으로 BS정기배정 서비스 수행 (W-SV-S-0074를 수행)
+        processBsAssign(dto);
+
+        return 1;
     }
 
     /*

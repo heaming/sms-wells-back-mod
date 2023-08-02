@@ -75,8 +75,18 @@
                #{asnOjYm} AS ASN_OJ_YM
              , t1.CNTR_NO AS CNTR_NO
              , t1.CNTR_SN AS CNTR_SN
-             , t1.SV_BIZ_MCLSF_CD AS SV_BIZ_MCLSF_CD
-             , t5.MAX_SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
+            -- , t1.SV_BIZ_MCLSF_CD AS SV_BIZ_MCLSF_CD
+            -- , t5.MAX_SV_BIZ_DCLSF_CD AS SV_BIZ_DCLSF_CD
+             , (
+                CASE WHEN MAX(t1.CPSN_ASN_PRTNR_NO) OVER(PARTITION BY t1.CNTR_NO, t1.CNTR_SN, t1.SV_BIZ_MCLSF_CD, t5.MAX_SV_BIZ_DCLSF_CD) IS NOT NULL THEN '22'
+                     ELSE t1.SV_BIZ_MCLSF_CD
+                     END
+               ) AS SV_BIZ_MCLSF_CD
+             , (
+                CASE WHEN MAX(t1.CPSN_ASN_PRTNR_NO) OVER(PARTITION BY t1.CNTR_NO, t1.CNTR_SN, t1.SV_BIZ_MCLSF_CD, t5.MAX_SV_BIZ_DCLSF_CD) IS NOT NULL THEN '2260'
+                     ELSE t5.MAX_SV_BIZ_DCLSF_CD
+                     END
+               ) AS SV_BIZ_DCLSF_CD
              , t2.WK_PSIC_DV_CD AS MNGR_DV_CD
              , t5.LIST_SV_BIZ_DCLSF_CD AS RLTD_SV_BIZ_DCLSF_CD
              , (
