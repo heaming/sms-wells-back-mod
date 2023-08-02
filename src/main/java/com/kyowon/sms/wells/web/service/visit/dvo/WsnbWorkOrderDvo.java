@@ -26,6 +26,7 @@ public class WsnbWorkOrderDvo {
     String urgtDvCd; /* 긴급여부 */
     String vstRqdt; /* 방문요청일자 */
     String vstAkHh; /* 방문요청시간 */
+    String apyDtm; /* 적용일시 */
     String smsFwYn; /* SMS발송여부 */
     int svEtAmt; /* 서비스예상금액 */
     String dpDvCd; /* 입금구분코드 */
@@ -52,6 +53,7 @@ public class WsnbWorkOrderDvo {
     String payNm; /* 입금자명 */
     String partList;
     String userId;
+    String etcCn1; /* 기타내용1 (Y: 분리+재설치 시 이전 주소에서 서비스 받음) */
     String ogTpCd;
     String rcpOgTpCd;
     /* service애서 만들어주는 값 */
