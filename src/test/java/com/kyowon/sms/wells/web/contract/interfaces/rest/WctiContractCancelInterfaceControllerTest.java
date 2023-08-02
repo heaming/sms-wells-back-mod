@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.Commit;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import com.kyowon.sms.wells.web.contract.interfaces.dto.WctiContractCancelDto.CancelMembershipContractReq;
@@ -48,6 +49,7 @@ class WctiContractCancelInterfaceControllerTest extends SpringTestSupport {
                           AND X1.SL_CL_YM = TO_CHAR(SYSDATE, 'YYYYMM'))
     */
     @Test
+    @Commit
     @DisplayName("인터페이스 렌털계약 취소")
     void cancelRentalContract() throws Exception {
         SFLEXContext context = SFLEXContextHolder.getContext();

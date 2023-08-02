@@ -92,6 +92,9 @@ public class WctbCancelBaseService {
         cancelBase.setIchrOgTpCd(ogTpCd);
         cancelBase.setIchrPrtnrNo(contract.getRgstUsrId());
 
+        cancelBase.setRsgAplcDt(contract.getCanDt());
+        cancelBase.setRsgFshDt(contract.getCanDt());
+
         cancelContract(cancelBase);
     }
 
@@ -106,6 +109,9 @@ public class WctbCancelBaseService {
 
         cancelBase.setIchrOgTpCd(ogTpCd);
         cancelBase.setIchrPrtnrNo(contract.getRgstUsrId());
+
+        cancelBase.setRsgAplcDt(contract.getCanDt());
+        cancelBase.setRsgFshDt(contract.getCanDt());
 
         cancelContract(cancelBase);
     }
