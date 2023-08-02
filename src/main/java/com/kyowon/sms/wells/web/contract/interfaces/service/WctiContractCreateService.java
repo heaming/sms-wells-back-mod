@@ -19,6 +19,7 @@ import com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractCreateDvo;
 import com.kyowon.sms.wells.web.contract.interfaces.dvo.WctiContractProductDvo;
 import com.kyowon.sms.wells.web.contract.interfaces.mapper.WctiContractCreateMapper;
 import com.sds.sflex.common.utils.DateUtil;
+import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.common.utils.StringUtil;
 import com.sds.sflex.system.config.exception.BizException;
 import com.sds.sflex.system.config.validation.BizAssert;
@@ -179,23 +180,46 @@ public class WctiContractCreateService {
 
         // 계약/설치 주소 저장
         if (isValidAddress(contract.getCntrtBasAdr(), contract.getCntrtDtlAdr())) {
-            contract.setCntrtAdrId(
-                getAdrId(
-                    contract.getCntrtBasAdr(), contract.getCntrtDtlAdr(), contract.getCntrtAdrDvCd()
-                )
-            );
+            String adrId = getAdrId(contract.getCntrtBasAdr(), contract.getCntrtDtlAdr(), contract.getCntrtAdrDvCd());
+            contract.setCntrtAdrId(adrId);
+
+            String cntrtMexnoEncr = DbEncUtil.enc(contract.getCntrtMexno());
+            String cntrtExnoEncr = DbEncUtil.enc(contract.getCntrtExno());
+
+            contract.setCntrtMexnoEncr(cntrtMexnoEncr);
+            contract.setCntrtExnoEncr(cntrtExnoEncr);
+            contract.setAdrpcTpCd("1");
+
             mapper.insertContractAddressForContract(contract);
             mapper.insertContractAddressRelation(contract, "1");
         }
 
         if (isValidAddress(contract.getIstBasAdr(), contract.getIstDtlAdr())) {
             contract.setIstAdrId(getAdrId(contract.getIstBasAdr(), contract.getIstDtlAdr(), contract.getIstAdrDvCd()));
+
+            String istMexnoEncr = DbEncUtil.enc(contract.getIstMexno());
+            String istExnoEncr = DbEncUtil.enc(contract.getIstExno());
+
+            contract.setIstMexnoEncr(istMexnoEncr);
+            contract.setIstExnoEncr(istExnoEncr);
+            contract.setAdrpcTpCd("3");
+
             mapper.insertContractAddressForInstall(contract);
             mapper.insertContractAddressRelation(contract, "3");
         }
 
         // 결제정보 저장
         if (StringUtils.isNotEmpty(contract.getStlmAmt())) {
+            if (StringUtils.isNotEmpty(contract.getCrcdNo())) {
+                String crcdNoEncr = DbEncUtil.enc(contract.getCrcdNo());
+                contract.setCrcdNoEncr(crcdNoEncr);
+            }
+
+            if (StringUtils.isNotEmpty(contract.getAcno())) {
+                String acnoEncr = DbEncUtil.enc(contract.getAcno());
+                contract.setAcnoEncr(acnoEncr);
+            }
+
             mapper.insertContractSettlement(contract);
             mapper.insertContractSettlementRelation(contract);
         }

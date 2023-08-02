@@ -625,8 +625,8 @@
             , #{dpTpCd} -- DP_TP_CD : 신용카드
             , #{bnkCd} -- BNK_CD
             , #{cdcoCd}
-            , #{acno} -- ACNO_ENCR
-            , #{crcdNo}
+            , #{acnoEncr} -- ACNO_ENCR
+            , #{crcdNoEncr}
             , #{cardExpdtYm} -- CARD_EXPDT_YM
             , '' -- MLG_TP_CD
             , '' -- MLG_DRM_VAL

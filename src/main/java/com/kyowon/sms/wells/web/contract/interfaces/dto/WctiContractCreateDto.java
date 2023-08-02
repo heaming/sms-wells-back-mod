@@ -39,15 +39,15 @@ public class WctiContractCreateDto {
         @JsonProperty("CNTRT_CRAL_LOCARA_TNO")
         String cntrtCralLocaraTno,
         @NotBlank
-        @JsonProperty("CNTRT_MEXNO_ENCR")
-        String cntrtMexnoEncr,
+        @JsonProperty("CNTRT_MEXNO")
+        String cntrtMexno,
         @NotBlank
         @JsonProperty("CNTRT_CRAL_IDV_TNO")
         String cntrtCralIdvTno,
         @JsonProperty("CNTRT_LOCARA_TNO")
         String cntrtLocaraTno,
-        @JsonProperty("CNTRT_EXNO_ENCR")
-        String cntrtExnoEncr,
+        @JsonProperty("CNTRT_EXNO")
+        String cntrtExno,
         @JsonProperty("CNTRT_IDV_TNO")
         String cntrtIdvTno,
         @JsonProperty("CNTRT_ZIP")
@@ -68,15 +68,15 @@ public class WctiContractCreateDto {
         @JsonProperty("IST_CST_CRAL_LOCARA_TNO")
         String istCstCralLocaraTno,
         @NotBlank
-        @JsonProperty("IST_CST_MEXNO_ENCR")
-        String istCstMexnoEncr,
+        @JsonProperty("IST_CST_MEXNO")
+        String istCstMexno,
         @NotBlank
         @JsonProperty("IST_CST_CRAL_IDV_TNO")
         String istCstCralIdvTno,
         @JsonProperty("IST_PLC_LOCARA_TNO")
         String istPlcLocaraTno,
-        @JsonProperty("IST_PLC_EXNO_ENCR")
-        String istPlcExnoEncr,
+        @JsonProperty("IST_PLC_EXNO")
+        String istPlcExno,
         @JsonProperty("IST_PLC_IDV_TNO")
         String istPlcIdvTno,
         @NotBlank
@@ -358,14 +358,14 @@ public class WctiContractCreateDto {
         String cstBrymd,
         @JsonProperty("CPHON_LOCARA_TNO")
         String cphonLocaraTno,
-        @JsonProperty("CPHON_EXNO_ENCR")
-        String cphonExnoEncr,
+        @JsonProperty("CPHON_EXNO")
+        String cphonExno,
         @JsonProperty("CPHON_IDV_TNO")
         String cphonIdvTno,
         @JsonProperty("LOCARA_TNO")
         String locaraTno,
-        @JsonProperty("EXNO_ENCR")
-        String exnoEncr,
+        @JsonProperty("EXNO")
+        String exno,
         @JsonProperty("IDV_TNO")
         String idvTno,
         @NotBlank
@@ -391,15 +391,15 @@ public class WctiContractCreateDto {
         @JsonProperty("IST_CPHON_LOCARA_TNO")
         String istCphonLocaraTno,
         @NotBlank
-        @JsonProperty("IST_CPHON_EXNO_ENCR")
-        String istCphonExnoEncr,
+        @JsonProperty("IST_CPHON_EXNO")
+        String istCphonExno,
         @NotBlank
         @JsonProperty("IST_CPHON_IDV_TNO")
         String istCphonIdvTno,
         @JsonProperty("IST_LOCARA_TNO")
         String istLocaraTno,
-        @JsonProperty("IST_EXNO_ENCR")
-        String istExnoEncr,
+        @JsonProperty("IST_EXNO")
+        String istExno,
         @JsonProperty("IST_IDV_TNO")
         String istIdvTno,
         @NotBlank
@@ -456,8 +456,8 @@ public class WctiContractCreateDto {
         String bnkCdcoDv1,
         @JsonProperty("CARD_AMT1")
         String cardAmt1,
-        @JsonProperty("CRCDNO_ENCR1")
-        String crcdnoEncr1,
+        @JsonProperty("CRCDNO1")
+        String crcdno1,
         @JsonProperty("CARD_ISTM_MCN1")
         String cardIstmMcn1,
         @JsonProperty("CARD_APRNO1")
@@ -474,8 +474,8 @@ public class WctiContractCreateDto {
         String bnkCdcoDv2,
         @JsonProperty("CARD_AMT2")
         String cardAmt2,
-        @JsonProperty("CRCDNO_ENCR2")
-        String crcdnoEncr2,
+        @JsonProperty("CRCDNO2")
+        String crcdno2,
         @JsonProperty("CARD_ISTM_MCN2")
         String cardIstmMcn2,
         @JsonProperty("CARD_APRNO2")
@@ -492,8 +492,8 @@ public class WctiContractCreateDto {
         String bnkCdcoDv3,
         @JsonProperty("CARD_AMT3")
         String cardAmt3,
-        @JsonProperty("CRCDNO_ENCR3")
-        String crcdnoEncr3,
+        @JsonProperty("CRCDNO3")
+        String crcdno3,
         @JsonProperty("CARD_ISTM_MCN3")
         String cardIstmMcn3,
         @JsonProperty("CARD_APRNO3")
@@ -751,16 +751,16 @@ public class WctiContractCreateDto {
         String txinvPsicNm,
         @JsonProperty("TXINV_LOCARA_TNO")
         String txinvLocaraTno,
-        @JsonProperty("TXINV_EXNO_ENCR")
-        String txinvExnoEncr,
+        @JsonProperty("TXINV_EXNO")
+        String txinvExno,
         @JsonProperty("TXINV_IDV_TNO")
         String txinvIdvTno,
         @JsonProperty("TXINV_EMADR")
         String txinvEmadr,
         @JsonProperty("TXINV_CPHON_LOCARA_TNO")
         String txinvCphonLocaraTno,
-        @JsonProperty("TXINV_CPHON_EXNO_ENCR")
-        String txinvCphonExnoEncr,
+        @JsonProperty("TXINV_CPHON_EXNO")
+        String txinvCphonExno,
         @JsonProperty("TXINV_CPHON_IDV_TNO")
         String txinvCphonIdvTno,
         @JsonProperty("TXINV_PBL_D")

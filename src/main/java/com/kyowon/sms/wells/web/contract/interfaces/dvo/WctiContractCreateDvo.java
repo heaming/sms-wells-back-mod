@@ -54,6 +54,7 @@ public class WctiContractCreateDvo {
     private String istmPcamAmt;
 
     // 계약자 연락처 & 주소
+    private String adrpcTpCd;
     private String cntrAdrRelId;
     private String cntrtAdrId;
     private String cntrtAdrDvCd;
@@ -61,9 +62,11 @@ public class WctiContractCreateDvo {
     private String cntrtBasAdr;
     private String cntrtDtlAdr;
     private String cntrtLocaraTno;
+    private String cntrtExno;
     private String cntrtExnoEncr;
     private String cntrtIdvTno;
     private String cntrtCralLocaraTno;
+    private String cntrtMexno;
     private String cntrtMexnoEncr;
     private String cntrtCralIdvTno;
     private String cntrtEmadr;
@@ -76,9 +79,11 @@ public class WctiContractCreateDvo {
     private String istBasAdr;
     private String istDtlAdr;
     private String istLocaraTno;
+    private String istExno;
     private String istExnoEncr;
     private String istIdvTno;
     private String istCralLocaraTno;
+    private String istMexno;
     private String istMexnoEncr;
     private String istCralIdvTno;
     private String urgtOjYn;
@@ -105,6 +110,7 @@ public class WctiContractCreateDvo {
     private String rveDvCd;
     private String cdcoCd;
     private String crcdNo;
+    private String crcdNoEncr;
     private String cardAmt;
     private String crcdOwrKnm;
     private String cntrtBryyMmdd;
@@ -112,6 +118,7 @@ public class WctiContractCreateDvo {
     private String istmMcn;
     private String bnkCd;
     private String acno;
+    private String acnoEncr;
     private String owrKnm;
     private String stlmAmt;
 
@@ -141,10 +148,12 @@ public class WctiContractCreateDvo {
     private String txinvBzrno;
     private String txinvDlpnrPsicNm;
     private String txinvLocaraTno;
+    private String txinvExno;
     private String txinvExnoEncr;
     private String txinvIdvTno;
     private String txinvEmadr;
     private String txinvCralLocaraTno;
+    private String txinvMexno;
     private String txinvMexnoEncr;
     private String txinvCralIdvTno;
     private String txinvPblD;
