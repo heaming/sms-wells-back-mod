@@ -18,12 +18,13 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class WctaContractRegService {
+    private final CodeService codeService;
+
     private final WctaContractRegMapper mapper;
     private final WctaContractRegStep1Mapper step1Mapper;
     private final WctaContractRegStep2Mapper step2Mapper;
     private final WctaContractRegStep3Mapper step3Mapper;
     private final WctaContractRegStep4Mapper step4Mapper;
-    private final CodeService codeService;
 
     public String selectEnsmCstNo(String ensmNo) {
         return mapper.selectEnsmCstNo(ensmNo);
@@ -199,7 +200,6 @@ public class WctaContractRegService {
         List<WctaContractDtlDvo> dtls = selectProductInfos(cntrNo);
         List<String> products = Lists.newArrayList();
         if (CollectionUtils.isNotEmpty(dtls)) {
-            // 결제관계 전체 리스트에서 수납코드구분 01일 때 0101이나 0201이 하나라도 존재하는 경우 해당 데이터 선택
             List<WctaContractStlmRelDvo> stlmRels = Lists.newArrayList();
             WctaContractDtlDvo fDtl = dtls.get(0);
             // STEP3 결제유형
