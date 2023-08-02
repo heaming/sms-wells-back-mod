@@ -53,9 +53,11 @@ public class WctbRentalBulkChangeController {
         @NotBlank
         String cntrNo,
         @NotBlank
-        String cntrSn
+        String cntrSn,
+        @NotBlank
+        String procsDv
     ) {
-        return service.getBulkChangeContractsInfs(cntrNo, cntrSn);
+        return service.getBulkChangeContractsInfs(cntrNo, cntrSn, procsDv);
     }
 
     @ApiOperation(value = "렌탈 일괄변경 등록", notes = "")
