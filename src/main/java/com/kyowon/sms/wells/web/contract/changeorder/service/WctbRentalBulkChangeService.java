@@ -28,8 +28,10 @@ public class WctbRentalBulkChangeService {
         return converter.mapAllRentalBulkChangeDvoToSearchRes(mapper.selectRentalBulkChanges(dto));
     }
 
-    public WctbRentalBulkChangeDto.SearchCntrRes getBulkChangeContractsInfs(String cntrNo, String cntrSn) {
-        return mapper.selectBulkChangeContractsInfs(cntrNo, cntrSn);
+    public WctbRentalBulkChangeDto.SearchCntrRes getBulkChangeContractsInfs(
+        String cntrNo, String cntrSn, String procsDv
+    ) {
+        return mapper.selectBulkChangeContractsInfs(cntrNo, cntrSn, procsDv);
     }
 
     @Transactional
@@ -68,7 +70,7 @@ public class WctbRentalBulkChangeService {
 
                 // 이력조회 후 업데이트
                 dvo.setCntrDtlStatCd(mapper.selectBfCntrDtlStatCd(dvo));
-                BizAssert.isTrue(StringUtils.isNotEmpty(dvo.getCntrDtlStatCd()), "MSG_ALT_SVE_ERR");
+                BizAssert.isTrue(StringUtils.isNotEmpty(dvo.getCntrDtlStatCd()), "접수취소건이 아닙니다.");
                 // 대상:계약상세 컬럼:계약상세상태코드
                 res = mapper.updateCntrDtl(dvo);
                 BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
@@ -90,7 +92,8 @@ public class WctbRentalBulkChangeService {
                 ;
             } else if ("604".equals(saveStatusDto.procsDv())) { // 설치월면제
                 //변경전내용
-                bfchCn = "설치월청구방식유형코드:" + dvo.getIstMmBilMthdTpCd() + "|";
+                bfchCn = "설치년월:" + dvo.getIstDt().substring(0, 4)
+                    + "|설치월청구방식유형코드:" + dvo.getIstMmBilMthdTpCd() + "|";
 
                 res = mapper.updateCntrWellsDtl(dvo);
                 BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
@@ -105,7 +108,8 @@ public class WctbRentalBulkChangeService {
                 }
 
                 // 계약변경요청내용
-                cntrChAkCn = "설치월청구방식유형코드:2|";
+                cntrChAkCn = "설치년월:" + saveStatusDto.yrInstallation()
+                    + "|설치월청구방식유형코드:2|";
             } else if ("605".equals(saveStatusDto.procsDv())) { // 의무기간
                 //변경전내용
                 bfchCn = "약정기간:" + dvo.getStplPtrm() + "|";
@@ -240,7 +244,7 @@ public class WctbRentalBulkChangeService {
                 BizAssert.isTrue(mapper.selectRegMm(dvo) <= 12, "중지기간이 누적 12개월을 넘습니다");
                 // TODO : 렌탈중지 정보 업데이트 - 해당테이블이 수납일출금파트 테이블
                 // STOPPERD = (중지종료월 - 중지시작월) + 1
-                int stopperd = Integer.parseInt(dvo.getStpPrdStrtYm()) - Integer.parseInt(dvo.getStpPrdEndYm()) + 1;
+                int stopperd = Integer.parseInt(dvo.getStpPrdEndYm()) - Integer.parseInt(dvo.getStpPrdStrtYm()) + 1;
                 // 약정기간
                 dvo.setStplPtrm(String.valueOf(Integer.parseInt(dvo.getStplPtrm()) + stopperd));
                 // 계약기간
@@ -263,6 +267,9 @@ public class WctbRentalBulkChangeService {
                 cntrChAkCn = "약정기간:" + dvo.getStplPtrm()
                     + "|계약기간:" + dvo.getCntrPtrm()
                     + "|계약상품종료일자:" + dvo.getCntrPdEnddt()
+                    + "|중지기간(시작):" + dvo.getStpPrdStrtYm()
+                    + "|중지기간(종료):" + dvo.getStpPrdEndYm()
+                    + "|회신연락처:" + dvo.getRplyContact()
                     + "|";
             } else if ("617".equals(saveStatusDto.procsDv())) { // 법인 코로나 렌탈중지 취소
                 //변경전내용
@@ -295,6 +302,7 @@ public class WctbRentalBulkChangeService {
                 cntrChAkCn = "약정기간:" + dvo.getStplPtrm()
                     + "|계약기간:" + dvo.getCntrPtrm()
                     + "|계약상품종료일자:" + dvo.getCntrPdEnddt()
+                    + "|중지취소년월:" + dvo.getStpCanYm()
                     + "|";
                 // TODO : 실적정보 업데이트 - 해당테이블이 마감파트 테이블
             } else if ("618".equals(saveStatusDto.procsDv())) { // 수수료 정액여부 변경
@@ -315,7 +323,8 @@ public class WctbRentalBulkChangeService {
                 cntrChAkCn = "수수료정액여부:" + dvo.getFeeFxamYn() + "|";
             } else if ("619".equals(saveStatusDto.procsDv())) { // 프로모션 렌탈료 할인
                 //변경전내용
-                bfchCn = "할인금액:" + dvo.getCntrDscAmt() + "|";
+                bfchCn = "할인개월:"
+                    + "|할인금액:" + dvo.getCntrDscAmt() + "|";
 
                 // 입력 할인개월 => TODO:매핑없음
                 // 입력 할인금액 => 계약상세.할인금액(DSC_AMT)
@@ -330,7 +339,8 @@ public class WctbRentalBulkChangeService {
                 BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");
 
                 // 계약변경요청내용
-                cntrChAkCn = "할인금액:" + dvo.getDscAmt() + "|";
+                cntrChAkCn = "할인개월:" + dvo.getDscMcnt()
+                    + "|할인금액:" + dvo.getDscAmt() + "|";
             } else if ("620".equals(saveStatusDto.procsDv())) { // 렌탈 전월 취소
                 boolean masterUpdYn = false; // 마스터 변경 하지 않음
                 // TODO : 잠시보류
@@ -338,6 +348,7 @@ public class WctbRentalBulkChangeService {
                 // 2. LC5000P UPDATE
                 // 3. LC3250 UPDATE
                 // 4.렌탈 취소 삭제호출
+                continue;
             } else if ("621".equals(saveStatusDto.procsDv())) { // (모종)인정실적금액변경
                 //변경전내용
                 bfchCn = "인정실적금액:" + dvo.getAckmtPerfAmt() + "|";
@@ -375,6 +386,7 @@ public class WctbRentalBulkChangeService {
             } else if ("623".equals(saveStatusDto.procsDv())) { // 매출(BS) 중지 해제
                 boolean masterUpdYn = false; // 마스터(LC3100P) 변경 하지 않음
                 //		TODO : 실적업데이트 필요 => 마감파트 서비스 필요.
+                continue;
             } else if ("624".equals(saveStatusDto.procsDv())) { // 포인트플러스 강제 맵핑
                 //변경전내용
                 bfchCn = "제휴사코드:" + dvo.getAlncmpCd()
@@ -460,12 +472,19 @@ public class WctbRentalBulkChangeService {
                 BizAssert.isFalse(resultDvo == null, "라이프 주문의 고객코드를 확인하세요!");
                 BizAssert.isFalse(!"51".equals(resultDvo.getKletc6()), "라이프 주문의 제휴구분을 확인하세요!");
                 BizAssert.isFalse(
-                    Integer.parseInt(dvo.getKlflg8()) > 0 &&
+                    Integer.parseInt(StringUtils.isEmpty(dvo.getKlflg8()) ? "0" : dvo.getKlflg8()) > 0 &&
                         ("2".equals(resultDvo.getKlflg8Gubun1()) || "2".equals(resultDvo.getKlflg8Gubun2())),
                     "라이프 주문의 제휴고객코드를 확인하세요!"
                 );
-                BizAssert.isFalse(Integer.parseInt(dvo.getKlrevy()) > 0, "라이프 주문이 철회 상태입니다!");
-                BizAssert.isFalse(Integer.parseInt(dvo.getKlcany()) > 0, "라이프 주문이 취소 상태입니다!");
+
+                BizAssert.isFalse(
+                    Integer.parseInt(StringUtils.isEmpty(dvo.getKlrevy()) ? "0" : dvo.getKlrevy()) > 0,
+                    "라이프 주문이 철회 상태입니다!"
+                );
+                BizAssert.isFalse(
+                    Integer.parseInt(StringUtils.isEmpty(dvo.getKlcany()) ? "0" : dvo.getKlcany()) > 0,
+                    "라이프 주문이 취소 상태입니다!"
+                );
 
                 res = mapper.insertAcmpalCntrIz(dvo); // 관계사제휴계약내역 생성
                 BizAssert.isTrue(res == 1, "MSG_ALT_SVE_ERR");

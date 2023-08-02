@@ -16,7 +16,7 @@ public interface WctbRentalBulkChangeMapper {
         SearchReq dto
     );
 
-    WctbRentalBulkChangeDto.SearchCntrRes selectBulkChangeContractsInfs(String cntrNo, String cntrSn);
+    WctbRentalBulkChangeDto.SearchCntrRes selectBulkChangeContractsInfs(String cntrNo, String cntrSn, String procsDv);
 
     WctbRentalBulkChangeDvo selectDateTime();
 
