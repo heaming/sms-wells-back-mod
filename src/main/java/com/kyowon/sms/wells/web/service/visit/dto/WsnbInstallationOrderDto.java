@@ -33,6 +33,7 @@ public class WsnbInstallationOrderDto {
         String urgtYn, /* 긴급여부 */
         String vstRqdt, /* 방문요청일자 */
         String vstAkHh, /* 방문요청시간 */
+        String apyDtm, /* 적용일시 */
         String smsFwYn, /* SMS발송여부 */
         int svEtAmt, /* 서비스예상금액 */
         String dpDvCd, /* 입금구분코드 */

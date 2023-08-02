@@ -17,4 +17,6 @@ public interface WsnbWorkOrderInterfaceMapper {
 
     String selectContractAdr(WsnbWorkOrderInterfaceDvo ifDvo);
 
+    int insertCstSvasIstChHist(WsnbWorkOrderInterfaceDvo order);
+
 }

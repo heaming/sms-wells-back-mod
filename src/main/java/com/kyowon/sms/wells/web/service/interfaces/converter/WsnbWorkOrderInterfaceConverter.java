@@ -26,8 +26,8 @@ public interface WsnbWorkOrderInterfaceConverter {
     SaveReq mapDvoToContractSaveReq(WsnbWorkOrderDvo workOrder);
 
     @Mapping(source = "asRefriDvCd", target = "cstCnrRefriDvCd")
-    @Mapping(source = "prchsMatList", target = "partList")
-    @Mapping(source = "regUserId", target = "userId")
+    @Mapping(source = "prchsMatIz", target = "partList")
+    @Mapping(source = "rgstUsrId", target = "userId")
     WsnbWorkOrderDvo convertInterfaceDvoToDvo(WsnbWorkOrderInterfaceDvo install);
 
 }

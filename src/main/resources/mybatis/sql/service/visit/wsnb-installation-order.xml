@@ -81,4 +81,83 @@
            AND CNTR_SN = ${cntrSn} /* 계약일련번호 */
     </delete>
 
+    <insert id="insertCstSvasIstChHist">
+        INSERT INTO TB_SVPD_CST_SVAS_IST_CH_HIST ( /* 고객서비스AS설치변경이력 */
+               IN_CHNL_DV_CD    /* 입력채널구분코드 */
+             , SV_BIZ_HCLSF_CD  /* 서비스업무대분류코드 */
+             , RCPDT            /* 접수일자 */
+             , AS_IST_OJ_NO     /* AS설치대상번호 */
+             , CNTR_NO          /* 계약번호 */
+             , CNTR_SN          /* 계약일련번호 */
+             , APY_DTM          /* 적용일시 */
+             , MTR_STAT_CD      /* 자료상태코드 */
+             , SV_BIZ_DCLSF_CD  /* 서비스업무세분류코드 */
+             , VST_RQDT         /* 방문요청일자 */
+             , VST_AK_HH        /* 방문요청시간 */
+             , URGT_DV_CD       /* 긴급구분코드 */
+             , SMS_FW_YN        /* SMS발송여부 */
+             , SV_ET_AMT        /* 서비스예상금액 */
+             , DP_DV_CD         /* 입금구분코드 */
+             , CNSL_TP_HCLSF_CD /* 상담유형대분류코드 */
+             , CNSL_TP_MCLSF_CD /* 상담유형중분류코드 */
+             , CNSL_TP_LCLSF_CD /* 상담유형소분류코드 */
+             , CNSL_DTLP_TP_CD  /* 상담세부유형코드 */
+             , CNSL_MO_CN       /* 상담메모내용 */
+             , AS_REFRI_DV_CD   /* AS유무상구분코드 */
+             , CRAL_LOCARA_TNO  /* 휴대지역전화번호 */
+             , CRAL_IDV_TNO1    /* 휴대개별전화번호1 */
+             , CRAL_IDV_TNO2    /* 휴대개별전화번호2 */
+             , LOCARA_TNO       /* 지역전화번호 */
+             , IDV_TNO1         /* 개별전화번호1 */
+             , IDV_TNO2         /* 개별전화번호2 */
+             , IST_ZIP          /* 설치우편번호 */
+             , IST_ADR          /* 설치주소 */
+             , IST_DTL_ADR      /* 설치상세주소 */
+             , REF_ADR          /* 참조주소 */
+             , PRCHS_MAT_IZ     /* 구매자재내역 */
+             , ETC_CN1          /* 기타내용1 */
+             , OG_TP_CD         /* 조직유형코드 */
+             , RGST_USR_ID      /* 등록사용자ID */
+             , DTA_DL_YN        /* 데이터삭제여부 */
+             <include refid="COMMON.insertSystemField" />)
+        VALUES (
+               #{inChnlDvCd}
+             , #{svBizHclsfCd}
+             , NVL(#{rcpdt}, TO_CHAR(SYSDATE, 'YYYYMMDD'))
+             , #{asIstOjNo}
+             , #{cntrNo}
+             , #{cntrSn}
+             , NVL(#{apyDtm}, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'))
+             , #{mtrStatCd}
+             , #{svBizDclsfCd}
+             , #{vstRqdt}
+             , #{vstAkHh}
+             , #{urgtDvCd}
+             , #{smsFwYn}
+             , #{svEtAmt}
+             , #{dpDvCd}
+             , #{cnslTpHclsfCd}
+             , #{cnslTpMclsfCd}
+             , #{cnslTpLclsfCd}
+             , #{cnslDtlpTpCd}
+             , #{cnslMoCn}
+             , #{cstCnrRefriDvCd}
+             , #{cralLocaraTno}
+             , #{cralIdvTno1}
+             , #{cralIdvTno2}
+             , #{locaraTno}
+             , #{idvTno1}
+             , #{idvTno2}
+             , #{istZip}
+             , #{istAdr}
+             , #{istDtlAdr}
+             , #{refAdr}
+             , #{partList}
+             , #{etcCn1}
+             , #{ogTpCd}
+             , #{userId}
+             , 'N'
+             <include refid="COMMON.insertSystemFieldValue" /> )
+    </insert>
+
 </mapper>

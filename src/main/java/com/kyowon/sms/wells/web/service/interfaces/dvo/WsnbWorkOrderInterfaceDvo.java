@@ -25,7 +25,8 @@ public class WsnbWorkOrderInterfaceDvo {
     String cntrSn; // 계약일련번호
     String vstRqdt; // 방문요청일자
     String vstAkHh; // 방문요청시간
-    String urgtYn; // 긴급여부
+    String apyDtm; // 적용일시
+    String urgtDvCd; // 긴급구분코드
     String smsFwYn; // SMS발송여부
     int svEtAmt; // 서비스예상금액
     String dpDvCd; // 입금구분코드
@@ -35,7 +36,7 @@ public class WsnbWorkOrderInterfaceDvo {
     String cnslDtlpTpCd; // 상담세부유형코드
     String cnslMoCn; // 상담메모내용
     String asRefriDvCd; // AS유무상구분코드
-    String mtcmco; // 이동통신사
+    String cralLocaraTno; // 휴대지역전화번호
     String cphonIdvTno1; // 휴대폰개별전화번호1
     String cphonIdvTno2; // 휴대폰개별전화번호2
     String locaraTno; // 지역전화번호
@@ -46,7 +47,9 @@ public class WsnbWorkOrderInterfaceDvo {
     String istAdr; // 이전주소
     String istDtlAdr; // 이전주소상세
     String refAdr; // 참조주소
-    String prchsMatList; // 구매자재리스트
-    String regUserId; // 입력사용자ID
+    String prchsMatIz; // 구매자재내역
+    String etcCn1; // 기타내용1 (Y: 분리+재설치 시 이전 주소에서 서비스 받음)
+    String ogTpCd; // 조직유형코드
+    String rgstUsrId; // 등록사용자ID
 
 }
