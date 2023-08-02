@@ -35,4 +35,6 @@ public interface WsnbInstallationOrderMapper {
 
     int deleteSdingSppExpIz(String cntrNo, String cntrSn);
 
+    int insertCstSvasIstChHist(WsnbWorkOrderDvo order);
+
 }

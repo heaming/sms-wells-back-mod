@@ -55,6 +55,7 @@ public class WsnbWorkOrderInterfaceService {
         List<CreateOrderRes> orderRes = new ArrayList<>();
 
         for (WsnbWorkOrderInterfaceDvo order : orders) {
+            this.mapper.insertCstSvasIstChHist(order); // 파라미터 로그 저장
 
             if (order.getSvBizDclsfCd().startsWith(SV_BIZ_MCLSF_CD_IST)) { // 1. 설치 요청
                 CreateOrderRes res = this.createInstallOrder(order);
@@ -144,7 +145,7 @@ public class WsnbWorkOrderInterfaceService {
         // 2. 계약주소 업데이트 (기존 계약 ADR_ID와 다른 경우에만 업데이트)
         if (!formatAddress.getAdrId().equals(oldAdrId)) {
             workOrderDvo.setAdrId(formatAddress.getAdrId());
-            workOrderDvo.setCralLocaraTno(ifDvo.getMtcmco());
+            workOrderDvo.setCralLocaraTno(ifDvo.getCralLocaraTno());
             workOrderDvo.setMexno(ifDvo.getCphonIdvTno1());
             workOrderDvo.setCralIdvTno(ifDvo.getCphonIdvTno2());
             workOrderDvo.setLocaraTno(ifDvo.getLocaraTno());

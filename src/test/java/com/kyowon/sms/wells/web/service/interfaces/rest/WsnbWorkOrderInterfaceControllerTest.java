@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.Commit;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -40,7 +41,7 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
     /* TEST DATA 준비 */
     // test/resources/service/interfaces/WorkOrderTestScript.sql
 
-    //@Commit
+    //    @Commit
     @Test
     @DisplayName("작업오더 - 판매 설치오더 신규")
     @Order(1)
@@ -57,6 +58,7 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
         callRestApi(List.of(createDto));
     }
 
+    //    @Commit
     @Test
     @DisplayName("작업오더 - 판매 설치오더 신규/수정/삭제")
     @Order(2)
@@ -107,7 +109,7 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
     void createWorkOrdersForWellsFarmInstall() throws Exception {
         // TEST DATA
         // 웰스팜 계약번호
-        String cntrNo = "W20231854072";
+        String cntrNo = "W20234900311";
         String cntrSn = "1";
 
         // 모종 계약번호
@@ -230,7 +232,7 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
         return CreateOrderReq.builder()
             .inChnlDvCd("1")
             .svBizHclsfCd("1")
-            .svBizDclsfCd("1310")
+            .svBizDclsfCd("1110")
             .cntrNo(cntrNo)
             .cntrSn(cntrSn)
             .mtrStatCd(mtrStatCd)
@@ -240,8 +242,9 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
             .cnslTpMclsfCd("E111")
             .cnslTpLclsfCd("EC10")
             .cnslMoCn("불량고객입니다. 조심하세요.")
-            .prchsMatList("A,1,1000|B,1,2000")
+            .prchsMatIz("A,1,1000|B,1,2000")
             .smsFwYn("Y")
+            .urgtDvCd("")
             .build();
     }
 
@@ -260,6 +263,9 @@ class WsnbWorkOrderInterfaceControllerTest extends SpringTestSupport {
             .asIstOjNo(asIstOjNo)
             .vstRqdt(DateUtil.addDays(nowDayString, 2))
             .smsFwYn("Y")
+            .urgtDvCd("")
+            .ogTpCd("W06")
+            .rgstUsrId("1750966")
             .build();
     }
 

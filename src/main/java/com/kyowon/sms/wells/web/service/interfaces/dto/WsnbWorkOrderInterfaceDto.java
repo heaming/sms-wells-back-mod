@@ -47,9 +47,10 @@ public class WsnbWorkOrderInterfaceDto {
         String vstRqdt, // 방문요청일자
         @JsonProperty("VST_AK_HH")
         String vstAkHh, // 방문요청시간
-
-        @JsonProperty("URGT_YN")
-        String urgtYn, // 긴급여부
+        @JsonProperty("APY_DTM")
+        String apyDtm, // 적용일시
+        @JsonProperty("URGT_DV_CD")
+        String urgtDvCd, // 긴급구분코드 (1: 고객센터 당일 접수 건, NULL: 그외)
         @NotBlank
         @JsonProperty("SMS_FW_YN")
         String smsFwYn, // SMS발송여부
@@ -69,8 +70,8 @@ public class WsnbWorkOrderInterfaceDto {
         String cnslMoCn, // 상담메모내용
         @JsonProperty("AS_REFRI_DV_CD")
         String asRefriDvCd, // AS유무상구분코드
-        @JsonProperty("MTCMCO")
-        String mtcmco, // 이동통신사
+        @JsonProperty("CRAL_LOCARA_TNO")
+        String cralLocaraTno, // 휴대지역전화번호
         @JsonProperty("CPHON_IDV_TNO1")
         String cphonIdvTno1, // 휴대폰개별전화번호1
         @JsonProperty("CPHON_IDV_TNO2")
@@ -91,12 +92,14 @@ public class WsnbWorkOrderInterfaceDto {
         String istDtlAdr, // 이전주소상세
         @JsonProperty("REF_ADR")
         String refAdr, // 참조주소
-        @JsonProperty("PRCHS_MAT_LIST")
-        String prchsMatList, // 구매자재리스트
-        /* TODO: @JsonProperty("P_AC216_ETC_1")
-        String adrChangeYn, // 분리+재설치 시 이전 주소에서 서비스 받을지 여부*/
-        @JsonProperty("REG_USER_ID")
-        String regUserId // 입력사용자ID
+        @JsonProperty("PRCHS_MAT_IZ")
+        String prchsMatIz, // 구매자재내역
+        @JsonProperty("ETC_CN1")
+        String etcCn1, // 기타내용1 (Y: 분리+재설치 시 이전 주소에서 서비스 받음)
+        @JsonProperty("OG_TP_CD")
+        String ogTpCd, // 조직유형코드
+        @JsonProperty("RGST_USR_ID")
+        String rgstUsrId // 등록사용자ID
     ) {}
 
     @Builder
@@ -104,7 +107,6 @@ public class WsnbWorkOrderInterfaceDto {
     public record CreateOrderRes(
         @JsonProperty("AS_IST_OJ_NO")
         String asIstOjNo // AS설치대상번호
-        // TODO: 별도 요청 키 사용 여부 확인 필요
     ) {}
 
 }

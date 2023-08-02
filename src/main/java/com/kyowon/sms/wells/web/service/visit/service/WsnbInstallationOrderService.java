@@ -45,11 +45,14 @@ public class WsnbInstallationOrderService {
     private final WctaInstallationReqdDtInService contractIstService; // 계약설치요청일자변경 서비스
 
     public List<String> saveInstallationOrder(List<SaveReq> dtos) throws Exception {
-        List<WsnbWorkOrderDvo> workOrderDvo = converter.mapAllSaveReqToWorkOrderDvo(dtos);
+        List<WsnbWorkOrderDvo> workOrderDvos = converter.mapAllSaveReqToWorkOrderDvo(dtos);
 
-        // TODO: 파라미터 로그 저장
+        // 파라미터 로그 저장 - TB_SVPD_CST_SVAS_IST_CH_HIST(고객서비스AS설치변경이력)
+        for (WsnbWorkOrderDvo order : workOrderDvos) {
+            this.mapper.insertCstSvasIstChHist(order);
+        }
 
-        return this.saveInstallationOrderByDvo(workOrderDvo);
+        return this.saveInstallationOrderByDvo(workOrderDvos);
     }
 
     @Transactional
