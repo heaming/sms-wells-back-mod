@@ -16,7 +16,6 @@ import lombok.Setter;
 @Getter
 public class WsnbInstallationConfirmationDvo {
     String wkPrtnrNo;
-    String prtnrKnmEng;
     String cntrNo;
     String cntrSn;
     String copnDvCdNm;
@@ -24,7 +23,6 @@ public class WsnbInstallationConfirmationDvo {
     String pdNm;
     int rentalAmt;
     String svPrd;
-    String prtnrKnmRcpt;
     String cstKnm;
     String bryyMmdd;
     String sexDvCd;
