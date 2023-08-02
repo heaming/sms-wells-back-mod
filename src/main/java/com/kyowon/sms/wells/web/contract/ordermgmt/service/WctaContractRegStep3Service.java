@@ -52,7 +52,7 @@ public class WctaContractRegStep3Service {
                 WctaContractWellsDtlDvo wellsDtl = regService.selectContractWellsDtl(cntrNo, cntrSn);
                 wellsDtl.setIstPlcTpCd("1");
                 wellsDtl.setFmmbN(1);
-                wellsDtl.setUseElectTpCd("1");
+                wellsDtl.setUseElectTpCd("2");
                 wellsDtl.setSrcwtTpCd("1");
                 wellsDtl.setWprsItstTpCd("1");
 

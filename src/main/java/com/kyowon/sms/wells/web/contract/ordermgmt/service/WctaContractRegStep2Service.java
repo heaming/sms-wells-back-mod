@@ -622,7 +622,7 @@ public class WctaContractRegStep2Service {
                 String chdvcPrmitYn = mchnChBfInfo.getChdvcPrmitYn(); // 기기변경허용여부
                 String chdvcBfPdClsfCd = mchnChBfInfo.getChdvcBfPdClsfCd(); // 기기변경이전상품분류
                 String chdvcBfPdCd = mchnChBfInfo.getChdvcBfPdCd(); // 기기변경이전상품코드
-                String lkChdvcPrmitYn = ""; // 연계코드기변제외
+                String lkChdvcPrmitYn = mchnChBfInfo.getLkChdvcPrmitYn(); // 연계코드기변제외
                 String chdvcTpCd = mchnCh.getMchnChTpCd(); // 기기변경유형
                 String oppstOrdRcptdt = mchnChBfInfo.getOppstOrdRcptdt(); // 기기변경이전상품접수일자
                 String oppstSlDt = mchnChBfInfo.getOppstSlDt(); // 기기변경이전상품매출일자

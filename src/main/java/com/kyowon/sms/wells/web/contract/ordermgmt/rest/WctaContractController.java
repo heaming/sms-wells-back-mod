@@ -422,7 +422,7 @@ public class WctaContractController {
 
     @ApiOperation(value = "통합계약 요약 조회", notes = "통합계약 요약 정보를 조회한다.")
     @GetMapping("/summaries")
-    public WctaContractRegDvo getCntrSmrs(
+    public WctaContractRegSmrDvo getCntrSmrs(
         @RequestParam
         String cntrNo
     ) {

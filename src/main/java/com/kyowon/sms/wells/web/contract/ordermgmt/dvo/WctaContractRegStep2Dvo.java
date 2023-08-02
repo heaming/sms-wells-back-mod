@@ -227,6 +227,7 @@ public class WctaContractRegStep2Dvo {
         String chdvcPrmitYn;
         String chdvcBfPdClsfCd;
         String chdvcBfPdCd;
+        String lkChdvcPrmitYn;
         String oppstOrdRcptdt;
         String oppstSlDt;
     }

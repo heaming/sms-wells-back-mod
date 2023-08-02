@@ -1225,6 +1225,9 @@
              , T3.PD_CD AS CHDVC_BF_PD_CD
              , SUBSTR(T2.CNTR_CNFM_DTM,1,8) AS OPPST_ORD_RCPTDT
              , T1.CNTR_PD_STRTDT AS OPPST_SL_DT
+             , CASE WHEN T5.BASE_CNTR_NO IS NOT NULL THEN 'Y'
+                    ELSE 'N'
+                    END AS LK_CHDVC_PRMIT_YN
           FROM TB_SSCT_CNTR_DTL T1
          INNER JOIN TB_SSCT_CNTR_BAS T2
             ON T2.CNTR_NO = T1.CNTR_NO
@@ -1235,6 +1238,11 @@
          INNER JOIN TB_PDBS_PD_ECOM_PRP_DTL T4
             ON T4.PD_EXTS_PRP_GRP_CD = 'CNTR'
            AND T4.PD_CD = T3.PD_CD
+          LEFT OUTER JOIN TB_SSCT_MCHN_CH_IZ T5
+            ON T5.BASE_CNTR_NO = T1.CNTR_NO
+           AND T5.BASE_CNTR_SN = T1.CNTR_SN
+           AND T5.MCHN_CH_SN = 1
+           AND T5.DTA_DL_YN = 'N'
          WHERE T1.CNTR_NO = #{mchnChOjCntrNo}
            AND T1.CNTR_SN = #{mchnChOjCntrSn}
     </select>
