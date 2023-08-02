@@ -12,6 +12,7 @@ public class WctiContractCancelDvo {
     private String sellTpCd;
     private String cntrExnDt;
     private String canDt;
+    private String cntrDtlStatCd;
 
     // 멤버십계약취소 시 조정/공제금액
     private String slCtrAmt;

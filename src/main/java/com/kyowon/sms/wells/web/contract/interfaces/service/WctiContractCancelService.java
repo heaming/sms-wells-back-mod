@@ -38,6 +38,7 @@ public class WctiContractCancelService {
         BizAssert.isTrue(overDaysCntrExnDt >= 0, "취소요청일자가 계약만료일자 이후입니다.");
 
         BizAssert.isTrue("2".equals(contract.getSellTpCd()), "렌털/리스 계약이 아닙니다.");
+        BizAssert.isFalse(contract.getCntrDtlStatCd().startsWith("3"), "MSG_ALT_BF_CANCEL_CONF");
 
         // 렌털계약취소
         cancelBaseService.cancelRentalContractForInterface(contract);
@@ -59,6 +60,7 @@ public class WctiContractCancelService {
 
         // validation
         BizAssert.isTrue("6".equals(contract.getSellTpCd()), "정기배송 계약이 아닙니다.");
+        BizAssert.isFalse(contract.getCntrDtlStatCd().startsWith("3"), "MSG_ALT_BF_CANCEL_CONF");
 
         // 정기배송해약취소
         cancelBaseService.cancelMembershipContractForInterface(contract);

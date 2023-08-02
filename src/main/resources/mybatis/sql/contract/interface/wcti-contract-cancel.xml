@@ -7,6 +7,7 @@
              , C1.CNTR_SN
              , C1.SELL_TP_CD
              , TO_CHAR(ADD_MONTHS(TO_DATE(C1.CNTR_PD_STRTDT, 'YYYYMMDD'), NVL(C1.CNTR_PTRM, 0)), 'YYYYMMDD') AS CNTR_EXN_DT
+             , C1.CNTR_DTL_STAT_CD
           FROM TB_SSCT_CNTR_DTL C1
          WHERE 1 = 1
            AND C1.CNTR_NO = #{cntrNo}
