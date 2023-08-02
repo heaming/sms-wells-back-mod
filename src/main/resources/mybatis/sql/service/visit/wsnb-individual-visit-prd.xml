@@ -155,4 +155,130 @@
 
     </delete>
 
+    <select id="selectValidBsForceAssign"
+            resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbIndividualVisitPrdDvo">
+        SELECT (
+                SELECT DECODE(count(1), 0, 'N','Y') AS COUNT_YN
+                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
+                 WHERE 1=1
+                   AND CNTR_NO = #{cntrNo}
+                   AND CNTR_SN = #{cntrSn}
+                   AND ASN_OJ_YM = #{asnOjYm}
+               ) AS VALID_YN_1
+             , (
+                SELECT DECODE(count(*), 0, 'N','Y') AS COUNT_YN
+                  FROM TB_SVPD_CST_SV_BFSVC_OJ_IZ
+                 WHERE 1=1
+                   AND CNTR_NO = #{cntrNo}
+                   AND CNTR_SN = #{cntrSn}
+                   AND ASN_OJ_YM = #{asnOjYm}
+               ) AS VALID_YN_2
+             , (
+                SELECT DECODE(count(*), 0, 'N','Y') AS COUNT_YN
+                  FROM TB_SVPD_RGBS_PU_ITM_IZ
+                 WHERE 1=1
+                   AND CNTR_NO = #{cntrNo}
+                   AND CNTR_SN = #{cntrSn}
+                   AND ASN_OJ_YM = #{asnOjYm}
+               ) AS VALID_YN_3
+             , (
+                SELECT DECODE(count(*), 0, 'N','Y') AS COUNT_YN
+                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ
+                 WHERE 1=1
+                   AND CNTR_NO = #{cntrNo}
+                   AND CNTR_SN = #{cntrSn}
+                   AND ASN_OJ_YM = #{asnOjYm}
+               ) AS VALID_YN_4
+             , (
+                SELECT DECODE(count(*), 0, 'N','Y') AS COUNT_YN
+                  FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ t1
+                 WHERE 1=1
+                   AND t1.CST_SV_ASN_NO = (SELECT MAX(zz.CST_SV_ASN_NO)
+                                           FROM TB_SVPD_CST_SV_BFSVC_ASN_IZ zz
+                                              , TB_SVPD_CST_SV_BFSVC_OJ_IZ yy
+                                          WHERE 1=1
+                                            AND yy.CNTR_NO = #{cntrNo}
+                                            AND yy.CNTR_SN = #{cntrSn}
+                                            AND zz.CNTR_NO = yy.CNTR_NO
+                                            AND zz.CNTR_SN = yy.CNTR_SN
+                                            AND zz.CST_SV_ASN_NO = yy.CST_SV_ASN_NO
+                                            AND yy.VST_DV_CD <![CDATA[ <> ]]> '20'
+                                            AND zz.ASN_OJ_YM <![CDATA[ < ]]> #{asnOjYm})
+                   AND t1.VST_PRGS_STAT_CD <![CDATA[ <> ]]> '20'
+               ) AS VALID_YN_5
+          FROM DUAL
+    </select>
+
+    <insert id="insertBsForceAssign">
+        INSERT INTO TB_SVPD_CST_SV_RGBSPR_IZ (
+              CNTR_NO
+            , CNTR_SN
+            , SV_BIZ_MCLSF_CD
+            , SV_BIZ_DCLSF_CD
+            , WK_SN
+            , VST_DUEDT
+            , FILT_CHNG_LV_CD
+            , VST_DV_CD
+            , ITM_KND_CD
+            , IST_NMN_N
+            , VST_NMN_N
+            , PART_PD_CD
+            , PART_USE_QTY
+            , MTR_CAN_DT
+            , MTR_CAN_RSON_CD
+            , WK_DT
+            , WK_PSIC_DV_CD
+            , WK_PSIC_OG_TP_CD
+            , WK_PSIC_NO
+            , CPSN_ASN_RGST_DT
+            , CPSN_ASN_PRTNR_OG_TP_CD
+            , CPSN_ASN_PRTNR_NO
+            , DTA_DL_YN
+              <include refid="COMMON.insertSystemField"/>
+        )
+        SELECT yy.CNTR_NO
+             , yy.CNTR_SN
+             , yy.SV_BIZ_MCLSF_CD
+             , yy.SV_BIZ_DCLSF_CD
+             , NVL((
+                 SELECT MAX(TEMP.WK_SN) AS WK_SN
+                   FROM TB_SVPD_CST_SV_RGBSPR_IZ TEMP
+                  WHERE 1=1
+                    AND TEMP.CNTR_NO = yy.CNTR_NO
+                    AND TEMP.CNTR_SN = yy.CNTR_SN
+                    AND TEMP.SV_BIZ_MCLSF_CD = yy.SV_BIZ_MCLSF_CD
+                    AND TEMP.SV_BIZ_DCLSF_CD = yy.SV_BIZ_DCLSF_CD
+               ) + (RANK() OVER(PARTITION BY yy.CNTR_NO, yy.CNTR_SN, yy.SV_BIZ_MCLSF_CD, yy.SV_BIZ_DCLSF_CD ORDER BY yy.WK_SN)), 1) AS WK_SN
+             , yy.VST_DUEDT
+             , yy.FILT_CHNG_LV_CD
+             , yy.VST_DV_CD
+             , yy.ITM_KND_CD
+             , (yy.IST_NMN_N + MONTHS_BETWEEN(TO_DATE(TO_CHAR(SYSDATE,'YYYYMM'),'YYYYMM'),TO_DATE(SUBSTR(yy.VST_DUEDT,1,6),'YYYYMM'))) AS IST_NMN_N
+             , (yy.VST_NMN_N + MONTHS_BETWEEN(TO_DATE(TO_CHAR(SYSDATE,'YYYYMM'),'YYYYMM'),TO_DATE(SUBSTR(yy.VST_DUEDT,1,6),'YYYYMM'))) AS VST_NMN_N
+             , yy.PART_PD_CD
+             , yy.PART_USE_QTY
+             , yy.MTR_CAN_DT
+             , yy.MTR_CAN_RSON_CD
+             , yy.WK_DT
+             , yy.WK_PSIC_DV_CD
+             , yy.WK_PSIC_OG_TP_CD
+             , yy.WK_PSIC_NO
+             , TO_CHAR(SYSDATE, 'YYYYMMDD') AS CPSN_ASN_RGST_DT
+             , #{session.ogTpCd} AS CPSN_ASN_PRTNR_OG_TP_CD
+             , #{session.prtnrNo} AS CPSN_ASN_PRTNR_NO
+             , yy.DTA_DL_YN
+               <include refid="COMMON.insertSystemFieldValue"/>
+          FROM TB_SVPD_CST_SV_RGBSPR_IZ yy
+         WHERE 1=1
+           AND yy.CNTR_NO = #{cntrNo}
+           AND yy.CNTR_SN = #{cntrSn}
+           AND (yy.VST_DUEDT BETWEEN (SELECT NVL(MAX(pp.WK_DT), '19000101')
+                                      FROM TB_SVPD_CST_SV_RGBSPR_IZ pp
+                                     WHERE pp.VST_DV_CD <![CDATA[ <> ]]> '20'
+                                       AND pp.WK_DT IS NOT NULL
+                                       AND pp.CNTR_NO = #{cntrNo}
+                                       AND pp.CNTR_SN = #{cntrSn}
+                                       ) AND TO_CHAR(SYSDATE, 'YYYYMM')||'00')
+    </insert>
+
 </mapper>

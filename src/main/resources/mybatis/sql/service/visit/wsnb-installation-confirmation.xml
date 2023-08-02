@@ -3,7 +3,6 @@
 
     <select id="selectInstallationConfirmation" resultType="com.kyowon.sms.wells.web.service.visit.dvo.WsnbInstallationConfirmationDvo">
         SELECT T1.WK_PRTNR_NO      /*설치엔지니어*/
-             , P1.PRTNR_KNM AS PRTNR_KNM_ENG      /*설치엔지니어명*/
              , T1.CNTR_NO
              , T1.CNTR_SN
              , F_CMZ_CD_NM('TNT_WELLS', 'COPN_DV_CD', T4.COPN_DV_CD) AS COPN_DV_CD_NM /*고객구분*/
@@ -11,7 +10,6 @@
              , CASE WHEN T4.BZRNO = '2148779183' /*롯데렌탈*/ THEN '' ELSE PD.PD_NM END AS PD_NM /*판매상품명*/
              , CASE WHEN T4.BZRNO = '2148779183' /*롯데렌탈*/ THEN 0 ELSE CD.FNL_AMT END AS RENTAL_AMT /*(할인제외된) 최종렌탈료*/
              , CD.SV_PRD /*관리주기*/
-             , P2.PRTNR_KNM AS PRTNR_KNM_RCPT      /*판매자성명*/
              , T4.CST_KNM                                 /*계약자 성명*/
              , CASE WHEN T4.BZRNO = '2148779183' /*롯데렌탈*/ THEN '' ELSE T4.BRYY_MMDD END AS BRYY_MMDD /*계약자 생년월일*/
              , T4.SEX_DV_CD                             /*계약자 성별 : 1 남, 2여 자*/
@@ -63,15 +61,6 @@
          INNER JOIN TB_SVPD_CST_SV_EXCN_IZ T3 /*고객서비스수행내역*/
             ON  T3.CNTR_NO = T1.CNTR_NO
            AND T3.CNTR_SN = T1.CNTR_SN
-         INNER JOIN TB_OGBS_MM_PRTNR_IZ P1 /*월파트너-담당엔지니어*/
-            ON  P1.BASE_YM  = SUBSTR(T1.WK_EXCN_DT,1,6)
-           AND P1.OG_TP_CD = T1.WK_PRTNR_OG_TP_CD
-           AND P1.PRTNR_NO = T1.WK_PRTNR_NO
-           AND P1.OG_TP_CD != 'HR1'
-         INNER JOIN TB_OGBS_MM_PRTNR_IZ P2 /*월파트너-접수담당자*/
-            ON  P2.BASE_YM  = SUBSTR(T2.RCPDT,1,6)
-           AND P2.OG_TP_CD = T3.MNGT_PRTNR_OG_TP_CD
-           AND P2.PRTNR_NO = T3.MNGT_PRTNR_NO
          INNER JOIN TB_SSCT_CNTR_ADR_REL C1 /*계약주소관계-계약주소*/
             ON  C1.DTL_CNTR_NO = T3.CNTR_NO
            AND C1.DTL_CNTR_SN = T3.CNTR_SN
@@ -106,7 +95,7 @@
           LEFT OUTER JOIN TB_SVPD_ELC_IST_CONF_IZ E1
             ON T1.CNTR_NO = E1.CNTR_NO
            AND T1.CNTR_SN = E1.CNTR_SN
-         INNER JOIN TB_SVPD_SIGN_TEMP TMP
+          LEFT OUTER JOIN TB_SVPD_SIGN_TEMP TMP
             ON T1.CST_SV_ASN_NO = TMP.CST_SV_ASN_NO
           LEFT OUTER JOIN TB_SVPD_ELC_IST_CONF_IZ EIC
             ON T3.CNTR_NO = EIC.CNTR_NO
