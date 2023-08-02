@@ -94,7 +94,13 @@
               , T1.BS_MEXNO_ENCR AS BS_MEXNO_ENCR                  /* 매니저 휴대전화국번호암호화 */
               , T1.BS_CRAL_IDV_TNO AS BS_CRAL_IDV_TNO              /* 매니저 휴대개별전화번호 */
         FROM (
-             SELECT /*+ USE_NL(T15 T11 T10 T12 T16 T17 T18 T19 T20 T21 T22 T25 T26) */
+             SELECT
+                    <if test="@MybatisUtils@isEmpty(bzrno) and @MybatisUtils@isEmpty(cntgCnfmDtm)">
+	                /*+ USE_NL(T15 T11 T10 T12 T16 T17 T18 T19 T20 T21 T22 T25 T26) */
+	                </if>
+                    <if test="@MybatisUtils@isNotEmpty(cntgCnfmDtm)">
+	                /*+ USE_NL(T15 T11 T10 T12 T16 T17 T18 T19 T20 T21 T22 T25 T26) LEADING(T11) NO_MERGE(T16) NO_MERGE(T23) */
+	                </if>
              	    T10.CNTR_NO                                 /* 계약번호 */
                   , T10.CNTR_SN                                 /* 계약일련번호 */
                   , T10.CNTR_PD_ENDDT
@@ -229,7 +235,7 @@
                                               AND DTA_DL_YN = 'N')
 
                  ) T16
-                 ON T16.CST_CTPLC_OJ_REFK_VAL = T11.CNTR_CST_NO
+                 ON 1=1 --T16.CST_CTPLC_OJ_REFK_VAL = T11.CNTR_CST_NO								--★★★★★★★★★★ SQL 수정!!!
               INNER JOIN TB_SSCT_CNTR_ADR_REL T17   /* T.계약주소관계 */
                  ON T17.DTL_CNTR_NO = T10.CNTR_NO
                 AND T17.DTL_CNTR_SN = T10.CNTR_SN
@@ -276,8 +282,8 @@
                         AND T23.CNTR_SN = T10.CNTR_SN
                         AND T23.DTA_DL_YN = 'N'
                     ) T23
-                 ON T23.CNTR_NO = T10.CNTR_NO
-                AND T23.CNTR_SN = T10.CNTR_SN
+                 ON 1=1 --T23.CNTR_NO = T10.CNTR_NO													--★★★★★★★★★★ SQL 수정!!!
+                --AND T23.CNTR_SN = T10.CNTR_SN                                                     --★★★★★★★★★★ SQL 수정!!!
                LEFT OUTER JOIN TB_SSCT_CNTR_STLM_REL T25 /* T.계약결제관계 */
                  ON T25.DTL_CNTR_NO = T10.CNTR_NO
                 AND T25.DTL_CNTR_SN = T10.CNTR_SN
