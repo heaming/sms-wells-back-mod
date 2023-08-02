@@ -3,6 +3,8 @@ package com.kyowon.sms.wells.web.service.allocate.dto;
 import com.sds.sflex.common.utils.DateUtil;
 import com.sds.sflex.common.utils.DbEncUtil;
 import com.sds.sflex.common.utils.StringUtil;
+import com.sds.sflex.system.config.annotation.DBDecField;
+import com.sds.sflex.system.config.annotation.DBEncField;
 import com.sds.sflex.system.config.validation.validator.ValidDate;
 import io.swagger.annotations.ApiModel;
 
@@ -324,6 +326,7 @@ public class WsncTimeTableDto {
         String rolDvNm,
         String rolDvNm2,
         String sjHp1,
+        @DBDecField
         String sjHp2,
         String sjHp3,
         String rpbLocaraCd,
@@ -349,16 +352,18 @@ public class WsncTimeTableDto {
         String tWrkCnt,
         String empPic,
         String locaraTno,
+        @DBDecField
         String exnoEncr,
         String idvTno,
         String cralLocaraTno,
+        @DBDecField
         String mexnoEncr,
         String cralIdvTno
     ) {
         public Psic {
-            exnoEncr = DbEncUtil.dec(exnoEncr);
-            mexnoEncr = DbEncUtil.dec(mexnoEncr);
-            sjHp2 = DbEncUtil.dec(sjHp2);
+//            exnoEncr = DbEncUtil.dec(exnoEncr);
+//            mexnoEncr = DbEncUtil.dec(mexnoEncr);
+//            sjHp2 = DbEncUtil.dec(sjHp2);
 
             empPic = Base64.getEncoder().encodeToString(empPic.getBytes(StandardCharsets.UTF_8));
 
