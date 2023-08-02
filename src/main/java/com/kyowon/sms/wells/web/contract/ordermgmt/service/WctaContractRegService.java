@@ -11,12 +11,15 @@ import com.google.api.client.util.Lists;
 import com.kyowon.sms.wells.web.contract.ordermgmt.dvo.*;
 import com.kyowon.sms.wells.web.contract.ordermgmt.mapper.*;
 import com.kyowon.sms.wells.web.contract.zcommon.constants.CtContractConst;
+import com.sds.sflex.common.common.service.CodeService;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class WctaContractRegService {
+    private final CodeService codeService;
+
     private final WctaContractRegMapper mapper;
     private final WctaContractRegStep1Mapper step1Mapper;
     private final WctaContractRegStep2Mapper step2Mapper;
@@ -180,60 +183,50 @@ public class WctaContractRegService {
         step4Mapper.updateCntrBasStep4(cntrNo, "");
     }
 
-    public WctaContractRegDvo selectCntrSmr(String cntrNo) {
-        WctaContractRegDvo dvo = new WctaContractRegDvo();
-        dvo.setCntrNo(cntrNo);
+    public WctaContractRegSmrDvo selectCntrSmr(String cntrNo) {
+        WctaContractRegSmrDvo dvo = new WctaContractRegSmrDvo();
 
-        WctaContractRegStep1Dvo step1Dvo = new WctaContractRegStep1Dvo();
-        WctaContractRegStep2Dvo step2Dvo = new WctaContractRegStep2Dvo();
-        WctaContractRegStep3Dvo step3Dvo = new WctaContractRegStep3Dvo();
-        WctaContractRegStep4Dvo step4Dvo = new WctaContractRegStep4Dvo();
-
-        step1Dvo.setBas(selectContractBas(cntrNo));
+        WctaContractBasDvo bas = selectContractBas(cntrNo);
+        // STEP1 계약유형
+        dvo.setCntrTpNm(codeService.getCodeDetailByPk("CNTR_TP_CD", bas.getCntrTpCd()).getCodeName());
         List<WctaContractCstRelDvo> cstRels = selectContractCstRel(cntrNo);
-        step1Dvo.setCntrt(
+        // STEP1 계약자명
+        dvo.setCntrtKnm(
             selectCntrtInfoByCstNo(
                 cstRels.stream().filter((v) -> "10".equals(v.getCntrCstRelTpCd())).findFirst()
                     .get().getCstNo()
-            )
-        );
-        step1Dvo.setLrnrCstNo(
-            cstRels.stream().filter((v) -> "20".equals(v.getCntrCstRelTpCd())).findFirst()
-                .orElse(new WctaContractCstRelDvo()).getCstNo()
+            ).getCstKnm()
         );
         List<WctaContractDtlDvo> dtls = selectProductInfos(cntrNo);
+        List<String> products = Lists.newArrayList();
         if (CollectionUtils.isNotEmpty(dtls)) {
-            step2Dvo.setDtls(dtls);
-            dvo.setStep2(step2Dvo);
-            // 결제관계 전체 리스트에서 수납코드구분 01일 때 0101이나 0201이 하나라도 존재하는 경우 해당 데이터 선택
             List<WctaContractStlmRelDvo> stlmRels = Lists.newArrayList();
             WctaContractDtlDvo fDtl = dtls.get(0);
-            step3Dvo.setStlmTpCd(fDtl.getStlmTpCd());
+            // STEP3 결제유형
+            if (StringUtils.isNotEmpty(fDtl.getStlmTpCd())) {
+                dvo.setStlmTpNm(codeService.getCodeDetailByPk("STLM_TP_CD", fDtl.getStlmTpCd()).getCodeName());
+                dvo.setDpTpNm("카드");
+            }
             dtls.forEach(
                 (dtl) -> {
+                    // STEP2 상품
+                    products.add(dtl.getPdNm());
                     // 금액: 계약결제관계 세팅
-                    List<WctaContractStlmRelDvo> stlms = selectContractStlmRels(dtl.getCntrNo(), dtl.getCntrSn());
-                    stlmRels.addAll(stlms.stream().filter((stlm) -> "01".equals(stlm.getRveDvCd())).toList());
+                    stlmRels.addAll(selectContractStlmRels(dtl.getCntrNo(), dtl.getCntrSn()));
                 }
             );
-            if (CollectionUtils.isNotEmpty(stlmRels)
-                || step1Dvo.getBas().getCntrTpCd().equals(CtContractConst.CNTR_TP_CD_MSH)) {
-                // 계약금/일시금 결제방법 카드/가상계좌 중 하나 찾으면 해당 값 세팅(무조건 통일이므로)
-                // 멤버십의 경우 계약금/등록금이 없기 때문에 stlmRels가 없어도 생성
-                step3Dvo.setCntramDpTpCd(
-                    stlmRels.stream().filter((stlm) -> StringUtils.containsAny(stlm.getDpTpCd(), "0201", "0101"))
-                        .findFirst().orElse(
-                            WctaContractStlmRelDvo.builder()
-                                .dpTpCd("")
-                                .build()
-                        ).getDpTpCd()
+            dvo.setProducts(products);
+            if (CollectionUtils.isNotEmpty(stlmRels)) {
+                dvo.setRcAmt(
+                    stlmRels.stream().filter((r) -> "01".equals(r.getRveDvCd())).map((r) -> r.getStlmAmt())
+                        .reduce(0L, Long::sum)
+                );
+                dvo.setMpAmt(
+                    stlmRels.stream().filter((r) -> "03".equals(r.getRveDvCd())).map((r) -> r.getStlmAmt())
+                        .reduce(0L, Long::sum)
                 );
             }
         }
-        dvo.setStep1(step1Dvo);
-        dvo.setStep2(step2Dvo);
-        dvo.setStep3(step3Dvo);
-        dvo.setStep4(step4Dvo);
         return dvo;
     }
 }

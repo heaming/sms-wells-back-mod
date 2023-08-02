@@ -258,7 +258,8 @@ WITH T11 AS (
                      , T11.IST_RDADR
                      --, T46.SPP_ORD_NO                                       /* 설치처정보 - 운송장번호 : WBLNUM */
                      , ''  AS SPP_ORD_NO                                    /* 설치처정보 - 운송장번호 : WBLNUM - 물류서비스에서 받아야함 */
-                     , (SELECT MAX(PDCT_IDNO) KEEP(DENSE_RANK FIRST ORDER BY OSTR_SN DESC)
+                     , (SELECT /*+ NO_UNNEST INDEX(TB_SSSO_PDCT_IDNO_OSTR_IZ PK_SSSO_PDCT_IDNO_OSTR_IZ) */
+                              MAX(PDCT_IDNO) KEEP(DENSE_RANK FIRST ORDER BY OSTR_SN DESC)
                          FROM TB_SSSO_PDCT_IDNO_OSTR_IZ  /* T.제품고유번호출고내역 */
                         WHERE 1=1
                           AND CNTR_NO = T11.CNTR_NO              /*계약번호  */
@@ -715,12 +716,14 @@ WITH T11 AS (
                                                                       THEN PMOT_FVR_QTY
                                                                       ELSE 0 END) AS PMOT_FVR_MCN   /*월별 혜택적용시 수량이 월임.*/
                                                             FROM TB_SSCT_CNTR_PMOT_IZ I1 /* T.계약프로모션내역 */
-                                                           INNER JOIN T11
-                                                              ON I1.DTL_CNTR_NO = T11.CNTR_NO
-                                                             AND I1.DTL_CNTR_SN = T11.CNTR_SN
+                                                           --INNER JOIN T11
+                                                              --ON I1.DTL_CNTR_NO = T11.CNTR_NO
+                                                             --AND I1.DTL_CNTR_SN = T11.CNTR_SN
                                                              --AND EXISTS (SELECT T11.CNTR_NO, T11.CNTR_SN FROM T11 WHERE T11.CNTR_NO = I1.DTL_CNTR_NO AND T11.CNTR_SN = I1.DTL_CNTR_SN)
                                                            WHERE 1=1
                                                              AND I1.DTA_DL_YN = 'N'
+                                                             AND I1.DTL_CNTR_NO = T11.CNTR_NO
+                                                             AND I1.DTL_CNTR_SN = T11.CNTR_SN
                                                             GROUP BY I1.DTL_CNTR_NO, I1.DTL_CNTR_SN, I1.PMOT_CD
                                                     ) T701
                                            LEFT OUTER JOIN TB_PDBS_PMOT_BAS T702 /* 프로모션 기본 */
@@ -728,8 +731,8 @@ WITH T11 AS (
                                             AND T702.VL_END_DTM = '99991231235959'
                                             AND T702.DTA_DL_YN = 'N'
                                           ) T71
-                    ON T71.DTL_CNTR_NO = T11.CNTR_NO
-                   AND T71.DTL_CNTR_SN = T11.CNTR_SN
+                    ON 1=1 --T71.DTL_CNTR_NO = T11.CNTR_NO
+                   --AND T71.DTL_CNTR_SN = T11.CNTR_SN
                   LEFT OUTER JOIN TB_SSCT_CNTR_DTL T72      /* T.계약상세 - 기기변경(이전 정보)  */
                     ON T72.CNTR_NO = T70.OJ_CNTR_NO       /* 대상 계약번호  */
                    AND T72.CNTR_SN = T70.OJ_CNTR_SN       /*계약번호  */

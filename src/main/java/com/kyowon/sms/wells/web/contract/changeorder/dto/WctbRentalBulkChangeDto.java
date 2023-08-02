@@ -2,8 +2,6 @@ package com.kyowon.sms.wells.web.contract.changeorder.dto;
 
 import java.util.List;
 
-import com.kyowon.sms.common.web.contract.zcommon.utils.CtContractUtils;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 
@@ -46,10 +44,8 @@ public class WctbRentalBulkChangeDto {
         String pdctIdno, //제품고유번호
         String stpStrtYm, //시작기간(중지시작년월)
         String stpEndYm, //종료기간 (중지종료년월)
-        String cralLocaraTno, //휴대전화1
-        String mexnoEncr, //휴대전화2
-        String cralIdvTno, //휴대전화3
-        String mobileTelNo, // 휴대전화
+        String stpCanYm, //중지취소년월
+        String cralLocaraTno, //휴대전화
         String feeFxamYn, // 수수료정액여부
         String pmotDscMcn, // 할인개월
         String pmotDscAmt, // 할인금액
@@ -64,11 +60,7 @@ public class WctbRentalBulkChangeDto {
         String fstRgstDtm, // 최초등록일시
         String fstRgstUsrId, // 최초등록사용자
         String fstRgstUsrNm // 최초등록사용자명
-    ) {
-        public SearchRes {
-            mobileTelNo = CtContractUtils.buildTno(cralLocaraTno, mexnoEncr, cralIdvTno);
-        }
-    }
+    ) {};
     // *********************************************************
     // Result Dto
     // *********************************************************
@@ -123,6 +115,8 @@ public class WctbRentalBulkChangeDto {
         String feeFxam, // 수수료정액여부
         String cntrDscAmt, // 할인금액
         String alncmpCntrDrmVal, // 제휴사계약식별값
+        String bfsvcBzsDvCd, // 업체BS구분
+        String splyBzsDvCd, // 업체구분
         String prmApyDvCd // 선납적용구분코드
     ) {}
     // *********************************************************
