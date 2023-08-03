@@ -29,7 +29,7 @@ public class WsnbWorkOrderInterfaceController {
 
     private final WsnbWorkOrderInterfaceService service;
 
-    @ApiOperation(value = "A/S, 분리, 재설치 및 설치정보 변경 등록 작업 오더 생성", notes = "타시스템(교원웰스, 고객센터, KMEMBERS)에서 다건의 A/S, 분리, 재설치 서비스 작업 오더 생성을 위해 사용한다.")
+    @ApiOperation(value = "[EAI_WSVI1019] A/S, 분리, 재설치 및 설치정보 변경 등록 작업 오더 생성", notes = "타시스템(교원웰스, 고객센터, KMEMBERS)에서 다건의 A/S, 분리, 재설치 서비스 작업 오더 생성을 위해 사용한다.")
     @PostMapping
     public EaiWrapper createWorkOrders(
         @Valid
