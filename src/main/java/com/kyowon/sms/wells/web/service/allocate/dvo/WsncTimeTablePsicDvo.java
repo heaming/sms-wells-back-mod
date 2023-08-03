@@ -1,5 +1,6 @@
 package com.kyowon.sms.wells.web.service.allocate.dvo;
 
+import com.sds.sflex.system.config.annotation.DBDecField;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,6 +15,7 @@ public class WsncTimeTablePsicDvo {
     String rolDvNm;
     String rolDvNm2;
     String sjHp1;
+    @DBDecField
     String sjHp2;
     String sjHp3;
     String rpbLocaraCd; // ac146LocalGb;
@@ -39,9 +41,11 @@ public class WsncTimeTablePsicDvo {
     String totalWrkCnt;
     String empPic;
     String locaraTno;
+    @DBDecField
     String exnoEncr;
     String idvTno;
     String cralLocaraTno;
+    @DBDecField
     String mexnoEncr;
     String cralIdvTno;
 
